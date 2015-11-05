@@ -123,4 +123,4 @@ http://127.0.0.1:5000/things?where={%22sample_project%22:%2210015AT%22}
 """
 
 if __name__ == '__main__':
-    app.run(port=5002, debug=True)
+    app.run(port=4999, debug=True)

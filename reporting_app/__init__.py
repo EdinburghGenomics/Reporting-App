@@ -1,4 +1,7 @@
 __author__ = 'mwham'
+import tornado.wsgi
+import tornado.httpserver
+import tornado.ioloop
 import flask as fl
 import requests
 
@@ -48,43 +51,9 @@ def _join(*parts):
 
 
 if __name__ == '__main__':
-    app.run('localhost', 5000)
-
-
-x = {
-    '_meta': {
-        'max_results': 25,
-        'total': 133,
-        'page': 1
-    },
-    '_items': [
-        {
-            'run_id': '150723_test',
-            '_links': {
-                'self': {
-                    'title': 'run_element',
-                    'href': 'data_points/563383a8f4b2c64566ae3289'
-                }
-            },
-            'lane': 1,
-            '_updated': 'Fri, 30 Oct 2015 14:50:16 GMT',
-            'sample_id': '10015AT0002_test',
-            'library_id': 'LP600_test',
-            'sample_project': '10015AT_test',
-            '_id': '563383a8f4b2c64566ae3289',
-            '_created': 'Fri, 30 Oct 2015 14:50:16 GMT',
-            'payload': {
-                'pc_of_Unexpected': '0.62%',
-                'Barcode': 'CGCGCAGT',
-                'pc_of_Lane': '0.01%',
-                'Nb_of_Read': '664',
-                'Lane': '6'
-            },
-            'barcode': 'TESTTEST',
-            '_etag': '064dd42c751b9aa862c46907909360bfc2f08eb7',
-            'report_type': 'demultiplexing'
-
-
-        }
-    ]
-}
+    print('setting up http server')
+    http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
+    http_server.listen(5000)
+    print('starting')
+    tornado.ioloop.IOLoop.instance().start()
+ 
