@@ -1,5 +1,8 @@
 __author__ = 'mwham'
 import argparse
+import tornado.wsgi
+import tornado.httpserver
+import tornado.ioloop
 import eve
 
 if __name__ == '__main__':
@@ -124,4 +127,7 @@ if __name__ == '__main__':
     """
 
     args = p.parse_args()
-    app.run(port=args.port, debug=True)
+
+    http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
+    http_server.listen(args.port)
+    tornado.ioloop.IOLoop.instance().start()
