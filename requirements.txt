@@ -1,0 +1,4 @@
+tornado==4.2.1
+flask==0.10.1
+requests==2.8.1
+eve==0.6
