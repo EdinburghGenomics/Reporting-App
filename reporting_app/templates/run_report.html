@@ -1,0 +1,81 @@
+{% extends 'reporting_base.html' %}
+{% block title %}Run report{% endblock %}
+{% block head %}
+    {{ super() }}
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.9/css/jquery.dataTables.css" />
+    <!-- jQuery -->
+    <script type="text/javascript" charset="utf8" src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+    <!-- DataTables -->
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<h1>Report for {{ dataset }}</h1>
+
+<h2>Demultiplexing report</h2>
+<script type="text/javascript" language="JavaScript" class="init">
+    $(document).ready(
+        function() {
+            $('#demultiplexing_table').DataTable(
+                {
+                    'processing': true,
+                    'serverSide': true,
+                    'ajax': function(data, callback, settings) {
+                        $.ajax(
+                            {
+                                'url': 'http://localhost:4999/api/0.1/run_elements?where={"run_id":"{{run_id}}"}',
+                                'data': {'max_results': data.length, 'page': (data.start/data.length) + 1},
+                                'dataType': 'jsonp',
+                                'success': function(json) {
+                                console.log(json);
+                                    var o = {
+                                        recordsTotal: json._meta.total,
+                                        recordsFiltered: json._meta.total,
+                                        data: json.data
+                                    };
+                                    callback(o);
+                                }
+                            }
+                        );
+
+                    },
+
+                    'columns': [
+                        {data: 'lane'},
+                        {data: 'barcode'},
+                        {data: 'project'},
+                        {data: 'library_id'},
+                        {data: 'sample_id'},
+                        {data: 'pc_pass_filter'},
+                        {data: 'passing_filter_reads'},
+                        {data: 'yield_in_gb'},
+                        {data: 'pc_q30_r1'},
+                        {data: 'pc_q30_r2'}
+                    ]
+                }
+            );
+        }
+    );
+   </script>
+
+<table id="demultiplexing_table" class="display">
+    <thead>
+        <tr>
+            <th>Lane</th>
+            <th>Barcode</th>
+            <th>Sample project</th>
+            <th>Library ID</th>
+            <th>Sample_id</th>
+            <th>% Pass-filter</th>
+            <th>Passing-filter reads</th>
+            <th>Yield(Gb)</th>
+            <th>% Q30 R1</th>
+            <th>% Q30 R2</th>
+        </tr>
+    </thead>
+</table>
+
+
+{% endblock %}

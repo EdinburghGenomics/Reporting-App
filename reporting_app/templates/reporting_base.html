@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+    </style>
+    <meta charset="UTF-8">
+    {% block head %}
+    <title>{% block title %}{% endblock %} - Edinburgh Genomics Analysis Driver Reports</title>
+    {% endblock %}
+</head>
+<body>
+    <div id='content'>{% block content %}{% endblock %}</div>
+</body>
+</html>

@@ -16,7 +16,6 @@ if __name__ == '__main__':
 
             'run_elements': {  # for demultiplexing reports, etc
                 'url': 'run_elements',
-                'resource_methods': ['GET', 'POST', 'DELETE'],
                 'item_title': 'element',
 
                 'schema': {
@@ -127,7 +126,7 @@ if __name__ == '__main__':
     """
 
     args = p.parse_args()
-
-    http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
-    http_server.listen(args.port)
-    tornado.ioloop.IOLoop.instance().start()
+    app.run(port=4999)
+    #http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
+    #http_server.listen(args.port)
+    #tornado.ioloop.IOLoop.instance().start()

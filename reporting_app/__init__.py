@@ -4,11 +4,15 @@ import tornado.wsgi
 import tornado.httpserver
 import tornado.ioloop
 import flask as fl
+import pymongo
 
 
 DEBUG = False
+
 app = fl.Flask(__name__)
 app.config.from_object(__name__)
+cli = pymongo.MongoClient('localhost', 4998)
+rest_api_base = 'http://localhost:4999/api/0.1'
 
 
 @app.route('/')
@@ -16,20 +20,30 @@ def main_page():
     return fl.render_template('main.html')
 
 
-@app.route('/project/<project>/')
-def report_project(project):
-    return fl.render_template('project_overview.html', project=project, num_points=0)
+@app.route('/reports/')
+def reports():
+    return fl.render_template('reports.html')
 
 
-@app.route('/run_id/<run_id>/')
+@app.route('/reports/runs/')
+def run_reports():
+    runs = set(x['run_id'] for x in cli['test_db']['run_elements'].find(projection={'run_id': True}))
+    return fl.render_template('runs.html', runs=runs)
+
+
+@app.route('/reports/runs/<run_id>')
 def report_run(run_id):
-    # data = _fetch_data_points(run_id=run_id)
-    return fl.render_template('run_overview.html', run_id=run_id, num_points=0)  # data['_meta']['total'])
+    return fl.render_template('run_report.html', run_id=run_id)
 
 
-@app.route('/<dataset_type>/<dataset>/demultiplexing')
-def project_demultiplexing(dataset_type, dataset):
-    return fl.render_template('demultiplexing_report.html', dataset_type=dataset_type, dataset=dataset)
+@app.route('/reports/samples/')
+def sample_reports():
+    return fl.render_template('samples.html')
+
+
+@app.route('/reports/samples/<sample_id>')
+def project_demultiplexing(sample_id):
+    return fl.render_template('sample_report.html', sample_id=sample_id)
 
 
 def _join(*parts):
