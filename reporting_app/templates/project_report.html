@@ -1,7 +1,7 @@
 {% extends 'reporting_base.html' %}
 {% from 'datatable.html' import datatable %}
 
-{% block title %}Run report{% endblock %}
+{% block title %}Project report{% endblock %}
 {% block head %}
     {{ super() }}
     <!-- DataTables CSS -->
@@ -14,7 +14,7 @@
 
 {% block content %}
 
-<h1>Report for {{ run_id }}</h1>
+<h1>Report for {{ project }}</h1>
 
 {% for table in datatables %}
 <h2>{{ table.title }}</h2>

@@ -1,0 +1,74 @@
+{% macro datatable(name, cols, api_url) -%}
+<!--
+    this takes a dict called table_config, containing:
+
+        table_name (str) - a name for the table,
+        cols (tuple[tuple[str,str]]) - the column names for the table, mapping their names in the database to formatted names to display in html,
+        api_url (str) - the base url for the table to query,
+
+-->
+<script type="text/javascript" language="JavaScript" class="init">
+    $(document).ready(
+        function() {
+            var cols = {{ cols|map(attribute=0)|list|safe }};
+
+            $('#{{ name }}').DataTable(
+                {
+                    'processing': true,
+                    'serverSide': true,
+                    'ajax': function(data, callback, settings) {
+
+                        // convert [{'column': 0, 'dir': 'asc'}, {'column': 1, 'dir': 'desc'}]
+                        // to [cols[0], '-' + cols[1]]
+                        var sortCols = new Array();
+                        data.order.forEach(
+                            function(s) {
+                                if (s.dir == 'desc') {
+                                    sortCols.push('-' + cols[s.column]);
+                                } else {
+                                    sortCols.push(cols[s.column]);
+                                }
+                            }
+                        );
+
+                        $.ajax(
+                            {
+                                'url': '{{ api_url|safe }}',
+                                'data': {
+                                    'max_results': data.length,
+                                    'page': (data.start/data.length) + 1,
+                                    // convert [cols[0], '-' + cols[1]] to '%s,-%s' % (cols[0], cols[1])
+                                    'sort': sortCols.toString()
+                                },
+                                'dataType': 'jsonp',
+                                'success': function(json) {
+                                    var o = {
+                                        recordsTotal: json._meta.total,
+                                        recordsFiltered: json._meta.total,
+                                        data: json.data
+                                    };
+                                    callback(o);
+                                }
+                            }
+                        );
+
+                    },
+                    'columns': cols.map(function(c) { return {'data': c}; }),
+                    'order': [[0, 'asc']]
+                }
+            );
+        }
+    );
+</script>
+
+<table id="{{ name }}" class="display">
+    <thead>
+        <tr>
+            {% for original, formatted in cols %}
+            <th>{{ formatted }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+</table>
+
+{%- endmacro %}
