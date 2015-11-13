@@ -8,6 +8,7 @@ $(document).ready(
         var api_url = '{{ api_url|safe }}';
         $('#{{name}}').DataTable(
             {
+                'searching': false,
                 'processing': true,
                 'serverSide': true,
                 'ajax': function(data, callback, settings) {

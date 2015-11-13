@@ -15,37 +15,37 @@ col_mappings = {
         {'name': 'project',                  'title': 'Project'},
         {'name': 'library_id',               'title': 'Library ID'},
         {'name': 'sample_id',                'title': 'Sample ID'},
-        {'name': 'pc_pass_filter',           'title': '% Pass-filter',           'fmt': {'percent': 'true'}},
-        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'commas':  'true'}},
-        {'name': 'yield_in_gb',              'title': 'Yield (Gb)',              'fmt': {'commas':  'true'}},
-        {'name': 'pc_q30_r1',                'title': '% Q30 R1',                'fmt': {'percent': 'true'}},
-        {'name': 'pc_q30_r2',                'title': '% Q30 R2',                'fmt': {'percent': 'true'}}
+        {'name': 'pc_pass_filter',           'title': '% Pass-filter',           'fmt': {'type': 'percentage'}},
+        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'type': 'largeint'}},
+        {'name': 'yield_in_gb',              'title': 'Yield (Gb)',              'fmt': {'type': 'largefloat'}},
+        {'name': 'pc_q30_r1',                'title': '% Q30 R1',                'fmt': {'type': 'percentage'}},
+        {'name': 'pc_q30_r2',                'title': '% Q30 R2',                'fmt': {'type': 'percentage'}}
     ),
 
     'unexpected_barcodes': (
         {'name': 'lane',                     'title': 'Lane'},
         {'name': 'barcode',                  'title': 'Barcode'},
-        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'commas':  'true'}},
-        {'name': 'pc_reads_in_lane',         'title': '% Reads in lane',         'fmt': {'percent': 'true'}}
+        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'type': 'largeint'}},
+        {'name': 'pc_reads_in_lane',         'title': '% Reads in lane',         'fmt': {'type': 'percentage'}}
     ),
 
     'samples': (
         {'name': 'sample_id',                'title': 'Sample ID'},
         {'name': 'library_id',               'title': 'Library ID'},
         {'name': 'user_sample_id',           'title': 'User sample ID'},
-        {'name': 'yield_in_gb',              'title': 'Yield (Gb)',              'fmt': {'commas':  'true'}},
-        {'name': 'initial_reads',            'title': 'Initial reads',           'fmt': {'commas':  'true'}},
-        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'commas':  'true'}},
-        {'name': 'nb_mapped_reads',          'title': '# mapped reads',          'fmt': {'commas':  'true'}},
-        {'name': 'pc_mapped_reads',          'title': '% mapped reads',          'fmt': {'percent': 'true'}},
-        {'name': 'nb_properly_mapped_reads', 'title': '# properly mapped reads', 'fmt': {'commas':  'true'}},
-        {'name': 'pc_properly_mapped_reads', 'title': '% properly mapped reads', 'fmt': {'percent': 'true'}},
-        {'name': 'nb_duplicate_reads',       'title': '# duplicate reads',       'fmt': {'commas':  'true'}},
-        {'name': 'pc_duplicate_reads',       'title': '% duplicate reads',       'fmt': {'percent': 'true'}},
-        {'name': 'median_coverage',          'title': 'Median coverage',         'fmt': {'commas':  'true'}},
-        {'name': 'pc_callable',              'title': '% callable',              'fmt': {'percent': 'true'}},
-        {'name': 'pc_q30_r1',                'title': '% Q30 R1',                'fmt': {'percent': 'true'}},
-        {'name': 'pc_q30_r2',                'title': '% Q30 R2',                'fmt': {'percent': 'true'}}
+        {'name': 'yield_in_gb',              'title': 'Yield (Gb)',              'fmt': {'type': 'largefloat'}},
+        {'name': 'initial_reads',            'title': 'Initial reads',           'fmt': {'type': 'largeint'}},
+        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'type': 'largeint'}},
+        {'name': 'nb_mapped_reads',          'title': '# mapped reads',          'fmt': {'type': 'largeint'}},
+        {'name': 'pc_mapped_reads',          'title': '% mapped reads',          'fmt': {'type': 'percentage'}},
+        {'name': 'nb_properly_mapped_reads', 'title': '# properly mapped reads', 'fmt': {'type': 'largeint'}},
+        {'name': 'pc_properly_mapped_reads', 'title': '% properly mapped reads', 'fmt': {'type': 'percentage'}},
+        {'name': 'nb_duplicate_reads',       'title': '# duplicate reads',       'fmt': {'type': 'largeint'}},
+        {'name': 'pc_duplicate_reads',       'title': '% duplicate reads',       'fmt': {'type': 'percentage'}},
+        {'name': 'median_coverage',          'title': 'Median coverage',         'fmt': {'type': 'largefloat'}},
+        {'name': 'pc_callable',              'title': '% callable',              'fmt': {'type': 'percentage'}},
+        {'name': 'pc_q30_r1',                'title': '% Q30 R1',                'fmt': {'type': 'percentage'}},
+        {'name': 'pc_q30_r2',                'title': '% Q30 R2',                'fmt': {'type': 'percentage'}}
     )
 
 }
@@ -160,10 +160,10 @@ if __name__ == '__main__':
 
     app.config.from_object(__name__)
     cli = pymongo.MongoClient('localhost', 4998)
-    rest_api_base = 'http://localhost:4999/api/0.1'
 
     p = argparse.ArgumentParser()
     p.add_argument('-p', '--port', type=int, help='port to run the Flask app on')
+    p.add_argument('-r', '--rest-api', type=str, required=True, help='the base url of the REST api to use')
     p.add_argument('-d', '--debug', action='store_true', help='run the app in debug mode')
     p.add_argument(
         '-t',
@@ -172,6 +172,8 @@ if __name__ == '__main__':
         help='use Tornado\'s http server and wsgi container for external access'
     )
     args = p.parse_args()
+
+    rest_api_base = args.rest_api
 
     if args.tornado:
         import tornado.wsgi

@@ -2,6 +2,7 @@ __author__ = 'mwham'
 import argparse
 import eve
 
+
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('-p', '--port', type=int, help='port to run Eve API on')
@@ -35,16 +36,16 @@ if __name__ == '__main__':
                     'library_id':           {'type':  'string', 'required': True},
                     'sample_id':            {'type':  'string', 'required': True},
 
-                    'pc_pass_filter':       {'type':   'float', 'required': True},
-                    'passing_filter_reads': {'type': 'integer', 'required': True},
-                    'pc_reads_in_lane':     {'type':   'float', 'required': True},
-                    'yield_in_gb':          {'type':   'float', 'required': True},
+                    'pc_pass_filter':       {'type':   'float', 'required': False},
+                    'passing_filter_reads': {'type': 'integer', 'required': False},
+                    'pc_reads_in_lane':     {'type':   'float', 'required': False},
+                    'yield_in_gb':          {'type':   'float', 'required': False},
 
                     'fastqc_report_r1':     {'type': 'string', 'required': False},
                     'fastqc_report_r2':     {'type': 'string', 'required': False},
 
-                    'pc_q30_r1':            {'type':   'float', 'required': True},
-                    'pc_q30_r2':            {'type':   'float', 'required': True}
+                    'pc_q30_r1':            {'type':   'float', 'required': False},
+                    'pc_q30_r2':            {'type':   'float', 'required': False}
 
                 }
 
@@ -61,8 +62,8 @@ if __name__ == '__main__':
                     'run_id':               {'type':  'string', 'required': True},
                     'lane':                 {'type': 'integer', 'required': True},
                     'barcode':              {'type':  'string', 'required': True},
-                    'passing_filter_reads': {'type':   'float', 'required': True},
-                    'pc_reads_in_lane':     {'type':   'float', 'required': True}
+                    'passing_filter_reads': {'type':   'float', 'required': False},
+                    'pc_reads_in_lane':     {'type':   'float', 'required': False}
                 }
             },
 
@@ -74,23 +75,23 @@ if __name__ == '__main__':
                     'project':                  {'type':  'string', 'required': True},
                     'library_id':               {'type':  'string', 'required': True, 'unique': True},
                     'sample_id':                {'type':  'string', 'required': True},
-                    'user_sample_id':           {'type':  'string', 'required': True},
+                    'user_sample_id':           {'type':  'string', 'required': False},
 
-                    'yield_in_gb':              {'type':   'float', 'required': True},
+                    'yield_in_gb':              {'type':   'float', 'required': False},
                     # initial_ reads used to be 'no adaptor reads'. TODO: should this be required?
-                    'initial_reads':            {'type': 'integer', 'required': True},
-                    'passing_filter_reads':     {'type': 'integer', 'required': True},
-                    'nb_mapped_reads':          {'type': 'integer', 'required': True},
-                    'pc_mapped_reads':          {'type':   'float', 'required': True},
-                    'nb_properly_mapped_reads': {'type': 'integer', 'required': True},
-                    'pc_properly_mapped_reads': {'type':   'float', 'required': True},
-                    'nb_duplicate_reads':       {'type': 'integer', 'required': True},
-                    'pc_duplicate_reads':       {'type':   'float', 'required': True},
-                    'median_coverage':          {'type':   'float', 'required': True},
-                    'pc_callable':              {'type':   'float', 'required': True},
+                    'initial_reads':            {'type': 'integer', 'required': False},
+                    'passing_filter_reads':     {'type': 'integer', 'required': False},
+                    'nb_mapped_reads':          {'type': 'integer', 'required': False},
+                    'pc_mapped_reads':          {'type':   'float', 'required': False},
+                    'nb_properly_mapped_reads': {'type': 'integer', 'required': False},
+                    'pc_properly_mapped_reads': {'type':   'float', 'required': False},
+                    'nb_duplicate_reads':       {'type': 'integer', 'required': False},
+                    'pc_duplicate_reads':       {'type':   'float', 'required': False},
+                    'median_coverage':          {'type':   'float', 'required': False},
+                    'pc_callable':              {'type':   'float', 'required': False},
 
-                    'pc_q30_r1':                {'type':   'float', 'required': True},
-                    'pc_q30_r2':                {'type':   'float', 'required': True}
+                    'pc_q30_r1':                {'type':   'float', 'required': False},
+                    'pc_q30_r2':                {'type':   'float', 'required': False}
                 }
             },
 
