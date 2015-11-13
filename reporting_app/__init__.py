@@ -3,19 +3,10 @@ import argparse
 import flask as fl
 import os.path
 import pymongo
-import json
 
-
-DEBUG = False
 
 app = fl.Flask(__name__)
-app.config.from_object(__name__)
-cli = pymongo.MongoClient('localhost', 4998)
-rest_api_base = 'http://localhost:4999/api/0.1'
 
-format_configs = {
-
-}
 
 col_mappings = {
     'demultiplexing': (
@@ -24,37 +15,37 @@ col_mappings = {
         {'name': 'project',                  'title': 'Project'},
         {'name': 'library_id',               'title': 'Library ID'},
         {'name': 'sample_id',                'title': 'Sample ID'},
-        {'name': 'pc_pass_filter',           'title': '% Pass-filter',           'fmt': {'percentage': 'true'}},
-        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'commas': 3}},
-        {'name': 'yield_in_gb',              'title': 'Yield (Gb)',              'fmt': {'commas': 3}},
-        {'name': 'pc_q30_r1',                'title': '% Q30 R1',                'fmt': {'percentage': 'true'}},
-        {'name': 'pc_q30_r2',                'title': '% Q30 R2',                'fmt': {'percentage': 'true'}}
+        {'name': 'pc_pass_filter',           'title': '% Pass-filter',           'fmt': {'percent': 'true'}},
+        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'commas':  'true'}},
+        {'name': 'yield_in_gb',              'title': 'Yield (Gb)',              'fmt': {'commas':  'true'}},
+        {'name': 'pc_q30_r1',                'title': '% Q30 R1',                'fmt': {'percent': 'true'}},
+        {'name': 'pc_q30_r2',                'title': '% Q30 R2',                'fmt': {'percent': 'true'}}
     ),
 
     'unexpected_barcodes': (
         {'name': 'lane',                     'title': 'Lane'},
         {'name': 'barcode',                  'title': 'Barcode'},
-        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'commas': 3}},
-        {'name': 'pc_reads_in_lane',         'title': '% Reads in lane',         'fmt': {'percentage': 'true'}}
+        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'commas':  'true'}},
+        {'name': 'pc_reads_in_lane',         'title': '% Reads in lane',         'fmt': {'percent': 'true'}}
     ),
 
     'samples': (
         {'name': 'sample_id',                'title': 'Sample ID'},
         {'name': 'library_id',               'title': 'Library ID'},
         {'name': 'user_sample_id',           'title': 'User sample ID'},
-        {'name': 'yield_in_gb',              'title': 'Yield (Gb)',              'fmt': {'commas': 3}},
-        {'name': 'initial_reads',            'title': 'Initial reads',           'fmt': {'commas': 3}},
-        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'commas': 3}},
-        {'name': 'nb_mapped_reads',          'title': '# mapped reads',          'fmt': {'commas': 3}},
-        {'name': 'pc_mapped_reads',          'title': '% mapped reads',          'fmt': {'percentage': 'true'}},
-        {'name': 'nb_properly_mapped_reads', 'title': '# properly mapped reads', 'fmt': {'commas': 3}},
-        {'name': 'pc_properly_mapped_reads', 'title': '% properly mapped reads', 'fmt': {'percentage': 'true'}},
-        {'name': 'nb_duplicate_reads',       'title': '# duplicate reads',       'fmt': {'commas': 3}},
-        {'name': 'pc_duplicate_reads',       'title': '% duplicate reads',       'fmt': {'percentage': 'true'}},
-        {'name': 'median_coverage',          'title': 'Median coverage',         'fmt': {'commas': 3}},
-        {'name': 'pc_callable',              'title': '% callable',              'fmt': {'percentage': 'true'}},
-        {'name': 'pc_q30_r1',                'title': '% Q30 R1',                'fmt': {'percentage': 'true'}},
-        {'name': 'pc_q30_r2',                'title': '% Q30 R2',                'fmt': {'percentage': 'true'}}
+        {'name': 'yield_in_gb',              'title': 'Yield (Gb)',              'fmt': {'commas':  'true'}},
+        {'name': 'initial_reads',            'title': 'Initial reads',           'fmt': {'commas':  'true'}},
+        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'commas':  'true'}},
+        {'name': 'nb_mapped_reads',          'title': '# mapped reads',          'fmt': {'commas':  'true'}},
+        {'name': 'pc_mapped_reads',          'title': '% mapped reads',          'fmt': {'percent': 'true'}},
+        {'name': 'nb_properly_mapped_reads', 'title': '# properly mapped reads', 'fmt': {'commas':  'true'}},
+        {'name': 'pc_properly_mapped_reads', 'title': '% properly mapped reads', 'fmt': {'percent': 'true'}},
+        {'name': 'nb_duplicate_reads',       'title': '# duplicate reads',       'fmt': {'commas':  'true'}},
+        {'name': 'pc_duplicate_reads',       'title': '% duplicate reads',       'fmt': {'percent': 'true'}},
+        {'name': 'median_coverage',          'title': 'Median coverage',         'fmt': {'commas':  'true'}},
+        {'name': 'pc_callable',              'title': '% callable',              'fmt': {'percent': 'true'}},
+        {'name': 'pc_q30_r1',                'title': '% Q30 R1',                'fmt': {'percent': 'true'}},
+        {'name': 'pc_q30_r2',                'title': '% Q30 R2',                'fmt': {'percent': 'true'}}
     )
 
 }
@@ -106,12 +97,20 @@ def report_run(run_id):
                 'cols': col_mappings['unexpected_barcodes']
             }
         )
-    tables = demultiplexing_tables + unexpected_barcode_tables
 
     return fl.render_template(
         'run_report.html',
         run_id=run_id,
-        datatables=demultiplexing_tables + unexpected_barcode_tables
+        tab_sets=(
+            {
+                'name': 'demultiplexing',
+                'datatables': demultiplexing_tables
+            },
+            {
+                'name': 'unexpected_barcodes',
+                'datatables': unexpected_barcode_tables
+            }
+        )
     )
 
 
@@ -135,14 +134,19 @@ def report_project(project):
         'project_report.html',
 
         project=project,
-        datatables=[
+        tab_sets=(
             {
-                'title': project,
-                'name': project,
-                'api_url': rest_url('samples?where={"project":"%s"}' % project),
-                'cols': col_mappings['samples']
-            }
-        ]
+                'name': 'samples',
+                'datatables': (
+                    {
+                        'title': project,
+                        'name': project,
+                        'api_url': rest_url('samples?where={"project":"%s"}' % project),
+                        'cols': col_mappings['samples']
+                    },
+                )
+            },
+        )
     )
 
 
@@ -151,6 +155,12 @@ def _join(*parts):
 
 
 if __name__ == '__main__':
+
+    DEBUG = False
+
+    app.config.from_object(__name__)
+    cli = pymongo.MongoClient('localhost', 4998)
+    rest_api_base = 'http://localhost:4999/api/0.1'
 
     p = argparse.ArgumentParser()
     p.add_argument('-p', '--port', type=int, help='port to run the Flask app on')

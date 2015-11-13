@@ -11,9 +11,27 @@
 
 <h1>Report for {{ run_id }}</h1>
 
-{% for table in datatables %}
-<h2>{{ table.title }}</h2>
-{{ datatable(table.name, table.cols, table.api_url) }}
+{% for tab_set in tab_sets %}
+<div id="{{ tab_set.name }}_tabs">
+
+    <ol>
+        {% for table in tab_set.datatables %}
+        <li><a href="#{{ table.name }}_tab"><span>{{ table.title }}</span></a></li>
+        {% endfor %}
+    </ol>
+    {% for table in tab_set.datatables %}
+    <div id="{{ table.name }}_tab">
+        {{ datatable(table.name, table.cols, table.api_url) }}
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+{% for tab_set in tab_sets %}
+$("#{{ tab_set.name }}_tabs").tabs();
+{% endfor %}
+</script>
+
 {% endfor %}
 
 {% endblock %}
