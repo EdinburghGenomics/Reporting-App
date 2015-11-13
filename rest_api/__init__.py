@@ -40,6 +40,9 @@ if __name__ == '__main__':
                     'pc_reads_in_lane':     {'type':   'float', 'required': True},
                     'yield_in_gb':          {'type':   'float', 'required': True},
 
+                    'fastqc_report_r1':     {'type': 'string', 'required': False},
+                    'fastqc_report_r2':     {'type': 'string', 'required': False},
+
                     'pc_q30_r1':            {'type':   'float', 'required': True},
                     'pc_q30_r2':            {'type':   'float', 'required': True}
 
@@ -68,13 +71,14 @@ if __name__ == '__main__':
                 'id_field': 'library_id',
 
                 'schema': {
-                    'project':                  {'type': 'string', 'required': True},
-                    'library_id':               {'type': 'string', 'required': True, 'unique': True},
-                    'sample_id':                {'type': 'string', 'required': True},
-                    'user_sample_id':           {'type': 'string', 'required': True},
+                    'project':                  {'type':  'string', 'required': True},
+                    'library_id':               {'type':  'string', 'required': True, 'unique': True},
+                    'sample_id':                {'type':  'string', 'required': True},
+                    'user_sample_id':           {'type':  'string', 'required': True},
 
                     'yield_in_gb':              {'type':   'float', 'required': True},
-                    'initial_reads':            {'type': 'integer', 'required': True},  # used to be 'no adaptor reads'
+                    # initial_ reads used to be 'no adaptor reads'. TODO: should this be required?
+                    'initial_reads':            {'type': 'integer', 'required': True},
                     'passing_filter_reads':     {'type': 'integer', 'required': True},
                     'nb_mapped_reads':          {'type': 'integer', 'required': True},
                     'pc_mapped_reads':          {'type':   'float', 'required': True},
@@ -84,6 +88,7 @@ if __name__ == '__main__':
                     'pc_duplicate_reads':       {'type':   'float', 'required': True},
                     'median_coverage':          {'type':   'float', 'required': True},
                     'pc_callable':              {'type':   'float', 'required': True},
+
                     'pc_q30_r1':                {'type':   'float', 'required': True},
                     'pc_q30_r2':                {'type':   'float', 'required': True}
                 }
@@ -117,11 +122,10 @@ if __name__ == '__main__':
         'API_VERSION': '0.1',
 
         'RESOURCE_METHODS': ['GET', 'POST', 'DELETE'],
-        'ITEM_METHODS': ['GET', 'PUT', 'DELETE']
+        'ITEM_METHODS': ['GET', 'PUT', 'PATCH', 'DELETE']
     }
 
     app = eve.Eve(settings=settings)
-
     """
     querying with Python syntax:
     curl -i -g 'http://host:port/things?where=sample_project=="this"'

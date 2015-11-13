@@ -1,7 +1,9 @@
 __author__ = 'mwham'
 import argparse
 import flask as fl
+import os.path
 import pymongo
+import json
 
 
 DEBUG = False
@@ -10,6 +12,52 @@ app = fl.Flask(__name__)
 app.config.from_object(__name__)
 cli = pymongo.MongoClient('localhost', 4998)
 rest_api_base = 'http://localhost:4999/api/0.1'
+
+format_configs = {
+
+}
+
+col_mappings = {
+    'demultiplexing': (
+        {'name': 'lane',                     'title': 'Lane'},
+        {'name': 'barcode',                  'title': 'Barcode'},
+        {'name': 'project',                  'title': 'Project'},
+        {'name': 'library_id',               'title': 'Library ID'},
+        {'name': 'sample_id',                'title': 'Sample ID'},
+        {'name': 'pc_pass_filter',           'title': '% Pass-filter',           'fmt': {'percentage': 'true'}},
+        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'commas': 3}},
+        {'name': 'yield_in_gb',              'title': 'Yield (Gb)',              'fmt': {'commas': 3}},
+        {'name': 'pc_q30_r1',                'title': '% Q30 R1',                'fmt': {'percentage': 'true'}},
+        {'name': 'pc_q30_r2',                'title': '% Q30 R2',                'fmt': {'percentage': 'true'}}
+    ),
+
+    'unexpected_barcodes': (
+        {'name': 'lane',                     'title': 'Lane'},
+        {'name': 'barcode',                  'title': 'Barcode'},
+        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'commas': 3}},
+        {'name': 'pc_reads_in_lane',         'title': '% Reads in lane',         'fmt': {'percentage': 'true'}}
+    ),
+
+    'samples': (
+        {'name': 'sample_id',                'title': 'Sample ID'},
+        {'name': 'library_id',               'title': 'Library ID'},
+        {'name': 'user_sample_id',           'title': 'User sample ID'},
+        {'name': 'yield_in_gb',              'title': 'Yield (Gb)',              'fmt': {'commas': 3}},
+        {'name': 'initial_reads',            'title': 'Initial reads',           'fmt': {'commas': 3}},
+        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'commas': 3}},
+        {'name': 'nb_mapped_reads',          'title': '# mapped reads',          'fmt': {'commas': 3}},
+        {'name': 'pc_mapped_reads',          'title': '% mapped reads',          'fmt': {'percentage': 'true'}},
+        {'name': 'nb_properly_mapped_reads', 'title': '# properly mapped reads', 'fmt': {'commas': 3}},
+        {'name': 'pc_properly_mapped_reads', 'title': '% properly mapped reads', 'fmt': {'percentage': 'true'}},
+        {'name': 'nb_duplicate_reads',       'title': '# duplicate reads',       'fmt': {'commas': 3}},
+        {'name': 'pc_duplicate_reads',       'title': '% duplicate reads',       'fmt': {'percentage': 'true'}},
+        {'name': 'median_coverage',          'title': 'Median coverage',         'fmt': {'commas': 3}},
+        {'name': 'pc_callable',              'title': '% callable',              'fmt': {'percentage': 'true'}},
+        {'name': 'pc_q30_r1',                'title': '% Q30 R1',                'fmt': {'percentage': 'true'}},
+        {'name': 'pc_q30_r2',                'title': '% Q30 R2',                'fmt': {'percentage': 'true'}}
+    )
+
+}
 
 
 def rest_url(extension):
@@ -34,41 +82,45 @@ def run_reports():
 
 @app.route('/reports/runs/<run_id>')
 def report_run(run_id):
+    demultiplexing_lanes = set(x['lane'] for x in cli['test_db']['run_elements'].find(projection={'lane': True}))
+
+    unexpected_barcode_lanes = set(x['lane'] for x in cli['test_db']['unexpected_barcodes'].find(projection={'lane': True}))
+
+    demultiplexing_tables = []
+    unexpected_barcode_tables = []
+    for lane in demultiplexing_lanes:
+        demultiplexing_tables.append(
+            {
+                'title': 'Demultiplexing data for lane ' + str(lane),
+                'name': 'demultiplexing_lane_' + str(lane),
+                'api_url': rest_url('run_elements?where={"run_id":"%s","lane":%s}' % (run_id, lane)),
+                'cols': col_mappings['demultiplexing']
+            }
+        )
+    for lane in unexpected_barcode_lanes:
+        unexpected_barcode_tables.append(
+            {
+                'title': 'Unexpected barcodes for lane ' + str(lane),
+                'name': 'unexpected_barcodes_lane_' + str(lane),
+                'api_url': rest_url('unexpected_barcodes?where={"run_id":"%s","lane":%s}' % (run_id, lane)),
+                'cols': col_mappings['unexpected_barcodes']
+            }
+        )
+    tables = demultiplexing_tables + unexpected_barcode_tables
+
     return fl.render_template(
         'run_report.html',
         run_id=run_id,
-
-        datatables=[
-            {
-                'title': 'Demultiplexing',
-                'name': 'demultiplexing',
-                'api_url': rest_url('run_elements?where={"run_id":"%s"}' % run_id),
-                'cols': (
-                    ('lane', 'Lane'),
-                    ('barcode', 'Barcode'),
-                    ('project', 'Project'),
-                    ('library_id', 'Library ID'),
-                    ('sample_id', 'Sample ID'),
-                    ('pc_pass_filter', '% Pass-filter'),
-                    ('passing_filter_reads', 'Passing-filter reads'),
-                    ('yield_in_gb', 'Yield (Gb)'),
-                    ('pc_q30_r1', '% Q30 R1'),
-                    ('pc_q30_r2', '% Q30 R2')
-                )
-            },
-            {
-                'title': 'Unexpected Barcodes',
-                'name': 'unexpected_barcodes',
-                'api_url': rest_url('unexpected_barcodes?where={"run_id":"%s"}' % run_id),
-                'cols': (
-                    ('lane', 'Lane'),
-                    ('barcode', 'Barcode'),
-                    ('passing_filter_reads', 'Passing-filter reads'),
-                    ('pc_reads_in_lane', '% Reads in lane')
-                )
-            }
-        ]
+        datatables=demultiplexing_tables + unexpected_barcode_tables
     )
+
+
+@app.route('/reports/runs/<run_id>/<filename>')
+def serve_fastqc_report(run_id, filename):
+    if '..' in filename or filename.startswith('/'):
+        fl.abort(404)
+        return None
+    return fl.send_file(os.path.join(os.path.dirname(__file__), 'static', 'runs', run_id, filename))
 
 
 @app.route('/reports/projects/')
@@ -79,9 +131,6 @@ def project_reports():
 
 @app.route('/reports/projects/<project>')
 def report_project(project):
-    samples = set(x['sample_id'] for x in cli['test_db']['samples'].find(filter={'project': project}, projection={'sample_id': True}))
-    print(samples)
-
     return fl.render_template(
         'project_report.html',
 
@@ -91,24 +140,7 @@ def report_project(project):
                 'title': project,
                 'name': project,
                 'api_url': rest_url('samples?where={"project":"%s"}' % project),
-                'cols': (
-                    ('sample_id', 'Sample ID'),
-                    ('library_id', 'Library ID'),
-                    ('user_sample_id', 'User sample ID'),
-                    ('yield_in_gb', 'Yield (Gb)'),
-                    ('initial_reads', 'Initial reads'),
-                    ('passing_filter_reads', 'Passing-filter reads'),
-                    ('nb_mapped_reads', '# mapped reads'),
-                    ('pc_mapped_reads', '% mapped reads'),
-                    ('nb_properly_mapped_reads', '# properly mapped reads'),
-                    ('pc_properly_mapped_reads', '% properly mapped reads'),
-                    ('nb_duplicate_reads', '# duplicate reads'),
-                    ('pc_duplicate_reads', '% duplicate reads'),
-                    ('median_coverage', 'Median coverage'),
-                    ('pc_callable', '% callable'),
-                    ('pc_q30_r1', '% Q30 R1'),
-                    ('pc_q30_r2', '% Q30 R2')
-                )
+                'cols': col_mappings['samples']
             }
         ]
     )
@@ -127,7 +159,7 @@ if __name__ == '__main__':
         '-t',
         '--tornado',
         action='store_true',
-        help='whether to use Tornado\'s http server and wsgi container for external access'
+        help='use Tornado\'s http server and wsgi container for external access'
     )
     args = p.parse_args()
 
@@ -141,4 +173,4 @@ if __name__ == '__main__':
         tornado.ioloop.IOLoop.instance().start()
 
     else:
-        app.run('localhost', 5000, debug=True)
+        app.run('localhost', 5000, debug=args.debug)

@@ -1,15 +1,10 @@
 {% extends 'reporting_base.html' %}
-{% from 'datatable.html' import datatable %}
+{% from 'datatable.html' import datatable, dt_header %}
 
 {% block title %}Project report{% endblock %}
 {% block head %}
     {{ super() }}
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.9/css/jquery.dataTables.css" />
-    <!-- jQuery -->
-    <script type="text/javascript" charset="utf8" src="//code.jquery.com/jquery-1.10.2.min.js"></script>
-    <!-- DataTables -->
-    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.js"></script>
+    {{ dt_header() }}
 {% endblock %}
 
 {% block content %}
@@ -18,8 +13,7 @@
 
 {% for table in datatables %}
 <h2>{{ table.title }}</h2>
-<div>{{ datatable(table.name, table.cols, table.api_url) }}</div>
+{{ datatable(table.name, table.cols, table.api_url) }}
 {% endfor %}
-
 
 {% endblock %}
