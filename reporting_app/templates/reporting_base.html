@@ -13,6 +13,14 @@
     {% endblock %}
 </head>
 <body>
-    <div id='content'>{% block content %}{% endblock %}</div>
+    {% block menu %}
+    <div id="menu">
+        <a href="/">Home</a>
+        <a href="/runs">Runs</a>
+        <a href="/projects">Projects</a>
+
+    </div>
+    {% endblock %}
+    <div id="content">{% block content %}{% endblock %}</div>
 </body>
 </html>

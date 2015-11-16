@@ -1,5 +1,5 @@
 {% extends 'reporting_base.html' %}
-{% block title %}Available reports {% endblock %}
+{% block title %}Main page{% endblock %}
 {% block head %}
     {{ super() }}
 {% endblock %}
@@ -7,8 +7,7 @@
 {% block content %}
 <h1>Analysis Driver reports</h1>
 <p>Visit one of the report types below</p>
-<ul>
-    <li>/runs</li>
-    <li>/projects</li>
-</ul>
+<a href="/runs">runs</a>
+<br/>
+<a href="/projects">projects</a>
 {% endblock %}

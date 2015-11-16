@@ -5,11 +5,11 @@
 {% endblock %}
 
 {% block content %}
-<h1>Analysis Driver samples</h1>
 
+<h1>Analysis Driver samples</h1>
 <ul>
     {% for p in projects %}
-    <li>/{{p}}</li>
+    <li><a href="/projects/{{p}}">{{p}}</a></li>
     {% endfor %}
 </ul>
 

@@ -54,7 +54,8 @@ $(document).ready(
                             'data': c.name,
                             'render': function(data, type, row, meta) {
                                 return render_data(data, c.fmt)
-                            }
+                            },
+                            'defaultContent': '<i>not set</i>'
                         };
                     }
                 ),

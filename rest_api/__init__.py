@@ -25,24 +25,24 @@ if __name__ == '__main__':
                 'id_field': 'id',
 
                 'schema': {
-                    'id':                   {'type': 'string', 'required': True, 'unique': True},
+                    'id':                   {'type':  'string', 'required':  True, 'unique': True},
 
-                    'run_id':               {'type':  'string', 'required': True},
-                    'lane':                 {'type': 'integer', 'required': True},
-                    'barcode':              {'type':  'string', 'required': True},
-                    'project':              {'type':  'string', 'required': True},
+                    'run_id':               {'type':  'string', 'required':  True},
+                    'lane':                 {'type': 'integer', 'required':  True},
+                    'barcode':              {'type':  'string', 'required':  True},
+                    'project':              {'type':  'string', 'required':  True},
 
                     # for now, treat sample_id and library_id as 1:1 equivalent
-                    'library_id':           {'type':  'string', 'required': True},
-                    'sample_id':            {'type':  'string', 'required': True},
+                    'library_id':           {'type':  'string', 'required':  True},
+                    'sample_id':            {'type':  'string', 'required':  True},
 
                     'pc_pass_filter':       {'type':   'float', 'required': False},
                     'passing_filter_reads': {'type': 'integer', 'required': False},
                     'pc_reads_in_lane':     {'type':   'float', 'required': False},
                     'yield_in_gb':          {'type':   'float', 'required': False},
 
-                    'fastqc_report_r1':     {'type': 'string', 'required': False},
-                    'fastqc_report_r2':     {'type': 'string', 'required': False},
+                    'fastqc_report_r1':     {'type':  'string', 'required': False},
+                    'fastqc_report_r2':     {'type':  'string', 'required': False},
 
                     'pc_q30_r1':            {'type':   'float', 'required': False},
                     'pc_q30_r2':            {'type':   'float', 'required': False}
@@ -57,11 +57,11 @@ if __name__ == '__main__':
                 'id_field': 'id',
 
                 'schema': {
-                    'id':                   {'type': 'string', 'required': True, 'unique': True},
+                    'id':                   {'type':  'string', 'required':  True, 'unique': True},
 
-                    'run_id':               {'type':  'string', 'required': True},
-                    'lane':                 {'type': 'integer', 'required': True},
-                    'barcode':              {'type':  'string', 'required': True},
+                    'run_id':               {'type':  'string', 'required':  True},
+                    'lane':                 {'type': 'integer', 'required':  True},
+                    'barcode':              {'type':  'string', 'required':  True},
                     'passing_filter_reads': {'type':   'float', 'required': False},
                     'pc_reads_in_lane':     {'type':   'float', 'required': False}
                 }
@@ -72,13 +72,13 @@ if __name__ == '__main__':
                 'id_field': 'library_id',
 
                 'schema': {
-                    'project':                  {'type':  'string', 'required': True},
-                    'library_id':               {'type':  'string', 'required': True, 'unique': True},
-                    'sample_id':                {'type':  'string', 'required': True},
+                    'project':                  {'type':  'string', 'required':  True},
+                    'library_id':               {'type':  'string', 'required':  True, 'unique': True},
+                    'sample_id':                {'type':  'string', 'required':  True},
                     'user_sample_id':           {'type':  'string', 'required': False},
 
                     'yield_in_gb':              {'type':   'float', 'required': False},
-                    # initial_ reads used to be 'no adaptor reads'. TODO: should this be required?
+                    # initial reads used to be 'no adaptor reads'
                     'initial_reads':            {'type': 'integer', 'required': False},
                     'passing_filter_reads':     {'type': 'integer', 'required': False},
                     'nb_mapped_reads':          {'type': 'integer', 'required': False},

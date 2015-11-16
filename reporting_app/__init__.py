@@ -57,21 +57,16 @@ def rest_url(extension):
 
 @app.route('/')
 def main_page():
-    return fl.render_template('main.html')
-
-
-@app.route('/reports/')
-def reports():
     return fl.render_template('reports.html')
 
 
-@app.route('/reports/runs/')
+@app.route('/runs/')
 def run_reports():
     runs = set(x['run_id'] for x in cli['test_db']['run_elements'].find(projection={'run_id': True}))
     return fl.render_template('runs.html', runs=runs)
 
 
-@app.route('/reports/runs/<run_id>')
+@app.route('/runs/<run_id>')
 def report_run(run_id):
     demultiplexing_lanes = set(x['lane'] for x in cli['test_db']['run_elements'].find(projection={'lane': True}))
 
@@ -114,7 +109,7 @@ def report_run(run_id):
     )
 
 
-@app.route('/reports/runs/<run_id>/<filename>')
+@app.route('/runs/<run_id>/<filename>')
 def serve_fastqc_report(run_id, filename):
     if '..' in filename or filename.startswith('/'):
         fl.abort(404)
@@ -122,13 +117,13 @@ def serve_fastqc_report(run_id, filename):
     return fl.send_file(os.path.join(os.path.dirname(__file__), 'static', 'runs', run_id, filename))
 
 
-@app.route('/reports/projects/')
+@app.route('/projects/')
 def project_reports():
     projects = set(x['project'] for x in cli['test_db']['samples'].find(projection={'project': True}))
     return fl.render_template('projects.html', projects=projects)
 
 
-@app.route('/reports/projects/<project>')
+@app.route('/projects/<project>')
 def report_project(project):
     return fl.render_template(
         'project_report.html',
