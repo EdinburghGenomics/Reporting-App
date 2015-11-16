@@ -1,17 +1,25 @@
 
 function render_data(data, fmt) {
+    if (!data) {
+        return null;
+    }
     if (!fmt) {
         return data;
     }
 
     if (fmt['type'] == 'percentage') {
-        return Humanize.toFixed(data, 1) + '%';
+        data = Humanize.toFixed(data, 1) + '%';
     } else if (fmt['type'] == 'largeint') {
-        return Humanize.intComma(data);
+        data = Humanize.intComma(data);
     } else if (fmt['type'] == 'largefloat') {
-        return Humanize.formatNumber(data, 2);
-    } else {
-        return data;
+        data = Humanize.formatNumber(data, 2);
     }
+
+    if (fmt['min'] && data < fmt['min']) {
+            data = '<p style="color:red">' + data + '</p>';
+    }
+
+    return data;
+
 }
 

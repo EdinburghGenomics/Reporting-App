@@ -1,58 +1,30 @@
 __author__ = 'mwham'
-import argparse
 import flask as fl
 import os.path
 import pymongo
+from config import reporting_app_config as cfg, rest_config, col_mappings
 
 
 app = fl.Flask(__name__)
 
 
-col_mappings = {
-    'demultiplexing': (
-        {'name': 'lane',                     'title': 'Lane'},
-        {'name': 'barcode',                  'title': 'Barcode'},
-        {'name': 'project',                  'title': 'Project'},
-        {'name': 'library_id',               'title': 'Library ID'},
-        {'name': 'sample_id',                'title': 'Sample ID'},
-        {'name': 'pc_pass_filter',           'title': '% Pass-filter',           'fmt': {'type': 'percentage'}},
-        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'type': 'largeint'}},
-        {'name': 'yield_in_gb',              'title': 'Yield (Gb)',              'fmt': {'type': 'largefloat'}},
-        {'name': 'pc_q30_r1',                'title': '% Q30 R1',                'fmt': {'type': 'percentage'}},
-        {'name': 'pc_q30_r2',                'title': '% Q30 R2',                'fmt': {'type': 'percentage'}}
-    ),
-
-    'unexpected_barcodes': (
-        {'name': 'lane',                     'title': 'Lane'},
-        {'name': 'barcode',                  'title': 'Barcode'},
-        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'type': 'largeint'}},
-        {'name': 'pc_reads_in_lane',         'title': '% Reads in lane',         'fmt': {'type': 'percentage'}}
-    ),
-
-    'samples': (
-        {'name': 'sample_id',                'title': 'Sample ID'},
-        {'name': 'library_id',               'title': 'Library ID'},
-        {'name': 'user_sample_id',           'title': 'User sample ID'},
-        {'name': 'yield_in_gb',              'title': 'Yield (Gb)',              'fmt': {'type': 'largefloat'}},
-        {'name': 'initial_reads',            'title': 'Initial reads',           'fmt': {'type': 'largeint'}},
-        {'name': 'passing_filter_reads',     'title': 'Passing-filter reads',    'fmt': {'type': 'largeint'}},
-        {'name': 'nb_mapped_reads',          'title': '# mapped reads',          'fmt': {'type': 'largeint'}},
-        {'name': 'pc_mapped_reads',          'title': '% mapped reads',          'fmt': {'type': 'percentage'}},
-        {'name': 'nb_properly_mapped_reads', 'title': '# properly mapped reads', 'fmt': {'type': 'largeint'}},
-        {'name': 'pc_properly_mapped_reads', 'title': '% properly mapped reads', 'fmt': {'type': 'percentage'}},
-        {'name': 'nb_duplicate_reads',       'title': '# duplicate reads',       'fmt': {'type': 'largeint'}},
-        {'name': 'pc_duplicate_reads',       'title': '% duplicate reads',       'fmt': {'type': 'percentage'}},
-        {'name': 'median_coverage',          'title': 'Median coverage',         'fmt': {'type': 'largefloat'}},
-        {'name': 'pc_callable',              'title': '% callable',              'fmt': {'type': 'percentage'}},
-        {'name': 'pc_q30_r1',                'title': '% Q30 R1',                'fmt': {'type': 'percentage'}},
-        {'name': 'pc_q30_r2',                'title': '% Q30 R2',                'fmt': {'type': 'percentage'}}
-    )
-
-}
-
-
 def rest_url(extension):
-    return rest_api_base + '/' + extension
+    return cfg['rest_api'] + '/' + extension
+
+
+def query_where(domain, **search_args):
+    where_queries = []
+
+    for k, v in search_args.items():
+        q = '"%s":' % k
+        if k == 'lane':
+
+            q += str(v)
+        else:
+            q += '"%s"' % v
+        where_queries.append(q)
+
+    return rest_url(domain + '?where={' + ','.join(where_queries) + '}')
 
 
 @app.route('/')
@@ -79,7 +51,7 @@ def report_run(run_id):
             {
                 'title': 'Demultiplexing data for lane ' + str(lane),
                 'name': 'demultiplexing_lane_' + str(lane),
-                'api_url': rest_url('run_elements?where={"run_id":"%s","lane":%s}' % (run_id, lane)),
+                'api_url': query_where('run_elements', run_id=run_id, lane=lane),
                 'cols': col_mappings['demultiplexing']
             }
         )
@@ -88,7 +60,7 @@ def report_run(run_id):
             {
                 'title': 'Unexpected barcodes for lane ' + str(lane),
                 'name': 'unexpected_barcodes_lane_' + str(lane),
-                'api_url': rest_url('unexpected_barcodes?where={"run_id":"%s","lane":%s}' % (run_id, lane)),
+                'api_url': query_where('unexpected_barcodes', run_id=run_id, lane=lane),
                 'cols': col_mappings['unexpected_barcodes']
             }
         )
@@ -136,7 +108,7 @@ def report_project(project):
                     {
                         'title': project,
                         'name': project,
-                        'api_url': rest_url('samples?where={"project":"%s"}' % project),
+                        'api_url': query_where('samples', project=project),
                         'cols': col_mappings['samples']
                     },
                 )
@@ -151,33 +123,17 @@ def _join(*parts):
 
 if __name__ == '__main__':
 
-    DEBUG = False
+    app.debug = cfg['debug']
+    cli = pymongo.MongoClient(cfg['database'])
 
-    app.config.from_object(__name__)
-    cli = pymongo.MongoClient('localhost', 4998)
-
-    p = argparse.ArgumentParser()
-    p.add_argument('-p', '--port', type=int, help='port to run the Flask app on')
-    p.add_argument('-r', '--rest-api', type=str, required=True, help='the base url of the REST api to use')
-    p.add_argument('-d', '--debug', action='store_true', help='run the app in debug mode')
-    p.add_argument(
-        '-t',
-        '--tornado',
-        action='store_true',
-        help='use Tornado\'s http server and wsgi container for external access'
-    )
-    args = p.parse_args()
-
-    rest_api_base = args.rest_api
-
-    if args.tornado:
+    if cfg['tornado']:
         import tornado.wsgi
         import tornado.httpserver
         import tornado.ioloop
 
         http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
-        http_server.listen(args.port)
+        http_server.listen(cfg['port'])
         tornado.ioloop.IOLoop.instance().start()
 
     else:
-        app.run('localhost', 5000, debug=args.debug)
+        app.run('localhost', cfg['port'])
