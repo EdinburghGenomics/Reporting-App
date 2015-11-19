@@ -1,100 +1,40 @@
 __author__ = 'mwham'
 import eve
-from config import rest_config as cfg
+import pymongo
+from flask import jsonify, request
+import flask_cors
+from config import rest_config as cfg, schema
+
 
 settings = {
     'DOMAIN': {
 
-        'run_elements': {  # for demultiplexing reports, etc
+        'run_elements': {  # demultiplexing reports
             'url': 'run_elements',
             'item_title': 'element',
-
-            'schema': {
-                'run_element_id':       {'type':  'string', 'required':  True, 'unique': True},
-
-                'run_id':               {'type':  'string', 'required':  True},
-                'lane':                 {'type': 'integer', 'required':  True},
-                'barcode':              {'type':  'string', 'required':  True},
-                'project':              {'type':  'string', 'required':  True},
-
-                # for now, treat sample_id and library_id as 1:1 equivalent
-                'library_id':           {'type':  'string', 'required':  True},
-                'sample_id':            {'type':  'string', 'required':  True},
-
-                'pc_pass_filter':       {'type':   'float', 'required': False},
-                'passing_filter_reads': {'type': 'integer', 'required': False},
-                'pc_reads_in_lane':     {'type':   'float', 'required': False},
-                'yield_in_gb':          {'type':   'float', 'required': False},
-
-                'fastqc_report_r1':     {'type':  'string', 'required': False},
-                'fastqc_report_r2':     {'type':  'string', 'required': False},
-
-                'pc_q30_r1':            {'type':   'float', 'required': False},
-                'pc_q30_r2':            {'type':   'float', 'required': False}
-
-            }
-
+            'schema': schema['run_elements']
         },
 
         'unexpected_barcodes': {
             'url': 'unexpected_barcodes',
             'item_title': 'unexpected_barcode',
-
-            'schema': {
-                'run_element_id':       {'type':  'string', 'required':  True, 'unique': True},
-
-                'run_id':               {'type':  'string', 'required':  True},
-                'lane':                 {'type': 'integer', 'required':  True},
-                'barcode':              {'type':  'string', 'required':  True},
-                'passing_filter_reads': {'type':   'float', 'required': False},
-                'pc_reads_in_lane':     {'type':   'float', 'required': False}
-            }
+            'schema': schema['unexpected_barcodes']
         },
 
-        'samples': {
+        'samples': {  # bcbio reports
             'url': 'samples',
-
-            'schema': {
-                'library_id':               {'type':  'string', 'required':  True, 'unique': True},
-                'project':                  {'type':  'string', 'required':  True},
-                'sample_id':                {'type':  'string', 'required':  True},
-                'user_sample_id':           {'type':  'string', 'required': False},
-
-                'yield_in_gb':              {'type':   'float', 'required': False},
-                # initial reads used to be 'no adaptor reads'
-                'initial_reads':            {'type': 'integer', 'required': False},
-                'passing_filter_reads':     {'type': 'integer', 'required': False},
-                'nb_mapped_reads':          {'type': 'integer', 'required': False},
-                'pc_mapped_reads':          {'type':   'float', 'required': False},
-                'nb_properly_mapped_reads': {'type': 'integer', 'required': False},
-                'pc_properly_mapped_reads': {'type':   'float', 'required': False},
-                'nb_duplicate_reads':       {'type': 'integer', 'required': False},
-                'pc_duplicate_reads':       {'type':   'float', 'required': False},
-                'median_coverage':          {'type':   'float', 'required': False},
-                'pc_callable':              {'type':   'float', 'required': False},
-
-                'pc_q30_r1':                {'type':   'float', 'required': False},
-                'pc_q30_r2':                {'type':   'float', 'required': False}
-            }
-        },
-
-        # 'lanes': {
-        #     'schema': {
-        #         'run_id': {'type': 'string'},
-        #         'lane_number': {},
-        #         'pc_pass_filter': {'type': 'number'},
-        #         'yield_in_gb'
-        #     }
-        # }
-
+            'item_title': 'sample',
+            'schema': schema['samples']
+        }
     },
 
-    'MONGO_HOST': 'localhost',
-    'MONGO_PORT': cfg['mongodb_port'],
-    'MONGO_DBNAME': 'test_db',
+    'MONGO_HOST': cfg['db_host'],
+    'MONGO_PORT': cfg['db_port'],
+    'MONGO_DBNAME': cfg['db_name'],
     'ITEMS': 'data',
 
-    'JSONP_ARGUMENT': 'callback',
+    'X_DOMAINS': cfg['x_domains'],
+
     'URL_PREFIX': 'api',
     'API_VERSION': '0.1',
 
@@ -103,6 +43,137 @@ settings = {
 }
 
 app = eve.Eve(settings=settings)
+flask_cors.CORS(app)
+# flask_cors.CORS(
+#     app,
+#     resources='%s/%s/*' % (settings['URL_PREFIX'], settings['API_VERSION']),
+#     origins='http://localhost:5000'
+# )
+
+cli = pymongo.MongoClient(cfg['db_host'], cfg['db_port'])
+db = cli[cfg['db_name']]
+
+
+def _endpoint(route):
+    return '/%s/%s/%s' % (settings['URL_PREFIX'], settings['API_VERSION'], route)
+
+
+def _format_order(query):
+    if query.startswith('-'):
+        return {query.lstrip('-'): -1}
+    else:
+        return {query: 1}
+
+
+def _aggregate(collection, query, list_field=None):
+    cursor = db[collection].aggregate(query)
+    if list_field:
+        aggregation = sorted([x[list_field] for x in cursor['result']])
+    else:
+        aggregation = cursor['result']
+
+    ret_dict = {
+        settings['ITEMS']: aggregation,
+        '_meta': {'total': len(aggregation)}
+    }
+    return jsonify(ret_dict)
+
+
+@app.route(_endpoint('aggregate/run_by_lane/<run_id>'))
+def aggregate_by_lane(run_id):
+    return _aggregate(
+        'run_elements',
+        [
+            {
+                '$match': {
+                    'run_id': run_id
+                }
+            },
+            {
+                '$project': {
+                    'lane': '$lane',
+                    'passing_filter_reads': '$passing_filter_reads',
+                    'pc_pass_filter': '$pc_pass_filter',
+                    'yield_in_gb': '$yield_in_gb',
+                    'pc_q30': {'$divide': [{'$add': ['$pc_q30_r1', '$pc_q30_r2']}, 2]},
+                    'pc_q30_r1': '$pc_q30_r1',
+                    'pc_q30_r2': '$pc_q30_r2'}
+            },
+            {
+                '$group': {
+                    '_id': '$lane',
+                    'passing_filter_reads': {'$sum': '$passing_filter_reads'},
+                    'pc_pass_filter': {'$avg': '$pc_pass_filter'},
+                    'yield_in_gb': {'$sum': '$yield_in_gb'},
+                    'pc_q30': {'$avg': '$pc_q30'},
+                    'pc_q30_r1': {'$avg': '$pc_q30_r1'},
+                    'pc_q30_r2': {'$avg': '$pc_q30_r2'},
+                    'stdev_pf': {'$stdDevSamp': '$passing_filter_reads'},
+                    'avg_pf': {'$avg': '$passing_filter_reads'}
+                }
+            },
+            {
+                '$project': {
+                    'lane': '$_id',
+                    'passing_filter_reads': '$passing_filter_reads',
+                    'pc_pass_filter': '$pc_pass_filter',
+                    'yield_in_gb': '$yield_in_gb',
+                    'pc_q30': '$pc_q30',
+                    'pc_q30_r1': '$pc_q30_r1',
+                    'pc_q30_r2': '$pc_q30_r2',
+                    'cv': {'$divide': ['$stdev_pf', '$avg_pf']}
+                }
+            },
+            {
+                '$sort': _format_order(request.args.get('sort', 'lane'))
+            }
+        ]
+    )
+
+
+@app.route(_endpoint('aggregate/list_runs'))
+def list_runs():
+    return _aggregate(
+        'run_elements',
+        [
+            {
+                '$group': {'_id': '$run_id'}
+            }
+        ],
+        list_field='_id'
+    )
+
+
+@app.route(_endpoint('aggregate/list_projects'))
+def list_projects():
+    return _aggregate(
+        'samples',
+        [
+            {
+                '$group': {'_id': '$project'}
+            }
+        ],
+        list_field='_id'
+    )
+
+
+@app.route(_endpoint('aggregate/list_lanes/<collection>/<run_id>'))
+def list_lanes(collection, run_id):
+    return _aggregate(
+        collection,
+        [
+            {
+                '$match': {'run_id': run_id}
+            },
+            {
+                '$group': {'_id': '$lane'}
+            },
+            {
+                '$sort': {'_id': 1}
+            }
+        ],
+        list_field='_id'
+    )
 
 
 if __name__ == '__main__':

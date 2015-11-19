@@ -9,18 +9,22 @@
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
     <!-- DataTables -->
     <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.js"></script>
-    <script type="text/javascript" charset="utf8" src="https://github.com/HubSpot/humanize/raw/master/public/src/humanize.js"></script>
+    <script type="text/javascript" src="https://cdn.rawgit.com/HubSpot/humanize/master/public/src/humanize.js"></script>
     <script src="/static/column_formatter.js"></script>
+
+
 {%- endmacro %}
 
 
-{% macro datatable(name, cols, api_url) -%}
-{# this takes a dict called table_config, containing:
+{% macro datatable(name, cols, api_url, paging='true') -%}
+{# args:
     name (str) - a name for the table (must match the html table element)
-    cols (list[dict[str,str]]) - the column names for the table, mapping their names in the database to formatted names to display in html,
+    cols (list[dict[str,str]]) - the column names for the table, mapping their names in the database to
+    humanised names to display in html,
     api_url (str) - the base url for the table to query,
 #}
-<script type="text/javascript" language="JavaScript" class="init">{{ dt_init(name, cols, api_url)|safe }}</script>
+
+<script type="text/javascript" language="JavaScript" class="init">{{ dt_init(name, cols, api_url, paging)|safe }}</script>
 
 <table id="{{ name }}" class="display">
     <thead>

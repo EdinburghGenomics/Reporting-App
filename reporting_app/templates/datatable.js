@@ -1,13 +1,13 @@
-{% macro dt_init(name, cols, api_url) %}
+{% macro dt_init(name, cols, api_url, paging) %}
 
 $(document).ready(
     function() {
-        // the table name needs to be hard-coded, otherwise all datatable scripts on the page will initialise
-        // the last table, for some reason.
         var cols = {{ cols|list|safe }};
         var api_url = '{{ api_url|safe }}';
+        var paging = {{ paging|safe }};
         $('#{{name}}').DataTable(
             {
+                'paging': paging,
                 'searching': false,
                 'processing': true,
                 'serverSide': true,
@@ -35,7 +35,6 @@ $(document).ready(
                                 // convert [cols[0], '-' + cols[1]] to '%s,-%s' % (cols[0], cols[1])
                                 'sort': sortCols.toString()
                             },
-                            'dataType': 'jsonp',
                             'success': function(json) {
                                 var o = {
                                     recordsTotal: json._meta.total,

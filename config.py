@@ -44,6 +44,17 @@ class Configuration:
 
 reporting_app_config = Configuration('reporting_app')
 rest_config = Configuration('rest_app')
+schema = yaml.load(
+    open(
+        os.path.join(
+            os.path.abspath(
+                os.path.dirname(__file__)
+            ),
+            'etc',
+            'schemas.yaml'
+        )
+    )
+)
 col_mappings = yaml.load(
     open(
         os.path.join(
