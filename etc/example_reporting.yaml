@@ -3,13 +3,15 @@ reporting_app:
     tornado: False
     debug: False
     port: port
-
     rest_api: 'http://localhost:port/api/0.1'
-    database: 'localhost:4998'
 
 rest_app:
     tornado: False
     port: port
     debug: False
 
-    mongodb_port: port
+    db_name: 'test_db'
+    db_host: 'mongodb://hostname'
+    db_port: port
+
+    x_domains: ['http://localhost:reporting_app_port']
