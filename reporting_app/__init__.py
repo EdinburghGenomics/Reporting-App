@@ -2,7 +2,7 @@ __author__ = 'mwham'
 import flask as fl
 import os.path
 import requests
-import json
+from flask import json
 from config import reporting_app_config as cfg, col_mappings
 
 
@@ -129,4 +129,4 @@ if __name__ == '__main__':
         tornado.ioloop.IOLoop.instance().start()
 
     else:
-        app.run('localhost', cfg['port'], debug=cfg['debug'])
+        app.run('localhost', cfg['port'], debug=True)

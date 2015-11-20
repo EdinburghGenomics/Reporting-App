@@ -1,9 +1,15 @@
 __author__ = 'mwham'
 import eve
 import pymongo
-from flask import jsonify, request
+from flask import jsonify, request, json
 import flask_cors
 from config import rest_config as cfg, schema
+
+
+def endpoint(route):
+    return '/%s/%s/%s' % (settings['URL_PREFIX'], settings['API_VERSION'], route)
+
+from rest_api import aggregation
 
 
 settings = {
@@ -12,6 +18,7 @@ settings = {
         'run_elements': {  # demultiplexing reports
             'url': 'run_elements',
             'item_title': 'element',
+            'id_field': 'run_element_id',
             'schema': schema['run_elements']
         },
 
@@ -24,14 +31,18 @@ settings = {
         'samples': {  # bcbio reports
             'url': 'samples',
             'item_title': 'sample',
+            'embedded_fields': ['run_elements'],
             'schema': schema['samples']
         }
     },
+    'VALIDATE_FILTERS': True,
 
     'MONGO_HOST': cfg['db_host'],
     'MONGO_PORT': cfg['db_port'],
     'MONGO_DBNAME': cfg['db_name'],
     'ITEMS': 'data',
+
+    'XML': False,
 
     'X_DOMAINS': cfg['x_domains'],
 
@@ -50,22 +61,19 @@ flask_cors.CORS(app)
 #     origins='http://localhost:5000'
 # )
 
+
+def embed_run_elements_into_samples(request, payload):
+    payload.data = aggregation.server_side.process_embedded_json(json.loads(payload.data.decode('utf-8')))
+
+
+app.on_post_GET_samples += embed_run_elements_into_samples
+
+
 cli = pymongo.MongoClient(cfg['db_host'], cfg['db_port'])
 db = cli[cfg['db_name']]
 
 
-def _endpoint(route):
-    return '/%s/%s/%s' % (settings['URL_PREFIX'], settings['API_VERSION'], route)
-
-
-def _format_order(query):
-    if query.startswith('-'):
-        return {query.lstrip('-'): -1}
-    else:
-        return {query: 1}
-
-
-def _aggregate(collection, query, list_field=None):
+def _aggregate(collection, query, list_field='_id'):
     cursor = db[collection].aggregate(query)
     if list_field:
         aggregation = sorted([x[list_field] for x in cursor['result']])
@@ -79,101 +87,24 @@ def _aggregate(collection, query, list_field=None):
     return jsonify(ret_dict)
 
 
-@app.route(_endpoint('aggregate/run_by_lane/<run_id>'))
+@app.route(endpoint('aggregate/run_by_lane/<run_id>'))
 def aggregate_by_lane(run_id):
-    return _aggregate(
-        'run_elements',
-        [
-            {
-                '$match': {
-                    'run_id': run_id
-                }
-            },
-            {
-                '$project': {
-                    'lane': '$lane',
-                    'passing_filter_reads': '$passing_filter_reads',
-                    'pc_pass_filter': '$pc_pass_filter',
-                    'yield_in_gb': '$yield_in_gb',
-                    'pc_q30': {'$divide': [{'$add': ['$pc_q30_r1', '$pc_q30_r2']}, 2]},
-                    'pc_q30_r1': '$pc_q30_r1',
-                    'pc_q30_r2': '$pc_q30_r2'}
-            },
-            {
-                '$group': {
-                    '_id': '$lane',
-                    'passing_filter_reads': {'$sum': '$passing_filter_reads'},
-                    'pc_pass_filter': {'$avg': '$pc_pass_filter'},
-                    'yield_in_gb': {'$sum': '$yield_in_gb'},
-                    'pc_q30': {'$avg': '$pc_q30'},
-                    'pc_q30_r1': {'$avg': '$pc_q30_r1'},
-                    'pc_q30_r2': {'$avg': '$pc_q30_r2'},
-                    'stdev_pf': {'$stdDevSamp': '$passing_filter_reads'},
-                    'avg_pf': {'$avg': '$passing_filter_reads'}
-                }
-            },
-            {
-                '$project': {
-                    'lane': '$_id',
-                    'passing_filter_reads': '$passing_filter_reads',
-                    'pc_pass_filter': '$pc_pass_filter',
-                    'yield_in_gb': '$yield_in_gb',
-                    'pc_q30': '$pc_q30',
-                    'pc_q30_r1': '$pc_q30_r1',
-                    'pc_q30_r2': '$pc_q30_r2',
-                    'cv': {'$divide': ['$stdev_pf', '$avg_pf']}
-                }
-            },
-            {
-                '$sort': _format_order(request.args.get('sort', 'lane'))
-            }
-        ]
-    )
+    return _aggregate('run_elements', aggregation.database_side.run_elements_by_lane(run_id, request.args))
 
 
-@app.route(_endpoint('aggregate/list_runs'))
+@app.route(endpoint('aggregate/list_runs'))
 def list_runs():
-    return _aggregate(
-        'run_elements',
-        [
-            {
-                '$group': {'_id': '$run_id'}
-            }
-        ],
-        list_field='_id'
-    )
+    return _aggregate('run_elements', aggregation.database_side.run_ids)
 
 
-@app.route(_endpoint('aggregate/list_projects'))
+@app.route(endpoint('aggregate/list_projects'))
 def list_projects():
-    return _aggregate(
-        'samples',
-        [
-            {
-                '$group': {'_id': '$project'}
-            }
-        ],
-        list_field='_id'
-    )
+    return _aggregate('samples', aggregation.database_side.project_ids)
 
 
-@app.route(_endpoint('aggregate/list_lanes/<collection>/<run_id>'))
+@app.route(endpoint('aggregate/list_lanes/<collection>/<run_id>'))
 def list_lanes(collection, run_id):
-    return _aggregate(
-        collection,
-        [
-            {
-                '$match': {'run_id': run_id}
-            },
-            {
-                '$group': {'_id': '$lane'}
-            },
-            {
-                '$sort': {'_id': 1}
-            }
-        ],
-        list_field='_id'
-    )
+    return _aggregate(collection, aggregation.database_side.run_lanes(run_id))
 
 
 if __name__ == '__main__':
@@ -197,4 +128,4 @@ if __name__ == '__main__':
         tornado.ioloop.IOLoop.instance().start()
 
     else:
-        app.run('localhost', cfg['port'], debug=cfg['debug'])
+        app.run('localhost', cfg['port'], debug=True)

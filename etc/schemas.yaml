@@ -10,18 +10,19 @@ run_elements:
     library_id: {               type: 'string',  required: True }
     sample_id: {                type: 'string',  required: True }
 
-    pc_pass_filter: {           type: 'float',   required: False }
+    total_reads: {              type: 'integer', required: False }
     passing_filter_reads: {     type: 'integer', required: False }
     pc_reads_in_lane: {         type: 'float',   required: False }
-    yield_in_gb: {              type: 'float',   required: False }
+
+    bases_r1: {                 type: 'integer', required: False }
+    q30_bases_r1: {             type: 'integer', required: False }
+    bases_r2: {                 type: 'integer', required: False }
+    q30_bases_r2: {             type: 'integer', required: False }
 
     fastqc_report_r1: {         type: 'string',  required: False }
     fastqc_report_r2: {         type: 'string',  required: False }
 
-    pc_q30_r1: {                type: 'float',   required: False }
-    pc_q30_r2: {                type: 'float',   required: False }
-
-    reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'] }
+    reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'force', 'fail'] }
 
 
 unexpected_barcodes:
@@ -33,8 +34,6 @@ unexpected_barcodes:
     passing_filter_reads: {     type: 'float',   required: False }
     pc_reads_in_lane: {         type: 'float',   required: False }
 
-    reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'] }
-
 
 samples:
     library_id: {               type: 'string',  required: True, unique: True }
@@ -42,20 +41,13 @@ samples:
     sample_id: {                type: 'string',  required: True  }
     user_sample_id: {           type: 'string',  required: False }
 
-    yield_in_gb: {              type: 'float',   required: False }
-#   initial reads used to be 'no adaptor reads'
-    initial_reads: {            type: 'integer', required: False }
-    passing_filter_reads: {     type: 'integer', required: False }
-    nb_mapped_reads: {          type: 'integer', required: False }
-    pc_mapped_reads: {          type: 'float',   required: False }
-    nb_properly_mapped_reads: { type: 'integer', required: False }
-    pc_properly_mapped_reads: { type: 'float',   required: False }
-    nb_duplicate_reads: {       type: 'integer', required: False }
-    pc_duplicate_reads: {       type: 'float',   required: False }
+#   initial reads used to be 'no adaptor reads'. Get yield_in_gb by embedding a run_element
+    bam_file_reads: {           type: 'integer', required: False }  # reads initially found in the bam file
+    mapped_reads: {          type: 'integer', required: False }
+    properly_mapped_reads: { type: 'integer', required: False }
+    duplicate_reads: {       type: 'integer', required: False }
     median_coverage: {          type: 'float',   required: False }
-    pc_callable: {              type: 'float',   required: False }
+    pc_callable: {              type: 'float',   required: False }  # aggregate pc_q30 from embedded run elements
 
-    pc_q30_r1: {                type: 'float',   required: False }
-    pc_q30_r2: {                type: 'float',   required: False }
-
+    run_elements: { type: 'list', required: False, schema: {type: 'string', data_relation: {resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'] }
