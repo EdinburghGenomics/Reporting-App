@@ -1,15 +1,12 @@
 __author__ = 'mwham'
 import eve
-import pymongo
-from flask import jsonify, request, json
+from flask import request, json
 import flask_cors
 from config import rest_config as cfg, schema
 
 
 def endpoint(route):
     return '/%s/%s/%s' % (settings['URL_PREFIX'], settings['API_VERSION'], route)
-
-from rest_api import aggregation
 
 
 settings = {
@@ -53,6 +50,9 @@ settings = {
     'ITEM_METHODS': ['GET', 'PUT', 'PATCH', 'DELETE']
 }
 
+from rest_api import aggregation
+
+
 app = eve.Eve(settings=settings)
 flask_cors.CORS(app)
 # flask_cors.CORS(
@@ -60,51 +60,59 @@ flask_cors.CORS(app)
 #     resources='%s/%s/*' % (settings['URL_PREFIX'], settings['API_VERSION']),
 #     origins='http://localhost:5000'
 # )
+def embed_run_elements_into_lanes(request, payload):
+    input_json = json.loads(payload.data.decode('utf-8'))
+    payload.data = aggregation.server_side.aggregate_individual_lanes(input_json)
 
 
 def embed_run_elements_into_samples(request, payload):
-    payload.data = aggregation.server_side.process_embedded_json(json.loads(payload.data.decode('utf-8')))
+    input_json = json.loads(payload.data.decode('utf-8'))
+    payload.data = aggregation.server_side.aggregate_individual_samples(input_json)
+
+
+def run_element_basic_aggregation(request, payload):
+    input_json = json.loads(payload.data.decode('utf-8'))
+    payload.data = aggregation.server_side.run_element_basic_aggregation(input_json)
 
 
 app.on_post_GET_samples += embed_run_elements_into_samples
-
-
-cli = pymongo.MongoClient(cfg['db_host'], cfg['db_port'])
-db = cli[cfg['db_name']]
-
-
-def _aggregate(collection, query, list_field='_id'):
-    cursor = db[collection].aggregate(query)
-    if list_field:
-        aggregation = sorted([x[list_field] for x in cursor['result']])
-    else:
-        aggregation = cursor['result']
-
-    ret_dict = {
-        settings['ITEMS']: aggregation,
-        '_meta': {'total': len(aggregation)}
-    }
-    return jsonify(ret_dict)
+app.on_post_GET_run_elements += run_element_basic_aggregation
+app.on_post_GET_lanes += embed_run_elements_into_lanes
 
 
 @app.route(endpoint('aggregate/run_by_lane/<run_id>'))
 def aggregate_by_lane(run_id):
-    return _aggregate('run_elements', aggregation.database_side.run_elements_by_lane(run_id, request.args))
+    return aggregation.database_side.aggregate(
+        'run_elements',
+        aggregation.database_side.queries.run_elements_by_lane(run_id, request.args)
+    )
 
 
 @app.route(endpoint('aggregate/list_runs'))
 def list_runs():
-    return _aggregate('run_elements', aggregation.database_side.run_ids)
+    return aggregation.database_side.aggregate(
+        'run_elements',
+        aggregation.database_side.queries.run_ids,
+        list_field='_id'
+    )
 
 
 @app.route(endpoint('aggregate/list_projects'))
 def list_projects():
-    return _aggregate('samples', aggregation.database_side.project_ids)
+    return aggregation.database_side.aggregate(
+        'samples',
+        aggregation.database_side.queries.project_ids,
+        list_field='_id'
+    )
 
 
 @app.route(endpoint('aggregate/list_lanes/<collection>/<run_id>'))
 def list_lanes(collection, run_id):
-    return _aggregate(collection, aggregation.database_side.run_lanes(run_id))
+    return aggregation.database_side.aggregate(
+        collection,
+        aggregation.database_side.queries.run_lanes(run_id),
+        list_field='_id'
+    )
 
 
 if __name__ == '__main__':
