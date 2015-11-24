@@ -1,46 +1,54 @@
+runs:
+    - { name: 'run_id',                  title: 'Run ID',                    fmt: { link: '/runs/' } }
+
+projects:
+    - { name: 'project_id',              title: 'Project ID',                fmt: { link: '/projects/' } }
+
 demultiplexing:
-    - {name: 'lane',                     title: 'Lane'                                                             }
-    - {name: 'barcode',                  title: 'Barcode'                                                          }
-    - {name: 'project',                  title: 'Project'                                                          }
-    - {name: 'library_id',               title: 'Library ID'                                                       }
-    - {name: 'sample_id',                title: 'Sample ID'                                                        }
-    - {name: 'pc_pass_filter',           title: '% Pass-filter',           fmt: { type: 'percentage',  min: 70   } }
-    - {name: 'passing_filter_reads',     title: 'Passing-filter reads',    fmt: { type: 'largeint',    min: 1500 } }
-    - {name: 'yield_in_gb',              title: 'Yield (Gb)',              fmt: { type: 'largefloat',  min: 150  } }
-    - {name: 'pc_q30_r1',                title: '% Q30 R1',                fmt: { type: 'percentage',  min: 70   } }
-    - {name: 'pc_q30_r2',                title: '% Q30 R2',                fmt: { type: 'percentage',  min: 70   } }
+#    - { name: 'lane',                     title: 'Lane'                                                             }
+    - { name: 'barcode',                  title: 'Barcode'                                                          }
+    - { name: 'project',                  title: 'Project'                                                          }
+    - { name: 'library_id',               title: 'Library ID'                                                       }
+    - { name: 'sample_id',                title: 'Sample ID'                                                        }
+    - { name: 'pc_pass_filter',           title: '% Pass-filter',           fmt: { type: 'percentage',  min: 70   } }
+    - { name: 'passing_filter_reads',     title: 'Passing-filter reads',    fmt: { type: 'largeint',    min: 1500 } }
+    - { name: 'yield_in_gb',              title: 'Yield (Gb)',              fmt: { type: 'largefloat',  min: 150  } }
+    - { name: 'pc_q30_r1',                title: '% Q30 R1',                fmt: { type: 'percentage',  min: 70   } }
+    - { name: 'pc_q30_r2',                title: '% Q30 R2',                fmt: { type: 'percentage',  min: 70   } }
 
 
 lane_aggregation:
-    - {name: '_id',                      title: 'Lane'                                                 }
-    - {name: 'passing_filter_reads',     title: 'Passing-filter reads',    fmt: { type: 'largeint'   } }
-    - {name: 'pc_pass_filter',           title: '% pass filter',           fmt: { type: 'percentage' } }
-    - {name: 'yield_in_gb',              title: 'Yield (Gb)',              fmt: { type: 'largefloat' } }
-    - {name: 'pc_q30',                   title: '%Q30',                    fmt: { type: 'percentage' } }
-    - {name: 'pc_q30_r1',                title: '%Q30 R1',                 fmt: { type: 'percentage' } }
-    - {name: 'pc_q30_r2',                title: '%Q30 R2',                 fmt: { type: 'percentage' } }
-    - {name: 'cv',                       title: 'Coefficient of variance', fmt: { type: 'largefloat' } }
+    - { name: 'lane_number',              title: 'Lane'                                                 }
+    - { name: 'passing_filter_reads',     title: 'Passing-filter reads',    fmt: { type: 'largeint'   } }
+    - { name: 'pc_pass_filter',           title: '% pass filter',           fmt: { type: 'percentage' } }
+    - { name: 'yield_in_gb',              title: 'Yield (Gb)',              fmt: { type: 'largefloat' } }
+    - { name: 'pc_q30',                   title: '%Q30',                    fmt: { type: 'percentage' } }
+    - { name: 'pc_q30_r1',                title: '%Q30 R1',                 fmt: { type: 'percentage' } }
+    - { name: 'pc_q30_r2',                title: '%Q30 R2',                 fmt: { type: 'percentage' } }
+    - { name: 'cv',                       title: 'Coefficient of variance', fmt: { type: 'largefloat' } }
+
 
 unexpected_barcodes:
-#    - {name: 'lane',                    title: 'Lane',                                                           }
-    - {name: 'barcode',                  title: 'Barcode'                                                         }
-    - {name: 'passing_filter_reads',     title: 'Passing-filter reads',    fmt: { type: 'largeint',   min: 1500 } }
-    - {name: 'pc_reads_in_lane',         title: '% Reads in lane',         fmt: { type: 'percentage', min: 70   } }
+#    - { name: 'lane',                    title: 'Lane',                                                           }
+    - { name: 'barcode',                  title: 'Barcode'                                                         }
+    - { name: 'passing_filter_reads',     title: 'Passing-filter reads',    fmt: { type: 'largeint',   min: 1500 } }
+    - { name: 'pc_reads_in_lane',         title: '% Reads in lane',         fmt: { type: 'percentage', min: 70   } }
+
 
 samples:
-    - {name: 'sample_id',                title: 'Sample ID'                                                       }
-    - {name: 'library_id',               title: 'Library ID'                                                      }
-    - {name: 'user_sample_id',           title: 'User sample ID'                                                  }
-    - {name: 'yield_in_gb',              title: 'Yield (Gb)',              fmt: { type: 'largefloat', min: 1500 } }
-    - {name: 'bam_file_reads',           title: 'Initial reads in bam',    fmt: { type: 'largeint',   min: 1500 } }
-#    - {name: 'passing_filter_reads',     title: 'Passing-filter reads',    fmt: { type: 'largeint',   min: 1500 } }
-    - {name: 'mapped_reads',             title: '# mapped reads',          fmt: { type: 'largeint',   min: 1500 } }
-    - {name: 'pc_mapped_reads',          title: '% mapped reads',          fmt: { type: 'percentage', min: 70 }   }
-    - {name: 'properly_mapped_reads',    title: '# properly mapped reads', fmt: { type: 'largeint',   min: 1500 } }
-    - {name: 'pc_properly_mapped_reads', title: '% properly mapped reads', fmt: { type: 'percentage', min: 70 }   }
-    - {name: 'duplicate_reads',          title: '# duplicate reads',       fmt: { type: 'largeint',   min: 1500 } }
-    - {name: 'pc_duplicate_reads',       title: '% duplicate reads',       fmt: { type: 'percentage', min: 70 }   }
-    - {name: 'median_coverage',          title: 'Median coverage',         fmt: { type: 'largefloat', min: 1500 } }
-    - {name: 'pc_callable',              title: '% callable',              fmt: { type: 'percentage', min: 70 }   }
-    - {name: 'pc_q30_r1',                title: '% Q30 R1',                fmt: { type: 'percentage', min: 70 }   }
-    - {name: 'pc_q30_r2',                title: '% Q30 R2',                fmt: { type: 'percentage', min: 70 }   }
+    - { name: 'sample_id',                title: 'Sample ID'                                                       }
+    - { name: 'library_id',               title: 'Library ID'                                                      }
+    - { name: 'user_sample_id',           title: 'User sample ID'                                                  }
+    - { name: 'yield_in_gb',              title: 'Yield (Gb)',              fmt: { type: 'largefloat', min: 1500 } }
+    - { name: 'bam_file_reads',           title: 'Initial reads in bam',    fmt: { type: 'largeint',   min: 1500 } }
+#    - { name: 'passing_filter_reads',     title: 'Passing-filter reads',    fmt: { type: 'largeint',   min: 1500 } }
+    - { name: 'mapped_reads',             title: '# mapped reads',          fmt: { type: 'largeint',   min: 1500 } }
+    - { name: 'pc_mapped_reads',          title: '% mapped reads',          fmt: { type: 'percentage', min: 70 }   }
+    - { name: 'properly_mapped_reads',    title: '# properly mapped reads', fmt: { type: 'largeint',   min: 1500 } }
+    - { name: 'pc_properly_mapped_reads', title: '% properly mapped reads', fmt: { type: 'percentage', min: 70 }   }
+    - { name: 'duplicate_reads',          title: '# duplicate reads',       fmt: { type: 'largeint',   min: 1500 } }
+    - { name: 'pc_duplicate_reads',       title: '% duplicate reads',       fmt: { type: 'percentage', min: 70 }   }
+    - { name: 'median_coverage',          title: 'Median coverage',         fmt: { type: 'largefloat', min: 1500 } }
+    - { name: 'pc_callable',              title: '% callable',              fmt: { type: 'percentage', min: 70 }   }
+    - { name: 'pc_q30_r1',                title: '% Q30 R1',                fmt: { type: 'percentage', min: 70 }   }
+    - { name: 'pc_q30_r2',                title: '% Q30 R2',                fmt: { type: 'percentage', min: 70 }   }

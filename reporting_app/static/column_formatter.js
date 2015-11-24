@@ -15,8 +15,11 @@ function render_data(data, fmt) {
         data = Humanize.formatNumber(data, 2);
     }
 
+    if (fmt['link']) {
+        data = '<a href=' + fmt['link'] + data + '>' + data + '</a>'
+    }
     if (fmt['min'] && data < fmt['min']) {
-            data = '<p style="color:red">' + data + '</p>';
+        data = '<p style="color:red">' + data + '</p>';
     }
 
     return data;

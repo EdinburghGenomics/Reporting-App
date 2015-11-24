@@ -1,14 +1,18 @@
 runs:
-    lanes: { type: 'list', schema: {type: 'string' } }  # [1..8]
-    run_elements: { type: 'list', schema: {type: 'string', data_relation: {resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
+    run_id: {                   type: 'string',  required: True,  unique: True }
+    lanes: {                    type: 'list',    required: False, schema: {type: 'string', min: 1, max: 8, data_relation: {resource: 'lanes', field: 'lane_id', embeddable: False } } }  # [1..8]
+    # run_elements: {             type: 'list', schema: {type: 'string', data_relation: {resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
 
 
 lanes:
-    run_elements: { type: 'list', schema: {type: 'string', data_relation: {resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
+    lane_id: {                  type: 'string',  required: True,  unique: True}
+    run: {                      type: 'string',  required: False }
+    lane_number: {              type: 'integer', required: False, min: 1, max: 8 }
+    run_elements: {             type: 'list',    required: False, schema: {type: 'string', data_relation: {resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
 
 
 run_elements:
-    run_element_id: {           type: 'string',  required: True, unique: True }
+    run_element_id: {           type: 'string',  required: True,  unique: True }
 
     run_id: {                   type: 'string',  required: True }
     lane: {                     type: 'integer', required: True }
@@ -35,7 +39,7 @@ run_elements:
 
 
 unexpected_barcodes:
-    run_element_id: {           type: 'string',  required: True, unique: True }
+    run_element_id: {           type: 'string',  required: True,  unique: True }
 
     run_id: {                   type: 'string',  required: True }
     lane: {                     type: 'integer', required: True }
@@ -44,12 +48,13 @@ unexpected_barcodes:
     pc_reads_in_lane: {         type: 'float',   required: False }
 
 
-#projects:
-#    samples: { type: 'list', schema: {type: 'string', data_relation: {resource: 'samples', field: 'library_id', embeddable: True } } }
+projects:
+    project_id: {               type: 'string',  required: True,  unique: True}
+    samples: {                  type: 'list',    required: False, schema: {type: 'string', data_relation: {resource: 'samples', field: 'sample_id', embeddable: True } } }
 
 
 samples:
-    library_id: {               type: 'string',  required: True, unique: True }
+    library_id: {               type: 'string',  required: True,  unique: True }
     project: {                  type: 'string',  required: True  }
     sample_id: {                type: 'string',  required: True  }
     user_sample_id: {           type: 'string',  required: False }
@@ -62,5 +67,5 @@ samples:
     median_coverage: {          type: 'float',   required: False }
     pc_callable: {              type: 'float',   required: False }  # aggregate pc_q30 from embedded run elements
 
-    run_elements: { type: 'list', required: False, schema: {type: 'string', data_relation: {resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
+    run_elements: {             type: 'list',    required: False, schema: {type: 'string', data_relation: {resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'] }

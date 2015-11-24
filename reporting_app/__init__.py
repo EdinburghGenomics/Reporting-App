@@ -9,26 +9,22 @@ from config import reporting_app_config as cfg, col_mappings
 app = fl.Flask(__name__)
 
 
-def rest_url(extension):
-    return cfg['rest_api'] + '/' + extension
+def rest_query(resource, **query_args):
+    if not query_args:
+        return cfg['rest_api'] + '/' + resource
 
+    query = '?'
+    query += '&'.join(['%s=%s' % (k, v) for k, v in query_args.items()]).replace(' ', '').replace('\'', '"')
 
-def query_where(domain, **search_args):
-    where_queries = []
-
-    for k, v in search_args.items():
-        q = '"%s":' % k
-        if k == 'lane':
-            q += str(v)
-        else:
-            q += '"%s"' % v
-        where_queries.append(q)
-
-    return rest_url(domain + '?where={' + ','.join(where_queries) + '}')
+    return cfg['rest_api'] + '/' + resource + query
 
 
 def _query_api(url):
     return json.loads(requests.get(url).content.decode('utf-8'))
+
+
+def _distinct_values(val, input_json):
+    return sorted(set(e[val] for e in input_json))
 
 
 @app.route('/')
@@ -38,39 +34,39 @@ def main_page():
 
 @app.route('/runs/')
 def run_reports():
-    runs = list(reversed(_query_api(rest_url('aggregate/list_runs'))['data']))
-    return fl.render_template('runs.html', runs=runs)
+    return fl.render_template('runs.html', api_url=rest_query('runs'), cols=col_mappings['runs'])
 
 
 @app.route('/runs/<run_id>')
 def report_run(run_id):
-
-    demultiplexing_lanes = _query_api(rest_url('aggregate/list_lanes/run_elements/' + run_id))['data']
+    lanes = _distinct_values(
+        'lane_number',
+        _query_api(rest_query('lanes', where={'run': run_id}))['data']
+    )
     demultiplexing_tables = [
         {
             'title': 'Lane ' + str(lane),
             'name': 'demultiplexing_lane_' + str(lane),
-            'api_url': query_where('run_elements', run_id=run_id, lane=lane),
+            'api_url': rest_query('run_elements', where={'run_id': run_id, 'lane': lane}),
             'cols': col_mappings['demultiplexing']
         }
-        for lane in demultiplexing_lanes
+        for lane in lanes
     ]
 
-    unexpected_barcode_lanes = _query_api(rest_url('aggregate/list_lanes/unexpected_barcodes/' + run_id))['data']
     unexpected_barcode_tables = [
         {
             'title': 'Lane ' + str(lane),
             'name': 'unexpected_barcodes_lane_' + str(lane),
-            'api_url': query_where('unexpected_barcodes', run_id=run_id, lane=lane),
+            'api_url': rest_query('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
             'cols': col_mappings['unexpected_barcodes']
         }
-        for lane in unexpected_barcode_lanes
+        for lane in lanes
     ]
 
     lane_aggregation = {
         'title': 'Aggregation per lane',
         'name': 'agg_per_lane',
-        'api_url': rest_url('aggregate/run_by_lane/' + run_id),
+        'api_url': rest_query('lanes', where={'run': run_id}, embedded={'run_elements': 1}),
         'cols': col_mappings['lane_aggregation']
     }
 
@@ -87,14 +83,12 @@ def report_run(run_id):
 def serve_fastqc_report(run_id, filename):
     if '..' in filename or filename.startswith('/'):
         fl.abort(404)
-        return None
     return fl.send_file(os.path.join(os.path.dirname(__file__), 'static', 'runs', run_id, filename))
 
 
 @app.route('/projects/')
 def project_reports():
-    projects = _query_api(rest_url('aggregate/list_projects'))['data']
-    return fl.render_template('projects.html', projects=projects)
+    return fl.render_template('runs.html', api_url=rest_query('projects'), cols=col_mappings['projects'])
 
 
 @app.route('/projects/<project>')
@@ -106,7 +100,7 @@ def report_project(project):
         table={
             'title': 'Project report for ' + project,
             'name': project + '_report',
-            'api_url': query_where('samples', project=project),
+            'api_url': rest_query('samples', where={'project': project}, embedded={'run_elements': 1}),
             'cols': col_mappings['samples']
         }
     )

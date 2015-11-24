@@ -1,5 +1,6 @@
 __author__ = 'mwham'
 from flask import json
+import statistics
 
 
 def _sum(elements, param):
@@ -25,7 +26,7 @@ def run_element_basic_aggregation(input_json):
     return json.dumps(input_json, indent=4)
 
 
-def aggregate_individual_samples(input_json):
+def aggregate_samples(input_json):
     for sample in input_json['data']:
         embedded_run_elements = sample.get('run_elements', [])
         aggregated_run_element = {}
@@ -39,12 +40,12 @@ def aggregate_individual_samples(input_json):
         sample['pc_mapped_reads'] = _percentage(sample, 'mapped_reads', 'bam_file_reads')
         sample['pc_properly_mapped_reads'] = _percentage(sample, 'properly_mapped_reads', 'bam_file_reads')
         sample['pc_duplicate_reads'] = _percentage(sample, 'duplicate_reads', 'bam_file_reads')
-        # del sample['run_elements']
+        del sample['run_elements']
 
     return json.dumps(input_json, indent=4)
 
 
-def aggregate_individual_lanes(input_json):
+def aggregate_lanes(input_json):
     for lane in input_json['data']:
         embedded_run_elements = lane.get('run_elements', [])
         aggregated_run_element = {}
@@ -55,16 +56,17 @@ def aggregate_individual_lanes(input_json):
         aggregate_single_run_element(aggregated_run_element)
         lane.update(aggregated_run_element)
 
+        pass_filters = [e['passing_filter_reads'] for e in embedded_run_elements]
+        lane['cv'] = statistics.stdev(pass_filters) / statistics.mean(pass_filters)
+
     return json.dumps(input_json, indent=4)
 
 
 def aggregate_single_run_element(e):
-    if 'passing_filter_reads' not in e:
-        return
-    e['pc_pass_filter'] = e['passing_filter_reads'] / e['total_reads']
-    e['pc_q30_r1'] = e['q30_bases_r1'] / e['bases_r1']
-    e['pc_q30_r2'] = e['q30_bases_r2'] / e['bases_r2']
-    e['pc_q30'] = (e['q30_bases_r1'] + e['q30_bases_r2']) / (e['bases_r1'] + e['bases_r2'])
+    e['pc_pass_filter'] = _percentage(e, 'passing_filter_reads', 'total_reads')
+    e['pc_q30_r1'] = _percentage(e, 'q30_bases_r1', 'bases_r1')
+    e['pc_q30_r2'] = _percentage(e, 'q30_bases_r2', 'bases_r2')
+    e['pc_q30'] = (e['q30_bases_r1'] + e['q30_bases_r2']) / (e['bases_r1'] + e['bases_r2']) * 100
     e['yield_in_gb'] = (e['bases_r1'] + e['bases_r2']) / 1000000000
 
 
