@@ -78,6 +78,7 @@ flask_cors.CORS(app)
 #     resources='%s/%s/*' % (settings['URL_PREFIX'], settings['API_VERSION']),
 #     origins='http://localhost:5000'
 # )
+
 def _embedding(request_args):
     return flask.json.loads(request_args.get('embedded', '{}'))
 
@@ -101,6 +102,7 @@ def run_element_basic_aggregation(request, payload):
 
 def format_json(resource, request, payload):
     payload.data = flask.json.dumps(flask.json.loads(payload.data.decode('utf-8')), indent=4)
+
 
 app.on_post_GET += format_json
 app.on_post_GET_samples += embed_run_elements_into_samples
@@ -143,7 +145,7 @@ def list_lanes(collection, run_id):
     )
 
 
-if __name__ == '__main__':
+def main():
     """
     querying with Python syntax:
     curl -i -g 'http://host:port/things?where=sample_project=="this"'
@@ -153,7 +155,6 @@ if __name__ == '__main__':
     curl -i -g 'http://host:port/things?where={"sample_project":"this"}'
     http://host:port/things?where={%22sample_project%22:%22this%22}
     """
-
     if cfg['tornado']:
         import tornado.wsgi
         import tornado.httpserver
@@ -164,4 +165,8 @@ if __name__ == '__main__':
         tornado.ioloop.IOLoop.instance().start()
 
     else:
-        app.run('localhost', cfg['port'], debug=True)
+        app.run('localhost', cfg['port'], debug=cfg['debug'])
+
+
+if __name__ == '__main__':
+    main()

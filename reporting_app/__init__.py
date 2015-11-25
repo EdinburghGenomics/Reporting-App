@@ -106,12 +106,7 @@ def report_project(project):
     )
 
 
-def _join(*parts):
-    return ''.join(parts)
-
-
-if __name__ == '__main__':
-
+def main():
     if cfg['tornado']:
         import tornado.wsgi
         import tornado.httpserver
@@ -123,4 +118,8 @@ if __name__ == '__main__':
         tornado.ioloop.IOLoop.instance().start()
 
     else:
-        app.run('localhost', cfg['port'], debug=True)
+        app.run('localhost', cfg['port'], debug=cfg['debug'])
+
+
+if __name__ == '__main__':
+    main()

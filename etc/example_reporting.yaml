@@ -1,17 +1,18 @@
 
-reporting_app:
-    tornado: False
-    debug: False
-    port: port
-    rest_api: 'http://localhost:port/api/0.1'
+default:
+    reporting_app:
+        tornado: False
+        debug: False
+        port: port
+        rest_api: 'http://localhost:port/api/0.1'
 
-rest_app:
-    tornado: False
-    port: port
-    debug: False
+    rest_app:
+        tornado: False
+        port: port
+        debug: False
 
-    db_name: 'test_db'
-    db_host: 'mongodb://hostname'
-    db_port: port
+        db_name: 'test_db'
+        db_host: 'mongodb://hostname'
+        db_port: port
 
-    x_domains: ['http://localhost:reporting_app_port']
+        x_domains: ['http://localhost:reporting_app_port']
