@@ -92,7 +92,7 @@ def aggregate_embedded_run_elements(request, payload):
         payload.data = aggregation.server_side.aggregate_lanes(
             input_json,
             sortquery=_from_query_string(request.args, 'sort', json=False)
-        )
+        ).encode()
 
 
 def embed_run_elements_into_samples(request, payload):
@@ -101,7 +101,7 @@ def embed_run_elements_into_samples(request, payload):
         payload.data = aggregation.server_side.aggregate_samples(
             input_json,
             sortquery=_from_query_string(request.args, 'sort', json=False)
-        )
+        ).encode()
 
 
 def run_element_basic_aggregation(request, payload):
@@ -109,7 +109,7 @@ def run_element_basic_aggregation(request, payload):
     payload.data = aggregation.server_side.run_element_basic_aggregation(
         input_json,
         sortquery=_from_query_string(request.args, 'sort', json=False)
-    )
+    ).encode()
 
 
 def format_json(resource, request, payload):

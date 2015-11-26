@@ -1,4 +1,6 @@
 tornado==4.2.1
 flask==0.10.1
+flask_cors==2.1.2
+PyYAML==3.11
 requests==2.8.1
 eve==0.6

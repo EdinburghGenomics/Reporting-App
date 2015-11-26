@@ -1,0 +1,95 @@
+{
+    "_links": {
+        "parent": {
+            "title": "home",
+            "href": "/"
+        },
+        "self": {
+            "title": "samples",
+            "href": "samples?max_results=10&where={\"project\":\"10015AT\"}&sort=-user_sample_id"
+        }
+    },
+    "data": [
+        {
+            "q30_bases_r2": 38704151806,
+            "total_reads": 289063,
+            "pc_q30_r2": 80.59160755493026,
+            "library_id": "lib_10015AT_2_test",
+            "_links": {
+                "self": {
+                    "title": "sample",
+                    "href": "samples/56547545f4b2c6312a73c769"
+                }
+            },
+            "median_coverage": 0.09,
+            "_updated": "Tue, 24 Nov 2015 14:33:41 GMT",
+            "pc_mapped_reads": 73.61712361712361,
+            "project": "10015AT",
+            "_etag": "bfcfcef3efff767ff99c17b0d8683e42a54b821e",
+            "pc_q30": 80.28416533994243,
+            "pc_callable": 27.0,
+            "pc_duplicate_reads": 8.862433862433862,
+            "bases_r1": 48573883187,
+            "duplicate_reads": 737,
+            "sample_id": "10015AT_2_test",
+            "mapped_reads": 6122,
+            "yield_in_gb": 96.598923238,
+            "pc_q30_r1": 79.98019695777057,
+            "passing_filter_reads": 228295,
+            "user_sample_id": "user_10015AT_2_test",
+            "_created": "Tue, 24 Nov 2015 14:33:41 GMT",
+            "bases_r2": 48025040051,
+            "bam_file_reads": 8316,
+            "reviewed": "fail",
+            "q30_bases_r1": 38849487443,
+            "pc_properly_mapped_reads": 75.7094757094757,
+            "properly_mapped_reads": 6296,
+            "_id": "56547545f4b2c6312a73c769",
+            "pc_pass_filter": 78.97759311983893,
+            "run_ids": "150823_test, 150824_test"
+        },
+        {
+            "q30_bases_r2": 39683529874,
+            "total_reads": 285683,
+            "pc_q30_r2": 81.25493646735367,
+            "library_id": "lib_10015AT_1_test",
+            "_links": {
+                "self": {
+                    "title": "sample",
+                    "href": "samples/56547545f4b2c6312a73c736"
+                }
+            },
+            "median_coverage": 0.74,
+            "_updated": "Tue, 24 Nov 2015 14:33:41 GMT",
+            "pc_mapped_reads": 86.86681110079438,
+            "project": "10015AT",
+            "_etag": "4c40738304daee634ec7218746e49bdd7813b6ae",
+            "pc_q30": 81.60186443567123,
+            "pc_callable": 81.0,
+            "pc_duplicate_reads": 11.193644898380274,
+            "bases_r1": 48499624958,
+            "duplicate_reads": 1085,
+            "sample_id": "10015AT_1_test",
+            "mapped_reads": 8420,
+            "yield_in_gb": 97.33792525,
+            "pc_q30_r1": 81.9512150195378,
+            "passing_filter_reads": 231170,
+            "user_sample_id": "user_10015AT_1_test",
+            "_created": "Tue, 24 Nov 2015 14:33:41 GMT",
+            "bases_r2": 48838300292,
+            "bam_file_reads": 9693,
+            "reviewed": "not reviewed",
+            "q30_bases_r1": 39746031933,
+            "pc_properly_mapped_reads": 87.07314556896729,
+            "properly_mapped_reads": 8440,
+            "_id": "56547545f4b2c6312a73c736",
+            "pc_pass_filter": 80.91836056048137,
+            "run_ids": "150723_test, 150724_test"
+        }
+    ],
+    "_meta": {
+        "total": 2,
+        "page": 1,
+        "max_results": 10
+    }
+}
