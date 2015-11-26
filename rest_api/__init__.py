@@ -79,29 +79,41 @@ flask_cors.CORS(app)
 #     origins='http://localhost:5000'
 # )
 
-def _embedding(request_args):
-    return flask.json.loads(request_args.get('embedded', '{}'))
+def _from_query_string(request_args, query, json=True):
+    if json:
+        return flask.json.loads(request_args.get(query, '{}'))
+    else:
+        return request_args.get(query, None)
 
 
 def aggregate_embedded_run_elements(request, payload):
     input_json = flask.json.loads(payload.data.decode('utf-8'))
-    if _embedding(request.args).get('run_elements') == 1:
-        payload.data = aggregation.server_side.aggregate_lanes(input_json)
+    if _from_query_string(request.args, 'embedded').get('run_elements') == 1:
+        payload.data = aggregation.server_side.aggregate_lanes(
+            input_json,
+            sortquery=_from_query_string(request.args, 'sort', json=False)
+        )
 
 
 def embed_run_elements_into_samples(request, payload):
     input_json = flask.json.loads(payload.data.decode('utf-8'))
-    if _embedding(request.args).get('run_elements') == 1:
-        payload.data = aggregation.server_side.aggregate_samples(input_json)
+    if _from_query_string(request.args, 'embedded').get('run_elements') == 1:
+        payload.data = aggregation.server_side.aggregate_samples(
+            input_json,
+            sortquery=_from_query_string(request.args, 'sort', json=False)
+        )
 
 
 def run_element_basic_aggregation(request, payload):
     input_json = flask.json.loads(payload.data.decode('utf-8'))
-    payload.data = aggregation.server_side.run_element_basic_aggregation(input_json)
+    payload.data = aggregation.server_side.run_element_basic_aggregation(
+        input_json,
+        sortquery=_from_query_string(request.args, 'sort', json=False)
+    )
 
 
 def format_json(resource, request, payload):
-    payload.data = flask.json.dumps(flask.json.loads(payload.data.decode('utf-8')), indent=4)
+    return flask.json.dumps(flask.json.loads(payload.data.decode('utf-8')), indent=4)
 
 
 app.on_post_GET += format_json

@@ -1,4 +1,5 @@
 __author__ = 'mwham'
+import argparse
 import requests
 import random
 from json import loads
@@ -36,7 +37,7 @@ def sample_element(sample_id, run_element_ids):
     bam_file_reads = random.randint(8000, 10000)
     return {
         'library_id': 'lib_' + sample_id,
-        'project': sample_id.split('_')[0],
+        'project': sample_id.split('_sample')[0],
         'sample_id': sample_id,
         'user_sample_id': 'user_' + sample_id,
         'bam_file_reads': bam_file_reads,
@@ -110,9 +111,15 @@ def project(name, sample_ids):
     }
 
 
+
+
 ext_api = 'http://egclaritydev.mvm.ed.ac.uk:4999/api/0.1/'
 int_api = 'http://localhost:4999/api/0.1/'
 api_url = int_api
+
+
+class RESTError(Exception):
+    pass
 
 
 def push(resource, json):
@@ -120,57 +127,81 @@ def push(resource, json):
     content = loads(response.content.decode('utf-8'))
     if content['_status'] != 'OK':
         print('oh noes! problem pushing to ' + resource)
+        print(json)
         print(content)
+        raise RESTError
 
 
-def multi_push():
-    run_ids_and_samples = (
-        (('150723_test', '150724_test'), '10015AT_1_test'),
-        (('150823_test', '150824_test'), '10015AT_2_test'),
-        (('150923_test', '150924_test'), '10105AT_1_test')
-    )
+def multi_push(run_ids_and_samples, elements_per_run=6, lanes_per_run=8):
+    runs = []
+    projects = []
 
-    for runs, sample_id in run_ids_and_samples:
-        run_e_ids = []
-        for run_id in runs:
-            lane_ids = []
-            for lane_number in ('1', '2', '3', '4', '5', '6', '7', '8'):
-                b1 = rand_barcode()
-                b2 = rand_barcode()
-                while b2 == b1:
-                    b2 = rand_barcode()
+    for project_id, run_ids in run_ids_and_samples:
+        r_e_ids = []
+        for run_id in run_ids:
+            print(run_id)
+            lanes = []
 
-                run_es = [
-                    run_element(run_id, lane_number, b1, sample_id),
-                    run_element(run_id, lane_number, b2, sample_id)
-                ]
-                run_e_ids.extend([e['run_element_id'] for e in run_es])
-                push('run_elements', json=run_es)
+            for lane_number in (range(lanes_per_run)):
+                lane_number = str(lane_number + 1)
+                run_elements = []
+                barcodes = []
+                _sample_id = project_id + '_sample_' + lane_number
+
+                for e in range(elements_per_run):
+                    b = rand_barcode()
+                    while b in barcodes:
+                        b = rand_barcode()
+
+                    r_e = run_element(run_id, lane_number, b, _sample_id)
+                    run_elements.append(r_e)
 
                 l = lane(
                     run_id,
                     lane_number,
-                    [
-                        '_'.join((run_id, lane_number, b1)),
-                        '_'.join((run_id, lane_number, b2))
-                    ]
+                    [e['run_element_id'] for e in run_elements]
                 )
-                push('lanes', json=l)
-                lane_ids.append(l['lane_id'])
-            r = run(run_id, lane_ids)
-            push('runs', json=r)
+                lanes.append(l)
 
-        s = sample_element(sample_id, run_e_ids)
-        push('samples', json=s)
+                r_e_ids.extend([e['run_element_id'] for e in run_elements])
+                push('run_elements', json=run_elements)
 
-    p1 = project('10015AT', ['10015AT_1_test', '10015AT_2_test'])
-    p2 = project('10105AT', ['10105AT_1_test'])
-    push('projects', json=[p1, p2])
+            r = run(run_id, [e['lane_id'] for e in lanes])
+            runs.append(r)
+            push('lanes', json=lanes)
+
+        samples = []
+        for s in range(lanes_per_run):
+            s = str(s + 1)
+            sample_id = project_id + '_sample_' + s
+
+            s = sample_element(sample_id, r_e_ids)
+            samples.append(s)
+
+        p = project(project_id, [e['sample_id'] for e in samples])
+        projects.append(p)
+        push('samples', json=samples)
+
+    push('runs', json=runs)
+    push('projects', json=projects)
+
 
 
 if __name__ == '__main__':
-    # r = run_element('another', '9', 'run_element', '10015AT_test', '10015AT_test_1')
-    # r['run_element'] = ['another_9_run_element', '150723_test_1_TTGGGGTC']
-    #
-    # push('run_elements', r)
-    multi_push()
+    p = argparse.ArgumentParser()
+    p.add_argument('--nruns', type=int, help='number of runs to add to the database')
+    p.add_argument('--nsamples', type=int, help='number of samples to add. this must divide nruns cleanly.')
+    args = p.parse_args()
+
+    nruns = args.nruns
+    nsamples = args.nsamples
+
+    runs = ['run_' + str(x + 1) for x in range(nruns)]
+    projects = ['test_project_' + str(y + 1) for y in range(nsamples)]
+
+    assert nruns > nsamples, 'must have more runs than samples'
+    runs_per_sample = int(nruns / nsamples)
+
+    input_data = ((p, (runs.pop(0) for _ in range(runs_per_sample))) for p in projects)
+
+    multi_push(input_data)

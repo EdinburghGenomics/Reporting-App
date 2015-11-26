@@ -6,23 +6,23 @@ function render_data(data, fmt) {
     if (!fmt) {
         return data;
     }
+    var formatted_data = data;
 
     if (fmt['type'] == 'percentage') {
-        data = Humanize.toFixed(data, 1) + '%';
+        formatted_data = Humanize.toFixed(formatted_data, 1) + '%';
     } else if (fmt['type'] == 'largeint') {
-        data = Humanize.intComma(data);
+        formatted_data = Humanize.intComma(formatted_data);
     } else if (fmt['type'] == 'largefloat') {
-        data = Humanize.formatNumber(data, 2);
+        formatted_data = Humanize.formatNumber(formatted_data, 2);
     }
 
     if (fmt['link']) {
-        data = '<a href=' + fmt['link'] + data + '>' + data + '</a>'
+        formatted_data = '<a href=' + fmt['link'] + data + '>' + formatted_data + '</a>'
     }
     if (fmt['min'] && data < fmt['min']) {
-        data = '<p style="color:red">' + data + '</p>';
+        formatted_data = '<p style="color:red">' + formatted_data + '</p>';
     }
 
-    return data;
-
+    return formatted_data;
 }
 

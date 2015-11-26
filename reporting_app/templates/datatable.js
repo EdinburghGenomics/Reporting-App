@@ -55,7 +55,7 @@ $(document).ready(
                             'render': function(data, type, row, meta) {
                                 return render_data(data, c.fmt)
                             },
-                            'orderable': c.orderable.toLowerCase().search('true') != -1 || false,
+                            'orderable': !c.orderable || String(c.orderable).toLowerCase() == 'true',
                             'defaultContent': ''
                         };
                     }
