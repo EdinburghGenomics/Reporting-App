@@ -1,16 +1,15 @@
 {% extends 'reporting_base.html' %}
-{% block title %}Main page{% endblock %}
+{% from 'datatable.html' import datatable, dt_header %}
+
+{% block title %}Run list{% endblock %}
 {% block head %}
     {{ super() }}
+    {{ dt_header() }}
 {% endblock %}
 
 {% block content %}
 
 <h1>Analysis Driver runs</h1>
-<ul>
-    {% for r in runs %}
-    <li><a href="/runs/{{r}}">{{r}}</a></li>
-    {% endfor %}
-</ul>
+{{ datatable('runs', cols, api_url) }}
 
 {% endblock %}

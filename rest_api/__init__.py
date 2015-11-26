@@ -1,17 +1,34 @@
 __author__ = 'mwham'
 import eve
-import pymongo
-from flask import jsonify, request
+import flask
 import flask_cors
 from config import rest_config as cfg, schema
+
+
+def endpoint(route):
+    return '/%s/%s/%s' % (settings['URL_PREFIX'], settings['API_VERSION'], route)
 
 
 settings = {
     'DOMAIN': {
 
+        'runs': {
+            'url': 'runs',
+            'item_title': 'run',
+            'schema': schema['runs']
+        },
+
+        'lanes': {
+            'url': 'lanes',
+            'item_title': 'lane',
+            'id_field': 'lane_id',
+            'schema': schema['lanes']
+        },
+
         'run_elements': {  # demultiplexing reports
             'url': 'run_elements',
             'item_title': 'element',
+            'id_field': 'run_element_id',
             'schema': schema['run_elements']
         },
 
@@ -21,17 +38,26 @@ settings = {
             'schema': schema['unexpected_barcodes']
         },
 
+        'projects': {
+            'url': 'projects',
+            'item_title': 'project',
+            'schema': schema['projects']
+        },
+
         'samples': {  # bcbio reports
             'url': 'samples',
             'item_title': 'sample',
             'schema': schema['samples']
         }
     },
+    'VALIDATE_FILTERS': True,
 
     'MONGO_HOST': cfg['db_host'],
     'MONGO_PORT': cfg['db_port'],
     'MONGO_DBNAME': cfg['db_name'],
     'ITEMS': 'data',
+
+    'XML': False,
 
     'X_DOMAINS': cfg['x_domains'],
 
@@ -42,6 +68,9 @@ settings = {
     'ITEM_METHODS': ['GET', 'PUT', 'PATCH', 'DELETE']
 }
 
+from rest_api import aggregation
+
+
 app = eve.Eve(settings=settings)
 flask_cors.CORS(app)
 # flask_cors.CORS(
@@ -50,133 +79,85 @@ flask_cors.CORS(app)
 #     origins='http://localhost:5000'
 # )
 
-cli = pymongo.MongoClient(cfg['db_host'], cfg['db_port'])
-db = cli[cfg['db_name']]
-
-
-def _endpoint(route):
-    return '/%s/%s/%s' % (settings['URL_PREFIX'], settings['API_VERSION'], route)
-
-
-def _format_order(query):
-    if query.startswith('-'):
-        return {query.lstrip('-'): -1}
+def _from_query_string(request_args, query, json=True):
+    if json:
+        return flask.json.loads(request_args.get(query, '{}'))
     else:
-        return {query: 1}
+        return request_args.get(query, None)
 
 
-def _aggregate(collection, query, list_field=None):
-    cursor = db[collection].aggregate(query)
-    if list_field:
-        aggregation = sorted([x[list_field] for x in cursor['result']])
-    else:
-        aggregation = cursor['result']
-
-    ret_dict = {
-        settings['ITEMS']: aggregation,
-        '_meta': {'total': len(aggregation)}
-    }
-    return jsonify(ret_dict)
+def aggregate_embedded_run_elements(request, payload):
+    input_json = flask.json.loads(payload.data.decode('utf-8'))
+    if _from_query_string(request.args, 'embedded').get('run_elements') == 1:
+        payload.data = aggregation.server_side.aggregate_lanes(
+            input_json,
+            sortquery=_from_query_string(request.args, 'sort', json=False)
+        )
 
 
-@app.route(_endpoint('aggregate/run_by_lane/<run_id>'))
+def embed_run_elements_into_samples(request, payload):
+    input_json = flask.json.loads(payload.data.decode('utf-8'))
+    if _from_query_string(request.args, 'embedded').get('run_elements') == 1:
+        payload.data = aggregation.server_side.aggregate_samples(
+            input_json,
+            sortquery=_from_query_string(request.args, 'sort', json=False)
+        )
+
+
+def run_element_basic_aggregation(request, payload):
+    input_json = flask.json.loads(payload.data.decode('utf-8'))
+    payload.data = aggregation.server_side.run_element_basic_aggregation(
+        input_json,
+        sortquery=_from_query_string(request.args, 'sort', json=False)
+    )
+
+
+def format_json(resource, request, payload):
+    return flask.json.dumps(flask.json.loads(payload.data.decode('utf-8')), indent=4)
+
+
+app.on_post_GET += format_json
+app.on_post_GET_samples += embed_run_elements_into_samples
+app.on_post_GET_run_elements += run_element_basic_aggregation
+app.on_post_GET_lanes += aggregate_embedded_run_elements
+
+
+@app.route(endpoint('aggregate/run_by_lane/<run_id>'))
 def aggregate_by_lane(run_id):
-    return _aggregate(
+    return aggregation.database_side.aggregate(
         'run_elements',
-        [
-            {
-                '$match': {
-                    'run_id': run_id
-                }
-            },
-            {
-                '$project': {
-                    'lane': '$lane',
-                    'passing_filter_reads': '$passing_filter_reads',
-                    'pc_pass_filter': '$pc_pass_filter',
-                    'yield_in_gb': '$yield_in_gb',
-                    'pc_q30': {'$divide': [{'$add': ['$pc_q30_r1', '$pc_q30_r2']}, 2]},
-                    'pc_q30_r1': '$pc_q30_r1',
-                    'pc_q30_r2': '$pc_q30_r2'}
-            },
-            {
-                '$group': {
-                    '_id': '$lane',
-                    'passing_filter_reads': {'$sum': '$passing_filter_reads'},
-                    'pc_pass_filter': {'$avg': '$pc_pass_filter'},
-                    'yield_in_gb': {'$sum': '$yield_in_gb'},
-                    'pc_q30': {'$avg': '$pc_q30'},
-                    'pc_q30_r1': {'$avg': '$pc_q30_r1'},
-                    'pc_q30_r2': {'$avg': '$pc_q30_r2'},
-                    'stdev_pf': {'$stdDevSamp': '$passing_filter_reads'},
-                    'avg_pf': {'$avg': '$passing_filter_reads'}
-                }
-            },
-            {
-                '$project': {
-                    'lane': '$_id',
-                    'passing_filter_reads': '$passing_filter_reads',
-                    'pc_pass_filter': '$pc_pass_filter',
-                    'yield_in_gb': '$yield_in_gb',
-                    'pc_q30': '$pc_q30',
-                    'pc_q30_r1': '$pc_q30_r1',
-                    'pc_q30_r2': '$pc_q30_r2',
-                    'cv': {'$divide': ['$stdev_pf', '$avg_pf']}
-                }
-            },
-            {
-                '$sort': _format_order(request.args.get('sort', 'lane'))
-            }
-        ]
+        aggregation.database_side.queries.run_elements_by_lane(run_id, flask.request.args)
     )
 
 
-@app.route(_endpoint('aggregate/list_runs'))
+@app.route(endpoint('aggregate/list_runs'))
 def list_runs():
-    return _aggregate(
+    return aggregation.database_side.aggregate(
         'run_elements',
-        [
-            {
-                '$group': {'_id': '$run_id'}
-            }
-        ],
+        aggregation.database_side.queries.run_ids,
         list_field='_id'
     )
 
 
-@app.route(_endpoint('aggregate/list_projects'))
+@app.route(endpoint('aggregate/list_projects'))
 def list_projects():
-    return _aggregate(
+    return aggregation.database_side.aggregate(
         'samples',
-        [
-            {
-                '$group': {'_id': '$project'}
-            }
-        ],
+        aggregation.database_side.queries.project_ids,
         list_field='_id'
     )
 
 
-@app.route(_endpoint('aggregate/list_lanes/<collection>/<run_id>'))
+@app.route(endpoint('aggregate/list_lanes/<collection>/<run_id>'))
 def list_lanes(collection, run_id):
-    return _aggregate(
+    return aggregation.database_side.aggregate(
         collection,
-        [
-            {
-                '$match': {'run_id': run_id}
-            },
-            {
-                '$group': {'_id': '$lane'}
-            },
-            {
-                '$sort': {'_id': 1}
-            }
-        ],
+        aggregation.database_side.queries.run_lanes(run_id),
         list_field='_id'
     )
 
 
-if __name__ == '__main__':
+def main():
     """
     querying with Python syntax:
     curl -i -g 'http://host:port/things?where=sample_project=="this"'
@@ -186,7 +167,6 @@ if __name__ == '__main__':
     curl -i -g 'http://host:port/things?where={"sample_project":"this"}'
     http://host:port/things?where={%22sample_project%22:%22this%22}
     """
-
     if cfg['tornado']:
         import tornado.wsgi
         import tornado.httpserver
@@ -198,3 +178,7 @@ if __name__ == '__main__':
 
     else:
         app.run('localhost', cfg['port'], debug=cfg['debug'])
+
+
+if __name__ == '__main__':
+    main()

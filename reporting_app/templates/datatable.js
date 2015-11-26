@@ -5,6 +5,7 @@ $(document).ready(
         var cols = {{ cols|list|safe }};
         var api_url = '{{ api_url|safe }}';
         var paging = {{ paging|safe }};
+
         $('#{{name}}').DataTable(
             {
                 'paging': paging,
@@ -54,6 +55,7 @@ $(document).ready(
                             'render': function(data, type, row, meta) {
                                 return render_data(data, c.fmt)
                             },
+                            'orderable': !c.orderable || String(c.orderable).toLowerCase() == 'true',
                             'defaultContent': ''
                         };
                     }
@@ -63,4 +65,5 @@ $(document).ready(
         );
     }
 );
+
 {% endmacro %}
