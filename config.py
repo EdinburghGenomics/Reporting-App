@@ -58,7 +58,6 @@ class SplitConfiguration(Configuration):
         return yaml.load(open(self._find_config_file(), 'r'))[env][self.app_type]
 
 
-
 reporting_app_config = SplitConfiguration(
     'REPORTINGCONFIG',
     '~/.reporting.yaml',
