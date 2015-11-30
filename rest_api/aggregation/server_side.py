@@ -28,21 +28,21 @@ def divide(num, denom):
 
 
 def concatenate(elements, param):
-    return ', '.join(sorted(set([e[param] for e in elements])))
+    return list(sorted(set([e[param] for e in elements])))
 
 
 def run_element_basic_aggregation(input_json, sortquery=None):
     for sample in input_json['data']:
         sample.update(_aggregate_run_element(sample))
 
-    return json.dumps(order_json(input_json, sortquery), indent=4)
+    return order_json(input_json, sortquery)
 
 
 def _aggregate_run_element(element):
     return {
-        'pc_pass_filter': multiply(divide(element['passing_filter_reads'], element['total_reads']), 100),
-        'pc_q30_r1': multiply(divide(element['q30_bases_r1'], element['bases_r1']), 100),
-        'pc_q30_r2': multiply(divide(element['q30_bases_r2'], element['bases_r2']), 100),
+        'pc_pass_filter': percentage(element['passing_filter_reads'], element['total_reads']),
+        'pc_q30_r1': percentage(element['q30_bases_r1'], element['bases_r1']),
+        'pc_q30_r2': percentage(element['q30_bases_r2'], element['bases_r2']),
         'pc_q30': percentage(
             add(element['q30_bases_r1'], element['q30_bases_r2']),
             add(element['bases_r1'], element['bases_r2'])
@@ -61,13 +61,27 @@ def aggregate_samples(input_json, sortquery=None):
     for sample in input_json['data']:
         sample.update(_aggregate_sample(sample, 'run_elements'))
 
-    return json.dumps(order_json(input_json, sortquery), indent=4)
+    return order_json(input_json, sortquery)
 
 
 def _aggregate_sample(element, embedded_field):
     e = aggregate_embedded_run_elements(element[embedded_field])
     e.update(
         {
+            'pc_pass_filter': percentage(e['passing_filter_reads'], e['total_reads']),
+            'pc_q30_r1': percentage(e['q30_bases_r1'], e['bases_r1']),
+            'pc_q30_r2': percentage(e['q30_bases_r2'], e['bases_r2']),
+            'pc_q30': percentage(
+                add(e['q30_bases_r1'], e['q30_bases_r2']),
+                add(e['bases_r1'], e['bases_r2'])
+            ),
+            'yield_in_gb': divide(
+                add(
+                    e['bases_r1'],
+                    e['bases_r2']
+                ),
+                1000000000
+            ),
             'pc_mapped_reads': percentage(element['mapped_reads'], element['bam_file_reads']),
             'pc_properly_mapped_reads': percentage(element['properly_mapped_reads'], element['bam_file_reads']),
             'pc_duplicate_reads': percentage(element['duplicate_reads'], element['bam_file_reads'])
@@ -94,7 +108,7 @@ def aggregate_embedded_run_elements(elements):
 def aggregate_lanes(input_json, sortquery=None):
     for lane in input_json['data']:
         lane.update(_aggregate_lane(lane, 'run_elements'))
-    return json.dumps(order_json(input_json, sortquery), indent=4)
+    return order_json(input_json, sortquery)
 
 
 def _aggregate_lane(element, embedded_field):
@@ -102,6 +116,11 @@ def _aggregate_lane(element, embedded_field):
     pass_filters = [e['passing_filter_reads'] for e in element[embedded_field]]
     e.update(
         {
+            'pc_q30_r1': percentage(e['q30_bases_r1'], e['bases_r1']),
+            'pc_q30_r2': percentage(e['q30_bases_r2'], e['bases_r2']),
+            'pc_q30': percentage(add(e['q30_bases_r1'], e['q30_bases_r2']), add(e['bases_r1'], e['bases_r2'])),
+            'pc_pass_filter': percentage(e['passing_filter_reads'], e['total_reads']),
+            'yield_in_gb': divide(add(e['bases_r1'], e['bases_r2']), 1000000000),
             'cv': statistics.stdev(pass_filters) / statistics.mean(pass_filters)
         }
     )
@@ -109,15 +128,15 @@ def _aggregate_lane(element, embedded_field):
 
 
 def order_json(input_json, sortquery=None):
-    resource = input_json['_links']['self']['title']
     if not sortquery:
-        return input_json
+        return json.dumps(input_json, indent=4)
 
     reverse = sortquery.startswith('-')
     sortcol = sortquery.lstrip('-')
 
+    resource = input_json['_links']['self']['title']
     if sortcol not in schema[resource]:
-        # do our own sorting, as sortcol refers to an aggregated field
+        # sortcol refers to an aggregated field, so sort here
         input_json['data'] = sorted(input_json['data'], key=lambda e: itemgetter(sortcol)(e), reverse=reverse)
 
-    return input_json
+    return json.dumps(input_json, indent=4)

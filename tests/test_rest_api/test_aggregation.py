@@ -6,21 +6,31 @@ import os.path
 
 
 class TestAggregation(TestBase):
-    def _test_json(self, pre_or_post, filename):
+    def _json_test_file(self, pre_or_post, filename):
         return open(os.path.join(self.assets_dir, 'json', pre_or_post + '_aggregation', filename))
 
+    def _compare_jsons(self, o, e):
+        for x in (o, e):
+            for y in ('run_ids',):
+                self._reorder_comma_sep_list(x['data'], y)
+        assert o == e
+
     def _reorder_comma_sep_list(self, data, key):
-        try:
-            for e in data:
-                e[key] = sorted(e[key].split(', '))
-        except KeyError:
-            pass
+        for e in data:
+            if key not in e:
+                continue
+            if type(e[key]) is list:
+                e[key] = list(sorted(e[key]))
+
+    def _test_aggregation(self, aggregate, filename):
+        raise NotImplementedError
+
 
 
 class TestRestSide(TestAggregation):
 
     def _test_aggregation(self, aggregate, filename, sort=None):
-        input_json = json.load(self._test_json('pre', filename))
+        input_json = json.load(self._json_test_file('pre', filename))
 
         rq_args = {'embedded': '{"run_elements":1}'}
         if sort:
@@ -30,12 +40,10 @@ class TestRestSide(TestAggregation):
 
         aggregate(request, payload)
 
-        o = json.loads(payload.data.decode('utf-8'))
-        e = json.load(self._test_json('post', filename))
-
-        for x in (o, e):
-            self._reorder_comma_sep_list(x['data'], 'run_ids')
-        assert o == e
+        self._compare_jsons(
+            json.loads(payload.data.decode('utf-8')),
+            json.load(self._json_test_file('post', filename))
+        )
 
     def test_aggregate_embedded_run_elements(self):
         self._test_aggregation(
@@ -73,54 +81,58 @@ class TestServerSide(TestAggregation):
         }
     }
 
-    def _compare_jsons(self, aggregate, filename):
-        o = json.loads(aggregate(json.load(self._test_json('pre', filename))))
-        e = json.load(self._test_json('post', filename))
-        for x in (o, e):
-            self._reorder_comma_sep_list(x['data'], 'run_ids')
-        assert o == e
+    def _test_aggregation(self, aggregate, filename):
+        self._compare_jsons(
+            json.loads(aggregate(json.load(self._json_test_file('pre', filename)))),
+            json.load(self._json_test_file('post', filename))
+        )
 
-    # def test_sum(self):
-    #     assert rest_api.aggregation.server_side._sum(self.test_data['data'], 'this') == 20
-    #
-    # def test_percentage(self):
-    #     assert rest_api.aggregation.server_side._percentage(self.test_data['data'][2], ('that', 'this')) == 50
+    def test_sum(self):
+        assert rest_api.aggregation.server_side.total('this', self.test_data['data']) == 20
+
+    def test_percentage(self):
+        pc = rest_api.aggregation.server_side.percentage(
+            self.test_data['data'][2]['that'],
+            self.test_data['data'][2]['this']
+        )
+        assert pc == 50
 
     def test_run_element_basic_aggregation(self):
-        self._compare_jsons(
+        self._test_aggregation(
             rest_api.aggregation.server_side.run_element_basic_aggregation,
             'run_elements_basic.json'
         )
 
     def test_aggregate_samples(self):
-        self._compare_jsons(
+        self._test_aggregation(
             rest_api.aggregation.server_side.aggregate_samples,
             'samples_embedded_run_elements.json'
         )
 
     def test_aggregate_lanes(self):
-        self._compare_jsons(
+        self._test_aggregation(
             rest_api.aggregation.server_side.aggregate_lanes,
             'lanes_embedded_run_elements.json'
         )
 
-    # def test_aggregate_single_run_element(self):
-    #     input_json = json.load(self._test_json('pre', 'run_elements_basic.json'))
-    #
-    #     for e in input_json['data']:
-    #         rest_api.aggregation.server_side.aggregate_single_run_element(e)
-    #
-    #     expected = json.load(self._test_json('post', 'run_elements_basic.json'))
-    #     assert input_json == expected
+    def test_aggregate_run_element(self):
+        input_json = json.load(self._json_test_file('pre', 'run_elements_basic.json'))
+
+        for e in input_json['data']:
+            e.update(rest_api.aggregation.server_side._aggregate_run_element(e))
+
+        expected = json.load(self._json_test_file('post', 'run_elements_basic.json'))
+        assert input_json == expected
 
     def test_order_json(self):
         order = rest_api.aggregation.server_side.order_json
         j = self.test_data
-        nosort = order(j)
-        ascsort = order(j, sortquery='field_not_in_schema')['data']
-        descsort = order(j, sortquery='-field_not_in_schema')['data']
-
+        nosort = json.loads(order(j))
         assert nosort == j
+
+        ascsort = json.loads(order(j, sortquery='field_not_in_schema'))['data']
+        descsort = json.loads(order(j, sortquery='-field_not_in_schema'))['data']
+
         assert ascsort == [
             {'this': 1, 'that': 1, 'field_not_in_schema': 1},
             {'this': 2, 'that': 0, 'field_not_in_schema': 2},

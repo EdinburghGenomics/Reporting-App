@@ -46,7 +46,7 @@
             "properly_mapped_reads": 6296,
             "_id": "56547545f4b2c6312a73c769",
             "pc_pass_filter": 78.97759311983893,
-            "run_ids": "150823_test, 150824_test"
+            "run_ids": ["150823_test", "150824_test"]
         },
         {
             "q30_bases_r2": 39683529874,
@@ -84,7 +84,7 @@
             "properly_mapped_reads": 8440,
             "_id": "56547545f4b2c6312a73c736",
             "pc_pass_filter": 80.91836056048137,
-            "run_ids": "150723_test, 150724_test"
+            "run_ids": ["150723_test", "150724_test"]
         }
     ],
     "_meta": {

@@ -70,14 +70,10 @@ settings = {
 
 from rest_api import aggregation
 
-
 app = eve.Eve(settings=settings)
-flask_cors.CORS(app)
-# flask_cors.CORS(
-#     app,
-#     resources='%s/%s/*' % (settings['URL_PREFIX'], settings['API_VERSION']),
-#     origins='http://localhost:5000'
-# )
+if cfg.get('database_side'):
+    flask_cors.CORS(app)
+
 
 def _from_query_string(request_args, query, json=True):
     if json:
@@ -111,12 +107,6 @@ def run_element_basic_aggregation(request, payload):
         sortquery=_from_query_string(request.args, 'sort', json=False)
     ).encode()
 
-
-def format_json(resource, request, payload):
-    return flask.json.dumps(flask.json.loads(payload.data.decode('utf-8')), indent=4)
-
-
-app.on_post_GET += format_json
 app.on_post_GET_samples += embed_run_elements_into_samples
 app.on_post_GET_run_elements += run_element_basic_aggregation
 app.on_post_GET_lanes += aggregate_embedded_run_elements
