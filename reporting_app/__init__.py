@@ -41,7 +41,7 @@ def run_reports():
 def report_run(run_id):
     lanes = _distinct_values(
         'lane_number',
-        _query_api(rest_query('lanes', where={'run': run_id}))['data']
+        _query_api(rest_query('lanes', where={'run_id': run_id}))['data']
     )
     demultiplexing_tables = [
         {
@@ -66,7 +66,7 @@ def report_run(run_id):
     lane_aggregation = {
         'title': 'Aggregation per lane',
         'name': 'agg_per_lane',
-        'api_url': rest_query('lanes', where={'run': run_id}, embedded={'run_elements': 1}),
+        'api_url': rest_query('lanes', where={'run_id': run_id}, embedded={'run_elements': 1}),
         'cols': col_mappings['lane_aggregation']
     }
 
