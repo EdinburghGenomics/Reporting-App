@@ -5,83 +5,143 @@ from operator import itemgetter
 import statistics
 
 
-def _sum(elements, param):
-    s = 0
-    for e in elements:
-        s += e.get(param, 0)
-    return s
+def add(*args):
+    return sum(args)
 
 
-def _avg(elements, param):
-    return sum((e[param] for e in elements)) / len(elements)
+def total(param, elements):
+    return sum(e[param] for e in elements)
 
 
-def _percentage(element, num, denom):
-    if not element[denom]:
+def percentage(num, denom):
+    if not denom:
         return None
-    return (element[num] / element[denom]) * 100
+    return multiply(divide(num, denom), 100)
 
 
-def run_element_basic_aggregation(input_json, sortquery):
-    for run_element in input_json['data']:
-        aggregate_single_run_element(run_element)
-    return json.dumps(order_json(input_json, sortquery), indent=4)
+def multiply(arg1, arg2):
+    return arg1 * arg2
 
 
-def aggregate_samples(input_json, sortquery):
+def divide(num, denom):
+    return num / denom
+
+
+def concatenate(elements, param):
+    return list(sorted(set([e[param] for e in elements])))
+
+
+def run_element_basic_aggregation(input_json, sortquery=None):
     for sample in input_json['data']:
-        embedded_run_elements = sample.get('run_elements', [])
-        aggregated_run_element = {}
-        for val_to_sum in ['bases_r1', 'bases_r2', 'q30_bases_r1', 'q30_bases_r2', 'total_reads',
-                           'passing_filter_reads']:
-            aggregated_run_element[val_to_sum] = _sum(embedded_run_elements, val_to_sum)
-        aggregated_run_element['run_ids'] = ', '.join(set([e['run_id'] for e in embedded_run_elements]))
-        aggregate_single_run_element(aggregated_run_element)
-        sample.update(aggregated_run_element)
+        sample.update(_aggregate_run_element(sample))
 
-        sample['pc_mapped_reads'] = _percentage(sample, 'mapped_reads', 'bam_file_reads')
-        sample['pc_properly_mapped_reads'] = _percentage(sample, 'properly_mapped_reads', 'bam_file_reads')
-        sample['pc_duplicate_reads'] = _percentage(sample, 'duplicate_reads', 'bam_file_reads')
-        del sample['run_elements']
-
-    return json.dumps(order_json(input_json, sortquery), indent=4)
+    return order_json(input_json, sortquery)
 
 
-def aggregate_lanes(input_json, sortquery):
+def _aggregate_run_element(element):
+    return {
+        'pc_pass_filter': percentage(element['passing_filter_reads'], element['total_reads']),
+        'pc_q30_r1': percentage(element['q30_bases_r1'], element['bases_r1']),
+        'pc_q30_r2': percentage(element['q30_bases_r2'], element['bases_r2']),
+        'pc_q30': percentage(
+            add(element['q30_bases_r1'], element['q30_bases_r2']),
+            add(element['bases_r1'], element['bases_r2'])
+        ),
+        'yield_in_gb': divide(
+            add(
+                element['bases_r1'],
+                element['bases_r2']
+            ),
+            1000000000
+        )
+    }
+
+
+def aggregate_samples(input_json, sortquery=None):
+    for sample in input_json['data']:
+        sample.update(_aggregate_sample(sample, 'run_elements'))
+
+    return order_json(input_json, sortquery)
+
+
+def _aggregate_sample(element, embedded_field):
+    e = aggregate_embedded_run_elements(element[embedded_field])
+    e.update(
+        {
+            'pc_pass_filter': percentage(e['passing_filter_reads'], e['total_reads']),
+            'pc_q30_r1': percentage(e['q30_bases_r1'], e['bases_r1']),
+            'pc_q30_r2': percentage(e['q30_bases_r2'], e['bases_r2']),
+            'pc_q30': percentage(
+                add(e['q30_bases_r1'], e['q30_bases_r2']),
+                add(e['bases_r1'], e['bases_r2'])
+            ),
+            'yield_in_gb': divide(
+                add(
+                    e['bases_r1'],
+                    e['bases_r2']
+                ),
+                1000000000
+            ),
+            'pc_mapped_reads': percentage(element['mapped_reads'], element['bam_file_reads']),
+            'pc_properly_mapped_reads': percentage(
+                element['properly_mapped_reads'],
+                element['bam_file_reads']
+            ),
+            'pc_duplicate_reads': percentage(element['duplicate_reads'], element['bam_file_reads'])
+        }
+    )
+    del element[embedded_field]
+    return e
+
+
+def aggregate_embedded_run_elements(elements):
+    for e in elements:
+        _aggregate_run_element(e)
+    return {
+        'bases_r1': total('bases_r1', elements),
+        'bases_r2': total('bases_r2', elements),
+        'q30_bases_r1': total('q30_bases_r1', elements),
+        'q30_bases_r2': total('q30_bases_r2', elements),
+        'total_reads': total('total_reads', elements),
+        'passing_filter_reads': total('passing_filter_reads', elements),
+        'run_ids': concatenate(elements, 'run_id')
+    }
+
+
+def aggregate_lanes(input_json, sortquery=None):
     for lane in input_json['data']:
-        embedded_run_elements = lane.get('run_elements', [])
-        aggregated_run_element = {}
-        for val_to_sum in ['bases_r1', 'bases_r2', 'q30_bases_r1', 'q30_bases_r2', 'total_reads',
-                           'passing_filter_reads']:
-            aggregated_run_element[val_to_sum] = _sum(embedded_run_elements, val_to_sum)
-        aggregated_run_element['run_ids'] = ', '.join(set([e['run_id'] for e in embedded_run_elements]))
-        aggregate_single_run_element(aggregated_run_element)
-        lane.update(aggregated_run_element)
-
-        pass_filters = [e['passing_filter_reads'] for e in embedded_run_elements]
-        lane['cv'] = statistics.stdev(pass_filters) / statistics.mean(pass_filters)
-
-    return json.dumps(order_json(input_json, sortquery), indent=4)
+        lane.update(_aggregate_lane(lane, 'run_elements'))
+    return order_json(input_json, sortquery)
 
 
-def aggregate_single_run_element(e):
-    e['pc_pass_filter'] = _percentage(e, 'passing_filter_reads', 'total_reads')
-    e['pc_q30_r1'] = _percentage(e, 'q30_bases_r1', 'bases_r1')
-    e['pc_q30_r2'] = _percentage(e, 'q30_bases_r2', 'bases_r2')
-    e['pc_q30'] = (e['q30_bases_r1'] + e['q30_bases_r2']) / (e['bases_r1'] + e['bases_r2']) * 100
-    e['yield_in_gb'] = (e['bases_r1'] + e['bases_r2']) / 1000000000
+def _aggregate_lane(element, embedded_field):
+    e = aggregate_embedded_run_elements(element[embedded_field])
+    pass_filters = [e['passing_filter_reads'] for e in element[embedded_field]]
+    e.update(
+        {
+            'pc_q30_r1': percentage(e['q30_bases_r1'], e['bases_r1']),
+            'pc_q30_r2': percentage(e['q30_bases_r2'], e['bases_r2']),
+            'pc_q30': percentage(
+                add(e['q30_bases_r1'], e['q30_bases_r2']),
+                add(e['bases_r1'], e['bases_r2'])),
+            'pc_pass_filter': percentage(e['passing_filter_reads'], e['total_reads']),
+            'yield_in_gb': divide(add(e['bases_r1'], e['bases_r2']), 1000000000),
+            'cv': statistics.stdev(pass_filters) / statistics.mean(pass_filters)
+        }
+    )
+    return e
 
 
 def order_json(input_json, sortquery=None):
-    resource = input_json['_links']['self']['title']
     if not sortquery:
-        return input_json
+        return json.dumps(input_json, indent=4)
 
     reverse = sortquery.startswith('-')
     sortcol = sortquery.lstrip('-')
 
+    resource = input_json['_links']['self']['title']
     if sortcol not in schema[resource]:
-        # do our own sorting, as sortcol refers to an aggregated field
+        # sortcol refers to an aggregated field, so sort here
         input_json['data'] = sorted(input_json['data'], key=lambda e: itemgetter(sortcol)(e), reverse=reverse)
 
-    return input_json
+    return json.dumps(input_json, indent=4)
