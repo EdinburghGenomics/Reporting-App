@@ -28,9 +28,9 @@ def rand_file_path():
     parts = (random.choice(['this', 'that', 'other', 'another', 'more']) for _ in range(3))
     return '/'.join(parts)
 
+
 def _around(base_num):
     return base_num * random.triangular(0.8, 1.2)
-
 
 
 def sample_element(sample_id, run_element_ids):
@@ -51,15 +51,15 @@ def sample_element(sample_id, run_element_ids):
     }
 
 
-def run_element(run_id, lane, barcode, sample_id):
-    run_element_id = '_'.join([run_id, lane, barcode])
+def run_element(run_id, lane_nb, barcode, sample_id):
+    run_element_id = '_'.join([run_id, lane_nb, barcode])
     total_reads = random.randint(8000, 10000)
     bases_r1 = random.randint(1200000000, 1800000000)
     bases_r2 = random.randint(1200000000, 1800000000)
     return {
         'run_element_id': run_element_id,
         'run_id': run_id,
-        'lane': lane,
+        'lane': lane_nb,
         'barcode': barcode,
         'project': sample_id.split('_')[0],
         'library_id': 'lib_' + sample_id,
@@ -77,11 +77,11 @@ def run_element(run_id, lane, barcode, sample_id):
     }
 
 
-def unexpected_barcode(run_id, lane, barcode):
+def unexpected_barcode(run_id, lane_nb, barcode):
     return {
-        'run_element_id': '_'.join([run_id, lane, barcode]),
+        'run_element_id': '_'.join([run_id, lane_nb, barcode]),
         'run_id': run_id,
-        'lane': lane,
+        'lane': lane_nb,
         'barcode': barcode,
         'passing_filter_reads': rand_int(),
         'pc_reads_in_lane': rand_percentage()
@@ -98,7 +98,7 @@ def run(run_id, lane_ids):
 def lane(run_id, lane_number, run_element_ids):
     return {
         'lane_id': '_'.join((run_id, lane_number)),
-        'run': run_id,
+        'run_id': run_id,
         'lane_number': lane_number,
         'run_elements': run_element_ids
     }
@@ -109,8 +109,6 @@ def project(name, sample_ids):
         'project_id': name,
         'samples': sample_ids
     }
-
-
 
 
 ext_api = 'http://egclaritydev.mvm.ed.ac.uk:4999/api/0.1/'
@@ -126,10 +124,7 @@ def push(resource, json):
     response = requests.post(api_url + resource, json=json)
     content = loads(response.content.decode('utf-8'))
     if content['_status'] != 'OK':
-        print('oh noes! problem pushing to ' + resource)
-        print(json)
-        print(content)
-        raise RESTError
+        raise RESTError('oh noes! problem pushing to ' + resource + '\n' + json + '\n' + content)
 
 
 def multi_push(run_ids_and_samples, elements_per_run=6, lanes_per_run=8):
@@ -186,7 +181,6 @@ def multi_push(run_ids_and_samples, elements_per_run=6, lanes_per_run=8):
     push('projects', json=projects)
 
 
-
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('--nruns', type=int, help='number of runs to add to the database')
@@ -196,12 +190,12 @@ if __name__ == '__main__':
     nruns = args.nruns
     nsamples = args.nsamples
 
-    runs = ['run_' + str(x + 1) for x in range(nruns)]
+    run_ids = ['run_' + str(x + 1) for x in range(nruns)]
     projects = ['test_project_' + str(y + 1) for y in range(nsamples)]
 
     assert nruns > nsamples, 'must have more runs than samples'
     runs_per_sample = int(nruns / nsamples)
 
-    input_data = ((p, (runs.pop(0) for _ in range(runs_per_sample))) for p in projects)
+    input_data = ((p, (run_ids.pop(0) for _ in range(runs_per_sample))) for p in projects)
 
     multi_push(input_data)

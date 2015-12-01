@@ -1,5 +1,6 @@
 __author__ = 'mwham'
 
+
 def run_elements_by_lane(run_id, query_args):
     return [
         {
@@ -52,7 +53,10 @@ def run_elements_by_lane(run_id, query_args):
                 },
                 'pc_q30': {
                     '$multiply': [
-                        {'$divide': [{'$add': ['$q30_bases_r1', '$q30_bases_r2']}, {'$add': ['$bases_r1', '$bases_r2']}]},
+                        {'$divide': [
+                            {'$add': ['$q30_bases_r1', '$q30_bases_r2']},
+                            {'$add': ['$bases_r1', '$bases_r2']}
+                        ]},
                         100
                     ]
                 },

@@ -26,7 +26,6 @@ class TestAggregation(TestBase):
         raise NotImplementedError
 
 
-
 class TestRestSide(TestAggregation):
 
     def _test_aggregation(self, aggregate, filename, sort=None):

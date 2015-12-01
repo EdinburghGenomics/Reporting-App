@@ -1,12 +1,7 @@
 __author__ = 'mwham'
 import eve
 import flask
-import flask_cors
 from config import rest_config as cfg, schema
-
-
-def endpoint(route):
-    return '/%s/%s/%s' % (settings['URL_PREFIX'], settings['API_VERSION'], route)
 
 
 settings = {
@@ -71,8 +66,8 @@ settings = {
 from rest_api import aggregation
 
 app = eve.Eve(settings=settings)
-if cfg.get('database_side'):
-    flask_cors.CORS(app)
+if cfg.get('database_side_aggregation'):
+    aggregation.database_side.register_db_side_aggregation(app)
 
 
 def _from_query_string(request_args, query, json=True):
@@ -82,69 +77,35 @@ def _from_query_string(request_args, query, json=True):
         return request_args.get(query, None)
 
 
-def aggregate_embedded_run_elements(request, payload):
-    input_json = flask.json.loads(payload.data.decode('utf-8'))
+def aggregate_embedded_run_elements(request, response):
+    input_json = flask.json.loads(response.data.decode('utf-8'))
     if _from_query_string(request.args, 'embedded').get('run_elements') == 1:
-        payload.data = aggregation.server_side.aggregate_lanes(
+        response.data = aggregation.server_side.aggregate_lanes(
             input_json,
             sortquery=_from_query_string(request.args, 'sort', json=False)
         ).encode()
 
 
-def embed_run_elements_into_samples(request, payload):
-    input_json = flask.json.loads(payload.data.decode('utf-8'))
+def embed_run_elements_into_samples(request, response):
+    input_json = flask.json.loads(response.data.decode('utf-8'))
     if _from_query_string(request.args, 'embedded').get('run_elements') == 1:
-        payload.data = aggregation.server_side.aggregate_samples(
+        response.data = aggregation.server_side.aggregate_samples(
             input_json,
             sortquery=_from_query_string(request.args, 'sort', json=False)
         ).encode()
 
 
-def run_element_basic_aggregation(request, payload):
-    input_json = flask.json.loads(payload.data.decode('utf-8'))
-    payload.data = aggregation.server_side.run_element_basic_aggregation(
+def run_element_basic_aggregation(request, response):
+    input_json = flask.json.loads(response.data.decode('utf-8'))
+    response.data = aggregation.server_side.run_element_basic_aggregation(
         input_json,
         sortquery=_from_query_string(request.args, 'sort', json=False)
     ).encode()
 
+
 app.on_post_GET_samples += embed_run_elements_into_samples
 app.on_post_GET_run_elements += run_element_basic_aggregation
 app.on_post_GET_lanes += aggregate_embedded_run_elements
-
-
-@app.route(endpoint('aggregate/run_by_lane/<run_id>'))
-def aggregate_by_lane(run_id):
-    return aggregation.database_side.aggregate(
-        'run_elements',
-        aggregation.database_side.queries.run_elements_by_lane(run_id, flask.request.args)
-    )
-
-
-@app.route(endpoint('aggregate/list_runs'))
-def list_runs():
-    return aggregation.database_side.aggregate(
-        'run_elements',
-        aggregation.database_side.queries.run_ids,
-        list_field='_id'
-    )
-
-
-@app.route(endpoint('aggregate/list_projects'))
-def list_projects():
-    return aggregation.database_side.aggregate(
-        'samples',
-        aggregation.database_side.queries.project_ids,
-        list_field='_id'
-    )
-
-
-@app.route(endpoint('aggregate/list_lanes/<collection>/<run_id>'))
-def list_lanes(collection, run_id):
-    return aggregation.database_side.aggregate(
-        collection,
-        aggregation.database_side.queries.run_lanes(run_id),
-        list_field='_id'
-    )
 
 
 def main():

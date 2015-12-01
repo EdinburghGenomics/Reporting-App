@@ -83,7 +83,10 @@ def _aggregate_sample(element, embedded_field):
                 1000000000
             ),
             'pc_mapped_reads': percentage(element['mapped_reads'], element['bam_file_reads']),
-            'pc_properly_mapped_reads': percentage(element['properly_mapped_reads'], element['bam_file_reads']),
+            'pc_properly_mapped_reads': percentage(
+                element['properly_mapped_reads'],
+                element['bam_file_reads']
+            ),
             'pc_duplicate_reads': percentage(element['duplicate_reads'], element['bam_file_reads'])
         }
     )
@@ -118,7 +121,9 @@ def _aggregate_lane(element, embedded_field):
         {
             'pc_q30_r1': percentage(e['q30_bases_r1'], e['bases_r1']),
             'pc_q30_r2': percentage(e['q30_bases_r2'], e['bases_r2']),
-            'pc_q30': percentage(add(e['q30_bases_r1'], e['q30_bases_r2']), add(e['bases_r1'], e['bases_r2'])),
+            'pc_q30': percentage(
+                add(e['q30_bases_r1'], e['q30_bases_r2']),
+                add(e['bases_r1'], e['bases_r2'])),
             'pc_pass_filter': percentage(e['passing_filter_reads'], e['total_reads']),
             'yield_in_gb': divide(add(e['bases_r1'], e['bases_r2']), 1000000000),
             'cv': statistics.stdev(pass_filters) / statistics.mean(pass_filters)
