@@ -13,7 +13,21 @@ class TestAggregation(TestBase):
         for x in (o, e):
             for y in ('run_ids',):
                 self._reorder_comma_sep_list(x['data'], y)
-        assert o == e
+
+        o_eq_e = o == e
+        if not o_eq_e:
+            print('!o_eq_e')
+            for x, y in zip(e['data'], o['data']):
+                missing = [k for k in x if k not in y]
+                if missing:
+                    print('missing expected key:')
+                    print(missing)
+            for x, y in zip(e['data'], o['data']):
+                unexpected = [k for k in y if k not in x]
+                if unexpected:
+                    print('unexpected key:')
+                    print(unexpected)
+            raise AssertionError
 
     def _reorder_comma_sep_list(self, data, key):
         for e in data:
@@ -80,41 +94,32 @@ class TestServerSide(TestAggregation):
         }
     }
 
-    def _test_aggregation(self, aggregate, filename):
+    def _test_aggregation(self, aggregate, filename, incomplete=False):
+        if incomplete:
+            filename += '_incomplete'
+        filename += '.json'
         self._compare_jsons(
             json.loads(aggregate(json.load(self._json_test_file('pre', filename)))),
             json.load(self._json_test_file('post', filename))
         )
 
-    def test_sum(self):
-        assert rest_api.aggregation.server_side.total('this', self.test_data['data']) == 20
+    def test_aggregations_complete_data(self):
+        for method, filename in (
+            (rest_api.aggregation.server_side.run_element_basic_aggregation, 'run_elements_basic'),
+            (rest_api.aggregation.server_side.aggregate_samples, 'samples_embedded_run_elements'),
+            (rest_api.aggregation.server_side.aggregate_lanes, 'lanes_embedded_run_elements')
+        ):
+            self._test_aggregation(method, filename)
 
-    def test_percentage(self):
-        pc = rest_api.aggregation.server_side.percentage(
-            self.test_data['data'][2]['that'],
-            self.test_data['data'][2]['this']
-        )
-        assert pc == 50
+    def test_aggregations_incomplete_data(self):
+        for method, filename in (
+            (rest_api.aggregation.server_side.run_element_basic_aggregation, 'run_elements_basic'),
+            (rest_api.aggregation.server_side.aggregate_samples, 'samples_embedded_run_elements'),
+            (rest_api.aggregation.server_side.aggregate_lanes, 'lanes_embedded_run_elements')
+        ):
+            self._test_aggregation(method, filename, incomplete=True)
 
-    def test_run_element_basic_aggregation(self):
-        self._test_aggregation(
-            rest_api.aggregation.server_side.run_element_basic_aggregation,
-            'run_elements_basic.json'
-        )
-
-    def test_aggregate_samples(self):
-        self._test_aggregation(
-            rest_api.aggregation.server_side.aggregate_samples,
-            'samples_embedded_run_elements.json'
-        )
-
-    def test_aggregate_lanes(self):
-        self._test_aggregation(
-            rest_api.aggregation.server_side.aggregate_lanes,
-            'lanes_embedded_run_elements.json'
-        )
-
-    def test_aggregate_run_element(self):
+    def test_aggregate_single_run_element(self):
         input_json = json.load(self._json_test_file('pre', 'run_elements_basic.json'))
 
         for e in input_json['data']:
@@ -123,8 +128,17 @@ class TestServerSide(TestAggregation):
         expected = json.load(self._json_test_file('post', 'run_elements_basic.json'))
         assert input_json == expected
 
+    def test_aggregate_single_run_element_incomplete(self):
+        input_json = json.load(self._json_test_file('pre', 'run_elements_basic_incomplete.json'))
+
+        for e in input_json['data']:
+            e.update(rest_api.aggregation.server_side._aggregate_run_element(e))
+
+        expected = json.load(self._json_test_file('post', 'run_elements_basic_incomplete.json'))
+        assert input_json == expected
+
     def test_order_json(self):
-        order = rest_api.aggregation.server_side.order_json
+        order = rest_api.aggregation.server_side._order_json
         j = self.test_data
         nosort = json.loads(order(j))
         assert nosort == j

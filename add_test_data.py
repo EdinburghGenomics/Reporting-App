@@ -51,30 +51,41 @@ def sample_element(sample_id, run_element_ids):
     }
 
 
-def run_element(run_id, lane_nb, barcode, sample_id):
+def run_element(run_id, lane_nb, barcode, sample_id, incomplete=False):
     run_element_id = '_'.join([run_id, lane_nb, barcode])
     total_reads = random.randint(8000, 10000)
     bases_r1 = random.randint(1200000000, 1800000000)
     bases_r2 = random.randint(1200000000, 1800000000)
-    return {
-        'run_element_id': run_element_id,
-        'run_id': run_id,
-        'lane': lane_nb,
-        'barcode': barcode,
-        'project': sample_id.split('_')[0],
-        'library_id': 'lib_' + sample_id,
-        'sample_id': sample_id,
-        'total_reads': total_reads,
-        'passing_filter_reads': total_reads * _around(0.79),
-        'pc_reads_in_lane': rand_percentage(),
-        'bases_r1': bases_r1,
-        'q30_bases_r1': bases_r1 * _around(0.81),
-        'bases_r2': bases_r2,
-        'q30_bases_r2': bases_r2 * _around(0.81),
-        'fastqc_report_r1': rand_file_path(),
-        'fastqc_report_r2': rand_file_path(),
-        'reviewed': random.choice(['not reviewed', 'pass', 'fail'])
-    }
+    if incomplete:
+        return {
+            'run_element_id': run_element_id,
+            'run_id': run_id,
+            'lane': lane_nb,
+            'barcode': barcode,
+            'project': sample_id.split('_')[0],
+            'library_id': 'lib_' + sample_id,
+            'sample_id': sample_id
+        }
+    else:
+        return {
+            'run_element_id': run_element_id,
+            'run_id': run_id,
+            'lane': lane_nb,
+            'barcode': barcode,
+            'project': sample_id.split('_')[0],
+            'library_id': 'lib_' + sample_id,
+            'sample_id': sample_id,
+            'total_reads': total_reads,
+            'passing_filter_reads': total_reads * _around(0.79),
+            'pc_reads_in_lane': rand_percentage(),
+            'bases_r1': bases_r1,
+            'q30_bases_r1': bases_r1 * _around(0.81),
+            'bases_r2': bases_r2,
+            'q30_bases_r2': bases_r2 * _around(0.81),
+            'fastqc_report_r1': rand_file_path(),
+            'fastqc_report_r2': rand_file_path(),
+            'reviewed': random.choice(['not reviewed', 'pass', 'fail'])
+        }
 
 
 def unexpected_barcode(run_id, lane_nb, barcode):
@@ -88,10 +99,10 @@ def unexpected_barcode(run_id, lane_nb, barcode):
     }
 
 
-def run(run_id, lane_ids):
+def run(run_id, nlanes):
     return {
         'run_id': run_id,
-        'lanes': lane_ids
+        'number_of_lanes': nlanes
     }
 
 
@@ -124,7 +135,7 @@ def push(resource, json):
     response = requests.post(api_url + resource, json=json)
     content = loads(response.content.decode('utf-8'))
     if content['_status'] != 'OK':
-        raise RESTError('oh noes! problem pushing to ' + resource + '\n' + json + '\n' + content)
+        raise RESTError('oh noes! problem pushing to ' + resource + '\n' + str(json) + '\n' + str(content))
 
 
 def multi_push(run_ids_and_samples, elements_per_run=6, lanes_per_run=8):
@@ -148,7 +159,7 @@ def multi_push(run_ids_and_samples, elements_per_run=6, lanes_per_run=8):
                     while b in barcodes:
                         b = rand_barcode()
 
-                    r_e = run_element(run_id, lane_number, b, _sample_id)
+                    r_e = run_element(run_id, lane_number, b, _sample_id, incomplete=random.choice([True, False]))
                     run_elements.append(r_e)
 
                 l = lane(
@@ -161,7 +172,7 @@ def multi_push(run_ids_and_samples, elements_per_run=6, lanes_per_run=8):
                 r_e_ids.extend([e['run_element_id'] for e in run_elements])
                 push('run_elements', json=run_elements)
 
-            r = run(run_id, [e['lane_id'] for e in lanes])
+            r = run(run_id, len(lanes))
             runs.append(r)
             push('lanes', json=lanes)
 

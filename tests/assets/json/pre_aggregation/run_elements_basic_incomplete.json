@@ -1,0 +1,483 @@
+{
+    "_meta": {
+        "total": 16,
+        "page": 1,
+        "max_results": 25
+    },
+    "_links": {
+        "self": {
+            "href": "run_elements?where={\"run_id\":\"150724_test\"}",
+            "title": "run_elements"
+        },
+        "parent": {
+            "href": "/",
+            "title": "home"
+        }
+    },
+    "data": [
+        {
+            "q30_bases_r2": 1101566521,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_1_CATTTCGA",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "more/that/other",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c71d",
+            "fastqc_report_r1": "another/that/more",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 1,
+            "run_element_id": "150724_test_1_CATTTCGA",
+            "q30_bases_r1": 1140273175,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 9190,
+            "barcode": "CATTTCGA",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 54.0,
+            "bases_r1": 1511913147,
+            "bases_r2": 1419312364,
+            "reviewed": "not reviewed",
+            "_etag": "020f7e90dcbd3974eae3ef9573c56fab064e28d9",
+            "passing_filter_reads": 8451
+        },
+        {
+            "q30_bases_r2": 1396036942,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_1_ACGGACGG",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "this/that/this",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c71e",
+            "fastqc_report_r1": "more/another/another",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 1,
+            "run_element_id": "150724_test_1_ACGGACGG",
+            "q30_bases_r1": 1024225412,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 9903,
+            "barcode": "ACGGACGG",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 20.0,
+            "bases_r1": 1267624054,
+            "bases_r2": 1776062163,
+            "reviewed": "fail",
+            "_etag": "904af5a7f56b8f702aadae6367833c18d773203c",
+            "passing_filter_reads": 9098
+        },
+        {
+            "q30_bases_r2": 1601428650,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_2_ACTCAGGT",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "that/this/another",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c720",
+            "fastqc_report_r1": "this/more/this",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 2,
+            "run_element_id": "150724_test_2_ACTCAGGT",
+            "q30_bases_r1": 1585927267,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 9979,
+            "barcode": "ACTCAGGT",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 7.0,
+            "bases_r1": 1681364668,
+            "bases_r2": 1749535401,
+            "reviewed": "pass",
+            "_etag": "11d6546dba3ccdc205b18f5118649fc873368799",
+            "passing_filter_reads": 9366
+        },
+        {
+            "q30_bases_r2": 1341831200,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_2_CGAACTTG",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "another/another/that",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c721",
+            "fastqc_report_r1": "that/other/more",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 2,
+            "run_element_id": "150724_test_2_CGAACTTG",
+            "q30_bases_r1": 1366865927,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 8692,
+            "barcode": "CGAACTTG",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 31.0,
+            "bases_r1": 1650457759,
+            "bases_r2": 1777075779,
+            "reviewed": "not reviewed",
+            "_etag": "13a10620d38825e9b667441353a5e73ef1360e77",
+            "passing_filter_reads": 6856
+        },
+        {
+            "q30_bases_r2": 1090483804,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_3_TGCGGGAG",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "other/this/that",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c723",
+            "fastqc_report_r1": "this/more/more",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 3,
+            "run_element_id": "150724_test_3_TGCGGGAG",
+            "q30_bases_r1": 1404821941,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 8591,
+            "barcode": "TGCGGGAG",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 16.0,
+            "bases_r1": 1655502257,
+            "bases_r2": 1286422459,
+            "reviewed": "pass",
+            "_etag": "b5f243f1bdc6b7f9710dac91c443dfd538a4ffdd",
+            "passing_filter_reads": 6306
+        },
+        {
+            "q30_bases_r2": 1164346277,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_3_AGTCGACA",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "this/more/this",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c724",
+            "fastqc_report_r1": "that/other/other",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 3,
+            "run_element_id": "150724_test_3_AGTCGACA",
+            "q30_bases_r1": 1259228666,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 9775,
+            "barcode": "AGTCGACA",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 25.0,
+            "bases_r1": 1539998135,
+            "bases_r2": 1456138575,
+            "reviewed": "fail",
+            "_etag": "8f4b8aaeaf824f543acff77932f24ede62e6e348",
+            "passing_filter_reads": 7301
+        },
+        {
+            "q30_bases_r2": 1141972649,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_4_TCTGAACA",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "another/that/more",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c726",
+            "fastqc_report_r1": "other/other/other",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 4,
+            "run_element_id": "150724_test_4_TCTGAACA",
+            "q30_bases_r1": 1238348851,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 9450,
+            "barcode": "TCTGAACA",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 75.0,
+            "bases_r1": 1530985204,
+            "bases_r2": 1443548978,
+            "reviewed": "fail",
+            "_etag": "e3e6f422dd277147dd5b1f4a4ad46fcc841ce0c2",
+            "passing_filter_reads": 8193
+        },
+        {
+            "q30_bases_r2": 1378472470,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_4_GACTACAT",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "more/this/this",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c727",
+            "fastqc_report_r1": "another/that/this",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 4,
+            "run_element_id": "150724_test_4_GACTACAT",
+            "q30_bases_r1": 1005018361,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 8732,
+            "barcode": "GACTACAT",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 96.0,
+            "bases_r1": 1293255340,
+            "bases_r2": 1753170229,
+            "reviewed": "not reviewed",
+            "_etag": "e0b3dff66afaeeae3db504c3b12170c57c14eed7",
+            "passing_filter_reads": 7721
+        },
+        {
+            "q30_bases_r2": 1127501511,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_5_CAATTTGA",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "more/this/more",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c729",
+            "fastqc_report_r1": "that/this/more",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 5,
+            "run_element_id": "150724_test_5_CAATTTGA",
+            "q30_bases_r1": 1298720269,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 9883,
+            "barcode": "CAATTTGA",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 59.0,
+            "bases_r1": 1733815411,
+            "bases_r2": 1415369474,
+            "reviewed": "fail",
+            "_etag": "c4c5b377f3c448004dcc2150ba0b74e8258cc800",
+            "passing_filter_reads": 7924
+        },
+        {
+            "q30_bases_r2": 1148063633,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_5_CAATAGCT",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "this/another/this",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c72a",
+            "fastqc_report_r1": "more/more/that",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 5,
+            "run_element_id": "150724_test_5_CAATAGCT",
+            "q30_bases_r1": 1377626579,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 8869,
+            "barcode": "CAATAGCT",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 21.0,
+            "bases_r1": 1598118613,
+            "bases_r2": 1508961087,
+            "reviewed": "fail",
+            "_etag": "d054e5e10d4b0873c461bb058af91f10e9e70807",
+            "passing_filter_reads": 6056
+        },
+        {
+            "q30_bases_r2": 1306258227,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_6_CGCGGGTC",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "more/another/this",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c72c",
+            "fastqc_report_r1": "other/more/another",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 6,
+            "run_element_id": "150724_test_6_CGCGGGTC",
+            "q30_bases_r1": 1371093547,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 9746,
+            "barcode": "CGCGGGTC",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 60.0,
+            "bases_r1": 1526517256,
+            "bases_r2": 1641464357,
+            "reviewed": "pass",
+            "_etag": "0ed6710d133c81fb5b7675131b6802c667f4d742",
+            "passing_filter_reads": 7277
+        },
+        {
+            "q30_bases_r2": 1124539309,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_6_AGACCCGG",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "other/more/this",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c72d",
+            "fastqc_report_r1": "another/another/this",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 6,
+            "run_element_id": "150724_test_6_AGACCCGG",
+            "q30_bases_r1": 1122777463,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 9015,
+            "barcode": "AGACCCGG",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 62.0,
+            "bases_r1": 1208719033,
+            "bases_r2": 1385327014,
+            "reviewed": "pass",
+            "_etag": "85fba553461c11878d84e8096cfca14c0c99e570",
+            "passing_filter_reads": 6866
+        },
+        {
+            "q30_bases_r2": 1434108163,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_7_TCGTACCG",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "that/this/other",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c72f",
+            "fastqc_report_r1": "this/more/more",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 7,
+            "run_element_id": "150724_test_7_TCGTACCG",
+            "q30_bases_r1": 1215142116,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 8883,
+            "barcode": "TCGTACCG",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 80.0,
+            "bases_r1": 1383662106,
+            "bases_r2": 1738480079,
+            "reviewed": "pass",
+            "_etag": "9690b5448c2c796c8275ead83f736aba49c2578c",
+            "passing_filter_reads": 7909
+        },
+        {
+            "q30_bases_r2": 1125012992,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_7_CTGTTGCA",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "another/another/that",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c730",
+            "fastqc_report_r1": "another/more/this",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 7,
+            "run_element_id": "150724_test_7_CTGTTGCA",
+            "q30_bases_r1": 1609905010,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 8146,
+            "barcode": "CTGTTGCA",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 25.0,
+            "bases_r1": 1717176498,
+            "bases_r2": 1349746143,
+            "reviewed": "fail",
+            "_etag": "b2b4c4cee67a2dbda594c69f5b90462bfc866464",
+            "passing_filter_reads": 6554
+        },
+        {
+            "q30_bases_r2": 1487459899,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_8_AACCCGGT",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "that/this/this",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c732",
+            "fastqc_report_r1": "more/other/other",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 8,
+            "run_element_id": "150724_test_8_AACCCGGT",
+            "q30_bases_r1": 1519319993,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 9273,
+            "barcode": "AACCCGGT",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 87.0,
+            "bases_r1": 1647847481,
+            "bases_r2": 1616391936,
+            "reviewed": "pass",
+            "_etag": "c1f979748bddb2ec9baceb9b527f02845279b68a",
+            "passing_filter_reads": 6411
+        },
+        {
+            "q30_bases_r2": 1203684614,
+            "_links": {
+                "self": {
+                    "href": "run_elements/150724_test_8_TAGCTGTG",
+                    "title": "element"
+                }
+            },
+            "fastqc_report_r2": "this/another/other",
+            "project": "10015AT",
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_id": "56547544f4b2c6312a73c733",
+            "fastqc_report_r1": "other/that/that",
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "sample_id": "10015AT_1_test",
+            "lane": 8,
+            "run_element_id": "150724_test_8_TAGCTGTG",
+            "q30_bases_r1": 1092723761,
+            "library_id": "lib_10015AT_1_test",
+            "total_reads": 8190,
+            "barcode": "TAGCTGTG",
+            "run_id": "150724_test",
+            "pc_reads_in_lane": 11.0,
+            "bases_r1": 1256674293,
+            "bases_r2": 1434554158,
+            "reviewed": "pass",
+            "_etag": "fb6710c3fbd77d9959805b1af888a9ff7e259e4e",
+            "passing_filter_reads": 6905
+        }
+    ]
+}

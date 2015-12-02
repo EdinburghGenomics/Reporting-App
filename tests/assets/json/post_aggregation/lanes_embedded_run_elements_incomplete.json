@@ -1,0 +1,481 @@
+{
+    "_links": {
+        "parent": {
+            "href": "/",
+            "title": "home"
+        },
+        "self": {
+            "href": "lanes?where={\"run\":\"150723_test\"}",
+            "title": "lanes"
+        }
+    },
+    "_meta": {
+        "max_results": 25,
+        "page": 1,
+        "total": 8
+    },
+    "data": [
+        {
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_etag": "a18a3425848a218d1c300e7f0156d2ea7ddcf6e8",
+            "_id": "56547544f4b2c6312a73c706",
+            "_links": {
+                "self": {
+                    "href": "lanes/150723_test_1",
+                    "title": "lane"
+                }
+            },
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "bases_r1": 3059802168,
+            "bases_r2": 2821885096,
+            "cv": 0.10422243581819512,
+            "lane_id": "150723_test_1",
+            "lane_number": 1,
+            "passing_filter_reads": 13827,
+            "pc_pass_filter": 82.43114343627042,
+            "pc_q30": 80.40251515827619,
+            "pc_q30_r1": 76.10373008272214,
+            "pc_q30_r2": 85.06373680496593,
+            "q30_bases_r1": 2328623583,
+            "q30_bases_r2": 2400400911,
+            "run_elements": [
+                {
+                    "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "_etag": "f95e817a6f6de0af5e244679ad02715ba7dd2f13",
+                    "_id": "56547544f4b2c6312a73c704",
+                    "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "barcode": "GTACACAA",
+                    "bases_r1": 1284060867,
+                    "bases_r2": 1256103137,
+                    "fastqc_report_r1": "that/that/that",
+                    "fastqc_report_r2": "other/that/other",
+                    "lane": 1,
+                    "library_id": "lib_10015AT_1_test",
+                    "passing_filter_reads": 6404,
+                    "pc_reads_in_lane": 5.0,
+                    "project": "10015AT",
+                    "q30_bases_r1": 1038526190,
+                    "q30_bases_r2": 1126701997,
+                    "reviewed": "fail",
+                    "run_element_id": "150723_test_1_GTACACAA",
+                    "run_id": "150723_test",
+                    "sample_id": "10015AT_1_test",
+                    "total_reads": 8227
+                },
+                {
+                    "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "_etag": "3d7ad8c37166c3ced4cdd0a12a8ec417aa6bd9e3",
+                    "_id": "56547544f4b2c6312a73c705",
+                    "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "barcode": "CTGCCGCA",
+                    "bases_r1": 1775741301,
+                    "bases_r2": 1565781959,
+                    "fastqc_report_r1": "other/this/this",
+                    "fastqc_report_r2": "that/this/this",
+                    "lane": 1,
+                    "library_id": "lib_10015AT_1_test",
+                    "passing_filter_reads": 7423,
+                    "pc_reads_in_lane": 19.0,
+                    "project": "10015AT",
+                    "q30_bases_r1": 1290097393,
+                    "q30_bases_r2": 1273698914,
+                    "reviewed": "pass",
+                    "run_element_id": "150723_test_1_CTGCCGCA",
+                    "run_id": "150723_test",
+                    "sample_id": "10015AT_1_test",
+                    "total_reads": 8547
+                }
+            ],
+            "run_id": "150723_test",
+            "run_ids": [
+                "150723_test"
+            ],
+            "total_reads": 16774,
+            "yield_in_gb": 5.881687264
+        },
+        {
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_etag": "58e914c268060ff930edb5ee62f5c3f3f3a56c9a",
+            "_id": "56547544f4b2c6312a73c709",
+            "_links": {
+                "self": {
+                    "href": "lanes/150723_test_2",
+                    "title": "lane"
+                }
+            },
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "bases_r1": 1577709324,
+            "bases_r2": 1463450012,
+            "cv": 0,
+            "lane_id": "150723_test_2",
+            "lane_number": 2,
+            "notes": "only one run element",
+            "passing_filter_reads": 6807,
+            "pc_pass_filter": 72.90350219556603,
+            "pc_q30": 77.14625778489628,
+            "pc_q30_r1": 83.35462698957848,
+            "pc_q30_r2": 70.45316823571832,
+            "q30_bases_r1": 1315093722,
+            "q30_bases_r2": 1031046899,
+            "run_elements": [
+                {
+                    "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "_etag": "6eb4f5001feec33eeba9e9980ab0fb17a81b827c",
+                    "_id": "56547544f4b2c6312a73c707",
+                    "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "barcode": "GCCGGCCT",
+                    "bases_r1": 1577709324,
+                    "bases_r2": 1463450012,
+                    "fastqc_report_r1": "this/another/more",
+                    "fastqc_report_r2": "more/more/other",
+                    "lane": 2,
+                    "library_id": "lib_10015AT_1_test",
+                    "passing_filter_reads": 6807,
+                    "pc_reads_in_lane": 38.0,
+                    "project": "10015AT",
+                    "q30_bases_r1": 1315093722,
+                    "q30_bases_r2": 1031046899,
+                    "reviewed": "not reviewed",
+                    "run_element_id": "150723_test_2_GCCGGCCT",
+                    "run_id": "150723_test",
+                    "sample_id": "10015AT_1_test",
+                    "total_reads": 9337
+                }
+            ],
+            "run_id": "150723_test",
+            "run_ids": [
+                "150723_test"
+            ],
+            "total_reads": 9337,
+            "yield_in_gb": 3.041159336
+        },
+        {
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_etag": "029add2e19974d592c7acdfcc5ebe8c128fe4bd4",
+            "_id": "56547544f4b2c6312a73c70c",
+            "_links": {
+                "self": {
+                    "href": "lanes/150723_test_3",
+                    "title": "lane"
+                }
+            },
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "bases_r1": null,
+            "bases_r2": null,
+            "cv": null,
+            "lane_id": "150723_test_3",
+            "lane_number": 3,
+            "notes": "no run_elements",
+            "passing_filter_reads": null,
+            "pc_pass_filter": null,
+            "pc_q30": null,
+            "pc_q30_r1": null,
+            "pc_q30_r2": null,
+            "q30_bases_r1": null,
+            "q30_bases_r2": null,
+            "run_id": "150723_test",
+            "run_ids": null,
+            "total_reads": null,
+            "yield_in_gb": null
+        },
+        {
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_etag": "c0623511e1235c829b896e42cf74053b8741b662",
+            "_id": "56547544f4b2c6312a73c70f",
+            "_links": {
+                "self": {
+                    "href": "lanes/150723_test_4",
+                    "title": "lane"
+                }
+            },
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "bases_r1": 1587320344,
+            "bases_r2": 1524272924,
+            "cv": 0,
+            "lane_id": "150723_test_4",
+            "lane_number": 4,
+            "notes": "one run_element incomplete",
+            "passing_filter_reads": 6163,
+            "pc_pass_filter": 74.73926752364784,
+            "pc_q30": 73.32048807479295,
+            "pc_q30_r1": 74.63927602757417,
+            "pc_q30_r2": 71.94715203115423,
+            "q30_bases_r1": 1184764413,
+            "q30_bases_r2": 1096670958,
+            "run_elements": [
+                {
+                    "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "_etag": "30f0e14534d7fbe34866e04c596b8fd21056b58b",
+                    "_id": "56547544f4b2c6312a73c70d",
+                    "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "barcode": "CACTCTTT",
+                    "lane": 4,
+                    "library_id": "lib_10015AT_1_test",
+                    "project": "10015AT",
+                    "run_element_id": "150723_test_4_CACTCTTT",
+                    "run_id": "150723_test",
+                    "sample_id": "10015AT_1_test"
+                },
+                {
+                    "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "_etag": "b4e335756e7e4e9bae25309167d662a73a3d0571",
+                    "_id": "56547544f4b2c6312a73c70e",
+                    "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "barcode": "GACATCTT",
+                    "bases_r1": 1587320344,
+                    "bases_r2": 1524272924,
+                    "fastqc_report_r1": "another/this/another",
+                    "fastqc_report_r2": "another/more/this",
+                    "lane": 4,
+                    "library_id": "lib_10015AT_1_test",
+                    "passing_filter_reads": 6163,
+                    "pc_reads_in_lane": 91.0,
+                    "project": "10015AT",
+                    "q30_bases_r1": 1184764413,
+                    "q30_bases_r2": 1096670958,
+                    "reviewed": "fail",
+                    "run_element_id": "150723_test_4_GACATCTT",
+                    "run_id": "150723_test",
+                    "sample_id": "10015AT_1_test",
+                    "total_reads": 8246
+                }
+            ],
+            "run_id": "150723_test",
+            "run_ids": [
+                "150723_test"
+            ],
+            "total_reads": 8246,
+            "yield_in_gb": 3.111593268
+        },
+        {
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_etag": "e68f19d29e1029f4c39b94fe59c7fb96936ddbb1",
+            "_id": "56547544f4b2c6312a73c712",
+            "_links": {
+                "self": {
+                    "href": "lanes/150723_test_5",
+                    "title": "lane"
+                }
+            },
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "bases_r1": null,
+            "bases_r2": null,
+            "cv": 0,
+            "lane_id": "150723_test_5",
+            "lane_number": 5,
+            "notes": "both run_elements incomplete",
+            "passing_filter_reads": null,
+            "pc_pass_filter": null,
+            "pc_q30": null,
+            "pc_q30_r1": null,
+            "pc_q30_r2": null,
+            "q30_bases_r1": null,
+            "q30_bases_r2": null,
+            "run_elements": [
+                {
+                    "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "_etag": "0fc0936b997ce73507f45169c44b606fbdd7401d",
+                    "_id": "56547544f4b2c6312a73c710",
+                    "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "barcode": "CTGTTCGT",
+                    "lane": 5,
+                    "library_id": "lib_10015AT_1_test",
+                    "project": "10015AT",
+                    "run_element_id": "150723_test_5_CTGTTCGT",
+                    "run_id": "150723_test",
+                    "sample_id": "10015AT_1_test"
+                },
+                {
+                    "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "_etag": "686eac7cc15e344438a6be4c22c67dac3a7a2fb7",
+                    "_id": "56547544f4b2c6312a73c711",
+                    "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "barcode": "CCTCGGTA",
+                    "lane": 5,
+                    "library_id": "lib_10015AT_1_test",
+                    "project": "10015AT",
+                    "run_element_id": "150723_test_5_CCTCGGTA",
+                    "run_id": "150723_test",
+                    "sample_id": "10015AT_1_test"
+                }
+            ],
+            "run_id": "150723_test",
+            "run_ids": [
+                "150723_test"
+            ],
+            "total_reads": null,
+            "yield_in_gb": null
+        },
+        {
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_etag": "790de8417385cad2b232587705b5cdc2f41ba59d",
+            "_id": "56547544f4b2c6312a73c715",
+            "_links": {
+                "self": {
+                    "href": "lanes/150723_test_6",
+                    "title": "lane"
+                }
+            },
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "bases_r1": 3240666541,
+            "bases_r2": 3109158764,
+            "cv": 0.18528214471714682,
+            "lane_id": "150723_test_6",
+            "notes": "complete run_elements, incomplete lane info",
+            "passing_filter_reads": 15006,
+            "pc_pass_filter": 81.97312356604391,
+            "pc_q30": 82.42661025459502,
+            "pc_q30_r1": 77.70132437702112,
+            "pc_q30_r2": 87.35176107591012,
+            "q30_bases_r1": 2518040821,
+            "q30_bases_r2": 2715904935,
+            "run_elements": [
+                {
+                    "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "_etag": "0e0fc4a6bbf4587d2ccd990a8387f90ba6f035ad",
+                    "_id": "56547544f4b2c6312a73c713",
+                    "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "barcode": "ATAATAAC",
+                    "bases_r1": 1783416265,
+                    "bases_r2": 1321536404,
+                    "fastqc_report_r1": "other/another/other",
+                    "fastqc_report_r2": "this/more/more",
+                    "lane": 6,
+                    "library_id": "lib_10015AT_1_test",
+                    "passing_filter_reads": 8486,
+                    "pc_reads_in_lane": 82.0,
+                    "project": "10015AT",
+                    "q30_bases_r1": 1246674008,
+                    "q30_bases_r2": 1063471363,
+                    "reviewed": "pass",
+                    "run_element_id": "150723_test_6_ATAATAAC",
+                    "run_id": "150723_test",
+                    "sample_id": "10015AT_1_test",
+                    "total_reads": 9953
+                },
+                {
+                    "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "_etag": "ef9a5ae77e1990e135a1540f13c198b763fe2f3d",
+                    "_id": "56547544f4b2c6312a73c714",
+                    "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "barcode": "TCATGTGC",
+                    "bases_r1": 1457250276,
+                    "bases_r2": 1787622360,
+                    "fastqc_report_r1": "another/that/other",
+                    "fastqc_report_r2": "that/that/more",
+                    "lane": 6,
+                    "library_id": "lib_10015AT_1_test",
+                    "passing_filter_reads": 6520,
+                    "pc_reads_in_lane": 64.0,
+                    "project": "10015AT",
+                    "q30_bases_r1": 1271366813,
+                    "q30_bases_r2": 1652433572,
+                    "reviewed": "pass",
+                    "run_element_id": "150723_test_6_TCATGTGC",
+                    "run_id": "150723_test",
+                    "sample_id": "10015AT_1_test",
+                    "total_reads": 8353
+                }
+            ],
+            "run_ids": [
+                "150723_test"
+            ],
+            "total_reads": 18306,
+            "yield_in_gb": 6.349825305
+        },
+        {
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_etag": "1459578e1c8cc91fedf4615888d30f0c1e33713a",
+            "_id": "56547544f4b2c6312a73c718",
+            "_links": {
+                "self": {
+                    "href": "lanes/150723_test_7",
+                    "title": "lane"
+                }
+            },
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "bases_r1": null,
+            "bases_r2": null,
+            "cv": 0,
+            "lane_id": "150723_test_7",
+            "lane_number": 7,
+            "notes": "complete lane info, incomplete run_elements",
+            "passing_filter_reads": null,
+            "pc_pass_filter": null,
+            "pc_q30": null,
+            "pc_q30_r1": null,
+            "pc_q30_r2": null,
+            "q30_bases_r1": null,
+            "q30_bases_r2": null,
+            "run_elements": [
+                {
+                    "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "_etag": "3a3d944021044153eef31b4e0780d4afb28780bf",
+                    "_id": "56547544f4b2c6312a73c716",
+                    "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "barcode": "CAACTCCG",
+                    "lane": 7,
+                    "library_id": "lib_10015AT_1_test",
+                    "project": "10015AT",
+                    "run_element_id": "150723_test_7_CAACTCCG",
+                    "run_id": "150723_test",
+                    "sample_id": "10015AT_1_test"
+                },
+                {
+                    "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "_etag": "b24ba8be504353443635b6025bdf7f7dbb1d4841",
+                    "_id": "56547544f4b2c6312a73c717",
+                    "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+                    "barcode": "TTTCGCGC",
+                    "lane": 7,
+                    "library_id": "lib_10015AT_1_test",
+                    "project": "10015AT",
+                    "run_element_id": "150723_test_7_TTTCGCGC",
+                    "run_id": "150723_test",
+                    "sample_id": "10015AT_1_test"
+                }
+            ],
+            "run_id": "150723_test",
+            "run_ids": [
+                "150723_test"
+            ],
+            "total_reads": null,
+            "yield_in_gb": null
+        },
+        {
+            "_created": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "_etag": "4e81ac14208e6206be12817184b226e402955b6e",
+            "_id": "56547544f4b2c6312a73c71b",
+            "_links": {
+                "self": {
+                    "href": "lanes/150723_test_8",
+                    "title": "lane"
+                }
+            },
+            "_updated": "Tue, 24 Nov 2015 14:33:40 GMT",
+            "bases_r1": null,
+            "bases_r2": null,
+            "cv": 0,
+            "lane_id": "150723_test_8",
+            "lane_number": 8,
+            "notes": "empty run_elements",
+            "passing_filter_reads": null,
+            "pc_pass_filter": null,
+            "pc_q30": null,
+            "pc_q30_r1": null,
+            "pc_q30_r2": null,
+            "q30_bases_r1": null,
+            "q30_bases_r2": null,
+            "run_elements": [
+                {},
+                {}
+            ],
+            "run_id": "150723_test",
+            "run_ids": [
+                null
+            ],
+            "total_reads": null,
+            "yield_in_gb": null
+        }
+    ]
+}
