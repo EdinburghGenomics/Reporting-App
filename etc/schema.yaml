@@ -17,7 +17,7 @@ run_elements:
     run_id: {                   type: 'string',  required: True }
     lane: {                     type: 'integer', required: True }
     barcode: {                  type: 'string',  required: True }
-    project: {                  type: 'string',  required: True }
+    project_id: {               type: 'string',  required: True }
 
 #   for now, treat sample_id and library_id as 1:1 equivalent
     library_id: {               type: 'string',  required: True }
@@ -55,7 +55,7 @@ projects:
 
 samples:
     library_id: {               type: 'string',  required: True,  unique: True }
-    project: {                  type: 'string',  required: True  }
+    project_id: {               type: 'string',  required: True  }
     sample_id: {                type: 'string',  required: True  }
     user_sample_id: {           type: 'string',  required: False }
 

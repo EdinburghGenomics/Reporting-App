@@ -60,7 +60,10 @@ settings = {
     'API_VERSION': '0.1',
 
     'RESOURCE_METHODS': ['GET', 'POST', 'DELETE'],
-    'ITEM_METHODS': ['GET', 'PUT', 'PATCH', 'DELETE']
+    'ITEM_METHODS': ['GET', 'PUT', 'PATCH', 'DELETE'],
+
+    'CACHE_CONTROL': 'max-age=20',
+    'CACHE_EXPIRES': 20
 }
 
 from rest_api import aggregation
