@@ -1,10 +1,11 @@
-{% macro dt_init(name, cols, api_url, paging) %}
+{% macro dt_init(name, cols, api_url, default_sort_col, paging) %}
 
 $(document).ready(
     function() {
         var cols = {{ cols|list|safe }};
         var api_url = '{{ api_url|safe }}';
         var paging = {{ paging|safe }};
+        var default_sort_col = {{ default_sort_col|safe }};
 
         $('#{{name}}').DataTable(
             {
@@ -60,7 +61,7 @@ $(document).ready(
                         };
                     }
                 ),
-                'order': [[0, 'asc']]
+                'order': [default_sort_col]
             }
         );
     }

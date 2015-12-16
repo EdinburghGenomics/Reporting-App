@@ -16,7 +16,7 @@
 {%- endmacro %}
 
 
-{% macro datatable(name, cols, api_url, paging='true') -%}
+{% macro datatable(dt_config) -%}
 {# args:
     name (str) - a name for the table (must match the html table element)
     cols (list[dict[str,str]]) - the column names for the table, mapping their names in the database to
@@ -24,12 +24,24 @@
     api_url (str) - the base url for the table to query,
 #}
 
-<script type="text/javascript" language="JavaScript" class="init">{{ dt_init(name, cols, api_url, paging)|safe }}</script>
+{% if dt_config.default_sort_col %}
+    {% set default_sort_col = dt_config.default_sort_col %}
+{% else %}
+    {% set default_sort_col = [0, 'asc'] %}
+{% endif %}
 
-<table id="{{ name }}" class="display">
+{% if dt_config.paging %}
+    {% set paging = dt_config.paging %}
+{% else %}
+    {% set paging = 'true' %}
+{% endif %}
+
+<script type="text/javascript" language="JavaScript" class="init">{{ dt_init(dt_config.name, dt_config.cols, dt_config.api_url, default_sort_col, paging)|safe }}</script>
+
+<table id="{{ dt_config.name }}" class="display">
     <thead>
         <tr>
-            {% for col in cols %}
+            {% for col in dt_config.cols %}
             <th>{{ col.title }}</th>
             {% endfor %}
         </tr>

@@ -27,6 +27,18 @@ def _distinct_values(val, input_json):
     return sorted(set(e[val] for e in input_json))
 
 
+def _format_order(col_name, cols):
+    if col_name.startswith('-'):
+        direction = 'asc'
+    else:
+        direction = 'desc'
+
+    return [
+        [c['name'] for c in cols].index(col_name),
+        direction
+    ]
+
+
 @app.route('/')
 def main_page():
     return fl.render_template('reports.html')
@@ -58,7 +70,8 @@ def report_run(run_id):
             'title': 'Lane ' + str(lane),
             'name': 'unexpected_barcodes_lane_' + str(lane),
             'api_url': rest_query('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
-            'cols': col_mappings['unexpected_barcodes']
+            'cols': col_mappings['unexpected_barcodes'],
+            'default_sort_col': _format_order('passing_filter_reads', col_mappings['unexpected_barcodes'])
         }
         for lane in lanes
     ]

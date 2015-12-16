@@ -13,7 +13,7 @@
 
 {% for table in aggregations %}
 <h2>{{ table.title }}</h2>
-{{ datatable(table.name, table.cols, table.api_url, 'false') }}
+{{ datatable(table) }}
 
 {% endfor %}
 
@@ -26,7 +26,7 @@
     </ol>
     {% for dm_table in demultiplexing_tables %}
     <div id="{{ dm_table.name }}_tab">
-        {{ datatable(dm_table.name, dm_table.cols, dm_table.api_url) }}
+        {{ datatable(dm_table) }}
     </div>
     {% endfor %}
 </div>
@@ -41,7 +41,7 @@
     </ol>
     {% for ub_table in unexpected_barcode_tables %}
     <div id="{{ ub_table.name }}_tab">
-        {{ datatable(ub_table.name, ub_table.cols, ub_table.api_url) }}
+        {{ datatable(ub_table) }}
     </div>
     {% endfor %}
 </div>
