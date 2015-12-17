@@ -46,8 +46,11 @@ def main_page():
 
 @app.route('/runs/')
 def run_reports():
-    return fl.render_template('runs.html', api_url=rest_query('runs'), cols=col_mappings['runs'])
-
+    return fl.render_template(
+        'runs.html',
+        api_url=rest_query('runs', embedded={'run_elements': 1}),
+        cols=col_mappings['runs']
+    )
 
 @app.route('/runs/<run_id>')
 def report_run(run_id):

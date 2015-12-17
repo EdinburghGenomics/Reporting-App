@@ -65,12 +65,12 @@ class Multiply(SingleExp):
 
 class Divide(SingleExp):
     def _evaluate(self, num, denom):
-        return num / denom
+        return float(num) / float(denom)
 
 
 class Percentage(Divide):
     def _evaluate(self, num, denom):
-        return (num / denom) * 100
+        return (float(num) / float(denom)) * 100
 
 
 class CoefficientOfVariation(Accumulation):
