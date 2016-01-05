@@ -104,7 +104,7 @@ def serve_fastqc_report(run_id, filename):
 
 @app.route('/projects/')
 def project_reports():
-    return fl.render_template('runs.html', api_url=rest_query('projects'), cols=col_mappings['projects'])
+    return fl.render_template('projects.html', api_url=rest_query('projects'), cols=col_mappings['projects'])
 
 
 @app.route('/projects/<project>')

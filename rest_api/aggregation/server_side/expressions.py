@@ -80,11 +80,14 @@ class CoefficientOfVariation(Accumulation):
             return 0
         return statistics.stdev(elements) / statistics.mean(elements)
 
-
 class Concatenate(Accumulation):
     def _evaluate(self, elements):
         return list(sorted(set(elements)))
 
+class Nb_element(Accumulation):
+    def _evaluate(self, elements):
+        elements = [e for e in elements if e is not None]
+        return len(set(elements))
 
 class Total(Accumulation):
     def _evaluate(self, elements):

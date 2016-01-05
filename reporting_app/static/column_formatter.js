@@ -17,7 +17,15 @@ function render_data(data, fmt) {
     }
 
     if (fmt['link']) {
-        formatted_data = '<a href=' + fmt['link'] + data + '>' + formatted_data + '</a>'
+        if (data instanceof Array){
+        formatted_data = "";
+            for (var i=0,  tot=data.length; i < tot; i++){
+                formatted_data = formatted_data.concat(' <a href=' + fmt['link'] + data[i] + '>' + data[i] + '</a>')
+            }
+        }
+        else{
+            formatted_data = '<a href=' + fmt['link'] + data + '>' + data + '</a>'
+        }
     }
     if (fmt['min'] && data < fmt['min']) {
         formatted_data = '<p style="color:red">' + formatted_data + '</p>';

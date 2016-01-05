@@ -1,12 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!--<style>
-        table, th, td {
-            border: 1px solid black;
-            border-collapse: collapse;
-        }
-    </style>-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/reporting_app.css') }}">
     <meta charset="UTF-8">
     {% block head %}
     <title>{% block title %}{% endblock %} - Edinburgh Genomics Analysis Driver Reports</title>
@@ -14,12 +9,13 @@
 </head>
 <body>
     {% block menu %}
-    <div id="menu">
-        <a href="/">Home</a>
-        <a href="/runs">Runs</a>
-        <a href="/projects">Projects</a>
-
-    </div>
+    <menu id="nav">
+        <ul >
+            <li><a href="/"><img src="{{ url_for('static', filename='img/EG_logo_final_version_colourwhite_cropped_white.svg') }}" id="logo"></a></li>
+            <li><a href="/runs">Runs</a></li>
+            <li><a href="/projects">Projects</a></li>
+        </ul>
+    </menu>
     {% endblock %}
     <div id="content">{% block content %}{% endblock %}</div>
 </body>
