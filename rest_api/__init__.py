@@ -42,6 +42,7 @@ settings = {
         'samples': {  # bcbio reports
             'url': 'samples',
             'item_title': 'sample',
+            'id_field': 'sample_id',
             'schema': schema['samples']
         }
     },

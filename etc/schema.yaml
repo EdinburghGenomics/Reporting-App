@@ -50,13 +50,13 @@ unexpected_barcodes:
 
 projects:
     project_id: {               type: 'string',  required: True,  unique: True}
-    samples: {                  type: 'list',    required: False, schema: {type: 'string', data_relation: {resource: 'samples', field: 'sample_id', embeddable: True } } }
+    samples: {                  type: 'list',    required: False, schema: {type: 'string', data_relation: {resource: 'samples', field: 'sample_id', embeddable: False } } }
 
 
 samples:
-    library_id: {               type: 'string',  required: True,  unique: True }
+    library_id: {               type: 'string',  required: True  }
     project_id: {               type: 'string',  required: True  }
-    sample_id: {                type: 'string',  required: True  }
+    sample_id: {                type: 'string',  required: True,  unique: True }
     user_sample_id: {           type: 'string',  required: False }
 
 #   initial reads used to be 'no adaptor reads'. Get yield_in_gb by embedding a run_element

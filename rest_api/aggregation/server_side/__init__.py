@@ -54,13 +54,10 @@ def _aggregate_lane(element, embedded_field):
 def _aggregate_run(element, embedded_field):
     element.update(_aggregate_embedded_run_elements(element, embedded_field))
     element.update(resolve(queries.aggregate_run, element, embedded_field))
-    #del element[embedded_field]
     return element
 
 def _aggregate_project(element, embedded_field):
-    print(element)
-    print(embedded_field)
-    return resolve(queries.aggregate_project, element, embedded_field)
+    return resolve(queries.aggregate_project, element)
 
 def _aggregate_run_element(element):
     return resolve(queries.aggregate_run_element, element)

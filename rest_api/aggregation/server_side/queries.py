@@ -1,5 +1,5 @@
 __author__ = 'mwham'
-from .expressions import Percentage, Add, Divide, Concatenate, Constant, CoefficientOfVariation, Total, Nb_element
+from .expressions import Percentage, Add, Divide, Concatenate, Constant, CoefficientOfVariation, Total, NbUniqueElements
 
 
 aggregate_run_element = {
@@ -45,7 +45,7 @@ aggregate_run = {
 
 
 aggregate_project = {
-    'nb_samples': Nb_element('samples')
+    'nb_samples': NbUniqueElements('samples')
 }
 
 aggregate_embedded_run_elements = {  # multi-element

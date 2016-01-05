@@ -26,7 +26,6 @@ class Expression:
         args = []
         if e is None:
             return None
-        # print(self.__class__.__name__ + '(' + ', '.join([str(x) for x in self.args]) + ')')
         for a in self.args:
             if isinstance(a, Expression):
                 b = a.evaluate(e)
@@ -84,7 +83,7 @@ class Concatenate(Accumulation):
     def _evaluate(self, elements):
         return list(sorted(set(elements)))
 
-class Nb_element(Accumulation):
+class NbUniqueElements(SingleExp):
     def _evaluate(self, elements):
         elements = [e for e in elements if e is not None]
         return len(set(elements))

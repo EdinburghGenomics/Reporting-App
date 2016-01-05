@@ -9,7 +9,7 @@ runs:
 
 projects:
     - { name: 'project_id',               title: 'Project ID',              fmt: { link: '/projects/' } }
-    - { name: 'nb_sample',                title: 'Nb of Samples'                 }
+    - { name: 'nb_samples',                title: 'Nb of Samples'                 }
 
 demultiplexing:
 #    - { name: 'lane',                     title: 'Lane' }
