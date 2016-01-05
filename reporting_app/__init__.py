@@ -46,8 +46,11 @@ def main_page():
 
 @app.route('/runs/')
 def run_reports():
-    return fl.render_template('runs.html', api_url=rest_query('runs'), cols=col_mappings['runs'])
-
+    return fl.render_template(
+        'runs.html',
+        api_url=rest_query('runs', embedded={'run_elements': 1}),
+        cols=col_mappings['runs']
+    )
 
 @app.route('/runs/<run_id>')
 def report_run(run_id):
@@ -101,7 +104,9 @@ def serve_fastqc_report(run_id, filename):
 
 @app.route('/projects/')
 def project_reports():
-    return fl.render_template('runs.html', api_url=rest_query('projects'), cols=col_mappings['projects'])
+    return fl.render_template('projects.html',
+                              api_url=rest_query('projects', embedded={'samples': 1}),
+                              cols=col_mappings['projects'])
 
 
 @app.route('/projects/<project>')

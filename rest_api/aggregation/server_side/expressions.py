@@ -26,7 +26,6 @@ class Expression:
         args = []
         if e is None:
             return None
-        # print(self.__class__.__name__ + '(' + ', '.join([str(x) for x in self.args]) + ')')
         for a in self.args:
             if isinstance(a, Expression):
                 b = a.evaluate(e)
@@ -65,12 +64,12 @@ class Multiply(SingleExp):
 
 class Divide(SingleExp):
     def _evaluate(self, num, denom):
-        return num / denom
+        return float(num) / float(denom)
 
 
 class Percentage(Divide):
     def _evaluate(self, num, denom):
-        return (num / denom) * 100
+        return (float(num) / float(denom)) * 100
 
 
 class CoefficientOfVariation(Accumulation):
@@ -80,11 +79,14 @@ class CoefficientOfVariation(Accumulation):
             return 0
         return statistics.stdev(elements) / statistics.mean(elements)
 
-
 class Concatenate(Accumulation):
     def _evaluate(self, elements):
         return list(sorted(set(elements)))
 
+class NbUniqueElements(SingleExp):
+    def _evaluate(self, elements):
+        elements = [e for e in elements if e is not None]
+        return len(set(elements))
 
 class Total(Accumulation):
     def _evaluate(self, elements):

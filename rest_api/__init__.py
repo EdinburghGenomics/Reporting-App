@@ -42,6 +42,7 @@ settings = {
         'samples': {  # bcbio reports
             'url': 'samples',
             'item_title': 'sample',
+            'id_field': 'sample_id',
             'schema': schema['samples']
         }
     },
@@ -79,6 +80,23 @@ def _from_query_string(request_args, query, json=True):
     else:
         return request_args.get(query, None)
 
+def aggregate_embedded_run_elements_into_run(request, response):
+    input_json = flask.json.loads(response.data.decode('utf-8'))
+    if _from_query_string(request.args, 'embedded').get('run_elements') == 1:
+        response.data = aggregation.server_side.aggregate_run(
+            input_json,
+            sortquery=_from_query_string(request.args, 'sort', json=False)
+        ).encode()
+
+
+def aggregate_embedded_sample_elements_into_project(request, response):
+    input_json = flask.json.loads(response.data.decode('utf-8'))
+    if _from_query_string(request.args, 'embedded').get('samples') == 1:
+        response.data = aggregation.server_side.aggregate_project(
+            input_json,
+            sortquery=_from_query_string(request.args, 'sort', json=False)
+        ).encode()
+
 
 def aggregate_embedded_run_elements(request, response):
     input_json = flask.json.loads(response.data.decode('utf-8'))
@@ -109,6 +127,8 @@ def run_element_basic_aggregation(request, response):
 app.on_post_GET_samples += embed_run_elements_into_samples
 app.on_post_GET_run_elements += run_element_basic_aggregation
 app.on_post_GET_lanes += aggregate_embedded_run_elements
+app.on_post_GET_runs += aggregate_embedded_run_elements_into_run
+app.on_post_GET_projects += aggregate_embedded_sample_elements_into_project
 
 
 def main():
