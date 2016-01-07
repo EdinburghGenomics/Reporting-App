@@ -13,6 +13,8 @@ def resolve(query, element, embedded_field=None):
 
 
 class Expression:
+    default_return_value = 0
+
     def __init__(self, *args):
         self.args = args
 
@@ -32,7 +34,7 @@ class Expression:
             else:
                 b = self._resolve_element(e, a)
             if b is None:
-                return None
+                return self.default_return_value
             args.append(b)
         return self._evaluate(*args)
 
@@ -64,12 +66,12 @@ class Multiply(SingleExp):
 
 class Divide(SingleExp):
     def _evaluate(self, num, denom):
-        return float(num) / float(denom)
+        return num / denom
 
 
 class Percentage(Divide):
     def _evaluate(self, num, denom):
-        return (float(num) / float(denom)) * 100
+        return (num / denom) * 100
 
 
 class CoefficientOfVariation(Accumulation):
@@ -79,9 +81,13 @@ class CoefficientOfVariation(Accumulation):
             return 0
         return statistics.stdev(elements) / statistics.mean(elements)
 
+
 class Concatenate(Accumulation):
+    default_return_value = ''
+
     def _evaluate(self, elements):
         return list(sorted(set(elements)))
+
 
 class NbUniqueElements(SingleExp):
     def _evaluate(self, elements):
