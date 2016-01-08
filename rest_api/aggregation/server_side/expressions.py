@@ -18,25 +18,31 @@ class Expression:
     def __init__(self, *args):
         self.args = args
 
-    def _evaluate(self, *args):
+    def _expression(self, *args):
         return 0
+
+    def _evaluate(self, *args):
+        try:
+            return self._expression(*args)
+        except (ZeroDivisionError,):
+            return self.default_return_value
 
     def _resolve_element(self, e, param):
         pass
 
     def evaluate(self, e):
-        args = []
+        data = []
         if e is None:
             return None
         for a in self.args:
             if isinstance(a, Expression):
-                b = a.evaluate(e)
+                data_point = a.evaluate(e)
             else:
-                b = self._resolve_element(e, a)
-            if b is None:
+                data_point = self._resolve_element(e, a)
+            if data_point is None:
                 return self.default_return_value
-            args.append(b)
-        return self._evaluate(*args)
+            data.append(data_point)
+        return self._evaluate(*data)
 
 
 class SingleExp(Expression):
@@ -55,27 +61,27 @@ class Constant(Expression):
 
 
 class Add(SingleExp):
-    def _evaluate(self, *args):
+    def _expression(self, *args):
         return sum(a for a in args if a is not None)
 
 
 class Multiply(SingleExp):
-    def _evaluate(self, arg1, arg2):
+    def _expression(self, arg1, arg2):
         return arg1 * arg2
 
 
 class Divide(SingleExp):
-    def _evaluate(self, num, denom):
+    def _expression(self, num, denom):
         return num / denom
 
 
 class Percentage(Divide):
-    def _evaluate(self, num, denom):
+    def _expression(self, num, denom):
         return (num / denom) * 100
 
 
 class CoefficientOfVariation(Accumulation):
-    def _evaluate(self, elements):
+    def _expression(self, elements):
         elements = [e for e in elements if e is not None]
         if len(elements) < 2:
             return 0
@@ -85,17 +91,18 @@ class CoefficientOfVariation(Accumulation):
 class Concatenate(Accumulation):
     default_return_value = ''
 
-    def _evaluate(self, elements):
+    def _expression(self, elements):
         return list(sorted(set(elements)))
 
 
 class NbUniqueElements(SingleExp):
-    def _evaluate(self, elements):
+    def _expression(self, elements):
         elements = [e for e in elements if e is not None]
         return len(set(elements))
 
+
 class Total(Accumulation):
-    def _evaluate(self, elements):
+    def _expression(self, elements):
         elements = [e for e in elements if e is not None]
         if not elements:
             return None
