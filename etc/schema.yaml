@@ -1,14 +1,15 @@
 runs:
     run_id: {                   type: 'string',  required: True,  unique: True }
     number_of_lanes: {          type: 'integer', required: False, min: 1, max: 8 }  # [1..8]
-    run_elements: {             type: 'list',    required: False, schema: {type: 'string', data_relation: {resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
+    run_elements: {             type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
+    analysis_driver_procs: {    type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'analysis_driver_procs', field: 'proc_id', embeddable: True } } }
 
 
 lanes:
     lane_id: {                  type: 'string',  required: True,  unique: True}
     run_id: {                   type: 'string',  required: False }
     lane_number: {              type: 'integer', required: False, min: 1, max: 8 }
-    run_elements: {             type: 'list',    required: False, schema: {type: 'string', data_relation: {resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
+    run_elements: {             type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
 
 
 run_elements:
@@ -35,7 +36,8 @@ run_elements:
     fastqc_report_r1: {         type: 'string',  required: False }
     fastqc_report_r2: {         type: 'string',  required: False }
 
-    reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'force', 'fail'] }
+    reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'] }
+    useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ]}
 
 
 unexpected_barcodes:
@@ -49,8 +51,8 @@ unexpected_barcodes:
 
 
 projects:
-    project_id: {               type: 'string',  required: True,  unique: True}
-    samples: {                  type: 'list',    required: False, schema: {type: 'string', data_relation: {resource: 'samples', field: 'sample_id', embeddable: False } } }
+    project_id: {               type: 'string',  required: True,  unique: True }
+    samples: {                  type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'samples', field: 'sample_id', embeddable: False } } }
 
 
 samples:
@@ -59,14 +61,28 @@ samples:
     sample_id: {                type: 'string',  required: True,  unique: True }
     user_sample_id: {           type: 'string',  required: False }
 
-#   initial reads used to be 'no adaptor reads'. Get yield_in_gb by embedding a run_element
-    bam_file_reads: {           type: 'integer', required: False }  # reads initially found in the bam file
+    bam_file_reads: {           type: 'integer', required: False }  # reads initially found in the bam file, used to be 'no adaptor reads'
     mapped_reads: {             type: 'integer', required: False }
     properly_mapped_reads: {    type: 'integer', required: False }
     duplicate_reads: {          type: 'integer', required: False }
     median_coverage: {          type: 'float',   required: False }
-    pc_callable: {              type: 'float',   required: False }  # aggregate pc_q30 from embedded run elements
+    pc_callable: {              type: 'float',   required: False }
     freemix: {                  type: 'float',   required: False }
 
-    run_elements: {             type: 'list',    required: False, schema: {type: 'string', data_relation: {resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
+    run_elements: {             type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
+
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'] }
+    useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ]}
+    analysis_driver_procs: {    type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'analysis_driver_procs', field: 'proc_id', embeddable: True } } }
+
+
+analysis_driver_procs:
+    proc_id: { type: 'string', required: True, unique: True }
+    dataset_type: { type: 'string', allowed: ['run', 'sample'] }
+    dataset_name: { type: 'string', required: True }
+    start_date: { type: 'datetime', required: True }
+
+    end_date: { type: 'datetime' }
+    pid: { type: 'integer' }
+    status: { type: 'string', allowed: ['new', 'ready', 'force_ready', 'processing', 'finished', 'failed', 'aborted'] }
+    stage: { type: 'string' }

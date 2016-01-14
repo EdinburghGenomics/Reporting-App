@@ -23,6 +23,7 @@ def aggregate_lanes(input_json, sortquery=None):
         lane.update(_aggregate_lane(lane, 'run_elements'))
     return _order_json(input_json, sortquery)
 
+
 def aggregate_run(input_json, sortquery=None):
     for run in input_json['data']:
         run.update(_aggregate_run(run, 'run_elements'))
@@ -51,13 +52,16 @@ def _aggregate_lane(element, embedded_field):
     element.update(resolve(queries.aggregate_lane, element, embedded_field))
     return element
 
+
 def _aggregate_run(element, embedded_field):
     element.update(_aggregate_embedded_run_elements(element, embedded_field))
     element.update(resolve(queries.aggregate_run, element, embedded_field))
     return element
 
+
 def _aggregate_project(element, embedded_field):
     return resolve(queries.aggregate_project, element)
+
 
 def _aggregate_run_element(element):
     return resolve(queries.aggregate_run_element, element)

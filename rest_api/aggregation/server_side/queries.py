@@ -38,7 +38,7 @@ aggregate_run = {
     'pc_q30_r2': Percentage('q30_bases_r2', 'bases_r2'),
     'pc_q30': Percentage(Add('q30_bases_r1', 'q30_bases_r2'), Add('bases_r1', 'bases_r2')),
     #'pc_pass_filter': Percentage('passing_filter_reads', 'total_reads'),
-    'project_ids': Concatenate('project'),
+    'project_ids': Concatenate('project_id'),
     'yield_in_gb': Divide(Add('bases_r1', 'bases_r2'), Constant(1000000000)),
     'yield_q30_in_gb': Divide(Add('q30_bases_r1', 'q30_bases_r2'), Constant(1000000000))
 }

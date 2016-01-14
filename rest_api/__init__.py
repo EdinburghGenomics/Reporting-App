@@ -2,6 +2,7 @@ __author__ = 'mwham'
 import eve
 import flask
 from config import rest_config as cfg, schema
+from . import exceptions
 
 
 settings = {
@@ -39,11 +40,18 @@ settings = {
             'schema': schema['projects']
         },
 
-        'samples': {  # bcbio reports
+        'samples': {
             'url': 'samples',
             'item_title': 'sample',
             'id_field': 'sample_id',
             'schema': schema['samples']
+        },
+
+        'analysis_driver_procs': {
+            'url': 'analysis_driver_procs',
+            'item_title': 'analysis_driver_proc',
+            'id_field': 'proc_id',
+            'schema': schema['analysis_driver_procs']
         }
     },
     'VALIDATE_FILTERS': True,
@@ -74,45 +82,50 @@ if cfg.get('database_side_aggregation'):
     aggregation.database_side.register_db_side_aggregation(app)
 
 
-def _from_query_string(request_args, query, json=True):
+def _from_query_string(request_args, query, json=False):
     if json:
         return flask.json.loads(request_args.get(query, '{}'))
     else:
         return request_args.get(query, None)
 
+
+def _aggregation_enabled(request_args):
+    return request_args.get('aggregate') == 'True'  # booleans get cast to strings in http requests
+
+
 def aggregate_embedded_run_elements_into_run(request, response):
     input_json = flask.json.loads(response.data.decode('utf-8'))
-    if _from_query_string(request.args, 'embedded').get('run_elements') == 1:
+    if _aggregation_enabled(request.args):
         response.data = aggregation.server_side.aggregate_run(
             input_json,
-            sortquery=_from_query_string(request.args, 'sort', json=False)
+            sortquery=_from_query_string(request.args, 'sort')
         ).encode()
 
 
 def aggregate_embedded_sample_elements_into_project(request, response):
     input_json = flask.json.loads(response.data.decode('utf-8'))
-    if _from_query_string(request.args, 'embedded').get('samples') == 1:
+    if _aggregation_enabled(request.args):
         response.data = aggregation.server_side.aggregate_project(
             input_json,
-            sortquery=_from_query_string(request.args, 'sort', json=False)
+            sortquery=_from_query_string(request.args, 'sort')
         ).encode()
 
 
 def aggregate_embedded_run_elements(request, response):
     input_json = flask.json.loads(response.data.decode('utf-8'))
-    if _from_query_string(request.args, 'embedded').get('run_elements') == 1:
+    if _aggregation_enabled(request.args):
         response.data = aggregation.server_side.aggregate_lanes(
             input_json,
-            sortquery=_from_query_string(request.args, 'sort', json=False)
+            sortquery=_from_query_string(request.args, 'sort')
         ).encode()
 
 
 def embed_run_elements_into_samples(request, response):
     input_json = flask.json.loads(response.data.decode('utf-8'))
-    if _from_query_string(request.args, 'embedded').get('run_elements') == 1:
+    if _aggregation_enabled(request.args):
         response.data = aggregation.server_side.aggregate_samples(
             input_json,
-            sortquery=_from_query_string(request.args, 'sort', json=False)
+            sortquery=_from_query_string(request.args, 'sort')
         ).encode()
 
 
@@ -120,7 +133,7 @@ def run_element_basic_aggregation(request, response):
     input_json = flask.json.loads(response.data.decode('utf-8'))
     response.data = aggregation.server_side.run_element_basic_aggregation(
         input_json,
-        sortquery=_from_query_string(request.args, 'sort', json=False)
+        sortquery=_from_query_string(request.args, 'sort')
     ).encode()
 
 
