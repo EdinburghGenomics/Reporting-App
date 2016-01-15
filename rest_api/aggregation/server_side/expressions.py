@@ -108,3 +108,8 @@ class Total(Accumulation):
             return None
         else:
             return sum(elements)
+
+__all__ = (
+    'Constant', 'Add', 'Multiply', 'Divide', 'Percentage', 'CoefficientOfVariation', 'Concatenate',
+    'NbUniqueElements', 'Total'
+)

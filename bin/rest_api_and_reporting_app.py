@@ -7,7 +7,6 @@ import reporting_app
 import rest_api
 
 
-
 if __name__ == '__main__':
     for m in (rest_api, reporting_app):
         print('starting new process for ' + m.__name__)
