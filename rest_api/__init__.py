@@ -72,7 +72,9 @@ settings = {
     'ITEM_METHODS': ['GET', 'PUT', 'PATCH', 'DELETE'],
 
     'CACHE_CONTROL': 'max-age=20',
-    'CACHE_EXPIRES': 20
+    'CACHE_EXPIRES': 20,
+
+    'DATE_FORMAT': '%d_%m_%Y_%H:%M:%S'
 }
 
 from rest_api import aggregation

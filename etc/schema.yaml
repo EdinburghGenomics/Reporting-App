@@ -85,6 +85,7 @@ analysis_driver_procs:
     start_date: {               type: 'datetime', required: True }
     end_date: {                 type: 'datetime' }
     pid: {                      type: 'integer' }
-    status: {                   type: 'string', allowed: ['new', 'ready', 'force_ready', 'processing', 'finished', 'failed', 'aborted'] }
+    status: {                   type: 'string', allowed: ['force_ready', 'processing', 'finished', 'failed', 'aborted'] }
+    rerun: {                    type: 'boolean' }
 
     stages: {                   type: 'list', schema: { type: 'dict', schema: { stage_name: { type: 'string' }, date_started: { type: 'datetime' }, date_finished: { type: 'datetime' } } } }
