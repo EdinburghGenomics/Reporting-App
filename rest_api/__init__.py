@@ -2,7 +2,6 @@ __author__ = 'mwham'
 import eve
 import flask
 from config import rest_config as cfg, schema
-from . import exceptions
 
 
 settings = {

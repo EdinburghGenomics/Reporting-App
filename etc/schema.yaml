@@ -56,7 +56,7 @@ projects:
 
 
 samples:
-    library_id: {               type: 'string',  required: True  }
+    library_id: {               type: 'string',  required: False }
     project_id: {               type: 'string',  required: True  }
     sample_id: {                type: 'string',  required: True,  unique: True }
     user_sample_id: {           type: 'string',  required: False }
@@ -80,12 +80,11 @@ samples:
 
 analysis_driver_procs:
     proc_id: {                  type: 'string', required: True, unique: True }
-    dataset_type: {             type: 'string', allowed: ['run', 'sample'] }
+    dataset_type: {             type: 'string', allowed: ['run', 'sample'], required: True }
     dataset_name: {             type: 'string', required: True }
-    start_date: {               type: 'datetime', required: True }
+    start_date: {               type: 'datetime' }
     end_date: {                 type: 'datetime' }
     pid: {                      type: 'integer' }
-    status: {                   type: 'string', allowed: ['force_ready', 'processing', 'finished', 'failed', 'aborted'] }
-    rerun: {                    type: 'boolean' }
+    status: {                   type: 'string', allowed: ['force_ready', 'processing', 'finished', 'failed', 'aborted', 'reprocess'] }
 
     stages: {                   type: 'list', schema: { type: 'dict', schema: { stage_name: { type: 'string' }, date_started: { type: 'datetime' }, date_finished: { type: 'datetime' } } } }
