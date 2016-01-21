@@ -124,22 +124,3 @@ def report_project(project):
             'cols': col_mappings['samples']
         }
     )
-
-
-def main():
-    if cfg['tornado']:
-        import tornado.wsgi
-        import tornado.httpserver
-        import tornado.ioloop
-
-        app.debug = cfg['debug']
-        http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
-        http_server.listen(cfg['port'])
-        tornado.ioloop.IOLoop.instance().start()
-
-    else:
-        app.run('localhost', cfg['port'], debug=cfg['debug'])
-
-
-if __name__ == '__main__':
-    main()

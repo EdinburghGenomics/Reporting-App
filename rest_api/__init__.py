@@ -145,28 +145,12 @@ app.on_post_GET_runs += aggregate_embedded_run_elements_into_run
 app.on_post_GET_projects += aggregate_embedded_sample_elements_into_project
 
 
-def main():
-    """
-    querying with Python syntax:
-    curl -i -g 'http://host:port/things?where=sample_project=="this"'
-    http://host:port/things?where=sample_project==%22this%22
+"""
+querying with Python syntax:
+curl -i -g 'http://host:port/things?where=sample_project=="this"'
+http://host:port/things?where=sample_project==%22this%22
 
-    and MongoDB syntax:
-    curl -i -g 'http://host:port/things?where={"sample_project":"this"}'
-    http://host:port/things?where={%22sample_project%22:%22this%22}
-    """
-    if cfg['tornado']:
-        import tornado.wsgi
-        import tornado.httpserver
-        import tornado.ioloop
-
-        http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
-        http_server.listen(cfg['port'])
-        tornado.ioloop.IOLoop.instance().start()
-
-    else:
-        app.run('localhost', cfg['port'], debug=cfg['debug'])
-
-
-if __name__ == '__main__':
-    main()
+and MongoDB syntax:
+curl -i -g 'http://host:port/things?where={"sample_project":"this"}'
+http://host:port/things?where={%22sample_project%22:%22this%22}
+"""

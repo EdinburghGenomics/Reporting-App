@@ -17,7 +17,7 @@ class Configuration:
         except KeyError:
             return ret_default
 
-    def query(self, *parts, top_level=None):
+    def query(self, *parts, top_level=None, ret_default=None):
         if top_level is None:
             top_level = self
         item = None
@@ -27,7 +27,7 @@ class Configuration:
             if item:
                 top_level = item
             else:
-                return None
+                return ret_default
         return item
 
     def _load_config_file(self):
