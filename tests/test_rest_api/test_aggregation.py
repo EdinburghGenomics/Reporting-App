@@ -1,5 +1,6 @@
 __author__ = 'mwham'
 import rest_api
+import rest_api.aggregation.database_side
 from tests.test_rest_api import TestBase
 import json
 import os.path
@@ -14,8 +15,7 @@ class TestAggregation(TestBase):
             for y in ('run_ids',):
                 self._reorder_comma_sep_list(x['data'], y)
 
-        o_eq_e = o == e
-        if not o_eq_e:
+        if o != e:
             print('!o_eq_e')
             for x, y in zip(e['data'], o['data']):
                 missing = [k for k in x if k not in y]
@@ -41,11 +41,10 @@ class TestAggregation(TestBase):
 
 
 class TestRestSide(TestAggregation):
-
     def _test_aggregation(self, aggregate, filename, sort=None):
         input_json = json.load(self._json_test_file('pre', filename))
 
-        rq_args = {'embedded': '{"run_elements":1}'}
+        rq_args = {'embedded': '{"run_elements":1}', 'aggregate': 'True'}
         if sort:
             rq_args['sort'] = sort
         request = FakeRequest(rq_args)
@@ -98,6 +97,8 @@ class TestServerSide(TestAggregation):
         if incomplete:
             filename += '_incomplete'
         filename += '.json'
+        print()
+        print(filename)
         self._compare_jsons(
             json.loads(aggregate(json.load(self._json_test_file('pre', filename)))),
             json.load(self._json_test_file('post', filename))

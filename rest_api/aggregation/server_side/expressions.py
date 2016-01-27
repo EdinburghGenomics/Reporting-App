@@ -13,7 +13,7 @@ def resolve(query, element, embedded_field=None):
 
 
 class Expression:
-    default_return_value = 0
+    default_return_value = None
 
     def __init__(self, *args):
         self.args = args
@@ -24,7 +24,7 @@ class Expression:
     def _evaluate(self, *args):
         try:
             return self._expression(*args)
-        except (ZeroDivisionError,):
+        except (ZeroDivisionError, TypeError):
             return self.default_return_value
 
     def _resolve_element(self, e, param):

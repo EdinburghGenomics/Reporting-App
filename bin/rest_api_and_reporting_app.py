@@ -10,22 +10,22 @@ import reporting_app
 import rest_api
 from config import rest_config, reporting_app_config
 
-import werkzeug._internal
-# override werkzeug's default logger
-werkzeug._internal._logger = logging.getLogger('werkzeug')
-werkzeug._internal._logger.setLevel(logging.DEBUG)
-
 
 def run_app(app, cfg):
-    app.debug = cfg.get('debug', False)
-    _configure_logging(app.logger, cfg.get('logging', {}))
+    """
+    :param Flask app: A Flask app, or any subclassing object, e.g. eve.Eve
+    :param config.Configuration cfg:
+    """
+    webserver = cfg.get('webserver', 'werkzeug')
+    _configure_logging(app.logger, cfg.get('logging', {}), webserver)
+    app.logger.info('Starting with configuration: ' + str(cfg.content))
 
-    if cfg['tornado']:
+    app.debug = cfg.get('debug', False)
+
+    if webserver == 'tornado':
         import tornado.wsgi
         import tornado.httpserver
         import tornado.ioloop
-
-        # TODO: configure Tornado logging
 
         http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
         http_server.listen(cfg['port'])
@@ -35,7 +35,11 @@ def run_app(app, cfg):
         app.run('localhost', cfg['port'])
 
 
-def _configure_logging(logger, log_cfg):
+def _configure_logging(app_logger, log_cfg, webserver):
+    loggers = _configure_webserver_loggers(webserver) + [app_logger]
+    for l in loggers:
+        l.setLevel(logging.DEBUG)
+
     c = logging.config.BaseConfigurator({})
     f = logging.Formatter(
         fmt=log_cfg.get('format', '[%(asctime)s][%(name)s][%(levelname)s] %(message)s'),
@@ -55,8 +59,25 @@ def _configure_logging(logger, log_cfg):
             handler = h_classes[handler_type](**h)
             handler.setFormatter(f)
             handler.setLevel(level)
-            werkzeug._internal._logger.addHandler(handler)
-            logger.addHandler(handler)
+            for l in loggers:
+                l.addHandler(handler)
+
+
+def _configure_webserver_loggers(webserver):
+    if webserver == 'werkzeug':
+        import werkzeug._internal
+        # werkzeug's default logger is None until werkzeug._default._log is called. Initialise it to a
+        # logging.Logger here, and set it
+        werkzeug._internal._logger = logging.getLogger('werkzeug')
+        werkzeug._internal._logger.setLevel(logging.DEBUG)
+        return [werkzeug._internal._logger]
+
+    elif webserver == 'tornado':
+        import tornado.log
+        return [tornado.log.access_log, tornado.log.app_log, tornado.log.gen_log]
+
+    else:
+        raise AssertionError("webserver %s should be one of 'werkzeug' or 'tornado'" % webserver)
 
 
 def main():

@@ -46,6 +46,7 @@
             "properly_mapped_reads": 6296,
             "q30_bases_r1": 38849487443,
             "q30_bases_r2": 38704151806,
+            "yield_q30": 77.553639249,
             "reviewed": "fail",
             "run_ids": [
                 "150823_test",
@@ -87,6 +88,7 @@
             "properly_mapped_reads": 8440,
             "q30_bases_r1": 39746031933,
             "q30_bases_r2": 39683529874,
+            "yield_q30": 79.429561807,
             "reviewed": "not reviewed",
             "run_ids": [
                 "150723_test",
