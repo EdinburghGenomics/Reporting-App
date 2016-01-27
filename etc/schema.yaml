@@ -87,4 +87,4 @@ analysis_driver_procs:
     pid: {                      type: 'integer' }
     status: {                   type: 'string', allowed: ['force_ready', 'processing', 'finished', 'failed', 'aborted', 'reprocess'] }
 
-    stages: {                   type: 'list', schema: { type: 'dict', schema: { stage_name: { type: 'string' }, date_started: { type: 'datetime' }, date_finished: { type: 'datetime' } } } }
+    stages: {                   type: 'list', schema: { type: 'dict', schema: { stage_name: { type: 'string' }, date_started: { type: 'datetime' }, date_finished: { type: 'datetime' }, exit_status: { type: 'integer'} } } }
