@@ -1,9 +1,24 @@
 __author__ = 'mwham'
 import rest_api
-import rest_api.aggregation.database_side
 from tests.test_rest_api import TestBase
 import json
 import os.path
+from unittest.mock import patch, Mock
+from collections import defaultdict
+
+
+class FakeMongoClient(Mock):
+    def __init__(self, host, port):
+        super().__init__()
+        self.host, self.port = host, port
+        self.dbs = defaultdict(str)
+
+    def __getitem__(self, item):
+        return self.dbs[item]
+
+
+with patch('pymongo.MongoClient', new=FakeMongoClient):
+    import rest_api.aggregation.database_side
 
 
 class TestAggregation(TestBase):
