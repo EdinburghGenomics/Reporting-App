@@ -9,7 +9,7 @@ runs:
 
 projects:
     - { name: 'project_id',               title: 'Project ID',              fmt: { link: '/projects/' } }
-    - { name: 'nb_samples',                title: 'Nb of Samples'                 }
+    - { name: 'nb_samples',               title: 'Nb of Samples' }
 
 demultiplexing:
 #    - { name: 'lane',                     title: 'Lane' }
@@ -22,6 +22,7 @@ demultiplexing:
     - { name: 'yield_in_gb',              title: 'Yield (Gb)',              fmt: { type: 'float',  min: 150 } }
     - { name: 'pc_q30_r1',                title: '% Q30 R1',                fmt: { type: 'percentage',  min: 70 } }
     - { name: 'pc_q30_r2',                title: '% Q30 R2',                fmt: { type: 'percentage',  min: 70 } }
+    - { name: 'reviewed',                 title: 'Review status',           fmt: {} }
 
 
 lane_aggregation:
@@ -36,7 +37,6 @@ lane_aggregation:
 
 
 unexpected_barcodes:
-#    - { name: 'lane',                    title: 'Lane' }
     - { name: 'barcode',                  title: 'Barcode' }
     - { name: 'passing_filter_reads',     title: 'Passing-filter reads',    fmt: { type: 'int',   min: 1500  } }
     - { name: 'pc_reads_in_lane',         title: '% Reads in lane',         fmt: { type: 'percentage', min: 70   } }
@@ -60,3 +60,4 @@ samples:
     - { name: 'pc_callable',              title: '% callable',              fmt: { type: 'percentage', min: 70 } }
     - { name: 'pc_q30_r1',                title: '% Q30 R1',                fmt: { type: 'percentage', min: 70 } }
     - { name: 'pc_q30_r2',                title: '% Q30 R2',                fmt: { type: 'percentage', min: 70 } }
+    - { name: 'reviewed',                 title: 'Review status',           fmt: {} }

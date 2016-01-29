@@ -1,2 +1,2 @@
 __author__ = 'mwham'
-from . import database_side, server_side
+from . import server_side  # , database_side

@@ -15,7 +15,6 @@ def rest_query(resource, **query_args):
 
     query = '?'
     query += '&'.join(['%s=%s' % (k, v) for k, v in query_args.items()]).replace(' ', '').replace('\'', '"')
-
     return cfg['rest_api'] + '/' + resource + query
 
 
@@ -48,9 +47,10 @@ def main_page():
 def run_reports():
     return fl.render_template(
         'runs.html',
-        api_url=rest_query('runs', embedded={'run_elements': 1}),
+        api_url=rest_query('runs', aggregate=True, embedded={'run_elements': 1}),
         cols=col_mappings['runs']
     )
+
 
 @app.route('/runs/<run_id>')
 def report_run(run_id):
@@ -82,7 +82,7 @@ def report_run(run_id):
     lane_aggregation = {
         'title': 'Aggregation per lane',
         'name': 'agg_per_lane',
-        'api_url': rest_query('lanes', where={'run_id': run_id}, embedded={'run_elements': 1}),
+        'api_url': rest_query('lanes', where={'run_id': run_id}, aggregate=True, embedded={'run_elements': 1}),
         'cols': col_mappings['lane_aggregation']
     }
 
@@ -104,9 +104,11 @@ def serve_fastqc_report(run_id, filename):
 
 @app.route('/projects/')
 def project_reports():
-    return fl.render_template('projects.html',
-                              api_url=rest_query('projects', embedded={'samples': 1}),
-                              cols=col_mappings['projects'])
+    return fl.render_template(
+        'projects.html',
+        api_url=rest_query('projects', aggregate=True, embedded={'samples': 1}),
+        cols=col_mappings['projects']
+    )
 
 
 @app.route('/projects/<project>')
@@ -118,26 +120,7 @@ def report_project(project):
         table={
             'title': 'Project report for ' + project,
             'name': project + '_report',
-            'api_url': rest_query('samples', where={'project': project}, embedded={'run_elements': 1}),
+            'api_url': rest_query('samples', where={'project': project}, aggregate=True, embedded={'run_elements': 1}),
             'cols': col_mappings['samples']
         }
     )
-
-
-def main():
-    if cfg['tornado']:
-        import tornado.wsgi
-        import tornado.httpserver
-        import tornado.ioloop
-
-        app.debug = cfg['debug']
-        http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
-        http_server.listen(cfg['port'])
-        tornado.ioloop.IOLoop.instance().start()
-
-    else:
-        app.run('localhost', cfg['port'], debug=cfg['debug'])
-
-
-if __name__ == '__main__':
-    main()
