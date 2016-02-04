@@ -12,7 +12,7 @@ default:
                   level: DEBUG
 
             timed_rotating_file_handlers:
-                - filename: /Users/mwham/workspace/Edgen_Analysis_Driver/reporting_app.log
+                - filename: /path/to/reporting_app.log
                   when: 'midnight'
                   level: DEBUG
 
@@ -24,8 +24,7 @@ default:
         debug: False
 
         db_name: 'test_db'
-        db_host: 'mongodb://egclaritydev.mvm.ed.ac.uk'
-        #db_host: 'mongodb://localhost'
+        db_host: 'mongodb://localhost'
         db_port: 4998
 
         x_domains: ['http://localhost:5000']
@@ -36,7 +35,6 @@ default:
                   level: DEBUG
 
             timed_rotating_file_handlers:
-                - filename: /Users/mwham/workspace/Edgen_Analysis_Driver/rest_api.log
+                - filename: /path/to/rest_api.log
                   when: 'midnight'
                   level: DEBUG
-

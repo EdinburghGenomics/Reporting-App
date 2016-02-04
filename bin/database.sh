@@ -11,7 +11,7 @@ function start_db_server {
     check_script_exists $nosql_server
     check_running $nosql_server
     echo "Starting nosql server"
-    $nosql_server --config $nosql_server_config &
+    nohup $nosql_server --config $nosql_server_config /dev/null 2>&1 &
     pid=$!
     echo $pid > "$scriptpath/.$(basename $nosql_server).$pid"  # path/to/.thing.5662
     echo "Started nosql server with pid $pid"

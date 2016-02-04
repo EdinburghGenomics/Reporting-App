@@ -51,7 +51,7 @@ function start_flask_app {
     check_script_exists $runner
     check_running $app
     echo "Starting $app"
-    $python $scriptpath/run_app.py $app &
+    nohup $python $scriptpath/run_app.py $app > /dev/null 2>&1 &
     pid=$!
     echo $pid > $scriptpath/.$app.$pid
     echo "Started $app with pid $pid"
@@ -62,13 +62,18 @@ function stop_process {
     script=$1
     kill=$2
     pid=$(get_pid $script)
-
-    if [ $kill == 'kill' ]
+    if ! [ $pid ]
     then
-        echo "Killing $procname ($pid)"
+        echo "$script is not running"
+        exit 0
+    fi
+
+    if [ $kill ] && [ $kill == 'kill' ]
+    then
+        echo "Killing $(basename $script) (pid $pid)"
         k_sig='-9'
     else
-        echo "Stopping $procname ($pid)"
+        echo "Stopping $(basename $script) (pid $pid)"
         if [ $(echo $script | sed -r 's/.*(\.py).*/\1/') == '.py' ]
         then
             k_sig='-2'

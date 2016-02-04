@@ -6,40 +6,35 @@ import logging.config
 import logging.handlers
 
 watched_files = [
-    os.path.join(os.path.dirname(__file__), '..', 'etc', 'example_reporting.yaml')
+    os.path.join(os.path.dirname(__file__), '..', 'etc', 'schema.yaml')
 ]
-
 
 
 def run_app(app, cfg):
     """
-    :param Flask app: A Flask app, or any subclassing object, e.g. eve.Eve
+    :param flask.Flask app: A Flask app, or any subclassing object, e.g. eve.Eve
     :param config.Configuration cfg:
     """
     webserver = cfg.get('webserver', 'werkzeug')
     _configure_logging(app.logger, cfg.get('logging', {}), webserver)
-    app.logger.info('Starting with configuration: ' + str(cfg.content))
-
     app.debug = cfg.get('debug', False)
 
     if webserver == 'tornado':
-        import tornado.wsgi
-        import tornado.httpserver
-        import tornado.ioloop
-
-        http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
-        http_server.listen(cfg['port'])
-        tornado.ioloop.IOLoop.instance().start()
-
+        run_tornado(app, cfg)
     else:
-        app.run('localhost', cfg['port'])
+        run_werkzeug(app, cfg)
 
 
-def run_tornado(app, cfg):
-    _configure_logging(app.logger, cfg.get('logging', {}), 'tornado')
+def run_tornado(app, cfg, reloading=True):
     import tornado.wsgi
     import tornado.httpserver
     import tornado.ioloop
+    import tornado.autoreload
+
+    if reloading:
+        for f in watched_files:
+            tornado.autoreload.watch(f)
+        tornado.autoreload.start()
 
     http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
     http_server.listen(cfg['port'])
@@ -47,7 +42,6 @@ def run_tornado(app, cfg):
 
 
 def run_werkzeug(app, cfg, reloading=True):
-    _configure_logging(app.logger, cfg.get('logging', {}), 'werkzeug')
     import werkzeug.serving
 
     if reloading:
@@ -122,7 +116,7 @@ def main():
     else:
         from rest_api import app, cfg
 
-    run_werkzeug(app, cfg)
+    run_app(app, cfg)
 
 
 if __name__ == '__main__':
