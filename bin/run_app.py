@@ -1,14 +1,9 @@
 __author__ = 'mwham'
-import sys
 import os
-import multiprocessing
+import argparse
 import logging
 import logging.config
 import logging.handlers
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import reporting_app
-import rest_api
-from config import rest_config, reporting_app_config
 
 watched_files = [
     os.path.join(os.path.dirname(__file__), '..', 'etc', 'example_reporting.yaml')
@@ -117,10 +112,17 @@ def _configure_webserver_loggers(webserver):
 
 
 def main():
-    for module, cfg in ((rest_api, rest_config)):#, (reporting_app, reporting_app_config)):
-        # p = multiprocessing.Process(target=run_werkzeug, args=(module.app, cfg))
-        # p.start()
-        run_werkzeug(module.app, cfg)
+    p = argparse.ArgumentParser()
+    p.add_argument('app', choices=['reporting_app', 'rest_api'])
+    args = p.parse_args()
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    if args.app == 'reporting_app':
+        from reporting_app import app, cfg
+    else:
+        from rest_api import app, cfg
+
+    run_werkzeug(app, cfg)
 
 
 if __name__ == '__main__':
