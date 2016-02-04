@@ -10,6 +10,11 @@ import reporting_app
 import rest_api
 from config import rest_config, reporting_app_config
 
+watched_files = [
+    os.path.join(os.path.dirname(__file__), '..', 'etc', 'example_reporting.yaml')
+]
+
+
 
 def run_app(app, cfg):
     """
@@ -33,6 +38,37 @@ def run_app(app, cfg):
 
     else:
         app.run('localhost', cfg['port'])
+
+
+def run_tornado(app, cfg):
+    _configure_logging(app.logger, cfg.get('logging', {}), 'tornado')
+    import tornado.wsgi
+    import tornado.httpserver
+    import tornado.ioloop
+
+    http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
+    http_server.listen(cfg['port'])
+    tornado.ioloop.IOLoop.instance().start()
+
+
+def run_werkzeug(app, cfg, reloading=True):
+    _configure_logging(app.logger, cfg.get('logging', {}), 'werkzeug')
+    import werkzeug.serving
+
+    if reloading:
+        werkzeug.serving.run_simple(
+            'localhost',
+            cfg['port'],
+            app,
+            use_reloader=True,
+            extra_files=watched_files
+        )
+    else:
+        werkzeug.serving.run_simple(
+            'localhost',
+            cfg['port'],
+            app
+        )
 
 
 def _configure_logging(app_logger, log_cfg, webserver):
@@ -81,9 +117,10 @@ def _configure_webserver_loggers(webserver):
 
 
 def main():
-    for module, cfg in ((rest_api, rest_config), (reporting_app, reporting_app_config)):
-        p = multiprocessing.Process(target=run_app, args=(module.app, cfg))
-        p.start()
+    for module, cfg in ((rest_api, rest_config)):#, (reporting_app, reporting_app_config)):
+        # p = multiprocessing.Process(target=run_werkzeug, args=(module.app, cfg))
+        # p.start()
+        run_werkzeug(module.app, cfg)
 
 
 if __name__ == '__main__':
