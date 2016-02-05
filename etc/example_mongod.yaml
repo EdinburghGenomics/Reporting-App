@@ -2,12 +2,12 @@
 systemLog:
     destination: file
     path: "/var/log/mongodb/mongod.log"
-    logAppend: True
+    logAppend: true
     logRotate: "rename"
 
     verbosity: 0  # 0 = info, 1-5 = debug
-    quiet: False
-    traceAllExceptions: False
+    quiet: false
+    traceAllExceptions: false
     timeStampFormat: "iso8601-utc"
 
 # component-level overrides
@@ -23,7 +23,7 @@ storage:
 
 
 processManagement:
-    fork: False  # we're doing our own forking
+    fork: false  # we're doing our own forking
 
 
 net:
