@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
 scriptpath=$(dirname $(readlink -f $0))
+
+pid_file_dir=$REPORTINGPIDS
+nosql_server=$REPORTINGDBSERVER
+nosql_server_config=$REPORTINDBSERVERCONFIG
 python=$REPORTINGPYTHON
 
 
@@ -18,7 +22,7 @@ function check_script_exists {
 
 function get_pid_file {
     script=$1
-    pid_file=$scriptpath/.$script.*
+    pid_file=$pid_file_dir/.$script.*
     echo $pid_file
 }
 
@@ -44,6 +48,17 @@ function check_running {
 }
 
 
+function start_db_server {
+    check_script_exists $nosql_server
+    check_running $nosql_server
+    echo "Starting nosql server"
+    nohup $nosql_server --config $nosql_server_config /dev/null 2>&1 &
+    pid=$!
+    echo $pid > "$pid_file_dir/.$(basename $nosql_server).$pid"  # path/to/.thing.5662
+    echo "Started nosql server with pid $pid"
+}
+
+
 function start_flask_app {
     app=$1
     runner=$scriptpath/run_app.py
@@ -51,9 +66,9 @@ function start_flask_app {
     check_script_exists $runner
     check_running $app
     echo "Starting $app"
-    nohup $python $scriptpath/run_app.py $app > /dev/null 2>&1 &
+    nohup $python $runner $app > /dev/null 2>&1 &
     pid=$!
-    echo $pid > $scriptpath/.$app.$pid
+    echo $pid > $pid_file_dir/.$app.$pid
     echo "Started $app with pid $pid"
 }
 
