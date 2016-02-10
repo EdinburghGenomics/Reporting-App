@@ -71,6 +71,9 @@ samples:
     freemix: {                  type: 'float',   required: False }
     called_gender: {            type: 'string',  allowed: ['male', 'female', 'unknown'] }
     provided_gender: {          type: 'string',  allowed: ['male', 'female', 'unknown'] }
+    genotype_validation: {      type: 'dict',    schema: { matching_snps: { type: 'integer' }, mismatching_snps: { type: 'integer' }, no_call_seq: { type: 'integer' }, no_call_chip: { type: 'integer' } } }
+    # total_snps = sum of all 4
+
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'] }
     useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ]}
 
