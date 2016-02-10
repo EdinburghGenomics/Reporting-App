@@ -62,6 +62,9 @@ settings = {
 
     'XML': False,
 
+    'PAGINATION': True,
+    'PAGINATION_LIMIT': 100000,
+
     'X_DOMAINS': cfg['x_domains'],
 
     'URL_PREFIX': 'api',
