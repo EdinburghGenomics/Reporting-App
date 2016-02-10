@@ -70,5 +70,5 @@ rest_config = SplitConfiguration(
     'example_reporting.yaml',
     'rest_app'
 )
-schema = Configuration('REPORTINGSCHEMA', '.reporting_schema.yaml', 'schema.yaml')
-col_mappings = Configuration('REPORTINGCOLS', '.reporting_cols.yaml', 'column_mappings.yaml')
+schema = Configuration('REPORTINGSCHEMA', '~/.reporting_schema.yaml', 'schema.yaml')
+col_mappings = Configuration('REPORTINGCOLS', '~/.reporting_cols.yaml', 'column_mappings.yaml')

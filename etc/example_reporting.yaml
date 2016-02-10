@@ -1,18 +1,40 @@
 
 default:
     reporting_app:
-        tornado: False
+        webserver: tornado
         debug: False
-        port: port
-        rest_api: 'http://localhost:port/api/0.1'
+        port: 5000
+        rest_api: 'http://localhost:4999/api/0.1'
+
+        logging:
+            stream_handlers:
+                - stream: 'ext://sys.stdout'
+                  level: DEBUG
+
+            timed_rotating_file_handlers:
+                - filename: /path/to/reporting_app.log
+                  when: 'midnight'
+                  level: DEBUG
+
 
     rest_app:
-        tornado: False
-        port: port
+        database_side_aggregation: False
+        webserver: tornado
+        port: 4999
         debug: False
 
         db_name: 'test_db'
-        db_host: 'mongodb://hostname'
-        db_port: port
+        db_host: 'mongodb://localhost'
+        db_port: 4998
 
-        x_domains: ['http://localhost:reporting_app_port']
+        x_domains: ['http://localhost:5000']
+
+        logging:
+            stream_handlers:
+                - stream: 'ext://sys.stdout'
+                  level: DEBUG
+
+            timed_rotating_file_handlers:
+                - filename: /path/to/rest_api.log
+                  when: 'midnight'
+                  level: DEBUG
