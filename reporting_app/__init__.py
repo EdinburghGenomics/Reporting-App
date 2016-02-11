@@ -111,16 +111,16 @@ def project_reports():
     )
 
 
-@app.route('/projects/<project>')
-def report_project(project):
+@app.route('/projects/<project_id>')
+def report_project(project_id):
     return fl.render_template(
         'project_report.html',
 
-        project=project,
+        project=project_id,
         table={
-            'title': 'Project report for ' + project,
-            'name': project + '_report',
-            'api_url': rest_query('samples', where={'project': project}, aggregate=True, embedded={'run_elements': 1}),
+            'title': 'Project report for ' + project_id,
+            'name': project_id + '_report',
+            'api_url': rest_query('samples', where={'project_id': project_id}, aggregate=True, embedded={'run_elements': 1}),
             'cols': col_mappings['samples']
         }
     )
