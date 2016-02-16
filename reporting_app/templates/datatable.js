@@ -7,7 +7,7 @@ $(document).ready(
         var paging = {{ paging|safe }};
         var default_sort_col = {{ default_sort_col|safe }};
 
-        $('#{{name}}').DataTable(
+        var table = $('#{{name}}').DataTable(
             {
                 'paging': paging,
                 'searching': false,
@@ -64,6 +64,9 @@ $(document).ready(
                 'order': [default_sort_col]
             }
         );
+
+        new $.fn.dataTable.Buttons(table, {'buttons': [{'extend': 'colvis', 'text': 'Filter columns'}]});
+        table.buttons().container().prependTo(table.table().container());
     }
 );
 
