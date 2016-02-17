@@ -46,9 +46,57 @@
     {% endfor %}
 </div>
 
+
+<div id="analysis_driver_process_tabs">
+    <h2>Analysis Driver processes</h2>
+    <p>Number of times processed: {{ analysis_driver_procs|length }}</p>
+    <ol>
+        {% for p_tab in analysis_driver_procs %}
+        <li><a href="#{{ p_tab.proc_id }}_tab"><span>{{ p_tab.start_date }}</span></a></li>
+        {% endfor %}
+    </ol>
+    {% for p in analysis_driver_procs %}
+    <div id="{{ p.proc_id }}_tab">
+        <br/>
+        <ul>
+            <li>Started: {{ p.start_date }}</li>
+            <li>Ended:
+                {% if p.end_date %}
+                {{ p.end_date }}
+                {% else %}
+                running with pid: {{ p.pid }}
+                {% endif %}
+            </li>
+            <li>
+                Status:
+                {% if p.status %}
+                {{ p.status }}
+                {% else %}
+                inactive
+                {% endif %}
+            </li>
+            <li>
+                Stages: <ul>
+                {% for s in p.stages %}
+                <li>
+                    <b>{{ s.stage_name }}</b>{% if not s.date_finished %} (running) {% endif %}<br/>
+                    started: {{ s.date_started }}<br/>
+                    {% if s.date_finished %}
+                    finished: {{ s.date_finished }}
+                    {% endif %}
+                </li>
+                {% endfor %}
+                </ul>
+            </li>
+        </ul>
+    </div>
+    {% endfor %}
+</div>
+
 <script>
 $("#demultiplexing_tabs").tabs();
 $("#unexpected_barcode_tabs").tabs();
+$("#analysis_driver_process_tabs").tabs();
 </script>
 
 {% endblock %}

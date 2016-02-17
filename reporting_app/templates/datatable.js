@@ -13,6 +13,7 @@ $(document).ready(
                 'searching': false,
                 'processing': true,
                 'serverSide': true,
+                'autoWidth': false,
                 'ajax': function(data, callback, settings) {
 
                     // convert [{'column': 0, 'dir': 'asc'}, {'column': 1, 'dir': 'desc'}]
