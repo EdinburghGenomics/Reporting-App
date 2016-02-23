@@ -2,13 +2,10 @@ __author__ = 'mwham'
 import statistics
 
 
-def resolve(query, element, embedded_field=None):
+def resolve(query, element):
     q = {}
     for k, v in query.items():
-        if isinstance(v, SingleExp):
-            q[k] = v.evaluate(element)
-        elif isinstance(v, Accumulation):
-            q[k] = v.evaluate(element.get(embedded_field))
+        q[k] = v.evaluate(element)
     return q
 
 
@@ -47,12 +44,19 @@ class Expression:
 
 class SingleExp(Expression):
     def _resolve_element(self, element, param):
-        return element.get(param)
+        pparam = param.split('.')
+        for e in pparam[:-1]:
+            element = element.get(e)
+        return element.get(pparam[-1])
 
 
 class Accumulation(Expression):
-    def _resolve_element(self, elements, param):
-        return [e.get(param) for e in elements]
+    def _resolve_element(self, element, param):
+        pparam = param.split('.')
+        for p in pparam[:-1]:
+            element = element.get(p)
+        assert type(element) is list
+        return [e.get(pparam[-1]) for e in element]
 
 
 class Constant(Expression):

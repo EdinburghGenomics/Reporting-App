@@ -14,52 +14,52 @@ def run_element_basic_aggregation(input_json, sortquery=None):
 
 def aggregate_samples(input_json, sortquery=None):
     for sample in input_json['data']:
-        sample.update(_aggregate_sample(sample, embedded_field='run_elements'))
+        sample.update(_aggregate_sample(sample))
+        del sample['run_elements']
     return _order_json(input_json, sortquery)
 
 
 def aggregate_lanes(input_json, sortquery=None):
     for lane in input_json['data']:
-        lane.update(_aggregate_lane(lane, 'run_elements'))
+        lane.update(_aggregate_lane(lane))
     return _order_json(input_json, sortquery)
 
 
 def aggregate_run(input_json, sortquery=None):
     for run in input_json['data']:
-        run.update(_aggregate_run(run, 'run_elements'))
+        run.update(_aggregate_run(run))
     return _order_json(input_json, sortquery)
 
 
 def aggregate_project(input_json, sortquery=None):
     for project in input_json['data']:
-        project.update(_aggregate_project(project, 'samples'))
+        project.update(_aggregate_project(project))
     return _order_json(input_json, sortquery)
 
 
-def _aggregate_embedded_run_elements(element, embedded_field):
-    return resolve(queries.aggregate_embedded_run_elements, element, embedded_field)
+def _aggregate_embedded_run_elements(element):
+    return resolve(queries.aggregate_embedded_run_elements, element)
 
 
-def _aggregate_sample(element, embedded_field):
-    element.update(_aggregate_embedded_run_elements(element, embedded_field))
+def _aggregate_sample(element):
+    element.update(_aggregate_embedded_run_elements(element))
     element.update(resolve(queries.aggregate_sample, element))
-    del element[embedded_field]
     return element
 
 
-def _aggregate_lane(element, embedded_field):
-    element.update(_aggregate_embedded_run_elements(element, embedded_field))
-    element.update(resolve(queries.aggregate_lane, element, embedded_field))
+def _aggregate_lane(element):
+    element.update(_aggregate_embedded_run_elements(element))
+    element.update(resolve(queries.aggregate_lane, element))
     return element
 
 
-def _aggregate_run(element, embedded_field):
-    element.update(_aggregate_embedded_run_elements(element, embedded_field))
-    element.update(resolve(queries.aggregate_run, element, embedded_field))
+def _aggregate_run(element):
+    element.update(_aggregate_embedded_run_elements(element))
+    element.update(resolve(queries.aggregate_run, element))
     return element
 
 
-def _aggregate_project(element, embedded_field):
+def _aggregate_project(element):
     return resolve(queries.aggregate_project, element)
 
 
