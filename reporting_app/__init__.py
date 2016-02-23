@@ -135,3 +135,16 @@ def report_project(project_id):
             'cols': col_mappings['samples']
         }
     )
+
+
+@app.route('/samples/<sample_id>')
+def report_sample(sample_id):
+    return fl.render_template(
+        'sample_report.html',
+
+        sample=_query_api(
+            'samples',
+            where={'sample_id': sample_id},
+            embedded={'analysis_driver_procs': 1}
+        )[0]
+    )

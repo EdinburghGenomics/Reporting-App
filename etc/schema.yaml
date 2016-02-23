@@ -94,6 +94,6 @@ analysis_driver_procs:
     start_date: {               type: 'datetime' }
     end_date: {                 type: 'datetime' }
     pid: {                      type: 'integer' }
-    status: {                   type: 'string', allowed: ['force_ready', 'processing', 'finished', 'failed', 'aborted', 'reprocess'] }
+    status: {                   type: 'string', allowed: ['force_ready', 'processing', 'finished', 'failed', 'aborted', 'reprocess', 'deleted'] }
 
     stages: {                   type: 'list', schema: { type: 'dict', schema: { stage_name: { type: 'string' }, date_started: { type: 'datetime' }, date_finished: { type: 'datetime' }, exit_status: { type: 'integer'} } } }
