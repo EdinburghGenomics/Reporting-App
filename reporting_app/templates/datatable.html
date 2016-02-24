@@ -1,14 +1,21 @@
 {% from 'datatable.js' import dt_init %}
 
 {% macro dt_header() -%}
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.9/css/jquery.dataTables.css" />
+    <!-- jQuery -->
+    <script type="text/javascript" charset="utf8" src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <link rel="stylesheet" href="/static/stylesheets/jquery.css"/>
+
     <!-- DataTables -->
     <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/buttons/1.1.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/buttons/1.1.2/js/buttons.colVis.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.9/css/jquery.dataTables.css"/>
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/buttons/1.1.2/css/buttons.dataTables.min.css"/>
+
+    <!-- humanize and column formatting -->
     <script type="text/javascript" src="https://cdn.rawgit.com/HubSpot/humanize/master/public/src/humanize.js"></script>
     <script src="/static/column_formatter.js"></script>
-
-
 {%- endmacro %}
 
 
@@ -19,7 +26,6 @@
     humanised names to display in html,
     api_url (str) - the base url for the table to query,
 #}
-
 {% if dt_config.default_sort_col %}
     {% set default_sort_col = dt_config.default_sort_col %}
 {% else %}
@@ -31,7 +37,6 @@
 {% else %}
     {% set paging = 'true' %}
 {% endif %}
-
 <script type="text/javascript" language="JavaScript" class="init">{{ dt_init(dt_config.name, dt_config.cols, dt_config.api_url, default_sort_col, paging)|safe }}</script>
 
 <table id="{{ dt_config.name }}" class="display">

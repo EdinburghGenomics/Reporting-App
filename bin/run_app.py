@@ -6,7 +6,10 @@ import logging.config
 import logging.handlers
 
 watched_files = [
-    os.path.join(os.path.dirname(__file__), '..', 'etc', 'schema.yaml')
+    os.path.join(os.path.dirname(__file__), '..', 'etc', 'schema.yaml'),
+    os.path.join(os.path.dirname(__file__), '..', 'etc', 'column_mappings.yaml'),
+    os.getenv('REPORTINGCONFIG'),
+    os.path.expanduser('~/.reporting.yaml')
 ]
 
 
