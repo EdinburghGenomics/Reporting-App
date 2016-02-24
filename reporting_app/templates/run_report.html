@@ -1,5 +1,6 @@
 {% extends 'reporting_base.html' %}
 {% from 'datatable.html' import datatable, dt_header %}
+{% from 'proc_report.html' import proc_report %}
 
 {% block title %}Run report{% endblock %}
 {% block head %}
@@ -46,9 +47,24 @@
     {% endfor %}
 </div>
 
+
+<div id="analysis_driver_process_tabs">
+    <h2>Analysis Driver processes</h2>
+    <p>Number of times processed: {{ analysis_driver_procs|length }}</p>
+    <ol>
+        {% for p_tab in analysis_driver_procs %}
+        <li><a href="#{{ p_tab.proc_id }}_tab"><span>{{ p_tab.start_date }}</span></a></li>
+        {% endfor %}
+    </ol>
+    {% for p in analysis_driver_procs %}
+    {{ proc_report(p) }}
+    {% endfor %}
+</div>
+
 <script>
 $("#demultiplexing_tabs").tabs();
 $("#unexpected_barcode_tabs").tabs();
+$("#analysis_driver_process_tabs").tabs();
 </script>
 
 {% endblock %}

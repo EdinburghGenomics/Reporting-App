@@ -7,12 +7,13 @@ $(document).ready(
         var paging = {{ paging|safe }};
         var default_sort_col = {{ default_sort_col|safe }};
 
-        $('#{{name}}').DataTable(
+        var table = $('#{{name}}').DataTable(
             {
                 'paging': paging,
                 'searching': false,
                 'processing': true,
                 'serverSide': true,
+                'autoWidth': false,
                 'ajax': function(data, callback, settings) {
 
                     // convert [{'column': 0, 'dir': 'asc'}, {'column': 1, 'dir': 'desc'}]
@@ -64,6 +65,9 @@ $(document).ready(
                 'order': [default_sort_col]
             }
         );
+
+        new $.fn.dataTable.Buttons(table, {'buttons': [{'extend': 'colvis', 'text': 'Filter columns'}]});
+        table.buttons().container().prependTo(table.table().container());
     }
 );
 
