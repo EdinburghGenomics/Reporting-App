@@ -1,63 +1,64 @@
 runs:
-    - { name: 'run_id',                   title: 'Run ID',                  fmt: { link: '/runs/' } }
-    - { name: 'project_ids',              title: 'Projects',                fmt: { link: '/projects/' } }
-    - { name: 'pc_q30_r1',                title: '%Q30 R1',                 fmt: { type: 'percentage',  min: 80 } }
-    - { name: 'pc_q30_r2',                title: '%Q30 R2',                 fmt: { type: 'percentage',  min: 80 } }
-    - { name: 'pc_q30',                   title: '%Q30',                    fmt: { type: 'percentage',  min: 75 } }
-    - { name: 'yield_in_gb',              title: 'Yield (Gb)',              fmt: { type: 'float',  min: 960 } }
-    - { name: 'yield_q30_in_gb',          title: 'Yield Q30 (Gb)',          fmt: { type: 'float',  min: 770 } }
+    - { name: 'run_id',                       title: 'Run ID',                  fmt: { link: '/runs/' } }
+    - { name: 'project_ids',                  title: 'Projects',                fmt: { link: '/projects/' } }
+    - { name: 'pc_q30_r1',                    title: '%Q30 R1',                 fmt: { type: 'percentage',  min: 80 } }
+    - { name: 'pc_q30_r2',                    title: '%Q30 R2',                 fmt: { type: 'percentage',  min: 80 } }
+    - { name: 'pc_q30',                       title: '%Q30',                    fmt: { type: 'percentage',  min: 75 } }
+    - { name: 'yield_in_gb',                  title: 'Yield (Gb)',              fmt: { type: 'float',  min: 960 } }
+    - { name: 'yield_q30_in_gb',              title: 'Yield Q30 (Gb)',          fmt: { type: 'float',  min: 770 } }
+    - { name: 'analysis_driver_proc.status',  title: 'Status' }
 
 projects:
-    - { name: 'project_id',               title: 'Project ID',              fmt: { link: '/projects/' } }
-    - { name: 'nb_samples',               title: 'Nb of Samples' }
+    - { name: 'project_id',                   title: 'Project ID',              fmt: { link: '/projects/' } }
+    - { name: 'nb_samples',                   title: 'Nb of Samples' }
 
 demultiplexing:
-#    - { name: 'lane',                     title: 'Lane' }
-    - { name: 'barcode',                  title: 'Barcode' }
-    - { name: 'project',                  title: 'Project ID',              fmt: { link: '/projects/' }  }
-    - { name: 'library_id',               title: 'Library ID' }
-    - { name: 'sample_id',                title: 'Sample ID' }
-    - { name: 'pc_pass_filter',           title: '% Pass filter',           fmt: { type: 'percentage',  min: 70 } }
-    - { name: 'passing_filter_reads',     title: 'Passing-filter reads',    fmt: { type: 'int',    min: 1500 } }
-    - { name: 'yield_in_gb',              title: 'Yield (Gb)',              fmt: { type: 'float',  min: 150 } }
-    - { name: 'pc_q30_r1',                title: '% Q30 R1',                fmt: { type: 'percentage',  min: 70 } }
-    - { name: 'pc_q30_r2',                title: '% Q30 R2',                fmt: { type: 'percentage',  min: 70 } }
-    - { name: 'reviewed',                 title: 'Review status',           fmt: {} }
+#    - { name: 'lane',                         title: 'Lane' }
+    - { name: 'barcode',                      title: 'Barcode' }
+    - { name: 'project',                      title: 'Project ID',              fmt: { link: '/projects/' }  }
+    - { name: 'library_id',                   title: 'Library ID' }
+    - { name: 'sample_id',                    title: 'Sample ID' }
+    - { name: 'pc_pass_filter',               title: '% Pass filter',           fmt: { type: 'percentage',  min: 70 } }
+    - { name: 'passing_filter_reads',         title: 'Passing-filter reads',    fmt: { type: 'int',    min: 1500 } }
+    - { name: 'yield_in_gb',                  title: 'Yield (Gb)',              fmt: { type: 'float',  min: 150 } }
+    - { name: 'pc_q30_r1',                    title: '% Q30 R1',                fmt: { type: 'percentage',  min: 70 } }
+    - { name: 'pc_q30_r2',                    title: '% Q30 R2',                fmt: { type: 'percentage',  min: 70 } }
+    - { name: 'reviewed',                     title: 'Review status',           fmt: {} }
 
 
 lane_aggregation:
-    - { name: 'lane_number',              title: 'Lane' }
-    - { name: 'passing_filter_reads',     title: 'Passing-filter reads',    fmt: { type: 'int'   } }
-    - { name: 'pc_pass_filter',           title: '% Pass filter',           fmt: { type: 'percentage' } }
-    - { name: 'yield_in_gb',              title: 'Yield (Gb)',              fmt: { type: 'float' } }
-    - { name: 'pc_q30',                   title: '%Q30',                    fmt: { type: 'percentage' } }
-    - { name: 'pc_q30_r1',                title: '%Q30 R1',                 fmt: { type: 'percentage' } }
-    - { name: 'pc_q30_r2',                title: '%Q30 R2',                 fmt: { type: 'percentage' } }
-    - { name: 'cv',                       title: 'Coefficient of variance', fmt: { type: 'float' } }
+    - { name: 'lane_number',                  title: 'Lane' }
+    - { name: 'passing_filter_reads',         title: 'Passing-filter reads',    fmt: { type: 'int'   } }
+    - { name: 'pc_pass_filter',               title: '% Pass filter',           fmt: { type: 'percentage' } }
+    - { name: 'yield_in_gb',                  title: 'Yield (Gb)',              fmt: { type: 'float' } }
+    - { name: 'pc_q30',                       title: '%Q30',                    fmt: { type: 'percentage' } }
+    - { name: 'pc_q30_r1',                    title: '%Q30 R1',                 fmt: { type: 'percentage' } }
+    - { name: 'pc_q30_r2',                    title: '%Q30 R2',                 fmt: { type: 'percentage' } }
+    - { name: 'cv',                           title: 'Coefficient of variance', fmt: { type: 'float' } }
 
 
 unexpected_barcodes:
-    - { name: 'barcode',                  title: 'Barcode' }
-    - { name: 'passing_filter_reads',     title: 'Passing-filter reads',    fmt: { type: 'int',   min: 1500  } }
-    - { name: 'pc_reads_in_lane',         title: '% Reads in lane',         fmt: { type: 'percentage', min: 70   } }
+    - { name: 'barcode',                      title: 'Barcode' }
+    - { name: 'passing_filter_reads',         title: 'Passing-filter reads',    fmt: { type: 'int',   min: 1500  } }
+    - { name: 'pc_reads_in_lane',             title: '% Reads in lane',         fmt: { type: 'percentage', min: 70   } }
 
 
 samples:
-    - { name: 'sample_id',                title: 'Sample ID' }
-    - { name: 'library_id',               title: 'Library ID' }
-    - { name: 'user_sample_id',           title: 'User sample ID' }
-    - { name: 'yield_in_gb',              title: 'Yield (Gb)',              fmt: { type: 'float' } }
-    - { name: 'yield_q30',                title: 'Yield Q30 (Gb)',          fmt: { type: 'float' } }
-    - { name: 'run_ids',                  title: 'Run ids',                 fmt: { link: '/runs/' } }
-    - { name: 'bam_file_reads',           title: 'Initial reads in bam',    fmt: { type: 'int',   min: 1500 } }
-    - { name: 'mapped_reads',             title: '# mapped reads',          fmt: { type: 'int',   min: 1500 } }
-    - { name: 'pc_mapped_reads',          title: '% mapped reads',          fmt: { type: 'percentage', min: 70 } }
-    - { name: 'properly_mapped_reads',    title: '# properly mapped reads', fmt: { type: 'int',   min: 1500 } }
-    - { name: 'pc_properly_mapped_reads', title: '% properly mapped reads', fmt: { type: 'percentage', min: 70 } }
-    - { name: 'duplicate_reads',          title: '# duplicate reads',       fmt: { type: 'int',   min: 1500 } }
-    - { name: 'pc_duplicate_reads',       title: '% duplicate reads',       fmt: { type: 'percentage', min: 70 } }
-    - { name: 'median_coverage',          title: 'Median coverage',         fmt: { type: 'float', min: 1500 } }
-    - { name: 'pc_callable',              title: '% callable',              fmt: { type: 'percentage', min: 70 } }
-    - { name: 'pc_q30_r1',                title: '% Q30 R1',                fmt: { type: 'percentage', min: 70 } }
-    - { name: 'pc_q30_r2',                title: '% Q30 R2',                fmt: { type: 'percentage', min: 70 } }
-    - { name: 'reviewed',                 title: 'Review status',           fmt: {} }
+    - { name: 'sample_id',                    title: 'Sample ID' }
+    - { name: 'library_id',                   title: 'Library ID' }
+    - { name: 'user_sample_id',               title: 'User sample ID' }
+    - { name: 'yield_in_gb',                  title: 'Yield (Gb)',              fmt: { type: 'float' } }
+    - { name: 'yield_q30',                    title: 'Yield Q30 (Gb)',          fmt: { type: 'float' } }
+    - { name: 'run_ids',                      title: 'Run ids',                 fmt: { link: '/runs/' } }
+    - { name: 'bam_file_reads',               title: 'Initial reads in bam',    fmt: { type: 'int',   min: 1500 } }
+    - { name: 'mapped_reads',                 title: '# mapped reads',          fmt: { type: 'int',   min: 1500 } }
+    - { name: 'pc_mapped_reads',              title: '% mapped reads',          fmt: { type: 'percentage', min: 70 } }
+    - { name: 'properly_mapped_reads',        title: '# properly mapped reads', fmt: { type: 'int',   min: 1500 } }
+    - { name: 'pc_properly_mapped_reads',     title: '% properly mapped reads', fmt: { type: 'percentage', min: 70 } }
+    - { name: 'duplicate_reads',              title: '# duplicate reads',       fmt: { type: 'int',   min: 1500 } }
+    - { name: 'pc_duplicate_reads',           title: '% duplicate reads',       fmt: { type: 'percentage', min: 70 } }
+    - { name: 'median_coverage',              title: 'Median coverage',         fmt: { type: 'float', min: 1500 } }
+    - { name: 'pc_callable',                  title: '% callable',              fmt: { type: 'percentage', min: 70 } }
+    - { name: 'pc_q30_r1',                    title: '% Q30 R1',                fmt: { type: 'percentage', min: 70 } }
+    - { name: 'pc_q30_r2',                    title: '% Q30 R2',                fmt: { type: 'percentage', min: 70 } }
+    - { name: 'reviewed',                     title: 'Review status',           fmt: {} }

@@ -1,3 +1,5 @@
+import datetime
+
 __author__ = 'mwham'
 import statistics
 
@@ -55,6 +57,8 @@ class Accumulation(Expression):
         pparam = param.split('.')
         for p in pparam[:-1]:
             element = element.get(p)
+        if element is None:
+            return
         assert type(element) is list
         return [e.get(pparam[-1]) for e in element]
 
@@ -113,7 +117,26 @@ class Total(Accumulation):
         else:
             return sum(elements)
 
+class MostRecent(SingleExp):
+    def __init__(self, *args, date_field='_created', date_format='%d_%m_%Y_%H:%M:%S'):
+        self.date_field = date_field
+        self.date_format = date_format
+        super().__init__(*args)
+
+    def _expression(self, elements):
+        sorted(elements, key=lambda x: datetime.datetime.strptime(x.get(self.date_field), self.date_format))
+        return elements[-1]
+
+class Get(SingleExp):
+    def _resolve_element(self, element, param):
+        #delegate the resolution to _expression
+        return param
+
+    def _expression(self, container, key):
+        assert isinstance(container, dict)
+        return container.get(key)
+
 __all__ = (
-    'Constant', 'Add', 'Multiply', 'Divide', 'Percentage', 'CoefficientOfVariation', 'Concatenate',
-    'NbUniqueElements', 'Total'
+    'Get', 'Constant', 'Add', 'Multiply', 'Divide', 'Percentage', 'CoefficientOfVariation', 'Concatenate',
+    'NbUniqueElements', 'Total', 'MostRecent'
 )

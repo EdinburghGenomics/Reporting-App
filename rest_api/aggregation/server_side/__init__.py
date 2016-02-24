@@ -56,6 +56,7 @@ def _aggregate_lane(element):
 def _aggregate_run(element):
     element.update(_aggregate_embedded_run_elements(element))
     element.update(resolve(queries.aggregate_run, element))
+    element.update(resolve(queries.aggregate_embedded_proc, element))
     return element
 
 

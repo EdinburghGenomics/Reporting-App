@@ -35,7 +35,7 @@ aggregate_run = {
     'pc_q30_r2': Percentage('q30_bases_r2', 'bases_r2'),
     'pc_q30': Percentage(Add('q30_bases_r1', 'q30_bases_r2'), Add('bases_r1', 'bases_r2')),
     # 'pc_pass_filter': Percentage('passing_filter_reads', 'total_reads'),
-    'project_ids': Concatenate('project_id'),
+    'project_ids': Concatenate('run_elements.project_id'),
     'yield_in_gb': Divide(Add('bases_r1', 'bases_r2'), Constant(1000000000)),
     'yield_q30_in_gb': Divide(Add('q30_bases_r1', 'q30_bases_r2'), Constant(1000000000)),
     'clean_yield_in_gb': Divide(Add('clean_bases_r1', 'clean_bases_r2'), Constant(1000000000)),
@@ -61,3 +61,8 @@ aggregate_embedded_run_elements = {  # multi-element
     'run_ids': Concatenate('run_elements.run_id')
     # 'project_ids': Concatenate('project_id')
 }
+
+aggregate_embedded_proc = {  # multi-element
+    'analysis_driver_proc': MostRecent('analysis_driver_procs')
+}
+
