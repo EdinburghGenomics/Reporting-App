@@ -1,0 +1,21 @@
+{% extends 'reporting_base.html' %}
+{% from 'proc_report.html' import proc_report %}
+
+{% block title %}Sample report{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+
+{% block content %}
+
+<h1>Report for sample {{ sample.sample_id }}</h1>
+(From project {{ sample.project_id }})
+
+<h2>Processing report</h2>
+<p>Number of times processed: {{ sample.analysis_driver_procs|length }}</p>
+
+{% for p in sample.analysis_driver_procs %}
+{{ proc_report(p) }}
+{% endfor %}
+
+{% endblock %}

@@ -1,0 +1,40 @@
+{% macro proc_report(proc) -%}
+{# args:
+    proc (dict) - an analysis_driver_proc from the Rest API.
+#}
+
+<div id="{{ proc.proc_id }}_tab">
+    <br/>
+    <ul>
+        <li>Started: {{ proc.start_date }}</li>
+        <li>Ended:
+            {% if proc.end_date %}
+            {{ proc.end_date }}
+            {% else %}
+            running with pid: {{ proc.pid }}
+            {% endif %}
+        </li>
+        <li>
+            Status:
+            {% if proc.status %}
+            {{ proc.status }}
+            {% else %}
+            inactive
+            {% endif %}
+        </li>
+        <li>
+            Stages: <ul>
+            {% for s in proc.stages %}
+            <li>
+                <b>{{ s.stage_name }}</b>{% if not s.date_finished %} (running) {% endif %}<br/>
+                started: {{ s.date_started }}<br/>
+                {% if s.date_finished %}
+                finished: {{ s.date_finished }}
+                {% endif %}
+            </li>
+            {% endfor %}
+            </ul>
+        </li>
+    </ul>
+</div>
+{%- endmacro %}
