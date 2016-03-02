@@ -39,7 +39,8 @@ aggregate_run = {
     'yield_in_gb': Divide(Add('bases_r1', 'bases_r2'), Constant(1000000000)),
     'yield_q30_in_gb': Divide(Add('q30_bases_r1', 'q30_bases_r2'), Constant(1000000000)),
     'clean_yield_in_gb': Divide(Add('clean_bases_r1', 'clean_bases_r2'), Constant(1000000000)),
-    'clean_yield_q30_in_gb': Divide(Add('clean_q30_bases_r1', 'clean_q30_bases_r2'), Constant(1000000000))
+    'clean_yield_q30_in_gb': Divide(Add('clean_q30_bases_r1', 'clean_q30_bases_r2'), Constant(1000000000)),
+    'review_statuses': Concatenate('reviewed')
 }
 
 aggregate_project = {
