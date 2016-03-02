@@ -1,8 +1,7 @@
-import datetime
 
 __author__ = 'mwham'
 import statistics
-
+import datetime
 
 def resolve(query, element):
     q = {}
@@ -14,8 +13,10 @@ def resolve(query, element):
 class Expression:
     default_return_value = None
 
-    def __init__(self, *args):
+    def __init__(self, *args, filter_func=None):
         self.args = args
+        #filter_func is really only valid for accumulations
+        self.filter_func = filter_func
 
     def _expression(self, *args):
         return 0
@@ -59,7 +60,10 @@ class Accumulation(Expression):
             element = element.get(p)
         if element is None:
             return
-        assert type(element) is list
+        if self.filter_func:
+            element = list(filter(self.filter_func, element))
+
+        assert type(element) is list, "in %s: element is not a list %s "%(self.__class__.__name__, element)
         return [e.get(pparam[-1]) for e in element]
 
 
