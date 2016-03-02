@@ -6,7 +6,9 @@ runs:
     - { name: 'pc_q30',                               title: '%Q30',                    fmt: { type: 'percentage',  min: 75 } }
     - { name: 'clean_yield_in_gb',                    title: 'Yield (Gb - cleaned)',    fmt: { type: 'float',  min: 960 } }
     - { name: 'clean_yield_q30_in_gb',                title: 'Yield Q30 (Gb - cleaned)',fmt: { type: 'float',  min: 770 } }
-    - { name: 'analysis_driver_proc.status',  title: 'Status' }
+    - { name: 'analysis_driver_proc.status',          title: 'Status' }
+    - { name: 'review_statuses',                      title: 'Review' }
+    - { name: 'useable_statuses',                     title: 'Useable' }
 
 
 projects:
@@ -18,9 +20,7 @@ projects:
 demultiplexing:
     - { name: 'barcode',                              title: 'Barcode' }
     - { name: 'project',                              title: 'Project ID',              fmt: { link: '/projects/' }  }
-    - { name: 'library_id',                           title: 'Library ID' }
     - { name: 'sample_id',                            title: 'Sample ID' }
-    - { name: 'pc_pass_filter',                       title: '% Pass filter',           fmt: { type: 'percentage',  min: 70 } }
     - { name: 'passing_filter_reads',                 title: 'Passing-filter reads',    fmt: { type: 'int',    min: 1500 } }
     - { name: 'yield_in_gb',                          title: 'Yield (Gb)',              fmt: { type: 'float',  min: 150 } }
     - { name: 'pc_q30_r1',                            title: '% Q30 R1',                fmt: { type: 'percentage',  min: 70 } }
