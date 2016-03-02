@@ -124,8 +124,7 @@ class MostRecent(SingleExp):
         super().__init__(*args)
 
     def _expression(self, elements):
-        sorted(elements, key=lambda x: datetime.datetime.strptime(x.get(self.date_field), self.date_format))
-        return elements[-1]
+        return sorted(elements, key=lambda x: datetime.datetime.strptime(x.get(self.date_field), self.date_format))[-1]
 
 class Get(SingleExp):
     def _resolve_element(self, element, param):
