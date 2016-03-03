@@ -130,16 +130,8 @@ class MostRecent(SingleExp):
     def _expression(self, elements):
         return sorted(elements, key=lambda x: datetime.datetime.strptime(x.get(self.date_field), self.date_format))[-1]
 
-class Get(SingleExp):
-    def _resolve_element(self, element, param):
-        #delegate the resolution to _expression
-        return param
-
-    def _expression(self, container, key):
-        assert isinstance(container, dict)
-        return container.get(key)
 
 __all__ = (
-    'Get', 'Constant', 'Add', 'Multiply', 'Divide', 'Percentage', 'CoefficientOfVariation', 'Concatenate',
+    'Constant', 'Add', 'Multiply', 'Divide', 'Percentage', 'CoefficientOfVariation', 'Concatenate',
     'NbUniqueElements', 'Total', 'MostRecent'
 )
