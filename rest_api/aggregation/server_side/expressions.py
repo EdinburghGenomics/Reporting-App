@@ -1,22 +1,22 @@
+
 __author__ = 'mwham'
 import statistics
+import datetime
 
-
-def resolve(query, element, embedded_field=None):
+def resolve(query, element):
     q = {}
     for k, v in query.items():
-        if isinstance(v, SingleExp):
-            q[k] = v.evaluate(element)
-        elif isinstance(v, Accumulation):
-            q[k] = v.evaluate(element.get(embedded_field))
+        q[k] = v.evaluate(element)
     return q
 
 
 class Expression:
     default_return_value = None
 
-    def __init__(self, *args):
+    def __init__(self, *args, filter_func=None):
         self.args = args
+        #filter_func is really only valid for accumulations
+        self.filter_func = filter_func
 
     def _expression(self, *args):
         return 0
@@ -47,12 +47,24 @@ class Expression:
 
 class SingleExp(Expression):
     def _resolve_element(self, element, param):
-        return element.get(param)
+        pparam = param.split('.')
+        for e in pparam[:-1]:
+            element = element.get(e)
+        return element.get(pparam[-1])
 
 
 class Accumulation(Expression):
-    def _resolve_element(self, elements, param):
-        return [e.get(param) for e in elements]
+    def _resolve_element(self, element, param):
+        pparam = param.split('.')
+        for p in pparam[:-1]:
+            element = element.get(p)
+        if element is None:
+            return
+        if self.filter_func:
+            element = list(filter(self.filter_func, element))
+
+        assert type(element) is list, "in %s: element is not a list %s "%(self.__class__.__name__, element)
+        return [e.get(pparam[-1]) for e in element]
 
 
 class Constant(Expression):
@@ -109,7 +121,17 @@ class Total(Accumulation):
         else:
             return sum(elements)
 
+class MostRecent(SingleExp):
+    def __init__(self, *args, date_field='_created', date_format='%d_%m_%Y_%H:%M:%S'):
+        self.date_field = date_field
+        self.date_format = date_format
+        super().__init__(*args)
+
+    def _expression(self, elements):
+        return sorted(elements, key=lambda x: datetime.datetime.strptime(x.get(self.date_field), self.date_format))[-1]
+
+
 __all__ = (
     'Constant', 'Add', 'Multiply', 'Divide', 'Percentage', 'CoefficientOfVariation', 'Concatenate',
-    'NbUniqueElements', 'Total'
+    'NbUniqueElements', 'Total', 'MostRecent'
 )

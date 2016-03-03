@@ -18,8 +18,12 @@ def rest_query(resource, **query_args):
     return cfg['rest_api'] + '/' + resource + query
 
 
-def _query_api(url):
-    return json.loads(requests.get(url).content.decode('utf-8'))
+def _query_api(resource, data_only=True, **query_args):
+    url = rest_query(resource, **query_args)
+    j = json.loads(requests.get(url).content.decode('utf-8'))
+    if data_only:
+        j = j['data']
+    return j
 
 
 def _distinct_values(val, input_json):
@@ -47,7 +51,7 @@ def main_page():
 def run_reports():
     return fl.render_template(
         'runs.html',
-        api_url=rest_query('runs', aggregate=True, embedded={'run_elements': 1}),
+        api_url=rest_query('runs', aggregate=True, embedded={'run_elements': 1, 'analysis_driver_procs': 1}),
         cols=col_mappings['runs']
     )
 
@@ -56,7 +60,7 @@ def run_reports():
 def report_run(run_id):
     lanes = _distinct_values(
         'lane_number',
-        _query_api(rest_query('lanes', where={'run_id': run_id}))['data']
+        _query_api('lanes', where={'run_id': run_id})
     )
     demultiplexing_tables = [
         {
@@ -86,12 +90,19 @@ def report_run(run_id):
         'cols': col_mappings['lane_aggregation']
     }
 
+    analysis_driver_procs = _query_api(
+        'analysis_driver_procs',
+        where={'dataset_type': 'run', 'dataset_name': run_id},
+        sort='-start_date'
+    )
+
     return fl.render_template(
         'run_report.html',
         run_id=run_id,
         aggregations=[lane_aggregation],
         demultiplexing_tables=demultiplexing_tables,
-        unexpected_barcode_tables=unexpected_barcode_tables
+        unexpected_barcode_tables=unexpected_barcode_tables,
+        analysis_driver_procs=analysis_driver_procs
     )
 
 
@@ -123,4 +134,17 @@ def report_project(project_id):
             'api_url': rest_query('samples', where={'project_id': project_id}, aggregate=True, embedded={'run_elements': 1}),
             'cols': col_mappings['samples']
         }
+    )
+
+
+@app.route('/samples/<sample_id>')
+def report_sample(sample_id):
+    return fl.render_template(
+        'sample_report.html',
+
+        sample=_query_api(
+            'samples',
+            where={'sample_id': sample_id},
+            embedded={'analysis_driver_procs': 1}
+        )[0]
     )
