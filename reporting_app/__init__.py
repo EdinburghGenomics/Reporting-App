@@ -51,7 +51,7 @@ def main_page():
 def run_reports():
     return fl.render_template(
         'runs.html',
-        api_url=rest_query('runs', aggregate=True, embedded={'run_elements': 1}),
+        api_url=rest_query('runs', aggregate=True, embedded={'run_elements': 1, 'analysis_driver_procs': 1}),
         cols=col_mappings['runs']
     )
 
