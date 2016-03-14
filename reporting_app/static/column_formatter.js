@@ -1,3 +1,7 @@
+/**
+ * Author: mwhamgenomics
+ * @module column_formatter.js
+ */
 
 function render_data(data, fmt) {
     if (!data) {
