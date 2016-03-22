@@ -142,7 +142,19 @@ def report_sample(sample_id):
     return fl.render_template(
         'sample_report.html',
 
-        sample=_query_api(
+        sample = {
+            'name': 'sample_' + str(sample_id),
+            'api_url': rest_query('samples', where={'sample_id': sample_id}, aggregate=True, embedded={'run_elements': 1}),
+            'cols': col_mappings['samples']
+        },
+
+        run_elements = {
+            'name': 'run_elements_' + str(sample_id),
+            'api_url': rest_query('run_elements', where={'sample_id': sample_id}, aggregate=True),
+            'cols': col_mappings['demultiplexing']
+        },
+
+        sample_proc=_query_api(
             'samples',
             where={'sample_id': sample_id},
             embedded={'analysis_driver_procs': 1}
