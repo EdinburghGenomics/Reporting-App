@@ -19,7 +19,7 @@ projects:
 
 demultiplexing:
     - { name: 'barcode',                              title: 'Barcode' }
-    - { name: 'project',                              title: 'Project ID',              fmt: { link: '/projects/' }  }
+    - { name: 'project_id',                              title: 'Project ID',              fmt: { link: '/projects/' }  }
     - { name: 'sample_id',                            title: 'Sample ID' }
     - { name: 'passing_filter_reads',                 title: 'Passing-filter reads',    fmt: { type: 'int',    min: 1500 } }
     - { name: 'yield_in_gb',                          title: 'Yield (Gb)',              fmt: { type: 'float',  min: 150 } }
