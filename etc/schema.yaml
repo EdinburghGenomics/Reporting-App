@@ -17,7 +17,7 @@ run_elements:
 
     run_id: {                   type: 'string',  required: True }
     lane: {                     type: 'integer', required: True }
-    barcode: {                  type: 'string',  required: True }
+    barcode: {                  type: 'string',  required: False }
     project_id: {               type: 'string',  required: True }
 
 #   for now, treat sample_id and library_id as 1:1 equivalent
@@ -33,10 +33,13 @@ run_elements:
     bases_r2: {                 type: 'integer', required: False }
     q30_bases_r2: {             type: 'integer', required: False }
 
+    adaptor_bases_removed_r1: { type: 'integer', required: False }
+    adaptor_bases_removed_r2: { type: 'integer', required: False }
+
     clean_reads: {              type: 'integer', required: False }
     clean_bases_r1: {           type: 'integer', required: False }
-    clean_bases_r2: {           type: 'integer', required: False }
     clean_q30_bases_r1: {       type: 'integer', required: False }
+    clean_bases_r2: {           type: 'integer', required: False }
     clean_q30_bases_r2: {       type: 'integer', required: False }
 
     fastqc_report_r1: {         type: 'string',  required: False }
