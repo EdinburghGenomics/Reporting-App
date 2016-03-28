@@ -46,8 +46,9 @@ run_elements:
     fastqc_report_r2: {         type: 'string',  required: False }
 
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'], default: 'not reviewed' }
+    review_comments: {          type: 'multilinestring',  required: False }
     useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ], default: 'not marked' }
-
+    useable_comments: {          type: 'multilinestring',  required: False }
 
 unexpected_barcodes:
     run_element_id: {           type: 'string',  required: True,  unique: True }
@@ -85,7 +86,9 @@ samples:
     species_contamination: {    type: 'dict',    required: False, schema: { percent_unmapped_focal: {type: 'float'}, percent_unmapped: {type: 'float'}, total_reads_mapped: {type: 'integer'}, contaminant_unique_mapped: {type: 'dict'} } }
 
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'], default: 'not reviewed' }
+    review_comments: {          type: 'multilinestring',  required: False }
     useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ], default: 'not marked' }
+    useable_comments: {         type: 'multilinestring',  required: False }
     delivered: {                type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no' }
     input_fastqs_deleted: {     type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no'}
 
