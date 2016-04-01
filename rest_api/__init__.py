@@ -1,63 +1,140 @@
-__author__ = 'mwham'
+import json
 import eve
-import flask
-from config import rest_config as cfg, schema
+import enum
+from eve_sqlalchemy import SQL
+from eve_sqlalchemy.decorators import registerSchema
+from eve_sqlalchemy.validation import ValidatorSQL
+from sqlalchemy import Column, String, Integer, Float, ForeignKey, DateTime, Enum, Boolean
+from sqlalchemy import func
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+from sqlalchemy_utils import aggregated
+from config import rest_config as cfg
 
+
+class EveColumns:
+    reportable_fields = None
+
+    id = Column(String(24), unique=True)  # , default=random_string(24))
+    _created = Column(DateTime, default=func.now())
+    _updated = Column(DateTime, default=func.now(), onupdate=func.now())
+    _etag = Column(String(40), unique=True)  # , default=random_string(40), onupdate=random_string(40))
+
+    @property
+    def item_title(self):
+        return self.__class__.__name__.lower()
+
+    def __repr__(self):
+        return '%s(%s)' % (
+            self.__class__.__name__,
+            ', '.join(['%s=%s' % (f, self.__getattribute__(f)) for f in self.reportable_fields])
+        )
+
+
+Base = declarative_base(cls=EveColumns)
+# TODO: see if we can filter on useable == None
+
+
+class RunElement(Base):
+    __tablename__ = 'run_elements'
+    reportable_fields = ('run_id', 'lane', 'barcode', 'sample_id')
+    item_title = 'run_element'
+
+    run_id = Column(String, ForeignKey('sequencing_runs.run_id'), ForeignKey('lanes.run_id'), primary_key=True)
+    lane_number = Column(Integer, primary_key=True)
+    barcode = Column(String, primary_key=True)
+
+    sample_id = Column(String, ForeignKey('samples.sample_id'))
+
+    sequencing_lane = relationship('SequencingLane', back_populates='run_elements')
+    sample = relationship('Sample', back_populates='run_elements')
+    run = relationship('SequencingRun', back_populates='run_elements')
+
+
+class UnexpectedBarcode(Base):
+    __tablename__ = 'unexpected_barcodes'
+    reportable_fields = ('run_id', 'lane', 'barcode')
+    item_title = 'unexpected_barcode'
+
+    run_id = Column(String, ForeignKey('lanes.run_id'), primary_key=True)
+    lane_number = Column(Integer, primary_key=True)
+    barcode = Column(String, primary_key=True)
+
+    sequencing_lane = relationship('SequencingLane', back_populates='unexpected_barcodes')
+
+
+class Sample(Base):
+    __tablename__ = 'samples'
+    reportable_fields = ('sample_id', 'run_elements')
+
+    sample_id = Column(String, unique=True, primary_key=True)
+    project_id = Column(String, ForeignKey('projects.project_id'))
+
+    project = relationship('Project', back_populates='samples')
+    run_elements = relationship('RunElement', back_populates='sample')
+
+
+class SequencingRun(Base):
+    __tablename__ = 'sequencing_runs'
+    reportable_fields = ('run_id', 'number_of_lanes')
+    item_title = 'sequencing_run'
+
+    run_id = Column(String, unique=True, primary_key=True)
+
+    lanes = relationship('SequencingLane', back_populates='run')
+    run_elements = relationship('RunElement', back_populates='run', viewonly=True)
+
+
+class SequencingLane(Base):
+    __tablename__ = 'lanes'
+    item_title = 'lane'
+
+    run_id = Column(String, ForeignKey('sequencing_runs.run_id'), primary_key=True)
+    run = relationship('SequencingRun', back_populates='lanes')
+    lane_number = Column(Integer, primary_key=True)
+
+    run_elements = relationship('RunElement', back_populates='sequencing_lane', viewonly=True)
+    unexpected_barcodes = relationship('UnexpectedBarcode', back_populates='sequencing_lane')
+
+
+class Project(Base):
+    __tablename__ = 'projects'
+    reportable_fields = ('project_id',)
+
+    project_id = Column(String, unique=True, primary_key=True)
+    samples = relationship('Sample', back_populates='project')
+
+
+class PipelineRun(Base):
+    __tablename__ = 'pipeline_runs'
+    reportable_fields = ('dataset_type', 'dataset_name', 'start_date')
+    item_title = 'pipeline_run'
+
+    dataset_name = Column(String, ForeignKey('sequencing_runs.run_id'), ForeignKey('samples.sample_id'), primary_key=True)
+    start_date = Column(DateTime, primary_key=True)
+
+
+
+
+# class PipelineStage(Base):
+#     __tablename__ = 'pipeline_stages'
+#     reportable_fields = ('dataset_type', 'dataset_name', 'stage_name')
+#     item_title = 'pipeline_stage'
+
+
+tables = (RunElement, UnexpectedBarcode, Sample, SequencingRun, Project, PipelineRun)#, PipelineStage)
+for table in tables:
+    r = registerSchema(table.__tablename__)
+    r(table)
+
+
+sqlite_db = '/Users/mwham/workspace/sqlite/test'
 
 settings = {
-    'DOMAIN': {
+    'DOMAIN': {},
 
-        'runs': {
-            'url': 'runs',
-            'item_title': 'run',
-            'schema': schema['runs']
-        },
-
-        'lanes': {
-            'url': 'lanes',
-            'item_title': 'lane',
-            'id_field': 'lane_id',
-            'schema': schema['lanes']
-        },
-
-        'run_elements': {  # demultiplexing reports
-            'url': 'run_elements',
-            'item_title': 'element',
-            'id_field': 'run_element_id',
-            'schema': schema['run_elements']
-        },
-
-        'unexpected_barcodes': {
-            'url': 'unexpected_barcodes',
-            'item_title': 'unexpected_barcode',
-            'schema': schema['unexpected_barcodes']
-        },
-
-        'projects': {
-            'url': 'projects',
-            'item_title': 'project',
-            'schema': schema['projects']
-        },
-
-        'samples': {
-            'url': 'samples',
-            'item_title': 'sample',
-            'id_field': 'sample_id',
-            'schema': schema['samples']
-        },
-
-        'analysis_driver_procs': {
-            'url': 'analysis_driver_procs',
-            'item_title': 'analysis_driver_proc',
-            'id_field': 'proc_id',
-            'schema': schema['analysis_driver_procs']
-        }
-    },
+    'ID_FIELD': 'id',
     'VALIDATE_FILTERS': True,
-
-    'MONGO_HOST': cfg['db_host'],
-    'MONGO_PORT': cfg['db_port'],
-    'MONGO_DBNAME': cfg['db_name'],
     'ITEMS': 'data',
 
     'XML': False,
@@ -73,87 +150,60 @@ settings = {
     'RESOURCE_METHODS': ['GET', 'POST', 'DELETE'],
     'ITEM_METHODS': ['GET', 'PUT', 'PATCH', 'DELETE'],
 
-    'CACHE_CONTROL': 'max-age=20',
-    'CACHE_EXPIRES': 20,
+    # 'CACHE_CONTROL': 'max-age=20',
+    # 'CACHE_EXPIRES': 20,
 
-    'DATE_FORMAT': '%d_%m_%Y_%H:%M:%S'
+    'DATE_FORMAT': '%d_%m_%Y_%H:%M:%S',
+
+    'SQLALCHEMY_TRACK_MODIFICATIONS': False,
+    'SQLALCHEMY_DATABASE_URI': 'sqlite:///' + sqlite_db,
+    # 'SQLALCHEMY_BINDS',
+    # 'SQLALCHEMY_NATIVE_UNICODE',
+    # 'SQLALCHEMY_ECHO',
+    # 'SQLALCHEMY_RECORD_QUERIES',
+    # 'SQLALCHEMY_POOL_SIZE',
+    # 'SQLALCHEMY_POOL_TIMEOUT',
+    # 'SQLALCHEMY_POOL_RECYCLE',
+    # 'SQLALCHEMY_MAX_OVERFLOW',
+    # 'SQLALCHEMY_COMMIT_ON_TEARDOWN'
 }
 
-from rest_api import aggregation
-
-app = eve.Eve(settings=settings)
-# if cfg.get('database_side_aggregation'):
-#     aggregation.database_side.register_db_side_aggregation(app)
-
-
-def _from_query_string(request_args, query, json=False):
-    if json:
-        return flask.json.loads(request_args.get(query, '{}'))
-    else:
-        return request_args.get(query, None)
-
-
-def _aggregation_enabled(request_args):
-    return request_args.get('aggregate') == 'True'  # booleans get cast to strings in http requests
+for table in tables:
+    n = table.__tablename__
+    s = table._eve_schema[n]
+    settings['DOMAIN'][n] = s
+    settings['DOMAIN'][n].update(
+        {'item_title': table.item_title, 'item_lookup_field': 'id'}
+    )
+    print(n)
+    print(s)
+    # for f in table.aggregated_fields:
+    #     settings['DOMAIN'][n]['schema'].update(
+    #         {f: {'unique': False, 'type': 'string', 'nullable': True, 'required': False}}
+    #     )
 
 
-def aggregate_embedded_run_elements_into_run(request, response):
-    input_json = flask.json.loads(response.data.decode('utf-8'))
-    if _aggregation_enabled(request.args):
-        response.data = aggregation.server_side.aggregate_run(
-            input_json,
-            sortquery=_from_query_string(request.args, 'sort')
-        ).encode()
+def format_json(resource, request, response):
+    response.data = json.dumps(json.loads(response.data.decode('utf-8')), indent=4).encode()
 
 
-def aggregate_embedded_sample_elements_into_project(request, response):
-    input_json = flask.json.loads(response.data.decode('utf-8'))
-    if _aggregation_enabled(request.args):
-        response.data = aggregation.server_side.aggregate_project(
-            input_json,
-            sortquery=_from_query_string(request.args, 'sort')
-        ).encode()
+if __name__ == '__main__':
+    app = eve.Eve(settings=settings, data=SQL, validator=ValidatorSQL)
 
+    from sqlalchemy import create_engine
 
-def aggregate_embedded_run_elements(request, response):
-    input_json = flask.json.loads(response.data.decode('utf-8'))
-    if _aggregation_enabled(request.args):
-        response.data = aggregation.server_side.aggregate_lanes(
-            input_json,
-            sortquery=_from_query_string(request.args, 'sort')
-        ).encode()
+    db = app.data.driver
+    db.engine.echo = 'debug'
+    Base.metadata.bind = db.engine
+    db.Model = Base
+    db.create_all()
 
+    app.on_post_GET += format_json
+    app.run(port=4999, debug=True, use_reloader=False)
+'''
+query = db.session.query(Sample).filter_by(sample_id='sample_1').all()
+print(query)
 
-def embed_run_elements_into_samples(request, response):
-    input_json = flask.json.loads(response.data.decode('utf-8'))
-    if _aggregation_enabled(request.args):
-        response.data = aggregation.server_side.aggregate_samples(
-            input_json,
-            sortquery=_from_query_string(request.args, 'sort')
-        ).encode()
-
-
-def run_element_basic_aggregation(request, response):
-    input_json = flask.json.loads(response.data.decode('utf-8'))
-    response.data = aggregation.server_side.run_element_basic_aggregation(
-        input_json,
-        sortquery=_from_query_string(request.args, 'sort')
-    ).encode()
-
-
-app.on_post_GET_samples += embed_run_elements_into_samples
-app.on_post_GET_run_elements += run_element_basic_aggregation
-app.on_post_GET_lanes += aggregate_embedded_run_elements
-app.on_post_GET_runs += aggregate_embedded_run_elements_into_run
-app.on_post_GET_projects += aggregate_embedded_sample_elements_into_project
-
-
-"""
-querying with Python syntax:
-curl -i -g 'http://host:port/things?where=sample_project=="this"'
-http://host:port/things?where=sample_project==%22this%22
-
-and MongoDB syntax:
-curl -i -g 'http://host:port/things?where={"sample_project":"this"}'
-http://host:port/things?where={%22sample_project%22:%22this%22}
-"""
+s = query[0]
+print(s.run_elements)
+'''
