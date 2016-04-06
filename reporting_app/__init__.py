@@ -51,7 +51,7 @@ def main_page():
 def run_reports():
     return fl.render_template(
         'runs.html',
-        api_url=rest_query('runs', aggregate=True, embedded={'run_elements': 1, 'analysis_driver_procs': 1}),
+        api_url=rest_query('aggregate/all_runs'),
         cols=col_mappings['runs']
     )
 
@@ -66,7 +66,7 @@ def report_run(run_id):
         {
             'title': 'Lane ' + str(lane),
             'name': 'demultiplexing_lane_' + str(lane),
-            'api_url': rest_query('run_elements', where={'run_id': run_id, 'lane': lane}),
+            'api_url': rest_query('aggregate/demultiplexing/%s/%s' % (run_id, lane)),
             'cols': col_mappings['demultiplexing']
         }
         for lane in lanes
@@ -86,7 +86,7 @@ def report_run(run_id):
     lane_aggregation = {
         'title': 'Aggregation per lane',
         'name': 'agg_per_lane',
-        'api_url': rest_query('lanes', where={'run_id': run_id}, aggregate=True, embedded={'run_elements': 1}),
+        'api_url': rest_query('aggregate/run_by_lane/' + run_id),
         'cols': col_mappings['lane_aggregation']
     }
 
@@ -131,7 +131,7 @@ def report_project(project_id):
         table={
             'title': 'Project report for ' + project_id,
             'name': project_id + '_report',
-            'api_url': rest_query('samples', where={'project_id': project_id}, aggregate=True, embedded={'run_elements': 1}),
+            'api_url': rest_query('aggregate/samples?project_id=' + project_id),
             'cols': col_mappings['samples']
         }
     )
@@ -144,7 +144,7 @@ def report_sample(sample_id):
 
         sample = {
             'name': 'sample_' + str(sample_id),
-            'api_url': rest_query('samples', where={'sample_id': sample_id}, aggregate=True, embedded={'run_elements': 1}),
+            'api_url': rest_query('aggregate/samples?sample_id=' + sample_id),
             'cols': col_mappings['samples']
         },
 

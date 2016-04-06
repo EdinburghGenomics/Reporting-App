@@ -1,4 +1,3 @@
-__author__ = 'mwham'
 import eve
 import flask
 from config import rest_config as cfg, schema
@@ -82,8 +81,7 @@ settings = {
 from rest_api import aggregation
 
 app = eve.Eve(settings=settings)
-# if cfg.get('database_side_aggregation'):
-#     aggregation.database_side.register_db_side_aggregation(app)
+aggregation.database_side.register_db_side_aggregation(app)
 
 
 def _from_query_string(request_args, query, json=False):

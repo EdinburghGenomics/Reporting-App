@@ -3,6 +3,7 @@ runs:
     number_of_lanes: {          type: 'integer', required: False, min: 1, max: 8 }  # [1..8]
     run_elements: {             type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
     analysis_driver_procs: {    type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'analysis_driver_procs', field: 'proc_id', embeddable: True } } }
+    most_recent_proc_id: {      type: 'string' }
 
 
 lanes:
@@ -48,7 +49,8 @@ run_elements:
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'], default: 'not reviewed' }
     review_comments: {          type: 'multilinestring',  required: False }
     useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ], default: 'not marked' }
-    useable_comments: {          type: 'multilinestring',  required: False }
+    useable_comments: {         type: 'multilinestring',  required: False }
+
 
 unexpected_barcodes:
     run_element_id: {           type: 'string',  required: True,  unique: True }
@@ -94,6 +96,7 @@ samples:
 
     run_elements: {             type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
     analysis_driver_procs: {    type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'analysis_driver_procs', field: 'proc_id', embeddable: True } } }
+    most_recent_proc_id: {      type: 'string' }
 
 analysis_driver_procs:
     proc_id: {                  type: 'string', required: True, unique: True }
