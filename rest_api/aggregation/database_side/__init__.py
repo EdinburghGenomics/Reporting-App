@@ -21,7 +21,7 @@ def aggregate(endpoint, base_pipeline, post_processing=None):
     before = datetime.now()
     collection = db[endpoint]
     pipeline = queries.resolve_pipeline(endpoint, base_pipeline)
-    print(pipeline)
+    app.logger.debug(pipeline)
     cursor = collection.aggregate(pipeline)
     agg = list(cursor)
 
@@ -39,10 +39,7 @@ def aggregate(endpoint, base_pipeline, post_processing=None):
     }
     j = jsonify(loads(dumps(ret_dict)))
     after = datetime.now()
-    print(endpoint)
-    print('started: ' + str(before))
-    print('finished: ' + str(after))
-    print('time taken: ' + str(after - before))
+    app.logger.info('Aggregated from %s with pipeline. Time taken: %s', endpoint, after - before)
     return j
 
 
@@ -50,33 +47,36 @@ def aggregate_endpoint(route):
     return '/%s/%s/aggregate/%s' % (app.config['URL_PREFIX'], app.config['API_VERSION'], route)
 
 
-def register_db_side_aggregation(app):
-    flask_cors.CORS(app)
+flask_cors.CORS(app)
 
-    @app.route(aggregate_endpoint('run_elements_by_lane'))
-    def aggregate_by_lane():
-        return aggregate('run_elements', queries.run_elements_group_by_lane)
+@app.route(aggregate_endpoint('run_elements_by_lane'))
+def aggregate_by_lane():
+    return aggregate('run_elements', queries.run_elements_group_by_lane)
 
-    @app.route(aggregate_endpoint('all_runs'))
-    def run_info():
-        return aggregate(
-            'analysis_driver_procs',
-            queries.sequencing_run_information,
-            post_processing=[pp.cast_to_sets('project_ids', 'review_statuses', 'useable_statuses')]
-        )
 
-    @app.route(aggregate_endpoint('run_elements'))
-    def demultiplexing():
-        return aggregate('run_elements', queries.demultiplexing)
+@app.route(aggregate_endpoint('all_runs'))
+def run_info():
+    return aggregate(
+        'analysis_driver_procs',
+        queries.sequencing_run_information,
+        post_processing=[pp.cast_to_sets('project_ids', 'review_statuses', 'useable_statuses')]
+    )
 
-    @app.route(aggregate_endpoint('samples'))
-    def sample():
-        return aggregate(
-            'samples',
-            queries.sample,
-            post_processing=[pp.cast_to_sets('run_ids')]
-        )
 
-    @app.route(aggregate_endpoint('projects'))
-    def project_info():
-        return aggregate('projects', queries.project_info, post_processing=[pp.date_to_string('_created')])
+@app.route(aggregate_endpoint('run_elements'))
+def demultiplexing():
+    return aggregate('run_elements', queries.demultiplexing)
+
+
+@app.route(aggregate_endpoint('samples'))
+def sample():
+    return aggregate(
+        'samples',
+        queries.sample,
+        post_processing=[pp.cast_to_sets('run_ids')]
+    )
+
+
+@app.route(aggregate_endpoint('projects'))
+def project_info():
+    return aggregate('projects', queries.project_info, post_processing=[pp.date_to_string('_created')])

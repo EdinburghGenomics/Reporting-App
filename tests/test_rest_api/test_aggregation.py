@@ -179,9 +179,7 @@ class TestServerSide(TestAggregation):
 
 
 class TestDatabaseSide(TestBase):
-    def test_format_order(self):
-        assert rest_api.aggregation.database_side.queries._format_order('thing') == {'thing': 1}
-        assert rest_api.aggregation.database_side.queries._format_order('-thing') == {'thing': -1}
+    pass
 
 
 class FakePayload:

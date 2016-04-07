@@ -79,8 +79,8 @@ settings = {
 
 
 app = eve.Eve(settings=settings)
+
 from rest_api import aggregation
-aggregation.database_side.register_db_side_aggregation(app)
 
 
 def _from_query_string(request_args, query, json=False):
@@ -138,19 +138,8 @@ def run_element_basic_aggregation(request, response):
     ).encode()
 
 
-# app.on_post_GET_samples += embed_run_elements_into_samples
-# app.on_post_GET_run_elements += run_element_basic_aggregation
-# app.on_post_GET_lanes += aggregate_embedded_run_elements
-# app.on_post_GET_runs += aggregate_embedded_run_elements_into_run
-# app.on_post_GET_projects += aggregate_embedded_sample_elements_into_project
-
-
-"""
-querying with Python syntax:
-curl -i -g 'http://host:port/things?where=sample_project=="this"'
-http://host:port/things?where=sample_project==%22this%22
-
-and MongoDB syntax:
-curl -i -g 'http://host:port/things?where={"sample_project":"this"}'
-http://host:port/things?where={%22sample_project%22:%22this%22}
-"""
+app.on_post_GET_samples += embed_run_elements_into_samples
+app.on_post_GET_run_elements += run_element_basic_aggregation
+app.on_post_GET_lanes += aggregate_embedded_run_elements
+app.on_post_GET_runs += aggregate_embedded_run_elements_into_run
+app.on_post_GET_projects += aggregate_embedded_sample_elements_into_project
