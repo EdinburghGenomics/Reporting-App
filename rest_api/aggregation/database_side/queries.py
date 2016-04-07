@@ -3,7 +3,7 @@ from config import schema
 from .stages import *
 
 
-run_elements_by_lane = [
+run_elements_group_by_lane = [
     {
         '$project': {
             'lane': '$lane',
@@ -51,9 +51,57 @@ run_elements_by_lane = [
 ]
 
 
+demultiplexing = [
+    {
+        '$project': {
+            'barcode': '$barcode',
+            'lane': '$lane',
+            'project_id': '$project_id',
+            'sample_id': '$sample_id',
+            'passing_filter_reads': '$passing_filter_reads',
+            'reviewed': '$reviewed',
+            'useable': '$useable',
+            'pc_pass_filter': percentage('$passing_filter_reads', '$total_reads'),
+            'pc_q30_r1': percentage('$q30_bases_r1', '$bases_r1'),
+            'pc_q30_r2': percentage('$q30_bases_r2', '$bases_r2'),
+            'pc_q30': percentage(add('$q30_bases_r1', '$q30_bases_r2'), add('$bases_r1', '$bases_r2')),
+            'yield_in_gb': divide(add('$bases_r1', '$bases_r2'), 1000000000)
+        }
+    }
+]
+
+
 sequencing_run_information = [
+    {
+        '$match': {'dataset_type': 'run'}
+    },
+    {
+        '$sort': {'dataset_name': -1, '_created': 1}
+    },
+    {
+        '$group': {
+            '_id': '$dataset_name',
+            'most_recent_proc_id': {'$first': '$proc_id'}
+        }
+    },
+    lookup('analysis_driver_procs', 'most_recent_proc_id', 'proc_id', 'proc'),
+    lookup('runs', '_id', 'run_id', 'run'),
+    {
+        '$project': {
+            'run_id': '$_id',
+            'run': {'$arrayElemAt': ['$run', 0]},
+            'most_recent_proc': {'$arrayElemAt': ['$proc', 0]}
+        }
+    },
+    {
+        '$project': {
+            'run_id': '$run_id',
+            'analysis_driver_procs': '$run.analysis_driver_procs',
+            'number_of_lanes': '$run.number_of_lanes',
+            'most_recent_proc': '$most_recent_proc'
+        }
+    },
     lookup('run_elements', 'run_id'),
-    lookup('analysis_driver_procs', 'most_recent_proc_id', 'proc_id', 'most_recent_proc'),
     {
         '$project': {
             'run_id': '$run_id',
@@ -71,7 +119,8 @@ sequencing_run_information = [
 
             'reviewed': '$run_elements.reviewed',
             'useable': '$run_elements.useable',
-            'most_recent_proc': '$most_recent_proc'
+            'most_recent_proc': '$most_recent_proc',
+            'analysis_driver_procs': '$analysis_driver_procs',
         }
     },
     {
@@ -88,26 +137,8 @@ sequencing_run_information = [
             'clean_yield_q30_in_gb': divide(add('$clean_q30_bases_r1', '$clean_q30_bases_r2'), 1000000000),
             'review_statuses': '$reviewed',
             'useable_statuses': '$useable',
-            'most_recent_proc': '$most_recent_proc'
-        }
-    }
-]
-
-
-demultiplexing = [
-    {
-        '$project': {
-            'barcode': '$barcode',
-            'project_id': '$project_id',
-            'sample_id': '$sample_id',
-            'passing_filter_reads': '$passing_filter_reads',
-            'reviewed': '$reviewed',
-            'useable': '$useable',
-            'pc_pass_filter': percentage('$passing_filter_reads', '$total_reads'),
-            'pc_q30_r1': percentage('$q30_bases_r1', '$bases_r1'),
-            'pc_q30_r2': percentage('$q30_bases_r2', '$bases_r2'),
-            'pc_q30': percentage(add('$q30_bases_r1', '$q30_bases_r2'), add('$bases_r1', '$bases_r2')),
-            'yield_in_gb': divide(add('$bases_r1', '$bases_r2'), 1000000000)
+            'most_recent_proc': '$most_recent_proc',
+            'analysis_driver_procs': '$analysis_driver_procs'
         }
     }
 ]
@@ -172,43 +203,12 @@ sample = [
 ]
 
 
-sequencing_run_information_opt = [
-    lookup('run_elements', 'run_id'),
+project_info = [
     {
         '$project': {
-            'run_id': '$run_id',
-            'projects': '$run_elements.project_id',
-
-            'bases_r1': {'$sum': '$run_elements.bases_r1'},
-            'q30_bases_r1': {'$sum': '$run_elements.q30_bases_r1'},
-            'bases_r2': {'$sum': '$run_elements.bases_r2'},
-            'q30_bases_r2': {'$sum': '$run_elements.q30_bases_r2'},
-
-            'clean_bases_r1': {'$sum': '$run_elements.clean_bases_r1'},
-            'clean_bases_r2': {'$sum': '$run_elements.clean_bases_r2'},
-            'clean_q30_bases_r1': {'$sum': '$run_elements.clean_q30_bases_r1'},
-            'clean_q30_bases_r2': {'$sum': '$run_elements.clean_q30_bases_r2'},
-
-            'reviewed': '$run_elements.reviewed',
-            'useable': '$run_elements.useable'
-        }
-    },
-    lookup('analysis_driver_procs', 'most_recent_proc_id', 'proc_id', 'most_recent_proc'),
-    {
-        '$project': {
-            'run_id': '$run_id',
-            'pc_q30_r1': percentage('$q30_bases_r1', '$bases_r1'),
-            'pc_q30_r2': percentage('$q30_bases_r2', '$bases_r2'),
-            'pc_q30': percentage(add('$q30_bases_r1', '$q30_bases_r2'), add('$bases_r1', '$bases_r2')),
-            # 'pc_pass_filter': Percentage('passing_filter_reads', 'total_reads'),
-            'project_ids': '$projects',
-            'yield_in_gb': divide(add('$bases_r1', '$bases_r2'), 1000000000),
-            'yield_q30_in_gb': divide(add('$q30_bases_r1', '$q30_bases_r2'), 1000000000),
-            'clean_yield_in_gb': divide(add('$clean_bases_r1', '$clean_bases_r2'), 1000000000),
-            'clean_yield_q30_in_gb': divide(add('$clean_q30_bases_r1', '$clean_q30_bases_r2'), 1000000000),
-            'review_statuses': '$reviewed',
-            'useable_statuses': '$useable',
-            'most_recent_proc': '$most_recent_proc'
+            'project_id': '$project_id',
+            '_created': '$_created',
+            'nb_samples': {'$size': '$samples'}
         }
     }
 ]
@@ -217,7 +217,7 @@ sequencing_run_information_opt = [
 def resolve_pipeline(endpoint, base_pipeline):
     pipeline = []
     schema_keys = schema[endpoint].keys()
-    sort_col = request.args.get('sort', '')
+    sort_col = request.args.get('sort', list(schema_keys)[0])
     _paginator = paginator(
         sort_col,
         page_number=request.args.get('page', '1'),
@@ -244,5 +244,8 @@ def resolve_pipeline(endpoint, base_pipeline):
         for k in list(match):
             if k in stage.get('$project', {}).keys():
                 pipeline.append({'$match': {k: match.pop(k)}})
+
+    if not pagination_done:
+        pipeline += _paginator
 
     return pipeline

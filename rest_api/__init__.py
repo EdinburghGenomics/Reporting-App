@@ -52,7 +52,6 @@ settings = {
             'schema': schema['analysis_driver_procs']
         }
     },
-    'VALIDATE_FILTERS': True,
 
     'MONGO_HOST': cfg['db_host'],
     'MONGO_PORT': cfg['db_port'],
@@ -78,9 +77,9 @@ settings = {
     'DATE_FORMAT': '%d_%m_%Y_%H:%M:%S'
 }
 
-from rest_api import aggregation
 
 app = eve.Eve(settings=settings)
+from rest_api import aggregation
 aggregation.database_side.register_db_side_aggregation(app)
 
 
@@ -139,11 +138,11 @@ def run_element_basic_aggregation(request, response):
     ).encode()
 
 
-app.on_post_GET_samples += embed_run_elements_into_samples
-app.on_post_GET_run_elements += run_element_basic_aggregation
-app.on_post_GET_lanes += aggregate_embedded_run_elements
-app.on_post_GET_runs += aggregate_embedded_run_elements_into_run
-app.on_post_GET_projects += aggregate_embedded_sample_elements_into_project
+# app.on_post_GET_samples += embed_run_elements_into_samples
+# app.on_post_GET_run_elements += run_element_basic_aggregation
+# app.on_post_GET_lanes += aggregate_embedded_run_elements
+# app.on_post_GET_runs += aggregate_embedded_run_elements_into_run
+# app.on_post_GET_projects += aggregate_embedded_sample_elements_into_project
 
 
 """

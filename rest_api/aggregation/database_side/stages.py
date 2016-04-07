@@ -26,7 +26,7 @@ def order(sort_col):
 
 def paginator(sort_col, page_number, page_size):
     pipeline = [order(sort_col)]
-    skip = page_size * (int(page_number) - 1)
+    skip = int(page_size) * (int(page_number) - 1)
     if skip:
         pipeline.append({'$skip': skip})
     pipeline.append({'$limit': int(page_size)})

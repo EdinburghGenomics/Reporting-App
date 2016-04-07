@@ -66,7 +66,7 @@ def report_run(run_id):
         {
             'title': 'Lane ' + str(lane),
             'name': 'demultiplexing_lane_' + str(lane),
-            'api_url': rest_query('aggregate/demultiplexing/%s/%s' % (run_id, lane)),
+            'api_url': rest_query('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
             'cols': col_mappings['demultiplexing']
         }
         for lane in lanes
@@ -86,8 +86,9 @@ def report_run(run_id):
     lane_aggregation = {
         'title': 'Aggregation per lane',
         'name': 'agg_per_lane',
-        'api_url': rest_query('aggregate/run_by_lane/' + run_id),
-        'cols': col_mappings['lane_aggregation']
+        'api_url': rest_query('aggregate/run_elements_by_lane', match={'run_id': run_id}),
+        'cols': col_mappings['lane_aggregation'],
+        'paging': False
     }
 
     analysis_driver_procs = _query_api(
@@ -117,7 +118,7 @@ def serve_fastqc_report(run_id, filename):
 def project_reports():
     return fl.render_template(
         'projects.html',
-        api_url=rest_query('projects', aggregate=True, embedded={'samples': 1}),
+        api_url=rest_query('aggregate/projects'),
         cols=col_mappings['projects']
     )
 
@@ -131,7 +132,7 @@ def report_project(project_id):
         table={
             'title': 'Project report for ' + project_id,
             'name': project_id + '_report',
-            'api_url': rest_query('aggregate/samples?project_id=' + project_id),
+            'api_url': rest_query('aggregate/samples', match={'project_id': project_id}),
             'cols': col_mappings['samples']
         }
     )
@@ -142,15 +143,15 @@ def report_sample(sample_id):
     return fl.render_template(
         'sample_report.html',
 
-        sample = {
+        sample={
             'name': 'sample_' + str(sample_id),
-            'api_url': rest_query('aggregate/samples?sample_id=' + sample_id),
+            'api_url': rest_query('aggregate/samples', match={'sample_id': sample_id}),
             'cols': col_mappings['samples']
         },
 
-        run_elements = {
+        run_elements={
             'name': 'run_elements_' + str(sample_id),
-            'api_url': rest_query('run_elements', where={'sample_id': sample_id}, aggregate=True),
+            'api_url': rest_query('aggregate/run_elements', match={'sample_id': sample_id}),
             'cols': col_mappings['demultiplexing']
         },
 

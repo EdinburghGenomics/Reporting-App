@@ -1,5 +1,3 @@
-from ..database_side import queries
-
 
 class PostProcessor:
     def __init__(self, *args, **kwargs):
@@ -26,12 +24,9 @@ class cast_to_sets(PostProcessor):
         return agg
 
 
-class most_recent_proc(PostProcessor):
-    def func(self, agg, db, dataset_name):
+class date_to_string(PostProcessor):
+    def func(self, agg, *columns):
         for e in agg:
-            cursor = db['analysis_driver_procs'].aggregate(queries.most_recent_proc(dataset_name))
-            procs = list(cursor)
-            assert len(procs) == 1
-
-            e['most_recent_proc'] = procs[0]
+            for c in columns:
+                e[c] = str(e[c])
         return agg

@@ -3,7 +3,9 @@ import flask_cors
 import pymongo
 from bson.json_util import dumps
 from json import loads
-from rest_api import settings
+from rest_api import app
+from eve.utils import parse_request
+from eve.methods.get import _pagination_links, _meta_links
 from config import rest_config as cfg
 from . import queries
 from ..server_side import post_processing as pp
@@ -15,81 +17,66 @@ cli = pymongo.MongoClient(cfg['db_host'], cfg['db_port'])
 db = cli[cfg['db_name']]
 
 
-def aggregate(collection, base_pipeline, post_processing=None):
-    pipeline = queries.resolve_pipeline(collection, base_pipeline)
+def aggregate(endpoint, base_pipeline, post_processing=None):
+    before = datetime.now()
+    collection = db[endpoint]
+    pipeline = queries.resolve_pipeline(endpoint, base_pipeline)
     print(pipeline)
-    cursor = db[collection].aggregate(pipeline)
+    cursor = collection.aggregate(pipeline)
     agg = list(cursor)
 
     if post_processing:
         for p in post_processing:
             agg = p(agg)
 
+    total_items = collection.count(loads(request.args.get('match', '{}')))
+    req = parse_request(endpoint)
+
     ret_dict = {
-        settings['ITEMS']: agg,
-        '_meta': {'total': len(agg)}
+        app.config['ITEMS']: agg,
+        '_meta': _meta_links(req, total_items),
+        '_links': _pagination_links(endpoint, req, total_items)
     }
-    return jsonify(loads(dumps(ret_dict)))
+    j = jsonify(loads(dumps(ret_dict)))
+    after = datetime.now()
+    print(endpoint)
+    print('started: ' + str(before))
+    print('finished: ' + str(after))
+    print('time taken: ' + str(after - before))
+    return j
 
 
-def endpoint(route):
-    return '/%s/%s/%s' % (settings['URL_PREFIX'], settings['API_VERSION'], route)
+def aggregate_endpoint(route):
+    return '/%s/%s/aggregate/%s' % (app.config['URL_PREFIX'], app.config['API_VERSION'], route)
 
 
 def register_db_side_aggregation(app):
     flask_cors.CORS(app)
 
-    @app.route(endpoint('aggregate/run_by_lane/<run_id>'))
-    def aggregate_by_lane(run_id):
-        return aggregate(
-            'run_elements',
-            queries.run_elements_by_lane(run_id, request.args.get('sort', 'lane'))
-        )
+    @app.route(aggregate_endpoint('run_elements_by_lane'))
+    def aggregate_by_lane():
+        return aggregate('run_elements', queries.run_elements_group_by_lane)
 
-    @app.route(endpoint('aggregate/all_runs'))
+    @app.route(aggregate_endpoint('all_runs'))
     def run_info():
-        before = datetime.now()
-        a = aggregate(
-            'runs',
+        return aggregate(
+            'analysis_driver_procs',
             queries.sequencing_run_information,
             post_processing=[pp.cast_to_sets('project_ids', 'review_statuses', 'useable_statuses')]
         )
-        after = datetime.now()
-        print('all_runs')
-        print('started: ' + str(before))
-        print('finished: ' + str(after))
-        print('time taken: ' + str(after - before))
-        return a
 
-    @app.route(endpoint('aggregate/demultiplexing/<run_id>/<lane>'))
-    def demultiplexing(run_id, lane):
-        return aggregate(
-            'run_elements',
-            queries.demultiplexing(run_id, lane, sort_col=request.args.get('sort', 'sample_id'))
-        )
+    @app.route(aggregate_endpoint('run_elements'))
+    def demultiplexing():
+        return aggregate('run_elements', queries.demultiplexing)
 
-    @app.route(endpoint('aggregate/samples'))
+    @app.route(aggregate_endpoint('samples'))
     def sample():
         return aggregate(
             'samples',
-            queries.sample(),
+            queries.sample,
             post_processing=[pp.cast_to_sets('run_ids')]
         )
 
-    @app.route(endpoint('aggregate/all_runs_opt'))
-    def sample_opt():
-        before = datetime.now()
-        a = aggregate(
-            'runs',
-            queries.sequencing_run_information_opt,
-            post_processing=[
-                pp.cast_to_sets('project_ids', 'review_statuses', 'useable_statuses'),
-                # pp.most_recent_proc(db, )
-            ]
-        )
-        after = datetime.now()
-        print('all_runs_opt')
-        print('started: ' + str(before))
-        print('finished: ' + str(after))
-        print('time taken: ' + str(after - before))
-        return a
+    @app.route(aggregate_endpoint('projects'))
+    def project_info():
+        return aggregate('projects', queries.project_info, post_processing=[pp.date_to_string('_created')])

@@ -26,9 +26,9 @@
 {% else %}
     {% set default_sort_col = [0, 'asc'] %}
 {% endif %}
-
-{% if dt_config.paging %}
-    {% set paging = dt_config.paging %}
+{{ dt_config.paging }}
+{% if dt_config.paging == False %}
+    {% set paging = 'false' %}
 {% else %}
     {% set paging = 'true' %}
 {% endif %}
