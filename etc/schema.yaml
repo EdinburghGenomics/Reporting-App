@@ -78,12 +78,12 @@ samples:
     median_coverage: {          type: 'float',   required: False }
     pc_callable: {              type: 'float',   required: False }
 
-    freemix: {                  type: 'float',   required: False }
+    #QC metrics
     called_gender: {            type: 'string',  allowed: ['male', 'female', 'unknown'] }
     provided_gender: {          type: 'string',  allowed: ['male', 'female', 'unknown'] }
     genotype_validation: {      type: 'dict',    schema: { matching_snps: { type: 'integer' }, mismatching_snps: { type: 'integer' }, no_call_seq: { type: 'integer' }, no_call_chip: { type: 'integer' } } }
-    # total_snps = sum of all 4
     species_contamination: {    type: 'dict',    required: False, schema: { percent_unmapped_focal: {type: 'float'}, percent_unmapped: {type: 'float'}, total_reads_mapped: {type: 'integer'}, contaminant_unique_mapped: {type: 'dict'} } }
+    sample_contamination:       type: 'dict',    required: False, schema: { freemix: {type: 'float'}, best_matching_sample: {type: 'dict'} } }
 
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'], default: 'not reviewed' }
     review_comments: {          type: 'multilinestring',  required: False }
