@@ -6,7 +6,7 @@ runs:
     - { name: 'pc_q30',                               title: '%Q30',                    fmt: { type: 'percentage',  min: 75 } }
     - { name: 'clean_yield_in_gb',                    title: 'Yield (Gb - cleaned)',    fmt: { type: 'float',  min: 960 } }
     - { name: 'clean_yield_q30_in_gb',                title: 'Yield Q30 (Gb - cleaned)',fmt: { type: 'float',  min: 770 } }
-    - { name: 'most_recent_proc.status',              title: 'Status' }
+    - { name: 'proc_status',                          title: 'Status' }
     - { name: 'review_statuses',                      title: 'Review' }
     - { name: 'useable_statuses',                     title: 'Useable' }
 

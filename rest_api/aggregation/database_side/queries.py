@@ -69,38 +69,9 @@ demultiplexing = [
         }
     }
 ]
+sequencing_run_information = merge_analysis_driver_procs('run_id', ['run_id', 'number_of_lanes'])
 
-
-sequencing_run_information = [
-    {
-        '$match': {'dataset_type': 'run'}
-    },
-    {
-        '$sort': {'dataset_name': -1, '_created': 1}
-    },
-    {
-        '$group': {
-            '_id': '$dataset_name',
-            'most_recent_proc_id': {'$first': '$proc_id'}
-        }
-    },
-    lookup('analysis_driver_procs', 'most_recent_proc_id', 'proc_id', 'proc'),
-    lookup('runs', '_id', 'run_id', 'run'),
-    {
-        '$project': {
-            'run_id': '$_id',
-            'run': {'$arrayElemAt': ['$run', 0]},
-            'most_recent_proc': {'$arrayElemAt': ['$proc', 0]}
-        }
-    },
-    {
-        '$project': {
-            'run_id': '$run_id',
-            'analysis_driver_procs': '$run.analysis_driver_procs',
-            'number_of_lanes': '$run.number_of_lanes',
-            'most_recent_proc': '$most_recent_proc'
-        }
-    },
+sequencing_run_information.extend([
     lookup('run_elements', 'run_id'),
     {
         '$project': {
@@ -119,8 +90,7 @@ sequencing_run_information = [
 
             'reviewed': '$run_elements.reviewed',
             'useable': '$run_elements.useable',
-            'most_recent_proc': '$most_recent_proc',
-            'analysis_driver_procs': '$analysis_driver_procs',
+            'proc_status': '$most_recent_proc.status',
         }
     },
     {
@@ -129,7 +99,6 @@ sequencing_run_information = [
             'pc_q30_r1': percentage('$q30_bases_r1', '$bases_r1'),
             'pc_q30_r2': percentage('$q30_bases_r2', '$bases_r2'),
             'pc_q30': percentage(add('$q30_bases_r1', '$q30_bases_r2'), add('$bases_r1', '$bases_r2')),
-            # 'pc_pass_filter': Percentage('passing_filter_reads', 'total_reads'),
             'project_ids': '$projects',
             'yield_in_gb': divide(add('$bases_r1', '$bases_r2'), 1000000000),
             'yield_q30_in_gb': divide(add('$q30_bases_r1', '$q30_bases_r2'), 1000000000),
@@ -137,17 +106,17 @@ sequencing_run_information = [
             'clean_yield_q30_in_gb': divide(add('$clean_q30_bases_r1', '$clean_q30_bases_r2'), 1000000000),
             'review_statuses': '$reviewed',
             'useable_statuses': '$useable',
-            'most_recent_proc': '$most_recent_proc',
-            'analysis_driver_procs': '$analysis_driver_procs'
+            'proc_status': '$proc_status',
         }
     }
-]
+])
 
 
 sample = [
     lookup('run_elements', 'sample_id'),
     {
         '$project': {
+            'project_id': '$project_id',
             'sample_id': '$sample_id',
             'library_id': '$library_id',
             'user_sample_id': '$user_sample_id',
@@ -176,6 +145,7 @@ sample = [
     },
     {
         '$project': {
+            'project_id': '$project_id',
             'sample_id': '$sample_id',
             'library_id': '$library_id',
             'user_sample_id': '$user_sample_id',
@@ -201,6 +171,7 @@ sample = [
         }
     }
 ]
+
 
 
 project_info = [

@@ -56,3 +56,26 @@ def percentage(numerator, denominator):
             'else': {'$multiply': [{'$divide': [numerator, denominator]}, 100]}
         }
     }
+
+
+def merge_analysis_driver_procs(merge_on, projection=None):
+    stages = [
+        lookup('analysis_driver_procs', merge_on, 'dataset_name', 'analysis_driver_procs'),
+        {
+            '$unwind': {
+                'path': '$analysis_driver_procs',
+                'preserveNullAndEmptyArrays': True
+            }
+        },
+        {
+            '$sort': {'run_id': -1, 'analysis_driver_procs._created': 1}
+        },
+    ]
+    group = {
+        '_id': '$%s'%merge_on,
+        'most_recent_proc': {'$first': '$analysis_driver_procs'}
+    }
+    for k in projection: group[k] = {'$first': '$%s'%k}
+    stages.append({'$group': group})
+    return stages
+

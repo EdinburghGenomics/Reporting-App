@@ -57,7 +57,7 @@ def aggregate_by_lane():
 @app.route(aggregate_endpoint('all_runs'))
 def run_info():
     return aggregate(
-        'analysis_driver_procs',
+        'runs',
         queries.sequencing_run_information,
         post_processing=[pp.cast_to_sets('project_ids', 'review_statuses', 'useable_statuses')]
     )

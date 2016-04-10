@@ -55,6 +55,14 @@ def run_reports():
         cols=col_mappings['runs']
     )
 
+@app.route('/run_by_status/<status>')
+def run_by_status(status):
+    return fl.render_template(
+        'runs.html',
+        api_url=rest_query('aggregate/all_runs', match={'proc_status':status}),
+        cols=col_mappings['runs']
+    )
+
 
 @app.route('/runs/<run_id>')
 def report_run(run_id):
