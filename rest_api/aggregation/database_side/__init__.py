@@ -24,7 +24,6 @@ def aggregate(endpoint, base_pipeline, post_processing=None):
     app.logger.debug(pipeline)
     cursor = collection.aggregate(pipeline)
     agg = list(cursor)
-    print(agg)
     if post_processing:
         for p in post_processing:
             agg = p(agg)
