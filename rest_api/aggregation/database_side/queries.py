@@ -189,34 +189,34 @@ def resolve_pipeline(endpoint, base_pipeline):
     pipeline = []
     schema_keys = schema[endpoint].keys()
     sort_col = request.args.get('sort', list(schema_keys)[0])
-    _paginator = paginator(
-        sort_col,
-        page_number=request.args.get('page', '1'),
-        page_size=request.args.get('max_results', '50')
-    )
+    # _paginator = paginator(
+    #     sort_col,
+    #     page_number=request.args.get('page', '1'),
+    #     page_size=request.args.get('max_results', '50')
+    # )
     match = json.loads(request.args.get('match', '{}'))
-    pagination_done = False
+    # pagination_done = False
 
     for k in list(match):
         if k in schema_keys:
             pipeline.append({'$match': {k: match.pop(k)}})
 
-    if sort_col.lstrip('-') in schema_keys:
-        pipeline += _paginator
-        pagination_done = True
+    # if sort_col.lstrip('-') in schema_keys:
+    #     pipeline += _paginator
+    #     pagination_done = True
 
     for stage in base_pipeline:
         pipeline.append(stage)
 
-        if not pagination_done and sort_col.lstrip('-') in stage.get('$project', {}).keys():
-            pipeline += _paginator
-            pagination_done = True
+        # if not pagination_done and sort_col.lstrip('-') in stage.get('$project', {}).keys():
+        #     pipeline += _paginator
+        #     pagination_done = True
 
         for k in list(match):
             if k in stage.get('$project', {}).keys():
                 pipeline.append({'$match': {k: match.pop(k)}})
 
-    if not pagination_done:
-        pipeline += _paginator
+    # if not pagination_done:
+    #     pipeline += _paginator
 
     return pipeline

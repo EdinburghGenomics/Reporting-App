@@ -24,16 +24,20 @@ def aggregate(endpoint, base_pipeline, post_processing=None):
     app.logger.debug(pipeline)
     cursor = collection.aggregate(pipeline)
     agg = list(cursor)
-
+    print(agg)
     if post_processing:
         for p in post_processing:
             agg = p(agg)
 
-    total_items = collection.count(loads(request.args.get('match', '{}')))
+    # total_items = collection.count(loads(request.args.get('match', '{}')))
+    total_items = len(agg)
+    page_number=int(request.args.get('page', '1'))
+    page_size=int(request.args.get('max_results', '50'))
+    pagg = agg[page_size * (page_number - 1): page_size * (page_number)]
     req = parse_request(endpoint)
 
     ret_dict = {
-        app.config['ITEMS']: agg,
+        app.config['ITEMS']: pagg,
         '_meta': _meta_links(req, total_items),
         '_links': _pagination_links(endpoint, req, total_items)
     }
