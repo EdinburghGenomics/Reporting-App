@@ -173,7 +173,6 @@ sample = [
 ]
 
 
-
 project_info = [
     {
         '$project': {
@@ -189,34 +188,34 @@ def resolve_pipeline(endpoint, base_pipeline):
     pipeline = []
     schema_keys = schema[endpoint].keys()
     sort_col = request.args.get('sort', list(schema_keys)[0])
-    # _paginator = paginator(
-    #     sort_col,
-    #     page_number=request.args.get('page', '1'),
-    #     page_size=request.args.get('max_results', '50')
-    # )
     match = json.loads(request.args.get('match', '{}'))
-    # pagination_done = False
+    or_match = match.pop('$or', None)
+    if or_match:
+        multi_match_col = list(or_match[0].keys())[0]  # get one of the field names in the or statement
+        match[multi_match_col] = {'$or': or_match}
 
     for k in list(match):
-        if k in schema_keys:
-            pipeline.append({'$match': {k: match.pop(k)}})
-
-    # if sort_col.lstrip('-') in schema_keys:
-    #     pipeline += _paginator
-    #     pagination_done = True
+        if k.lstrip('$') in schema_keys:
+            pipeline.append({'$match': resolve_match(k, match.pop(k))})
 
     for stage in base_pipeline:
         pipeline.append(stage)
 
-        # if not pagination_done and sort_col.lstrip('-') in stage.get('$project', {}).keys():
-        #     pipeline += _paginator
-        #     pagination_done = True
-
         for k in list(match):
-            if k in stage.get('$project', {}).keys():
-                pipeline.append({'$match': {k: match.pop(k)}})
+            if k.lstrip('$') in stage.get('$project', {}).keys():
+                pipeline.append({'$match': resolve_match(k, match.pop(k))})
 
-    # if not pagination_done:
-    #     pipeline += _paginator
+    pipeline += paginator(
+        sort_col,
+        page_number=request.args.get('page'),
+        page_size=request.args.get('max_results')
+    )
 
     return pipeline
+
+
+def resolve_match(key, match_value):
+    if type(match_value) is dict and '$or' in match_value:
+        return match_value
+    else:
+        return {key: match_value}

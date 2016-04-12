@@ -24,12 +24,13 @@ def order(sort_col):
     return {'$sort': sort_expr}
 
 
-def paginator(sort_col, page_number, page_size):
+def paginator(sort_col, page_number=None, page_size=None):
     pipeline = [order(sort_col)]
-    skip = int(page_size) * (int(page_number) - 1)
-    if skip:
-        pipeline.append({'$skip': skip})
-    pipeline.append({'$limit': int(page_size)})
+    if page_number and page_size:
+        skip = int(page_size) * (int(page_number) - 1)
+        if skip:
+            pipeline.append({'$skip': skip})
+        pipeline.append({'$limit': int(page_size)})
 
     return pipeline
 
@@ -78,4 +79,3 @@ def merge_analysis_driver_procs(merge_on, projection=None):
     for k in projection: group[k] = {'$first': '$%s'%k}
     stages.append({'$group': group})
     return stages
-

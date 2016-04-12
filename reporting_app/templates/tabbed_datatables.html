@@ -1,0 +1,28 @@
+{% extends 'untabbed_datatables.html' %}
+{% from 'datatable.html' import datatable %}
+
+{% block content %}
+
+{% for tab_set in tab_sets %}
+
+<div id="{{ tab_set.name }}_tabs">
+    <h2>{{ tab_set.title }}</h2>
+    <ol>
+        {% for table in tab_set.tables %}
+        <li><a href="#{{ table.name }}_tab"><span>{{ table.title }}</span></a></li>
+        {% endfor %}
+    </ol>
+    <br/>
+    {% for table in tab_set.tables %}
+    <div id="{{ table.name }}_tab">{{ datatable(table) }}</div>
+    {% endfor %}
+</div>
+{% endfor %}
+
+<script>
+    {% for tab_set in tab_sets %}
+    $("#{{ tab_set.name }}_tabs").tabs();
+    {% endfor %}
+</script>
+
+{% endblock %}
