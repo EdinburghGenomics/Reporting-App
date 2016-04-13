@@ -1,7 +1,6 @@
-
-__author__ = 'mwham'
 import statistics
 import datetime
+
 
 def resolve(query, element):
     q = {}
@@ -13,10 +12,8 @@ def resolve(query, element):
 class Expression:
     default_return_value = None
 
-    def __init__(self, *args, filter_func=None):
+    def __init__(self, *args):
         self.args = args
-        #filter_func is really only valid for accumulations
-        self.filter_func = filter_func
 
     def _expression(self, *args):
         return 0
@@ -54,6 +51,10 @@ class SingleExp(Expression):
 
 
 class Accumulation(Expression):
+    def __init__(self, *args, filter_func=None):
+        super().__init__(*args)
+        self.filter_func = filter_func
+
     def _resolve_element(self, element, param):
         pparam = param.split('.')
         for p in pparam[:-1]:
@@ -120,6 +121,7 @@ class Total(Accumulation):
             return None
         else:
             return sum(elements)
+
 
 class MostRecent(SingleExp):
     def __init__(self, *args, date_field='_created', date_format='%d_%m_%Y_%H:%M:%S'):

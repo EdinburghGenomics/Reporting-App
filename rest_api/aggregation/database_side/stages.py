@@ -48,9 +48,9 @@ def percentage(numerator, denominator):
     }
 
 
-def merge_analysis_driver_procs(merge_on, projection=None):
+def merge_analysis_driver_procs(id_field, projection=None):
     stages = [
-        lookup('analysis_driver_procs', merge_on, 'dataset_name', 'analysis_driver_procs'),
+        lookup('analysis_driver_procs', id_field, 'dataset_name'),
         {
             '$unwind': {
                 'path': '$analysis_driver_procs',
@@ -58,13 +58,14 @@ def merge_analysis_driver_procs(merge_on, projection=None):
             }
         },
         {
-            '$sort': {'run_id': -1, 'analysis_driver_procs._created': 1}
-        },
+            '$sort': {id_field: -1, 'analysis_driver_procs._created': 1}
+        }
     ]
     group = {
-        '_id': '$%s'%merge_on,
+        '_id': '$' + id_field,
         'most_recent_proc': {'$first': '$analysis_driver_procs'}
     }
-    for k in projection: group[k] = {'$first': '$%s'%k}
+    for k in projection:
+        group[k] = {'$first': '$' + k}
     stages.append({'$group': group})
     return stages

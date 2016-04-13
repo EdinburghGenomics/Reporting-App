@@ -1,9 +1,8 @@
-__author__ = 'mwham'
 from flask import json
 from config import schema
 from operator import itemgetter
 from .expressions import resolve
-from . import queries
+from . import queries, post_processing
 
 
 def run_element_basic_aggregation(input_json, sortquery=None):

@@ -199,7 +199,7 @@ def resolve_pipeline(endpoint, base_pipeline):
     for k in schema_keys:
         if k in match:
             pipeline.append({'$match': resolve_match(k, match.pop(k))})
-        if not sorting_done and k == sort_col:
+        if not sorting_done and k == sort_col.lstrip('-'):
             pipeline.append(orderer)
             sorting_done = True
 
@@ -209,7 +209,7 @@ def resolve_pipeline(endpoint, base_pipeline):
         for k in stage.get('$project', {}):
             if k in [col.lstrip('$') for col in match]:
                 pipeline.append({'$match': resolve_match(k, match.pop(k))})
-            if not sorting_done and k == sort_col:
+            if not sorting_done and k == sort_col.lstrip('-'):
                 pipeline.append(orderer)
                 sorting_done = True
 
