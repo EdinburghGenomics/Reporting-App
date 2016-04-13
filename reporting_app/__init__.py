@@ -201,24 +201,25 @@ def report_project(project_id):
 
 @app.route('/samples/<sample_id>')
 def report_sample(sample_id):
+    sample = _query_api('samples', where={'sample_id': sample_id}, embedded={'analysis_driver_procs': 1})[0]
+
     return fl.render_template(
         'sample_report.html',
-
-        sample={
-            'name': 'sample_' + str(sample_id),
-            'api_url': rest_query('aggregate/samples', match={'sample_id': sample_id}),
-            'cols': col_mappings['samples']
-        },
-
-        run_elements={
-            'name': 'run_elements_' + str(sample_id),
-            'api_url': rest_query('aggregate/run_elements', match={'sample_id': sample_id}),
-            'cols': col_mappings['demultiplexing']
-        },
-
-        sample_proc=_query_api(
-            'samples',
-            where={'sample_id': sample_id},
-            embedded={'analysis_driver_procs': 1}
-        )[0]
+        title='Report for sample ' + sample_id,
+        description='(From project %s)' % sample['project_id'],
+        tables=[
+            datatable_cfg(
+                'Sample report',
+                'sample_' + sample_id,
+                'samples',
+                rest_query('aggregate/samples', match={'sample_id': sample_id})
+            ),
+            datatable_cfg(
+                'Run elements report',
+                'run_elements_' + sample_id,
+                'demultiplexing',
+                rest_query('aggregate/run_elements', match={'sample_id': sample_id})
+            )
+        ],
+        procs=sample['analysis_driver_procs']
     )

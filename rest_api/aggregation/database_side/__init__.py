@@ -22,27 +22,27 @@ def aggregate(endpoint, base_pipeline, post_processing=None):
     collection = db[endpoint]
     pipeline = queries.resolve_pipeline(endpoint, base_pipeline)
     app.logger.debug(pipeline)
-    cursor = collection.aggregate(pipeline)
-    agg = list(cursor)
+    data = list(collection.aggregate(pipeline))
+    total_items = len(data)
     if post_processing:
         for p in post_processing:
-            agg = p(agg)
+            data = p(data)
 
-    # total_items = collection.count(loads(request.args.get('match', '{}')))
-    total_items = len(agg)
-    page_number=int(request.args.get('page', '1'))
-    page_size=int(request.args.get('max_results', '50'))
-    pagg = agg[page_size * (page_number - 1): page_size * (page_number)]
-    req = parse_request(endpoint)
+    ret_dict = {}
+    page_number = int(request.args.get(app.config['QUERY_PAGE'], '0'))
+    page_size = int(request.args.get(app.config['QUERY_MAX_RESULTS'], '0'))
+    if page_number and page_size:
+        data = data[page_size * (page_number - 1): page_size * page_number]
+        req = parse_request(endpoint)
+        ret_dict[app.config['META']] = _meta_links(req, total_items),
+        ret_dict[app.config['LINKS']] = _pagination_links(endpoint, req, total_items)
+    else:
+        ret_dict[app.config['META']] = {'total': total_items}
 
-    ret_dict = {
-        app.config['ITEMS']: pagg,
-        '_meta': _meta_links(req, total_items),
-        '_links': _pagination_links(endpoint, req, total_items)
-    }
-    j = jsonify(loads(dumps(ret_dict)))
+    ret_dict[app.config['ITEMS']] = data
+    j = jsonify(loads(dumps(ret_dict)))  # cast ObjectIDs to dicts
     after = datetime.now()
-    app.logger.info('Aggregated from %s with pipeline. Time taken: %s', endpoint, after - before)
+    app.logger.info('Aggregated from %s in %s', endpoint, after - before)
     return j
 
 
@@ -51,6 +51,7 @@ def aggregate_endpoint(route):
 
 
 flask_cors.CORS(app)
+
 
 @app.route(aggregate_endpoint('run_elements_by_lane'))
 def aggregate_by_lane():

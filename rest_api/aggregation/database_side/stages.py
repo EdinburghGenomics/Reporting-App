@@ -24,17 +24,6 @@ def order(sort_col):
     return {'$sort': sort_expr}
 
 
-def paginator(sort_col, page_number=None, page_size=None):
-    pipeline = [order(sort_col)]
-    if page_number and page_size:
-        skip = int(page_size) * (int(page_number) - 1)
-        if skip:
-            pipeline.append({'$skip': skip})
-        pipeline.append({'$limit': int(page_size)})
-
-    return pipeline
-
-
 def add(*args):
     return {'$add': list(args)}
 

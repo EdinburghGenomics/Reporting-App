@@ -1,29 +1,12 @@
-{% extends 'reporting_base.html' %}
+{% extends 'untabbed_datatables.html' %}
 {% from 'proc_report.html' import proc_report %}
-{% from 'datatable.html' import datatable, dt_header %}
+{% from 'datatable.html' import datatable %}
 
 {% block title %}Sample report{% endblock %}
-{% block head %}
-    {{ super() }}
-    {{ dt_header() }}
-{% endblock %}
 
 {% block content %}
 
-<h1>Report for sample {{ sample.sample_id }}</h1>
-(From project {{ sample_proc.project_id }})
-
-<h2>Sample report</h2>
-{{ datatable({'name': sample.name, 'cols': sample.cols, 'api_url': sample.api_url, 'default_sort_col': [2, 'desc']}) }}
-
-<h2>Run elements report</h2>
-{{ datatable({'name': run_elements.name, 'cols': run_elements.cols, 'api_url': run_elements.api_url}) }}
-
-<h2>Processing report</h2>
-<p>Number of times processed: {{ sample_proc.analysis_driver_procs|length }}</p>
-
-{% for p in sample_proc.analysis_driver_procs %}
-{{ proc_report(p) }}
-{% endfor %}
+{{ super() }}
+{{ proc_report(procs) }}
 
 {% endblock %}

@@ -1,4 +1,3 @@
-__author__ = 'mwham'
 import argparse
 import requests
 import random
@@ -159,8 +158,15 @@ def multi_push(run_ids_and_samples, elements_per_run=6, lanes_per_run=8):
                     while b in barcodes:
                         b = rand_barcode()
 
-                    r_e = run_element(run_id, lane_number, b, _sample_id, incomplete=random.choice([True, False]))
-                    run_elements.append(r_e)
+                    run_elements.append(
+                        run_element(
+                            run_id,
+                            lane_number,
+                            b,
+                            _sample_id,
+                            incomplete=random.choice([True, False])
+                        )
+                    )
 
                 l = lane(
                     run_id,

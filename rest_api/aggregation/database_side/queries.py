@@ -189,27 +189,32 @@ def resolve_pipeline(endpoint, base_pipeline):
     schema_keys = schema[endpoint].keys()
     sort_col = request.args.get('sort', list(schema_keys)[0])
     match = json.loads(request.args.get('match', '{}'))
-    or_match = match.pop('$or', None)
+    or_match = match.pop('$or', None)  # TODO: make complex matches generic
     if or_match:
-        multi_match_col = list(or_match[0].keys())[0]  # get one of the field names in the or statement
+        multi_match_col = list(or_match[0])[0]  # get one of the field names in the or statement
         match[multi_match_col] = {'$or': or_match}
+    orderer = order(sort_col)
+    sorting_done = False
 
-    for k in list(match):
-        if k.lstrip('$') in schema_keys:
+    for k in schema_keys:
+        if k in match:
             pipeline.append({'$match': resolve_match(k, match.pop(k))})
+        if not sorting_done and k == sort_col:
+            pipeline.append(orderer)
+            sorting_done = True
 
     for stage in base_pipeline:
         pipeline.append(stage)
 
-        for k in list(match):
-            if k.lstrip('$') in stage.get('$project', {}).keys():
+        for k in stage.get('$project', {}):
+            if k in [col.lstrip('$') for col in match]:
                 pipeline.append({'$match': resolve_match(k, match.pop(k))})
+            if not sorting_done and k == sort_col:
+                pipeline.append(orderer)
+                sorting_done = True
 
-    pipeline += paginator(
-        sort_col,
-        page_number=request.args.get('page'),
-        page_size=request.args.get('max_results')
-    )
+    if not sorting_done:
+        pipeline.append(orderer)
 
     return pipeline
 
