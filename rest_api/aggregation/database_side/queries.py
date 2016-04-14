@@ -128,6 +128,7 @@ sample = [
             'genotype_validation': '$genotype_validation',
             'reviewed': '$reviewed',
             'useable': '$useable',
+            'delivered': '$delivered',
 
             'bases_r1': {'$sum': '$run_elements.bases_r1'},
             'bases_r2': {'$sum': '$run_elements.bases_r2'},
@@ -158,6 +159,7 @@ sample = [
             'genotype_validation': '$genotype_validation',
             'reviewed': '$reviewed',
             'useable': '$useable',
+            'delivered': '$delivered',
 
             'pc_pass_filter': percentage('$passing_filter_reads', '$total_reads'),
             'clean_pc_q30_r1': percentage('$clean_q30_bases_r1', '$clean_bases_r1'),
@@ -174,11 +176,33 @@ sample = [
 
 
 project_info = [
+    lookup('samples', 'project_id'),
     {
         '$project': {
             'project_id': '$project_id',
             '_created': '$_created',
-            'nb_samples': {'$size': '$samples'}
+            'nb_samples': {'$size': '$samples'},
+            'nb_samples_reviewed': {
+                '$size': {
+                    '$filter': {
+                       'input': "$samples",
+                       'as': "sample",
+                       'cond': {"$or": [
+                           {"$eq": ["$$sample.reviewed", "pass"]},
+                           {"$eq": ["$$sample.reviewed", "fail"]}
+                       ]}
+                    }
+                }
+            },
+            'nb_samples_delivered': {
+                '$size': {
+                    '$filter': {
+                       'input': "$samples",
+                       'as': "sample",
+                       'cond': {"$eq": ["$$sample.delivered", "yes"]}
+                    }
+                }
+            },
         }
     }
 ]

@@ -1,6 +1,7 @@
 import flask as fl
 import os.path
 from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg
+from config import reporting_app_config as cfg
 
 app = fl.Flask(__name__)
 

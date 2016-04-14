@@ -14,6 +14,8 @@ runs:
 projects:
     - { name: 'project_id',                           title: 'Project ID',              fmt: { link: '/projects/' } }
     - { name: 'nb_samples',                           title: 'Nb of Samples' }
+    - { name: 'nb_samples_reviewed',                           title: 'Samples Reviewed' }
+    - { name: 'nb_samples_delivered',                           title: 'Samples Delivered' }
     - { name: '_created',                             title: 'Created' }
 
 
