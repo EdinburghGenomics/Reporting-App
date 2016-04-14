@@ -1,67 +1,8 @@
 import flask as fl
 import os.path
-import requests
-from flask import json
-from config import reporting_app_config as cfg, col_mappings
-
+from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg
 
 app = fl.Flask(__name__)
-
-
-def rest_query(resource, **query_args):
-    if not query_args:
-        return cfg['rest_api'] + '/' + resource
-
-    query = '?'
-    query += '&'.join(['%s=%s' % (k, v) for k, v in query_args.items()]).replace(' ', '').replace('\'', '"')
-    return cfg['rest_api'] + '/' + resource + query
-
-
-def _query_api(resource, data_only=True, **query_args):
-    url = rest_query(resource, **query_args)
-    j = json.loads(requests.get(url).content.decode('utf-8'))
-    if data_only:
-        j = j['data']
-    return j
-
-
-def _distinct_values(val, input_json):
-    return sorted(set(e[val] for e in input_json))
-
-
-def _format_order(col_name, cols):
-    if col_name.startswith('-'):
-        direction = 'asc'
-    else:
-        direction = 'desc'
-
-    return [
-        [c['name'] for c in cols].index(col_name),
-        direction
-    ]
-
-
-def datatable_cfg(title, name, cols, api_url, paging=True, default_sort_col=None):
-    if default_sort_col is None:
-        default_sort_col = [0, 'desc']
-    else:
-        default_sort_col = _format_order(default_sort_col, col_mappings[cols])
-    return {
-        'title': title,
-        'name': name,
-        'cols': col_mappings[cols],
-        'api_url': api_url,
-        'default_sort_col': default_sort_col,
-        'paging': paging
-    }
-
-
-def tab_set_cfg(title, name, tables):
-    return {
-        'title': title,
-        'name': name,
-        'tables': tables
-    }
 
 
 @app.route('/')
@@ -113,10 +54,7 @@ def pipeline_report(pipeline_type, view_type):
 
 @app.route('/runs/<run_id>')
 def report_run(run_id):
-    lanes = _distinct_values(
-        'lane_number',
-        _query_api('lanes', where={'run_id': run_id})
-    )
+    lanes = sorted(set(e['lane_number'] for e in query_api('lanes', where={'run_id': run_id})))
 
     return fl.render_template(
         'run_report.html',
@@ -157,7 +95,7 @@ def report_run(run_id):
                 ]
             )
         ],
-        procs=_query_api(
+        procs=query_api(
             'analysis_driver_procs',
             where={'dataset_type': 'run', 'dataset_name': run_id},
             sort='-start_date'
@@ -201,7 +139,7 @@ def report_project(project_id):
 
 @app.route('/samples/<sample_id>')
 def report_sample(sample_id):
-    sample = _query_api('samples', where={'sample_id': sample_id}, embedded={'analysis_driver_procs': 1})[0]
+    sample = query_api('samples', where={'sample_id': sample_id}, embedded={'analysis_driver_procs': 1})[0]
 
     return fl.render_template(
         'sample_report.html',

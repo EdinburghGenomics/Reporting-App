@@ -1,22 +1,47 @@
 from tests.test_rest_api.test_aggregation import TestAggregation, FakeRequest
-from unittest.mock import patch
-from collections import defaultdict
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
+from rest_api.aggregation import database_side
+import rest_api.aggregation.database_side.stages as stages
 
 
 class FakeMongoClient(Mock):
     def __init__(self, host, port):
         super().__init__()
         self.host, self.port = host, port
-        self.dbs = defaultdict(str)
+        collection = FakeCollection(
+            [
+                {'this': None, 'that': None, 'other': None},
+                {'this': None, 'that': None, 'other': None}
+            ]
+        )
+        self.db = {'test_db': FakeDatabase(test_endpoint=collection)}
 
     def __getitem__(self, item):
-        return self.dbs[item]
+        return self.db[item]
 
 
-with patch('pymongo.MongoClient', new=FakeMongoClient):
-    from rest_api.aggregation import database_side
-    import rest_api.aggregation.database_side.stages as stages
+class FakeDatabase:
+    def __init__(self, **collections):
+        self.collections = collections
+
+    def __getitem__(self, item):
+        return self.collections[item]
+
+
+class FakeCollection:
+    def __init__(self, data):
+        self.data = data
+
+    def aggregate(self, pipeline):
+        return self.data
+
+
+fake_data = [
+    {'this': None, 'that': None, 'other': None},
+    {'this': None, 'that': None, 'other': None}
+]
+database_side.cli = FakeMongoClient('host', 'port')
+database_side.db = database_side.cli['test_db']
 
 
 class TestQueries(TestAggregation):
@@ -126,3 +151,16 @@ def test_resolve_pipeline():
     for stage in obs[1:4]:
         assert stage in exp[1:4]
     assert obs[5] == exp[5]
+
+
+def test_aggregate():
+    patched_resolve_pipeline = patch('rest_api.aggregation.database_side.queries.resolve_pipeline')
+    patched_request = patch('rest_api.aggregation.database_side.request', new=FakeRequest({}))
+    patched_jsonify = patch('rest_api.aggregation.database_side.jsonify', new=dict)
+    with patched_resolve_pipeline, patched_request, patched_jsonify:
+        obs = database_side.aggregate('test_endpoint', [{'a': 'test', 'aggregataion': 'pipeline'}])
+    exp = {
+        '_meta': {'total': 2},
+        'data': fake_data
+    }
+    assert obs == exp
