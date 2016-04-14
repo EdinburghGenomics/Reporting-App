@@ -1,108 +1,106 @@
-__author__ = 'mwham'
 import flask as fl
 import os.path
-import requests
-from flask import json
-from config import reporting_app_config as cfg, col_mappings
-
+from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg
+from config import reporting_app_config as cfg
 
 app = fl.Flask(__name__)
 
 
-def rest_query(resource, **query_args):
-    if not query_args:
-        return cfg['rest_api'] + '/' + resource
-
-    query = '?'
-    query += '&'.join(['%s=%s' % (k, v) for k, v in query_args.items()]).replace(' ', '').replace('\'', '"')
-    return cfg['rest_api'] + '/' + resource + query
-
-
-def _query_api(resource, data_only=True, **query_args):
-    url = rest_query(resource, **query_args)
-    j = json.loads(requests.get(url).content.decode('utf-8'))
-    if data_only:
-        j = j['data']
-    return j
-
-
-def _distinct_values(val, input_json):
-    return sorted(set(e[val] for e in input_json))
-
-
-def _format_order(col_name, cols):
-    if col_name.startswith('-'):
-        direction = 'asc'
-    else:
-        direction = 'desc'
-
-    return [
-        [c['name'] for c in cols].index(col_name),
-        direction
-    ]
-
-
 @app.route('/')
 def main_page():
-    return fl.render_template('reports.html')
+    return fl.render_template('main_page.html')
 
 
 @app.route('/runs/')
 def run_reports():
     return fl.render_template(
-        'runs.html',
-        api_url=rest_query('runs', aggregate=True, embedded={'run_elements': 1, 'analysis_driver_procs': 1}),
-        cols=col_mappings['runs']
+        'untabbed_datatables.html',
+        table=datatable_cfg('All runs', 'all_runs', 'runs', api_url=rest_query('aggregate/all_runs'))
+    )
+
+
+@app.route('/pipelines/<pipeline_type>/<view_type>')
+def pipeline_report(pipeline_type, view_type):
+    statuses = {
+        'queued': ('reprocess', 'force_ready'),
+        'processing': ('processing',),
+        'finished': ('finished', 'failed'),
+        'archived': ('deleted', 'aborted'),
+        'all': ('force_ready', 'processing', 'finished', 'failed', 'aborted', 'reprocess', 'deleted')
+    }
+
+    if view_type not in statuses:
+        fl.abort(404)
+
+    if pipeline_type == 'samples':
+        endpoint = 'aggregate/samples'
+    elif pipeline_type == 'runs':
+        endpoint = 'aggregate/all_runs'
+    else:
+        fl.abort(404)
+        return
+
+    return fl.render_template(
+        'untabbed_datatables.html',
+        tables=[
+            datatable_cfg(
+                s[0].upper() + s[1:] + ' ' + pipeline_type,
+                s + '_' + pipeline_type,
+                pipeline_type,
+                rest_query(endpoint, match={'proc_status': s}))
+            for s in statuses[view_type]
+        ]
     )
 
 
 @app.route('/runs/<run_id>')
 def report_run(run_id):
-    lanes = _distinct_values(
-        'lane_number',
-        _query_api('lanes', where={'run_id': run_id})
-    )
-    demultiplexing_tables = [
-        {
-            'title': 'Lane ' + str(lane),
-            'name': 'demultiplexing_lane_' + str(lane),
-            'api_url': rest_query('run_elements', where={'run_id': run_id, 'lane': lane}),
-            'cols': col_mappings['demultiplexing']
-        }
-        for lane in lanes
-    ]
-
-    unexpected_barcode_tables = [
-        {
-            'title': 'Lane ' + str(lane),
-            'name': 'unexpected_barcodes_lane_' + str(lane),
-            'api_url': rest_query('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
-            'cols': col_mappings['unexpected_barcodes'],
-            'default_sort_col': _format_order('passing_filter_reads', col_mappings['unexpected_barcodes'])
-        }
-        for lane in lanes
-    ]
-
-    lane_aggregation = {
-        'title': 'Aggregation per lane',
-        'name': 'agg_per_lane',
-        'api_url': rest_query('lanes', where={'run_id': run_id}, aggregate=True, embedded={'run_elements': 1}),
-        'cols': col_mappings['lane_aggregation']
-    }
-
-    analysis_driver_procs = _query_api(
-        'analysis_driver_procs',
-        where={'dataset_type': 'run', 'dataset_name': run_id},
-        sort='-start_date'
-    )
+    lanes = sorted(set(e['lane_number'] for e in query_api('lanes', where={'run_id': run_id})))
 
     return fl.render_template(
         'run_report.html',
-        run_id=run_id,
-        aggregations=[lane_aggregation],
-        demultiplexing_tables=demultiplexing_tables,
-        unexpected_barcode_tables=unexpected_barcode_tables,
-        analysis_driver_procs=analysis_driver_procs
+        title='Report for ' + run_id,
+        lane_aggregation=datatable_cfg(
+            'Aggregation per lane',
+            'agg_per_lane',
+            'lane_aggregation',
+            rest_query('aggregate/run_elements_by_lane', match={'run_id': run_id}),
+            paging=False
+        ),
+        tab_sets=[
+            tab_set_cfg(
+                'Demultiplexing per lane',
+                'demultiplexing',
+                [
+                    datatable_cfg(
+                        'Lane ' + str(lane),
+                        'demultiplexing_lane_' + str(lane),
+                        'demultiplexing',
+                        rest_query('aggregate/run_elements', match={'run_id': run_id, 'lane': lane})
+                    )
+                    for lane in lanes
+                ]
+            ),
+            tab_set_cfg(
+                'Unexpected barcodes',
+                'unexpected_barcodes',
+                [
+                    datatable_cfg(
+                        'Lane ' + str(lane),
+                        'unexpected_barcode_lane_' + str(lane),
+                        'unexpected_barcodes',
+                        rest_query('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
+                        default_sort_col='passing_filter_reads'
+                    )
+                    for lane in lanes
+                ]
+            )
+        ],
+        procs=query_api(
+            'analysis_driver_procs',
+            where={'dataset_type': 'run', 'dataset_name': run_id},
+            sort='-start_date'
+        )
     )
 
 
@@ -116,47 +114,51 @@ def serve_fastqc_report(run_id, filename):
 @app.route('/projects/')
 def project_reports():
     return fl.render_template(
-        'projects.html',
-        api_url=rest_query('projects', aggregate=True, embedded={'samples': 1}),
-        cols=col_mappings['projects']
+        'untabbed_datatables.html',
+        table=datatable_cfg(
+            'Project list',
+            'projects',
+            'projects',
+            api_url=rest_query('aggregate/projects')
+        )
     )
 
 
 @app.route('/projects/<project_id>')
 def report_project(project_id):
     return fl.render_template(
-        'project_report.html',
-
-        project=project_id,
-        table={
-            'title': 'Project report for ' + project_id,
-            'name': project_id + '_report',
-            'api_url': rest_query('samples', where={'project_id': project_id}, aggregate=True, embedded={'run_elements': 1}),
-            'cols': col_mappings['samples']
-        }
+        'untabbed_datatables.html',
+        title='Project report for ' + project_id,
+        table=datatable_cfg(
+            'Project report for ' + project_id,
+            project_id + '_report',
+            'samples',
+            rest_query('aggregate/samples', match={'project_id': project_id})
+        )
     )
 
 
 @app.route('/samples/<sample_id>')
 def report_sample(sample_id):
+    sample = query_api('samples', where={'sample_id': sample_id}, embedded={'analysis_driver_procs': 1})[0]
+
     return fl.render_template(
         'sample_report.html',
-
-        sample = {
-            'name': 'sample_' + str(sample_id),
-            'api_url': rest_query('samples', where={'sample_id': sample_id}, aggregate=True, embedded={'run_elements': 1}),
-            'cols': col_mappings['samples']
-        },
-
-        run_elements = {
-            'name': 'run_elements_' + str(sample_id),
-            'api_url': rest_query('run_elements', where={'sample_id': sample_id}, aggregate=True),
-            'cols': col_mappings['demultiplexing']
-        },
-
-        sample_proc=_query_api(
-            'samples',
-            where={'sample_id': sample_id},
-            embedded={'analysis_driver_procs': 1}
-        )[0]
+        title='Report for sample ' + sample_id,
+        description='(From project %s)' % sample['project_id'],
+        tables=[
+            datatable_cfg(
+                'Sample report',
+                'sample_' + sample_id,
+                'samples',
+                rest_query('aggregate/samples', match={'sample_id': sample_id})
+            ),
+            datatable_cfg(
+                'Run elements report',
+                'run_elements_' + sample_id,
+                'demultiplexing',
+                rest_query('aggregate/run_elements', match={'sample_id': sample_id})
+            )
+        ],
+        procs=sample['analysis_driver_procs']
     )

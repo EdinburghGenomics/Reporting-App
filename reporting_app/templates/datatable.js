@@ -10,11 +10,20 @@ $(document).ready(
         var table = $('#{{name}}').DataTable(
             {
                 'paging': paging,
-                'searching': false,
+                'searching': true,
                 'processing': true,
-                'serverSide': true,
+                'serverSide': false,
                 'autoWidth': false,
-                'ajax': function(data, callback, settings) {
+                'ajax': {
+                    'url': api_url,
+                    'dataSrc': 'data'
+                },
+                /*'ajax': function(data, callback, settings) {
+
+                    // workaround: if paging is false, data.length is set to -1 and passed to max_results
+                    if (paging == false) {
+                        data.length = 50;
+                    }
 
                     // convert [{'column': 0, 'dir': 'asc'}, {'column': 1, 'dir': 'desc'}]
                     // to [cols[0], '-' + cols[1]]
@@ -49,7 +58,7 @@ $(document).ready(
                         }
                     );
 
-                },
+                },*/
                 'columns': cols.map(
                     function(c) {
                         return {

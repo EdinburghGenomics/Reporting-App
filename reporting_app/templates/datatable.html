@@ -15,20 +15,18 @@
 
 
 {% macro datatable(dt_config) -%}
-{# args:
-    name (str) - a name for the table (must match the html table element)
-    cols (list[dict[str,str]]) - the column names for the table, mapping their names in the database to
-    humanised names to display in html,
-    api_url (str) - the base url for the table to query,
-#}
+{# args: title, name, cols, api_url, default_dort_col, paging #}
+
+<h2>{{ dt_config.title }}</h2>
+
 {% if dt_config.default_sort_col %}
     {% set default_sort_col = dt_config.default_sort_col %}
 {% else %}
     {% set default_sort_col = [0, 'asc'] %}
 {% endif %}
 
-{% if dt_config.paging %}
-    {% set paging = dt_config.paging %}
+{% if dt_config.paging == False %}
+    {% set paging = 'false' %}
 {% else %}
     {% set paging = 'true' %}
 {% endif %}

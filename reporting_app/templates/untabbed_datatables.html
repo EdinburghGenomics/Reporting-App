@@ -1,0 +1,23 @@
+{% extends 'reporting_base.html' %}
+{% from 'datatable.html' import datatable, dt_header %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block head %}
+    {{ super() }}
+    {{ dt_header() }}
+{% endblock %}
+
+{% block content %}
+
+<h1>{{ title }}</h1>
+{{ description }}
+
+{% if tables %}
+    {% for table in tables %}
+    {{ datatable(table) }}
+    {% endfor %}
+{% elif table %}
+    {{ datatable(table) }}
+{% endif %}
+
+{% endblock %}

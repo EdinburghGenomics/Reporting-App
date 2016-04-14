@@ -1,63 +1,13 @@
-__author__ = 'mwham'
 import rest_api
-from tests.test_rest_api import TestBase
+from rest_api.aggregation import server_side
+from tests.test_rest_api.test_aggregation import TestAggregation, FakeRequest
 import json
-import os.path
-from unittest.mock import patch, Mock
-from collections import defaultdict
+from datetime import datetime
 
 
-class FakeMongoClient(Mock):
-    def __init__(self, host, port):
-        super().__init__()
-        self.host, self.port = host, port
-        self.dbs = defaultdict(str)
-
-    def __getitem__(self, item):
-        return self.dbs[item]
-
-
-with patch('pymongo.MongoClient', new=FakeMongoClient):
-    import rest_api.aggregation.database_side
-
-
-class TestAggregation(TestBase):
-    def _json_test_file(self, pre_or_post, filename):
-        return open(os.path.join(self.assets_dir, 'json', pre_or_post + '_aggregation', filename))
-
-    def _compare_jsons(self, o, e):
-        for x in (o, e):
-            for y in ('run_ids',):
-                self._reorder_comma_sep_list(x['data'], y)
-
-        if o != e:
-            print('!o_eq_e')
-            for x, y in zip(e['data'], o['data']):
-                missing = [k for k in x if k not in y]
-                if missing:
-                    print('missing expected key:')
-                    print(missing)
-            for x, y in zip(e['data'], o['data']):
-                unexpected = [k for k in y if k not in x]
-                if unexpected:
-                    print('unexpected key:')
-                    print(unexpected)
-            for x, y in zip(e['data'], o['data']):
-                different_values = ['%s: %s != %s'%(k, x[k], y[k]) for k in set(x).intersection(set(y)) if x[k] != y[k]]
-                if different_values:
-                    print('different values:')
-                    print(different_values)
-            raise AssertionError
-
-    def _reorder_comma_sep_list(self, data, key):
-        for e in data:
-            if key not in e:
-                continue
-            if type(e[key]) is list:
-                e[key] = list(sorted(e[key]))
-
-    def _test_aggregation(self, aggregate, filename):
-        raise NotImplementedError
+class FakePayload:
+    def __init__(self, data):
+        self.data = data
 
 
 class TestRestSide(TestAggregation):
@@ -126,9 +76,9 @@ class TestServerSide(TestAggregation):
 
     def test_aggregations_complete_data(self):
         for method, filename in (
-            (rest_api.aggregation.server_side.run_element_basic_aggregation, 'run_elements_basic'),
-            (rest_api.aggregation.server_side.aggregate_samples, 'samples_embedded_run_elements'),
-            (rest_api.aggregation.server_side.aggregate_lanes, 'lanes_embedded_run_elements')
+            (server_side.run_element_basic_aggregation, 'run_elements_basic'),
+            (server_side.aggregate_samples, 'samples_embedded_run_elements'),
+            (server_side.aggregate_lanes, 'lanes_embedded_run_elements')
         ):
             self._test_aggregation(method, filename)
 
@@ -145,7 +95,7 @@ class TestServerSide(TestAggregation):
         input_json = json.load(self._json_test_file('pre', 'run_elements_basic.json'))
 
         for e in input_json['data']:
-            e.update(rest_api.aggregation.server_side._aggregate_run_element(e))
+            e.update(server_side._aggregate_run_element(e))
 
         expected = json.load(self._json_test_file('post', 'run_elements_basic.json'))
         assert input_json == expected
@@ -154,13 +104,13 @@ class TestServerSide(TestAggregation):
         input_json = json.load(self._json_test_file('pre', 'run_elements_basic_incomplete.json'))
 
         for e in input_json['data']:
-            e.update(rest_api.aggregation.server_side._aggregate_run_element(e))
+            e.update(server_side._aggregate_run_element(e))
 
         expected = json.load(self._json_test_file('post', 'run_elements_basic_incomplete.json'))
         assert input_json == expected
 
     def test_order_json(self):
-        order = rest_api.aggregation.server_side._order_json
+        order = server_side._order_json
         j = self.test_data
         nosort = json.loads(order(j))
         assert nosort == j
@@ -178,17 +128,25 @@ class TestServerSide(TestAggregation):
         assert descsort == list(reversed(ascsort))
 
 
-class TestDatabaseSide(TestBase):
-    def test_format_order(self):
-        assert rest_api.aggregation.database_side.queries._format_order('thing') == {'thing': 1}
-        assert rest_api.aggregation.database_side.queries._format_order('-thing') == {'thing': -1}
+class TestPostProcessing(TestAggregation):
+    def test_cast_to_sets(self):
+        p = server_side.post_processing.cast_to_sets('column_to_cast')
+        agg = [
+            {'column_to_cast': ['this', 'that', 'other', 'this', 'this', 'that']},
+            {'column_to_cast': ['another', 'more', 'another', 'that']}
+        ]
+        assert p(agg) == [
+            {'column_to_cast': {'this', 'that', 'other'}},
+            {'column_to_cast': {'that', 'another', 'more'}}
+        ]
 
-
-class FakePayload:
-    def __init__(self, data):
-        self.data = data
-
-
-class FakeRequest:
-    def __init__(self, args):
-        self.args = args
+    def test_date_to_string(self):
+        p = server_side.post_processing.date_to_string('_created')
+        agg = [
+            {'_created': datetime(2016, 4, 13, 12, 0, 0)},
+            {'_created': datetime(2016, 4, 13, 12, 10, 0)}
+        ]
+        assert p(agg) == [
+            {'_created': '2016-04-13 12:00:00'},
+            {'_created': '2016-04-13 12:10:00'}
+        ]

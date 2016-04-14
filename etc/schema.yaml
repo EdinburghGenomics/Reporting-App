@@ -48,7 +48,8 @@ run_elements:
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'], default: 'not reviewed' }
     review_comments: {          type: 'multilinestring',  required: False }
     useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ], default: 'not marked' }
-    useable_comments: {          type: 'multilinestring',  required: False }
+    useable_comments: {         type: 'multilinestring',  required: False }
+
 
 
 unexpected_barcodes:
@@ -69,7 +70,7 @@ projects:
 samples:
     library_id: {               type: 'string',  required: False }
     project_id: {               type: 'string',  required: True  }
-    sample_id: {                type: 'string',  required: True,  unique: True }
+    sample_id: {                type: 'string',  required: True, unique: True }
     user_sample_id: {           type: 'string',  required: False }
 
     #QC metrics

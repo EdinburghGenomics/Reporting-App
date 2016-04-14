@@ -1,70 +1,12 @@
-{% extends 'reporting_base.html' %}
-{% from 'datatable.html' import datatable, dt_header %}
+{% extends 'tabbed_datatables.html' %}
+{% from 'datatable.html' import datatable %}
 {% from 'proc_report.html' import proc_report %}
 
-{% block title %}Run report{% endblock %}
-{% block head %}
-    {{ super() }}
-    {{ dt_header() }}
-{% endblock %}
 
 {% block content %}
 
-<h1>Report for {{ run_id }}</h1>
-
-{% for table in aggregations %}
-<h2>{{ table.title }}</h2>
-{{ datatable(table) }}
-
-{% endfor %}
-
-<div id="demultiplexing_tabs">
-    <h2>Demultiplexing reports</h2>
-    <ol>
-        {% for table in demultiplexing_tables %}
-        <li><a href="#{{ table.name }}_tab"><span>{{ table.title }}</span></a></li>
-        {% endfor %}
-    </ol>
-    {% for dm_table in demultiplexing_tables %}
-    <div id="{{ dm_table.name }}_tab">
-        {{ datatable(dm_table) }}
-    </div>
-    {% endfor %}
-</div>
-
-
-<div id="unexpected_barcode_tabs">
-    <h2>Unexpected barcode reports</h2>
-    <ol>
-        {% for table in unexpected_barcode_tables %}
-        <li><a href="#{{ table.name }}_tab"><span>{{ table.title }}</span></a></li>
-        {% endfor %}
-    </ol>
-    {% for ub_table in unexpected_barcode_tables %}
-    <div id="{{ ub_table.name }}_tab">
-        {{ datatable(ub_table) }}
-    </div>
-    {% endfor %}
-</div>
-
-
-<div id="analysis_driver_process_tabs">
-    <h2>Analysis Driver processes</h2>
-    <p>Number of times processed: {{ analysis_driver_procs|length }}</p>
-    <ol>
-        {% for p_tab in analysis_driver_procs %}
-        <li><a href="#{{ p_tab.proc_id }}_tab"><span>{{ p_tab.start_date }}</span></a></li>
-        {% endfor %}
-    </ol>
-    {% for p in analysis_driver_procs %}
-    {{ proc_report(p) }}
-    {% endfor %}
-</div>
-
-<script>
-$("#demultiplexing_tabs").tabs();
-$("#unexpected_barcode_tabs").tabs();
-$("#analysis_driver_process_tabs").tabs();
-</script>
+{{ datatable(lane_aggregation) }}
+{{ super() }}
+{{ proc_report(procs) }}
 
 {% endblock %}

@@ -1,4 +1,3 @@
-__author__ = 'mwham'
 import eve
 import flask
 from config import rest_config as cfg, schema
@@ -53,7 +52,6 @@ settings = {
             'schema': schema['analysis_driver_procs']
         }
     },
-    'VALIDATE_FILTERS': True,
 
     'MONGO_HOST': cfg['db_host'],
     'MONGO_PORT': cfg['db_port'],
@@ -79,11 +77,10 @@ settings = {
     'DATE_FORMAT': '%d_%m_%Y_%H:%M:%S'
 }
 
-from rest_api import aggregation
 
 app = eve.Eve(settings=settings)
-# if cfg.get('database_side_aggregation'):
-#     aggregation.database_side.register_db_side_aggregation(app)
+
+from rest_api import aggregation
 
 
 def _from_query_string(request_args, query, json=False):
@@ -146,14 +143,3 @@ app.on_post_GET_run_elements += run_element_basic_aggregation
 app.on_post_GET_lanes += aggregate_embedded_run_elements
 app.on_post_GET_runs += aggregate_embedded_run_elements_into_run
 app.on_post_GET_projects += aggregate_embedded_sample_elements_into_project
-
-
-"""
-querying with Python syntax:
-curl -i -g 'http://host:port/things?where=sample_project=="this"'
-http://host:port/things?where=sample_project==%22this%22
-
-and MongoDB syntax:
-curl -i -g 'http://host:port/things?where={"sample_project":"this"}'
-http://host:port/things?where={%22sample_project%22:%22this%22}
-"""
