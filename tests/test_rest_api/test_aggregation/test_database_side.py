@@ -108,7 +108,7 @@ class TestStages(TestAggregation):
             {
                 '$sort': {
                     'id_field': -1,
-                    'analysis_driver_procs._created': 1
+                    'analysis_driver_procs._created': -1
                 }
             },
             {

@@ -58,7 +58,7 @@ def merge_analysis_driver_procs(id_field, projection=None):
             }
         },
         {
-            '$sort': {id_field: -1, 'analysis_driver_procs._created': 1}
+            '$sort': {id_field: -1, 'analysis_driver_procs._created': -1}
         }
     ]
     group = {

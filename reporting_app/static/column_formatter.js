@@ -8,7 +8,7 @@ function render_data(data, fmt) {
         return null;
     }
     if (!fmt) {
-        return data;
+        return '<p>' + data + '</p>';
     }
     var formatted_data = data;
 
@@ -33,6 +33,8 @@ function render_data(data, fmt) {
     }
     if (fmt['min'] && data < fmt['min']) {
         formatted_data = '<p style="color:red">' + formatted_data + '</p>';
+    }else{
+        formatted_data = '<p>' + formatted_data + '</p>';
     }
 
     return formatted_data;
