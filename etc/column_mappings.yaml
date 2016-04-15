@@ -120,5 +120,6 @@ samples:
     - mismatching_snps
     - no_call_seq
     - no_call_chip
+    - proc_status
     - reviewed
     - useable
