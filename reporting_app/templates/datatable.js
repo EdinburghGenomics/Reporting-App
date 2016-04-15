@@ -18,55 +18,15 @@ $(document).ready(
                     'url': api_url,
                     'dataSrc': 'data'
                 },
-                /*'ajax': function(data, callback, settings) {
-
-                    // workaround: if paging is false, data.length is set to -1 and passed to max_results
-                    if (paging == false) {
-                        data.length = 50;
-                    }
-
-                    // convert [{'column': 0, 'dir': 'asc'}, {'column': 1, 'dir': 'desc'}]
-                    // to [cols[0], '-' + cols[1]]
-                    var sortCols = new Array();
-                    data.order.forEach(
-                        function(s) {
-                            if (s.dir == 'desc') {
-                                sortCols.push('-' + cols[s.column].name);
-                            } else {
-                                sortCols.push(cols[s.column].name);
-                            }
-                        }
-                    );
-
-                    $.ajax(
-                        {
-                            'url': api_url,
-                            'data': {
-                                'max_results': data.length,
-                                'page': (data.start/data.length) + 1,
-                                // convert [cols[0], '-' + cols[1]] to '%s,-%s' % (cols[0], cols[1])
-                                'sort': sortCols.toString()
-                            },
-                            'success': function(json) {
-                                var o = {
-                                    recordsTotal: json._meta.total,
-                                    recordsFiltered: json._meta.total,
-                                    data: json.data
-                                };
-                                callback(o);
-                            }
-                        }
-                    );
-
-                },*/
                 'columns': cols.map(
                     function(c) {
                         return {
-                            'data': c.name,
+                            'data': c.data,
                             'render': function(data, type, row, meta) {
                                 return render_data(data, c.fmt)
                             },
                             'orderable': !c.orderable || String(c.orderable).toLowerCase() == 'true',
+                            'visible': !c.visible || String(c.visible).toLowerCase() == 'true',
                             'defaultContent': ''
                         };
                     }

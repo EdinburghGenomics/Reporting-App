@@ -58,6 +58,34 @@ class SplitConfiguration(Configuration):
         return yaml.load(open(self._find_config_file(), 'r'))[env][self.app_type]
 
 
+class ColumnMappingConfig(Configuration):
+    def __init__(self, env_config, home_config, etc_config):
+        super().__init__(env_config, home_config, etc_config)
+
+        self.column_def = self.content.pop('column_def')
+        self.default_values = self.content.pop('default_values', [])
+        for key in self.content:
+            #self.content[key] needs to be a list of string or dictionaries
+            for i in range(len(self.content[key])):
+                if isinstance(self.content[key][i], str):
+                    if self.content[key][i] in self.column_def:
+                        self.content[key][i] = self.column_def[self.content[key][i]]
+                    else:
+                        raise ReferenceError('%s is not referenced in the column definition from the column mapping config'%self.content[key][i])
+                elif isinstance(self.content[key][i], dict):
+                    if self.content[key][i]['column_def'] in self.column_def:
+                        self.content[key][i].update(self.column_def[self.content[key][i]['column_def']])
+                    else:
+                        #leave the definition as it is
+                        pass
+                self._set_defaults(self.content[key][i])
+
+    def _set_defaults(self, column_def):
+        for k in self.default_values:
+            if k not in column_def:
+                column_def[k] = self.default_values[k]
+
+
 reporting_app_config = SplitConfiguration(
     'REPORTINGCONFIG',
     '~/.reporting.yaml',
@@ -71,4 +99,4 @@ rest_config = SplitConfiguration(
     'rest_app'
 )
 schema = Configuration('REPORTINGSCHEMA', '~/.reporting_schema.yaml', 'schema.yaml')
-col_mappings = Configuration('REPORTINGCOLS', '~/.reporting_cols.yaml', 'column_mappings.yaml')
+col_mappings = ColumnMappingConfig('REPORTINGCOLS', '~/.reporting_cols.yaml', 'column_mappings.yaml')
