@@ -22,7 +22,7 @@ def query_api(resource, data_only=True, **query_args):
 
 def _format_order(col_name, cols):
     direction = 'desc' if col_name.startswith('-') else 'asc'
-    return [[c['name'] for c in cols].index(col_name.lstrip('-')), direction]
+    return [[c['data'] for c in cols].index(col_name.lstrip('-')), direction]
 
 
 def datatable_cfg(title, name, cols, api_url, paging=True, default_sort_col=None):

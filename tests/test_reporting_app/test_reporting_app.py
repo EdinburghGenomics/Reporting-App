@@ -27,10 +27,10 @@ class TestReportingApp(TestBase):
 
     def test_format_order(self):
         cols = (
-            {'name': 'this', 'title': 'This'},
-            {'name': 'that', 'title': 'That'},
-            {'name': 'other', 'title': 'Other'},
-            {'name': 'another', 'title': 'Another'}
+            {'data': 'this', 'title': 'This'},
+            {'data': 'that', 'title': 'That'},
+            {'data': 'other', 'title': 'Other'},
+            {'data': 'another', 'title': 'Another'}
         )
         assert util._format_order('this', cols) == [0, 'asc']
         assert util._format_order('-other', cols) == [2, 'desc']

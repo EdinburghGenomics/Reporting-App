@@ -63,7 +63,6 @@ class ColumnMappingConfig(Configuration):
         super().__init__(env_config, home_config, etc_config)
 
         self.column_def = self.content.pop('column_def')
-        self.default_values = self.content.pop('default_values', [])
         for key in self.content:
             #self.content[key] needs to be a list of string or dictionaries
             for i in range(len(self.content[key])):
@@ -78,12 +77,8 @@ class ColumnMappingConfig(Configuration):
                     else:
                         #leave the definition as it is
                         pass
-                self._set_defaults(self.content[key][i])
 
-    def _set_defaults(self, column_def):
-        for k in self.default_values:
-            if k not in column_def:
-                column_def[k] = self.default_values[k]
+
 
 
 reporting_app_config = SplitConfiguration(
