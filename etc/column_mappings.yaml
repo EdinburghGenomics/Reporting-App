@@ -79,7 +79,6 @@ demultiplexing:
     - reviewed
     - useable
 
-
 lane_aggregation:
     - lane_number
     - passing_filter_reads
@@ -99,8 +98,7 @@ unexpected_barcodes:
 
 samples:
     - sample_id
-    - library_id
-    - {column_def: 'user_sample_id', visible: 'false'}
+    - user_sample_id
     - clean_yield_in_gb
     - clean_yield_q30
     - run_ids
@@ -121,5 +119,18 @@ samples:
     - no_call_seq
     - no_call_chip
     - proc_status
+    - reviewed
+    - useable
+
+
+sample_run_elements:
+    - run_id
+    - barcode
+    - project_id
+    - sample_id
+    - passing_filter_reads
+    - {column_def: 'yield_in_gb',  fmt: { type: 'float',  min: 120 } }
+    - pc_q30_r1
+    - pc_q30_r2
     - reviewed
     - useable

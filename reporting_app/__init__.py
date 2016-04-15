@@ -156,7 +156,7 @@ def report_sample(sample_id):
             datatable_cfg(
                 'Run elements report',
                 'run_elements_' + sample_id,
-                'demultiplexing',
+                'sample_run_elements',
                 rest_query('aggregate/run_elements', match={'sample_id': sample_id})
             )
         ],

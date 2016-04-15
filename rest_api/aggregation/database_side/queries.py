@@ -54,6 +54,7 @@ run_elements_group_by_lane = [
 demultiplexing = [
     {
         '$project': {
+            'run_id': '$run_id',
             'barcode': '$barcode',
             'lane': '$lane',
             'project_id': '$project_id',
