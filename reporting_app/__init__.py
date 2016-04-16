@@ -151,14 +151,20 @@ def report_sample(sample_id):
                 'Sample report',
                 'sample_' + sample_id,
                 'samples',
-                rest_query('aggregate/samples', match={'sample_id': sample_id})
+                rest_query('aggregate/samples', match={'sample_id': sample_id}),
+                paging=False,
+                searching=False,
+                info=False
             ),
             datatable_cfg(
                 'Run elements report',
                 'run_elements_' + sample_id,
                 'sample_run_elements',
-                rest_query('aggregate/run_elements', match={'sample_id': sample_id})
+                rest_query('aggregate/run_elements', match={'sample_id': sample_id}),
+                paging=False,
+                searching=False,
+                info=False
             )
         ],
-        procs=sample['analysis_driver_procs']
+        procs=sample.get('analysis_driver_procs',{})
     )

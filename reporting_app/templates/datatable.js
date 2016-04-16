@@ -1,19 +1,23 @@
-{% macro dt_init(name, cols, api_url, default_sort_col, paging) %}
+{% macro dt_init(dt_config) %}
 
 $(document).ready(
     function() {
-        var cols = {{ cols|list|safe }};
-        var api_url = '{{ api_url|safe }}';
-        var paging = {{ paging|safe }};
-        var default_sort_col = {{ default_sort_col|safe }};
+        var cols = {{ dt_config.cols|list|safe }};
+        var api_url = '{{ dt_config.api_url|safe }}';
+        var paging = {{'true' if dt_config.paging|default(true) else 'false' }};
+        var searching = {{'true' if dt_config.searching|default(true) else 'false' }};
+        var info = {{'true' if dt_config.info|default(true) else 'false' }};
+        var default_sort_col = {{ dt_config.default_sort_col|safe }};
 
-        var table = $('#{{name}}').DataTable(
+        var table = $('#{{dt_config.name}}').DataTable(
             {
                 'paging': paging,
-                'searching': true,
+                'searching': searching,
+                'info': info,
                 'processing': true,
                 'serverSide': false,
                 'autoWidth': false,
+                'stateSave': true,
                 'ajax': {
                     'url': api_url,
                     'dataSrc': 'data'
@@ -35,7 +39,11 @@ $(document).ready(
             }
         );
 
-        new $.fn.dataTable.Buttons(table, {'buttons': [{'extend': 'colvis', 'text': 'Filter columns'}]});
+        new $.fn.dataTable.Buttons(table, {'buttons': [
+               {'extend': 'colvis', 'text': '<i class="fa fa-filter"></i>',     'titleAttr': 'Filter Columns'},
+               {'extend': 'copy',   'text': '<i class="fa fa-files-o"></i>',    'titleAttr': 'Copy'},
+               {'extend': 'pdf',    'text': '<i class="fa fa-file-pdf-o"></i>', 'titleAttr': 'PDF'}
+        ]});
         table.buttons().container().prependTo(table.table().container());
     }
 );
