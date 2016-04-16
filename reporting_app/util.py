@@ -25,19 +25,20 @@ def _format_order(col_name, cols):
     return [[c['data'] for c in cols].index(col_name.lstrip('-')), direction]
 
 
-def datatable_cfg(title, name, cols, api_url, paging=True, default_sort_col=None):
+def datatable_cfg(title, name, cols, api_url, default_sort_col=None, **kwargs):
     if default_sort_col is None:
         default_sort_col = [0, 'desc']
     else:
         default_sort_col = _format_order(default_sort_col, col_mappings[cols])
-    return {
+    d = {
         'title': title,
         'name': name,
         'cols': col_mappings[cols],
         'api_url': api_url,
         'default_sort_col': default_sort_col,
-        'paging': paging
     }
+    d.update(kwargs)
+    return d
 
 
 def tab_set_cfg(title, name, tables):

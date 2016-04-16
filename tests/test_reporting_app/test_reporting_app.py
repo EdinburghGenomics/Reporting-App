@@ -48,8 +48,7 @@ class TestReportingApp(TestBase):
             'name': 'a_name',
             'cols': col_mappings['demultiplexing'],
             'api_url': self.cfg['rest_api'] + '/test_endpoint',
-            'default_sort_col': [2, 'desc'],
-            'paging': True
+            'default_sort_col': [2, 'desc']
         }
         assert obs == exp
 

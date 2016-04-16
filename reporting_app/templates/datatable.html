@@ -5,8 +5,15 @@
     <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.js"></script>
     <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/buttons/1.1.2/js/dataTables.buttons.min.js"></script>
     <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/buttons/1.1.2/js/buttons.colVis.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/buttons/1.1.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/pdfmake.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/vfs_fonts.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.9/css/jquery.dataTables.css"/>
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/buttons/1.1.2/css/buttons.dataTables.min.css"/>
+    <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css"/>
+
+
 
     <!-- humanize and column formatting -->
     <script src="/static/humanize.js"></script>
@@ -15,22 +22,11 @@
 
 
 {% macro datatable(dt_config) -%}
-{# args: title, name, cols, api_url, default_dort_col, paging #}
+{# args: title, name, cols, api_url, default_dort_col, paging, searching, info, etc #}
 
 <h2>{{ dt_config.title }}</h2>
 
-{% if dt_config.default_sort_col %}
-    {% set default_sort_col = dt_config.default_sort_col %}
-{% else %}
-    {% set default_sort_col = [0, 'asc'] %}
-{% endif %}
-
-{% if dt_config.paging == False %}
-    {% set paging = 'false' %}
-{% else %}
-    {% set paging = 'true' %}
-{% endif %}
-<script type="text/javascript" language="JavaScript" class="init">{{ dt_init(dt_config.name, dt_config.cols, dt_config.api_url, default_sort_col, paging)|safe }}</script>
+<script type="text/javascript" language="JavaScript" class="init">{{ dt_init(dt_config)|safe }}</script>
 
 <table id="{{ dt_config.name }}" class="display">
     <thead>
