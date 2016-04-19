@@ -50,7 +50,6 @@ runs:
     - run_id
     - project_ids
     - pc_q30_r1
-    - pc_q30_r1
     - pc_q30_r2
     - pc_q30
     - clean_yield_in_gb

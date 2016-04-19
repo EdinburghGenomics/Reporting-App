@@ -1,47 +1,49 @@
-body {
-  font-family: verdana,helvetica,clean,sans-serif;
-  font-size: 13px; /* baseline: 100% */
-  text-align:left;
+
+.page-content {
+  padding-left: 2%;
+  padding-right: 2%;
 }
 
-
-#logo {
-    #margin left: 4px;
-    float: left;
-    height:40px;
-}
-
-#nav {
-    margin: 0;
-    padding: 0;
-   }
-
-#nav ul {
-    list-style:none;
-    margin: 0;
-    padding: 0;
+.dt_cell {
+    white-space: nowrap;
+    max-width: 12em;
     overflow: hidden;
-    background-color: #000000;
-   }
-
-#nav ul li {
-    display:inline-block;
-    line-height:40px;
-    border-right: 1px solid #bbb;
+    text-overflow: ellipsis;
 }
 
-#nav ul li a {
-    margin: 10px;
-    padding: 4px;
-    color:#FFF;
-    font-size:20px;
-    text-decoration:none;
+.dt_cell:hover {
+    overflow: visible;
+    //display: block;
 }
 
-#nav ul li a:hover {
-    #background-color: #666666;
+.dropdown {
+    //display: inline-block;
 }
 
-#nav ul li .active {
-    border-bottom:3px #FFF solid;
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropbtn {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropbtn:hover {
+    overflow: visible;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    z-index: 10;
+    background-color: #f9f9f9;
+    border: 1pt solid grey;
+    /* box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); */
+}
+
+.dropdown-content a {
+    padding: 6px 8px;
+    display: block;
+    text-align: left;
 }

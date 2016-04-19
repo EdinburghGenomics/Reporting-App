@@ -42,14 +42,12 @@ def pipeline_report(pipeline_type, view_type):
 
     return fl.render_template(
         'untabbed_datatables.html',
-        tables=[
-            datatable_cfg(
-                s[0].upper() + s[1:] + ' ' + pipeline_type,
-                s + '_' + pipeline_type,
-                pipeline_type,
-                rest_query(endpoint, match={'proc_status': s}))
-            for s in statuses[view_type]
-        ]
+        table=datatable_cfg(
+            view_type[0].upper() + view_type[1:] + ' ' + pipeline_type,
+            view_type + '_' + pipeline_type,
+            pipeline_type,
+            rest_query(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
+        )
     )
 
 
@@ -128,7 +126,6 @@ def project_reports():
 def report_project(project_id):
     return fl.render_template(
         'untabbed_datatables.html',
-        title='Project report for ' + project_id,
         table=datatable_cfg(
             'Project report for ' + project_id,
             project_id + '_report',
@@ -166,5 +163,5 @@ def report_sample(sample_id):
                 info=False
             )
         ],
-        procs=sample.get('analysis_driver_procs',{})
+        procs=sample.get('analysis_driver_procs', {})
     )

@@ -22,6 +22,7 @@ $(document).ready(
                     'url': api_url,
                     'dataSrc': 'data'
                 },
+                'language': {'processing': '<i class="fa fa-refresh fa-spin">'},
                 'columns': cols.map(
                     function(c) {
                         return {
@@ -31,7 +32,8 @@ $(document).ready(
                             },
                             'orderable': !c.orderable || String(c.orderable).toLowerCase() == 'true',
                             'visible': !c.visible || String(c.visible).toLowerCase() == 'true',
-                            'defaultContent': ''
+                            'defaultContent': '',
+                            'width': c.width || '10%'
                         };
                     }
                 ),
