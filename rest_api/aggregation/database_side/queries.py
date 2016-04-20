@@ -36,7 +36,8 @@ run_elements_group_by_lane = [
             'lane_number': '$_id',
             'passing_filter_reads': '$passing_filter_reads',
             'pc_pass_filter': percentage('$passing_filter_reads', '$total_reads'),
-            'yield_in_gb': divide({'$add': ['$q30_bases_r1', '$q30_bases_r2']}, 1000000000),
+            'yield_in_gb': divide({'$add': ['$bases_r1', '$bases_r2']}, 1000000000),
+            'yield_q30_in_gb': divide({'$add': ['$q30_bases_r1', '$q30_bases_r2']}, 1000000000),
             'pc_q30': percentage(
                 {'$add': ['$q30_bases_r1', '$q30_bases_r2']},
                 {'$add': ['$bases_r1', '$bases_r2']}
