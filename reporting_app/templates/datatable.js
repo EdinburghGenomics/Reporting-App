@@ -18,6 +18,8 @@ $(document).ready(
                 'serverSide': false,
                 'autoWidth': false,
                 'stateSave': true,
+                'lengthMenu': [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                'pageLength': 25,
                 'ajax': {
                     'url': api_url,
                     'dataSrc': 'data'
@@ -27,6 +29,7 @@ $(document).ready(
                     function(c) {
                         return {
                             'data': c.data,
+                            'name': c.data,
                             'render': function(data, type, row, meta) {
                                 return render_data(data, c.fmt)
                             },
@@ -43,8 +46,8 @@ $(document).ready(
 
         new $.fn.dataTable.Buttons(table, {'buttons': [
                {'extend': 'colvis', 'text': '<i class="fa fa-filter"></i>',     'titleAttr': 'Filter Columns'},
-               {'extend': 'copy',   'text': '<i class="fa fa-files-o"></i>',    'titleAttr': 'Copy'},
-               {'extend': 'pdf',    'text': '<i class="fa fa-file-pdf-o"></i>', 'titleAttr': 'PDF'}
+               {'extend': 'copy',   'text': '<i class="fa fa-files-o"></i>',    'titleAttr': 'Copy', 'exportOptions': {'columns': ':visible'} },
+               {'extend': 'pdf',    'text': '<i class="fa fa-file-pdf-o"></i>', 'titleAttr': 'PDF', 'orientation': 'landscape', 'exportOptions': {'columns': ':visible'}}
         ]});
         table.buttons().container().prependTo(table.table().container());
     }

@@ -84,6 +84,7 @@ lane_aggregation:
     - passing_filter_reads
     - pc_pass_filter
     - yield_in_gb
+    - yield_q30_in_gb
     - pc_q30
     - pc_q30_r1
     - pc_q30_r2

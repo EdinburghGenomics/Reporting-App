@@ -63,7 +63,9 @@ def report_run(run_id):
             'agg_per_lane',
             'lane_aggregation',
             rest_query('aggregate/run_elements_by_lane', match={'run_id': run_id}),
-            paging=False
+            paging=False,
+            searching=False,
+            info=False
         ),
         tab_sets=[
             tab_set_cfg(
@@ -74,7 +76,10 @@ def report_run(run_id):
                         'Lane ' + str(lane),
                         'demultiplexing_lane_' + str(lane),
                         'demultiplexing',
-                        rest_query('aggregate/run_elements', match={'run_id': run_id, 'lane': lane})
+                        rest_query('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
+                        paging=False,
+                        searching=False,
+                        info=False
                     )
                     for lane in lanes
                 ]
@@ -88,7 +93,10 @@ def report_run(run_id):
                         'unexpected_barcode_lane_' + str(lane),
                         'unexpected_barcodes',
                         rest_query('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
-                        default_sort_col='passing_filter_reads'
+                        default_sort_col='passing_filter_reads',
+                        paging=False,
+                        searching=False,
+                        info=False
                     )
                     for lane in lanes
                 ]
