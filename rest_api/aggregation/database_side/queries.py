@@ -93,6 +93,7 @@ sequencing_run_information.extend([
             'reviewed': '$run_elements.reviewed',
             'useable': '$run_elements.useable',
             'proc_status': '$most_recent_proc.status',
+            'most_recent_proc': '$most_recent_proc'
         }
     },
     {
@@ -109,6 +110,7 @@ sequencing_run_information.extend([
             'review_statuses': '$reviewed',
             'useable_statuses': '$useable',
             'proc_status': '$proc_status',
+            'most_recent_proc': '$most_recent_proc'
         }
     }
 ])
@@ -136,6 +138,7 @@ sample.extend([
             'useable': '$useable',
             'delivered': '$delivered',
             'proc_status': '$most_recent_proc.status',
+            'most_recent_proc': '$most_recent_proc',
 
             'bases_r1': {'$sum': '$run_elements.bases_r1'},
             'bases_r2': {'$sum': '$run_elements.bases_r2'},
@@ -168,6 +171,7 @@ sample.extend([
             'useable': '$useable',
             'delivered': '$delivered',
             'proc_status': '$proc_status',
+            'most_recent_proc': '$most_recent_proc',
 
             'pc_pass_filter': percentage('$passing_filter_reads', '$total_reads'),
             'clean_pc_q30_r1': percentage('$clean_q30_bases_r1', '$clean_bases_r1'),

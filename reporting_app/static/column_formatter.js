@@ -21,12 +21,15 @@ function render_data(data, fmt) {
     }
 
     if (fmt['link']) {
-        if (data instanceof Array) {
+        if (data instanceof Array && data.length > 1) {
             formatted_data = '<div class="dropdown"><div class="dropbtn">' + data + '</div><div class="dropdown-content">';
             for (var i=0, tot=data.length; i < tot; i++){
                 formatted_data = formatted_data.concat('<a href=' + fmt['link'] + data[i] + '>' + data[i] + '</a>');
             }
             formatted_data = formatted_data.concat('</div></div>')
+        }
+        else if (data instanceof Array && data.length == 1){
+            formatted_data = '<a href=' + fmt['link'] + data[0] + '>' + data[0] + '</a>';
         }
         else {
             formatted_data = '<a href=' + fmt['link'] + data + '>' + data + '</a>';
