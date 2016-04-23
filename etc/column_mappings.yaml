@@ -40,6 +40,7 @@ column_def:
     run_id:                   { data: 'run_id',                               title: 'Run ID',                  fmt: { link: '/runs/' } }
     run_ids:                  { data: 'run_ids',                              title: 'Run ids',                 fmt: { link: '/runs/' } }
     sample_id:                { data: 'sample_id',                            title: 'Sample ID',               fmt: { link: '/samples/' } }
+    sample_ids:               { data: 'sample_ids',                           title: 'Sample list',             fmt: { link: '/samples/' } }
     useable:                  { data: 'useable',                              title: 'Useable' }
     useable_statuses:         { data: 'useable_statuses',                     title: 'Useable'}
     user_sample_id:           { data: 'user_sample_id',                       title: 'User sample ID' }
@@ -81,6 +82,7 @@ demultiplexing:
 
 lane_aggregation:
     - lane_number
+    - sample_ids
     - passing_filter_reads
     - pc_pass_filter
     - yield_in_gb
@@ -126,6 +128,7 @@ samples:
 
 sample_run_elements:
     - run_id
+    - lane_number
     - barcode
     - project_id
     - sample_id

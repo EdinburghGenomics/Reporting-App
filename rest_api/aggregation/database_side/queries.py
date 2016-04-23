@@ -7,6 +7,8 @@ run_elements_group_by_lane = [
     {
         '$project': {
             'lane': '$lane',
+            'run_id': '$run_id',
+            'sample_id': '$sample_id',
             'total_reads': '$total_reads',
             'passing_filter_reads': '$passing_filter_reads',
             'yield_in_gb': '$yield_in_gb',
@@ -18,7 +20,10 @@ run_elements_group_by_lane = [
     },
     {
         '$group': {
-            '_id': '$lane',
+            '_id': {'run_id': '$run_id', 'lane':'$lane'},
+            'lane': {'$first': '$lane'},
+            'run_id': {'$first': '$run_id'},
+            'sample_ids': {'$addToSet': '$sample_id'},
             'total_reads': {'$sum': '$total_reads'},
             'passing_filter_reads': {'$sum': '$passing_filter_reads'},
 
@@ -33,7 +38,9 @@ run_elements_group_by_lane = [
     },
     {
         '$project': {
-            'lane_number': '$_id',
+            'run_id': '$run_id',
+            'lane_number': '$lane',
+            'sample_ids': '$sample_ids',
             'passing_filter_reads': '$passing_filter_reads',
             'pc_pass_filter': percentage('$passing_filter_reads', '$total_reads'),
             'yield_in_gb': divide({'$add': ['$bases_r1', '$bases_r2']}, 1000000000),
@@ -57,7 +64,7 @@ demultiplexing = [
         '$project': {
             'run_id': '$run_id',
             'barcode': '$barcode',
-            'lane': '$lane',
+            'lane_number': '$lane',
             'project_id': '$project_id',
             'sample_id': '$sample_id',
             'passing_filter_reads': '$passing_filter_reads',
@@ -151,7 +158,8 @@ sample.extend([
             'total_reads': {'$sum': '$run_elements.total_reads'},
             'passing_filter_reads': {'$sum': '$run_elements.passing_filter_reads'},
             'clean_reads': {'$sum': '$run_elements.clean_reads'},
-            'run_ids': '$run_elements.run_id'
+            'run_ids': '$run_elements.run_id',
+            'run_elements': '$run_elements.run_element_id'
         }
     },
     {
@@ -161,6 +169,7 @@ sample.extend([
             'library_id': '$library_id',
             'user_sample_id': '$user_sample_id',
             'run_ids': '$run_ids',
+            'run_elements': '$run_elements',
             'bam_file_reads': '$bam_file_reads',
             'mapped_reads': '$mapped_reads',
             'properly_mapped_reads': '$properly_mapped_reads',
