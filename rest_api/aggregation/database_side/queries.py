@@ -15,7 +15,8 @@ run_elements_group_by_lane = [
             'bases_r1': '$bases_r1',
             'q30_bases_r1': '$q30_bases_r1',
             'bases_r2': '$bases_r2',
-            'q30_bases_r2': '$q30_bases_r2'
+            'q30_bases_r2': '$q30_bases_r2',
+            'useable': '$useable'
         }
     },
     {
@@ -24,6 +25,7 @@ run_elements_group_by_lane = [
             'lane': {'$first': '$lane'},
             'run_id': {'$first': '$run_id'},
             'sample_ids': {'$addToSet': '$sample_id'},
+            'useable': {'$addToSet': '$useable'},
             'total_reads': {'$sum': '$total_reads'},
             'passing_filter_reads': {'$sum': '$passing_filter_reads'},
 
@@ -53,7 +55,8 @@ run_elements_group_by_lane = [
             'pc_q30_r2': percentage('$q30_bases_r2', '$bases_r2'),
             'stdev_pf': '$stdev_pf',
             'avg_pf': '$avg_pf',
-            'cv': divide('$stdev_pf', '$avg_pf')
+            'cv': divide('$stdev_pf', '$avg_pf'),
+            'useable': '$useable'
         }
     }
 ]
