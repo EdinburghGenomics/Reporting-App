@@ -116,7 +116,7 @@ sequencing_run_information.extend([
 sample = merge_analysis_driver_procs('sample_id', [
     'sample_id', 'number_of_lanes', 'project_id', 'sample_id', 'library_id', 'user_sample_id',
     'bam_file_reads', 'mapped_reads', 'properly_mapped', 'duplicate_reads', 'median_coverage',
-    'genotype_validation', 'reviewed', 'useable', 'delivered'])
+    'genotype_validation', 'called_gender', 'provided_gender', 'reviewed', 'useable', 'delivered'])
 
 sample.extend([
     lookup('run_elements', 'sample_id'),
@@ -132,6 +132,8 @@ sample.extend([
             'duplicate_reads': '$duplicate_reads',
             'median_coverage': '$median_coverage',
             'genotype_validation': '$genotype_validation',
+            'called_gender': '$called_gender',
+            'provided_gender': '$provided_gender',
             'reviewed': '$reviewed',
             'useable': '$useable',
             'delivered': '$delivered',
@@ -164,6 +166,8 @@ sample.extend([
             'duplicate_reads': '$duplicate_reads',
             'median_coverage': '$median_coverage',
             'genotype_validation': '$genotype_validation',
+            'called_gender': '$called_gender',
+            'provided_gender': '$provided_gender',
             'reviewed': '$reviewed',
             'useable': '$useable',
             'delivered': '$delivered',
