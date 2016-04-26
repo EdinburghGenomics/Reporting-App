@@ -18,9 +18,7 @@ aggregate_sample = {
     'clean_yield_q30': Divide(Add('clean_q30_bases_r1', 'clean_q30_bases_r2'), Constant(1000000000)),
     'pc_mapped_reads': Percentage('mapped_reads', 'bam_file_reads'),
     'pc_properly_mapped_reads': Percentage('properly_mapped_reads', 'bam_file_reads'),
-    'pc_duplicate_reads': Percentage('duplicate_reads', 'bam_file_reads'),
-    'called_gender': 'called_gender',
-    'provided_gender': 'provided_gender'
+    'pc_duplicate_reads': Percentage('duplicate_reads', 'bam_file_reads')
 }
 
 aggregate_lane = {
