@@ -115,8 +115,8 @@ sequencing_run_information.extend([
 
 sample = merge_analysis_driver_procs('sample_id', [
     'sample_id', 'number_of_lanes', 'project_id', 'sample_id', 'library_id', 'user_sample_id',
-    'bam_file_reads', 'mapped_reads', 'properly_mapped', 'duplicate_reads', 'median_coverage',
-    'genotype_validation', 'called_gender', 'provided_gender', 'reviewed', 'useable', 'delivered'])
+    'bam_file_reads', 'mapped_reads', 'properly_mapped_reads', 'duplicate_reads', 'median_coverage',
+    'genotype_validation', 'called_gender', 'provided_gender', 'reviewed', 'useable', 'delivered', 'review_comments'])
 
 sample.extend([
     lookup('run_elements', 'sample_id'),
@@ -138,6 +138,7 @@ sample.extend([
             'useable': '$useable',
             'delivered': '$delivered',
             'proc_status': '$most_recent_proc.status',
+            'review_comments': '$review_comments',
 
             'bases_r1': {'$sum': '$run_elements.bases_r1'},
             'bases_r2': {'$sum': '$run_elements.bases_r2'},
@@ -172,6 +173,7 @@ sample.extend([
             'useable': '$useable',
             'delivered': '$delivered',
             'proc_status': '$proc_status',
+            'review_comments': '$review_comments',
 
             'pc_pass_filter': percentage('$passing_filter_reads', '$total_reads'),
             'clean_pc_q30_r1': percentage('$clean_q30_bases_r1', '$clean_bases_r1'),
