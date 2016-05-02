@@ -8,14 +8,14 @@
     <p>Number of times processed: {{ procs|length }}</p>
     <ol>
         {% for proc in procs %}
-        <li><a href="#{{ proc.proc_id }}_tab"><span>{{ proc.start_date }}</span></a></li>
+        <li><a href="#{{ proc.proc_id }}_tab"><span>{{ proc._created }}</span></a></li>
         {% endfor %}
     </ol>
     {% for proc in procs %}
     <div id="{{ proc.proc_id }}_tab">
         <br/>
         <ul>
-            <li>Started: {{ proc.start_date }}</li>
+            <li>Started: {{ proc._created }}</li>
             <li>Ended:
                 {% if proc.end_date %}
                 {{ proc.end_date }}
