@@ -9,6 +9,7 @@ column_def:
     clean_yield_q30:          { data: 'clean_yield_q30',                      title: 'Yield Q30 (Gb - cleaned)', fmt: { type: 'float' } }
     _created:                 { data: '_created',                             title: 'Created' }
     cv:                       { data: 'cv',                                   title: 'Coefficient of variance',  fmt: { type: 'float' } }
+    delivered:                { data: 'delivered',                            title: 'Delivered'}
     duplicate_reads:          { data: 'duplicate_reads',                      title: '# duplicate reads',        visible: 'false',        fmt: { type: 'int',   min: 1500 } }
     lane_number:              { data: 'lane_number',                          title: 'Lane' }
     library_id:               { data: 'library_id',                           title: 'Library ID' }
@@ -134,6 +135,7 @@ samples:
     - proc_status
     - reviewed
     - useable
+    - {column_def: 'delivered',  visible: 'false' }
 
 
 sample_run_elements:
