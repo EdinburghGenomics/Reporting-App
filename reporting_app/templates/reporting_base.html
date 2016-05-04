@@ -1,3 +1,6 @@
+{% extends 'base.html' %}
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,7 +31,7 @@
 </head>
 
 <body>
-    {% block menu %}
+    {% block body %}
     <div class="navbar navbar-inverse navbar-static-top" role="navigation">
         <div class="container">
             <div class="navbar-header">
@@ -43,7 +46,7 @@
                 </a>
             </div>
             <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav navbar-right" >
+                <ul class="nav navbar-nav" >
                     <li class="dropdown">
                         <a href="#" class="dropdown=toggle" data-toggle="dropdown">Runs<b class="caret"></b></a>
                         <ul class="dropdown-menu">
@@ -55,13 +58,22 @@
                         </ul>
                     </li>
                     <li><a href="/projects">Projects</a></li>
+
+                    <li class="dropdown">
+                        <a href="#" class="dropdown=toggle" data-toggle="dropdown">{{ current_user.id }}<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/logout">Logout</a></li>
+                            <li><a href="/change_password">Change password</a></li>
+                        </ul>
+
+                    </li>
                 </ul>
             </div>
 
         </div>
     </div>
+    {{ super() }}
     {% endblock %}
-    <div id="content" class="page-content"><div>{% block content %}{% endblock %}</div></div>
-   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" crossorigin="anonymous"></script>
+
 </body>
 </html>
