@@ -46,7 +46,7 @@ run_elements:
     fastqc_report_r2: {         type: 'string',  required: False }
 
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'], default: 'not reviewed' }
-    review_comments: {          type: 'multilinestring',  required: False }
+    review_comments: {          type: 'string',  required: False }
     useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ], default: 'not marked' }
     useable_comments: {         type: 'multilinestring',  required: False }
 
