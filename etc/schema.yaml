@@ -36,6 +36,8 @@ run_elements:
     adaptor_bases_removed_r1: { type: 'integer', required: False }
     adaptor_bases_removed_r2: { type: 'integer', required: False }
 
+    lane_pc_optical_dups:     { type: 'float',   required: False }
+
     clean_reads: {              type: 'integer', required: False }
     clean_bases_r1: {           type: 'integer', required: False }
     clean_q30_bases_r1: {       type: 'integer', required: False }

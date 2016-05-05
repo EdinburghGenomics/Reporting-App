@@ -16,6 +16,7 @@ run_elements_group_by_lane = [
             'q30_bases_r1': '$q30_bases_r1',
             'bases_r2': '$bases_r2',
             'q30_bases_r2': '$q30_bases_r2',
+            'lane_pc_optical_dups': '$lane_pc_optical_dups',
             'useable': '$useable'
         }
     },
@@ -33,7 +34,7 @@ run_elements_group_by_lane = [
             'q30_bases_r1': {'$sum': '$q30_bases_r1'},
             'bases_r2': {'$sum': '$bases_r2'},
             'q30_bases_r2': {'$sum': '$q30_bases_r2'},
-
+            'lane_pc_optical_dups': {'$first': '$lane_pc_optical_dups'},
             'stdev_pf': {'$stdDevPop': '$passing_filter_reads'},
             'avg_pf': {'$avg': '$passing_filter_reads'}
         }
@@ -56,6 +57,7 @@ run_elements_group_by_lane = [
             'stdev_pf': '$stdev_pf',
             'avg_pf': '$avg_pf',
             'cv': divide('$stdev_pf', '$avg_pf'),
+            'lane_pc_optical_dups': '$lane_pc_optical_dups',
             'useable': '$useable'
         }
     }

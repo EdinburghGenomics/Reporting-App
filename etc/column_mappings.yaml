@@ -11,6 +11,7 @@ column_def:
     cv:                       { data: 'cv',                                   title: 'Coefficient of variance',  fmt: { type: 'float' } }
     delivered:                { data: 'delivered',                            title: 'Delivered'}
     duplicate_reads:          { data: 'duplicate_reads',                      title: '# duplicate reads',        visible: 'false',        fmt: { type: 'int',   min: 1500 } }
+    lane_pc_optical_dups:     { data: 'lane_pc_optical_dups',                 title: 'Estimated dupl rate',      fmt: { type: 'float', max: 20 } }
     lane_number:              { data: 'lane_number',                          title: 'Lane' }
     library_id:               { data: 'library_id',                           title: 'Library ID' }
     genotype_match:           { data: 'genotype_match',                       title: 'Genotype'   }
@@ -83,6 +84,7 @@ demultiplexing:
     - {column_def: 'yield_in_gb',  fmt: { type: 'float',  min: 120 } }
     - pc_q30_r1
     - pc_q30_r2
+    - lane_pc_optical_dups
     - reviewed
     - useable
 
@@ -96,6 +98,7 @@ lane_aggregation:
     - pc_q30
     - pc_q30_r1
     - pc_q30_r2
+    - lane_pc_optical_dups
     - cv
 
 
