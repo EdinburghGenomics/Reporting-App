@@ -5,6 +5,8 @@ default:
         debug: False
         port: 5000
         rest_api: 'http://localhost:4999/api/0.1'
+        key: 'a_key'
+        user_db: reporting_app_users.sqlite
 
         logging:
             stream_handlers:
@@ -12,7 +14,7 @@ default:
                   level: DEBUG
 
             timed_rotating_file_handlers:
-                - filename: /path/to/reporting_app.log
+                - filename: path/to/reporting_app.log
                   when: 'midnight'
                   level: DEBUG
 
@@ -22,6 +24,8 @@ default:
         webserver: tornado
         port: 4999
         debug: False
+
+        key: 'a_key'
 
         db_name: 'test_db'
         db_host: 'mongodb://localhost'
