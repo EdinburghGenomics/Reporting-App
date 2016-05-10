@@ -1,14 +1,22 @@
+import os.path
 import flask as fl
 import flask_login
-import os.path
-from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg
-from . import auth
+from itsdangerous import TimedSerializer
 from config import reporting_app_config as cfg
+import auth
+from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg
 
 app = fl.Flask(__name__)
 app.secret_key = cfg['key'].encode()
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
+
+
+def generate_api_token(user_id):
+        data = {}
+        if user_id:
+            data['token'] = user_id
+        return TimedSerializer(app.secret_key).dumps(data)
 
 
 @login_manager.user_loader
@@ -33,15 +41,15 @@ def login():
         return fl.render_template('login.html')
     username = fl.request.form['username']
     if auth.match_passwords(username, fl.request.form['pw']):
-        u = auth.User(username)
+        u = auth.User(username, api_token=generate_api_token(username))
         flask_login.login_user(u)
         return fl.redirect('/')
-
     return 'Bad login'
 
 
 @app.route('/logout')
 def logout():
+    flask_login.current_user.erase_token()
     flask_login.logout_user()
     return 'Logged out'
 
@@ -57,7 +65,6 @@ def change_password():
     if auth.match_passwords(user_id, form['old_pw']):
         auth.change_pw(user_id, form['old_pw'], form['new_pw'])
         return fl.redirect('/logout')
-
     return 'Bad request'
 
 

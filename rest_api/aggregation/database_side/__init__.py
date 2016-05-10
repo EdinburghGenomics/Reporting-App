@@ -1,10 +1,10 @@
 from flask import jsonify, request
-import flask_cors
 import pymongo
 from bson.json_util import dumps
 from json import loads
 from rest_api import app
 from eve.utils import parse_request
+from eve.auth import requires_auth
 from eve.methods.get import _pagination_links, _meta_links
 from config import rest_config as cfg
 from . import queries
@@ -50,15 +50,14 @@ def aggregate_endpoint(route):
     return '/%s/%s/aggregate/%s' % (app.config['URL_PREFIX'], app.config['API_VERSION'], route)
 
 
-flask_cors.CORS(app)
-
-
 @app.route(aggregate_endpoint('run_elements_by_lane'))
+@requires_auth('home')
 def aggregate_by_lane():
     return aggregate('run_elements', queries.run_elements_group_by_lane)
 
 
 @app.route(aggregate_endpoint('all_runs'))
+@requires_auth('home')
 def run_info():
     return aggregate(
         'runs',
@@ -68,11 +67,13 @@ def run_info():
 
 
 @app.route(aggregate_endpoint('run_elements'))
+@requires_auth('home')
 def demultiplexing():
     return aggregate('run_elements', queries.demultiplexing)
 
 
 @app.route(aggregate_endpoint('samples'))
+@requires_auth('home')
 def sample():
     return aggregate(
         'samples',
@@ -82,5 +83,6 @@ def sample():
 
 
 @app.route(aggregate_endpoint('projects'))
+@requires_auth('home')
 def project_info():
     return aggregate('projects', queries.project_info, post_processing=[pp.date_to_string('_created')])
