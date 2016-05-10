@@ -1,4 +1,3 @@
-__author__ = 'mwham'
 import os
 import yaml
 
@@ -64,21 +63,19 @@ class ColumnMappingConfig(Configuration):
 
         self.column_def = self.content.pop('column_def')
         for key in self.content:
-            #self.content[key] needs to be a list of string or dictionaries
+            # self.content[key] needs to be a list of strings or dictionaries
             for i in range(len(self.content[key])):
                 if isinstance(self.content[key][i], str):
                     if self.content[key][i] in self.column_def:
                         self.content[key][i] = self.column_def[self.content[key][i]]
                     else:
-                        raise ReferenceError('%s is not referenced in the column definition from the column mapping config'%self.content[key][i])
+                        raise ReferenceError('No column definition found for ' + self.content[key][i])
                 elif isinstance(self.content[key][i], dict):
                     if self.content[key][i]['column_def'] in self.column_def:
                         self.content[key][i].update(self.column_def[self.content[key][i]['column_def']])
                     else:
-                        #leave the definition as it is
+                        # leave the definition as it is
                         pass
-
-
 
 
 reporting_app_config = SplitConfiguration(

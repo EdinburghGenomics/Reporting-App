@@ -1,12 +1,8 @@
 import eve
-from eve.auth import TokenAuth
-import flask_cors
 import flask
-import auth
-import base64
-import itsdangerous
+import flask_cors
 from config import rest_config as cfg, schema
-
+import auth
 
 settings = {
     'DOMAIN': {
@@ -69,6 +65,7 @@ settings = {
     'PAGINATION_LIMIT': 100000,
 
     'X_DOMAINS': cfg['x_domains'],
+    'X_HEADERS': ['Authorization'],
 
     'URL_PREFIX': 'api',
     'API_VERSION': '0.1',
@@ -83,29 +80,7 @@ settings = {
 }
 
 
-class Auth(TokenAuth):
-    def authorized(self, allowed_roles, resource, method):
-        """Same as superclass, but without casting to lower case"""
-        if hasattr(flask.request.authorization, 'username'):
-            _auth = flask.request.authorization
-            return _auth and auth.match_passwords(_auth.username, _auth.password)
-
-        elif flask.request.headers.get('Authorization'):
-            _auth = flask.request.headers.get('Authorization').strip()
-            auth_type, _auth = _auth.split(' ')
-            if auth_type.lower() == 'token':
-                return _auth and self.check_auth(_auth, allowed_roles, resource, method)
-
-    def check_auth(self, token_hash, allowed_roles, resource, method):
-        s = itsdangerous.TimedSerializer(app.secret_key)
-        dc_token = base64.b64decode(token_hash.encode())
-        try:
-            return s.loads(dc_token, max_age=7200).get('token')
-        except (itsdangerous.SignatureExpired, itsdangerous.BadSignature):
-            return None
-
-
-app = eve.Eve(settings=settings, auth=Auth)
+app = eve.Eve(settings=settings, auth=auth.DualAuth)
 app.secret_key = cfg['key'].encode()
 flask_cors.CORS(app, supports_credentials=True, allow_headers=('Authorization',))
 

@@ -21,7 +21,7 @@ run_elements_group_by_lane = [
     },
     {
         '$group': {
-            '_id': {'run_id': '$run_id', 'lane':'$lane'},
+            '_id': {'run_id': '$run_id', 'lane': '$lane'},
             'lane': {'$first': '$lane'},
             'run_id': {'$first': '$run_id'},
             'sample_ids': {'$addToSet': '$sample_id'},
@@ -188,7 +188,9 @@ sample.extend([
             'pc_pass_filter': percentage('$passing_filter_reads', '$total_reads'),
             'clean_pc_q30_r1': percentage('$clean_q30_bases_r1', '$clean_bases_r1'),
             'clean_pc_q30_r2': percentage('$clean_q30_bases_r2', '$clean_bases_r2'),
-            'clean_pc_q30': percentage(add('$clean_q30_bases_r1', '$clean_q30_bases_r2'), add('$clean_bases_r1', '$clean_bases_r2')),
+            'clean_pc_q30': percentage(
+                add('$clean_q30_bases_r1', '$clean_q30_bases_r2'),
+                add('$clean_bases_r1', '$clean_bases_r2')),
             'clean_yield_in_gb': divide(add('$clean_bases_r1', '$clean_bases_r2'), 1000000000),
             'clean_yield_q30': divide(add('$clean_q30_bases_r1', '$clean_q30_bases_r2'), 1000000000),
             'pc_mapped_reads': percentage('$mapped_reads', '$bam_file_reads'),
