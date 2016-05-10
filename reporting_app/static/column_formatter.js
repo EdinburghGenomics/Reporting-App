@@ -3,13 +3,21 @@
  * @module column_formatter.js
  */
 
-function render_data(data, fmt) {
+function render_data(data, type, row, meta, fmt) {
     if (!data) {
         return null;
     }
     if (!fmt) {
         return '<div class="dt_cell">' + data + '</div>';
     }
+    if (fmt['merge']) {
+        data = merge_column(data, row)
+    }
+    return string_formatter(data, fmt)
+}
+
+
+function string_formatter(data, fmt){
     var formatted_data = data;
 
     if (fmt['type'] == 'percentage') {
@@ -37,9 +45,15 @@ function render_data(data, fmt) {
     }
     if (fmt['min'] && data < fmt['min']) {
         formatted_data = '<p style="color:red">' + formatted_data + '</p>';
+    }else if (fmt['max'] && data > fmt['max']) {
+        formatted_data = '<p style="color:red">' + formatted_data + '</p>';
     }
 
     formatted_data = '<div class="dt_cell">' + formatted_data + '</div>';
     return formatted_data;
+}
+
+function merge_column(data, row){
+    return data + '-' + row[1]
 }
 
