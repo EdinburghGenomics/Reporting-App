@@ -44,9 +44,9 @@ function string_formatter(data, fmt){
         }
     }
     if (fmt['min'] && data < fmt['min']) {
-        formatted_data = '<p style="color:red">' + formatted_data + '</p>';
-    }else if (fmt['max'] && data > fmt['max']) {
-        formatted_data = '<p style="color:red">' + formatted_data + '</p>';
+        formatted_data = '<div style="color:red">' + formatted_data + '</div>';
+    } else if (fmt['max'] && data > fmt['max']) {
+        formatted_data = '<div style="color:red">' + formatted_data + '</div>';
     }
 
     formatted_data = '<div class="dt_cell">' + formatted_data + '</div>';
