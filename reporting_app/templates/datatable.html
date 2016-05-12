@@ -24,7 +24,7 @@
 {% macro datatable(dt_config) -%}
 {# args: title, name, cols, api_url, default_dort_col, paging, searching, info, etc #}
 
-<h2>{{ dt_config.title }}</h2>
+<h3>{{ dt_config.title }}</h3>
 
 <script type="text/javascript" language="JavaScript" class="init">{{ dt_init(dt_config)|safe }}</script>
 

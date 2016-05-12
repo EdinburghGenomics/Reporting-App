@@ -73,7 +73,7 @@ def change_password():
 def run_reports():
     return fl.render_template(
         'untabbed_datatables.html',
-        table=datatable_cfg('All runs', 'all_runs', 'runs', api_url=rest_query('aggregate/all_runs'))
+        table=datatable_cfg('All runs', 'runs', api_url=rest_query('aggregate/all_runs'))
     )
 
 
@@ -84,28 +84,25 @@ def pipeline_report(pipeline_type, view_type):
         'queued': ('reprocess', 'force_ready'),
         'processing': ('processing',),
         'finished': ('finished', 'failed'),
-        'archived': ('deleted', 'aborted'),
-        'all': ('force_ready', 'processing', 'finished', 'failed', 'aborted', 'reprocess', 'deleted')
+        'archived': ('deleted', 'aborted')
     }
+    endpoints = {'samples': 'aggregate/samples', 'runs': 'aggregate/all_runs'}
+    endpoint = endpoints[pipeline_type]
 
-    if view_type not in statuses:
-        fl.abort(404)
-
-    if pipeline_type == 'samples':
-        endpoint = 'aggregate/samples'
-    elif pipeline_type == 'runs':
-        endpoint = 'aggregate/all_runs'
+    if view_type == 'all':
+        query = rest_query(endpoint)
+    elif view_type in statuses:
+        query = rest_query(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
     else:
         fl.abort(404)
-        return
+        return None
 
     return fl.render_template(
         'untabbed_datatables.html',
         table=datatable_cfg(
-            view_type[0].upper() + view_type[1:] + ' ' + pipeline_type,
-            view_type + '_' + pipeline_type,
+            util.capitalise(view_type) + ' ' + pipeline_type,
             pipeline_type,
-            rest_query(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
+            query
         )
     )
 
@@ -120,7 +117,6 @@ def report_run(run_id):
         title='Report for ' + run_id,
         lane_aggregation=datatable_cfg(
             'Aggregation per lane',
-            'agg_per_lane',
             'lane_aggregation',
             rest_query('aggregate/run_elements_by_lane', match={'run_id': run_id}),
             paging=False,
@@ -129,12 +125,10 @@ def report_run(run_id):
         ),
         tab_sets=[
             tab_set_cfg(
-                'Demultiplexing per lane',
-                'demultiplexing',
+                'Demultiplexing reports per lane',
                 [
                     datatable_cfg(
-                        'Lane ' + str(lane),
-                        'demultiplexing_lane_' + str(lane),
+                        'Demultiplexing lane ' + str(lane),
                         'demultiplexing',
                         rest_query('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
                         paging=False,
@@ -146,11 +140,9 @@ def report_run(run_id):
             ),
             tab_set_cfg(
                 'Unexpected barcodes',
-                'unexpected_barcodes',
                 [
                     datatable_cfg(
-                        'Lane ' + str(lane),
-                        'unexpected_barcode_lane_' + str(lane),
+                        'Unexpected barcodes lane ' + str(lane),
                         'unexpected_barcodes',
                         rest_query('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
                         default_sort_col='passing_filter_reads',
@@ -186,7 +178,6 @@ def project_reports():
         table=datatable_cfg(
             'Project list',
             'projects',
-            'projects',
             api_url=rest_query('aggregate/projects')
         )
     )
@@ -199,7 +190,6 @@ def report_project(project_id):
         'untabbed_datatables.html',
         table=datatable_cfg(
             'Project report for ' + project_id,
-            project_id + '_report',
             'samples',
             rest_query('aggregate/samples', match={'project_id': project_id})
         )
@@ -218,7 +208,6 @@ def report_sample(sample_id):
         tables=[
             datatable_cfg(
                 'Sample report',
-                'sample_' + sample_id,
                 'samples',
                 rest_query('aggregate/samples', match={'sample_id': sample_id}),
                 paging=False,
@@ -227,7 +216,6 @@ def report_sample(sample_id):
             ),
             datatable_cfg(
                 'Run elements report',
-                'run_elements_' + sample_id,
                 'sample_run_elements',
                 rest_query('aggregate/run_elements', match={'sample_id': sample_id}),
                 paging=False,
