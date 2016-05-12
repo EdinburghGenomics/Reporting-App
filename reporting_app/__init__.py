@@ -27,22 +27,16 @@ def pipeline_report(pipeline_type, view_type):
         'finished': ('finished', 'failed'),
         'archived': ('deleted', 'aborted')
     }
-
-    if view_type not in statuses:
-        fl.abort(404)
-
-    if pipeline_type == 'samples':
-        endpoint = 'aggregate/samples'
-    elif pipeline_type == 'runs':
-        endpoint = 'aggregate/all_runs'
-    else:
-        fl.abort(404)
-        return
+    endpoints = {'samples': 'aggregate/samples', 'runs': 'aggregate/all_runs'}
+    endpoint = endpoints[pipeline_type]
 
     if view_type == 'all':
         query = rest_query(endpoint)
-    else:
+    elif view_type in statuses:
         query = rest_query(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
+    else:
+        fl.abort(404)
+        return None
 
     return fl.render_template(
         'untabbed_datatables.html',
