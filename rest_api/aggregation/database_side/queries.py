@@ -94,7 +94,7 @@ sequencing_run_information.extend([
 
             'clean_bases_r1': {'$sum': '$run_elements.clean_bases_r1'},
             'clean_bases_r2': {'$sum': '$run_elements.clean_bases_r2'},
-            'clean_q30_bases_r1': {'$sum': '$run_elements.x'},
+            'clean_q30_bases_r1': {'$sum': '$run_elements.clean_q30_bases_r1'},
             'clean_q30_bases_r2': {'$sum': '$run_elements.clean_q30_bases_r2'},
 
             'reviewed': '$run_elements.reviewed',
