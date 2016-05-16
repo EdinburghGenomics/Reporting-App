@@ -6,7 +6,7 @@
 
 .dt_cell {
     white-space: nowrap;
-    max-width: 12em;
+    max-width: 19em;
     overflow: hidden;
     text-overflow: ellipsis;
 }

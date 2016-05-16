@@ -17,7 +17,7 @@ $(document).ready(
                 'processing': true,
                 'serverSide': false,
                 'autoWidth': false,
-                'stateSave': true,
+                //'stateSave': true,
                 'lengthMenu': [[10, 25, 50, -1], [10, 25, 50, "All"]],
                 'pageLength': 25,
                 'ajax': {
@@ -31,7 +31,7 @@ $(document).ready(
                             'data': c.data,
                             'name': c.data,
                             'render': function(data, type, row, meta) {
-                                return render_data(data, c.fmt)
+                                return render_data(data, type, row, meta, c.fmt)
                             },
                             'orderable': !c.orderable || String(c.orderable).toLowerCase() == 'true',
                             'visible': !c.visible || String(c.visible).toLowerCase() == 'true',

@@ -3,13 +3,21 @@
  * @module column_formatter.js
  */
 
-function render_data(data, fmt) {
+function render_data(data, type, row, meta, fmt) {
     if (!data) {
         return null;
     }
     if (!fmt) {
         return '<div class="dt_cell">' + data + '</div>';
     }
+    if (fmt['merge']) {
+        data = merge_column(data, row)
+    }
+    return string_formatter(data, fmt)
+}
+
+
+function string_formatter(data, fmt){
     var formatted_data = data;
 
     if (fmt['type'] == 'percentage') {
@@ -21,22 +29,31 @@ function render_data(data, fmt) {
     }
 
     if (fmt['link']) {
-        if (data instanceof Array) {
+        if (data instanceof Array && data.length > 1) {
             formatted_data = '<div class="dropdown"><div class="dropbtn">' + data + '</div><div class="dropdown-content">';
             for (var i=0, tot=data.length; i < tot; i++){
                 formatted_data = formatted_data.concat('<a href=' + fmt['link'] + data[i] + '>' + data[i] + '</a>');
             }
             formatted_data = formatted_data.concat('</div></div>')
         }
+        else if (data instanceof Array && data.length == 1){
+            formatted_data = '<a href=' + fmt['link'] + data[0] + '>' + data[0] + '</a>';
+        }
         else {
             formatted_data = '<a href=' + fmt['link'] + data + '>' + data + '</a>';
         }
     }
     if (fmt['min'] && data < fmt['min']) {
-        formatted_data = '<p style="color:red">' + formatted_data + '</p>';
+        formatted_data = '<div style="color:red">' + formatted_data + '</div>';
+    } else if (fmt['max'] && data > fmt['max']) {
+        formatted_data = '<div style="color:red">' + formatted_data + '</div>';
     }
 
     formatted_data = '<div class="dt_cell">' + formatted_data + '</div>';
     return formatted_data;
+}
+
+function merge_column(data, row){
+    return data + '-' + row[1]
 }
 

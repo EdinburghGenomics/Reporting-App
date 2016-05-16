@@ -25,14 +25,15 @@ def _format_order(col_name, cols):
     return [[c['data'] for c in cols].index(col_name.lstrip('-')), direction]
 
 
-def datatable_cfg(title, name, cols, api_url, default_sort_col=None, **kwargs):
+def datatable_cfg(title, cols, api_url, default_sort_col=None, **kwargs):
     if default_sort_col is None:
         default_sort_col = [0, 'desc']
     else:
         default_sort_col = _format_order(default_sort_col, col_mappings[cols])
+
     d = {
         'title': title,
-        'name': name,
+        'name': snake_case(title),
         'cols': col_mappings[cols],
         'api_url': api_url,
         'default_sort_col': default_sort_col,
@@ -41,9 +42,17 @@ def datatable_cfg(title, name, cols, api_url, default_sort_col=None, **kwargs):
     return d
 
 
-def tab_set_cfg(title, name, tables):
+def tab_set_cfg(title, tables):
     return {
         'title': title,
-        'name': name,
+        'name': snake_case(title),
         'tables': tables
     }
+
+
+def capitalise(word):
+    return word[0].upper() + word[1:]
+
+
+def snake_case(text):
+    return text.lower().replace(' ', '_')

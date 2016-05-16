@@ -13,6 +13,7 @@
         {% endfor %}
     </ol>
     <br/>
+    <br/>
     {% for table in tab_set.tables %}
     <div id="{{ table.name }}_tab">{{ datatable(table) }}</div>
     {% endfor %}

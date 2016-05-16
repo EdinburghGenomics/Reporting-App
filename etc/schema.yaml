@@ -36,6 +36,8 @@ run_elements:
     adaptor_bases_removed_r1: { type: 'integer', required: False }
     adaptor_bases_removed_r2: { type: 'integer', required: False }
 
+    lane_pc_optical_dups:     { type: 'float',   required: False }
+
     clean_reads: {              type: 'integer', required: False }
     clean_bases_r1: {           type: 'integer', required: False }
     clean_q30_bases_r1: {       type: 'integer', required: False }
@@ -109,7 +111,7 @@ analysis_driver_procs:
     dataset_name: {             type: 'string', required: True }
     start_date: {               type: 'datetime' }
     end_date: {                 type: 'datetime' }
-    pid: {                      type: 'integer' }
+    pid: {                      type: 'integer', nullable: True}
     status: {                   type: 'string', allowed: ['force_ready', 'processing', 'finished', 'failed', 'aborted', 'reprocess', 'deleted'] }
 
     stages: {                   type: 'list', schema: { type: 'dict', schema: { stage_name: { type: 'string' }, date_started: { type: 'datetime' }, date_finished: { type: 'datetime' }, exit_status: { type: 'integer'} } } }
