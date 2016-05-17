@@ -11,7 +11,8 @@ run_elements_group_by_lane = [
             'lane': {'$first': '$lane'},
             'run_id': {'$first': '$run_id'},
             'sample_ids': {'$addToSet': '$sample_id'},
-            'useable': {'$addToSet': '$useable'},
+            'useable_statuses': {'$addToSet': '$useable'},
+            'review_statuses': {'$addToSet': '$reviewed'},
             'total_reads': {'$sum': '$total_reads'},
             'passing_filter_reads': {'$sum': '$passing_filter_reads'},
 
@@ -49,7 +50,8 @@ run_elements_group_by_lane = [
             'avg_pf': '$avg_pf',
             'cv': divide('$stdev_pf', '$avg_pf'),
             'lane_pc_optical_dups': '$lane_pc_optical_dups',
-            'useable': '$useable'
+            'useable_statuses': '$useable_statuses',
+            'review_statuses': '$review_statuses'
         }
     }
 ]

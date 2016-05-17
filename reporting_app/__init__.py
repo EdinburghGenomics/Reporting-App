@@ -56,9 +56,10 @@ def report_run(run_id):
         'run_report.html',
         title='Report for ' + run_id,
         lane_aggregation=datatable_cfg(
-            'Aggregation per lane',
-            'lane_aggregation',
-            rest_query('aggregate/run_elements_by_lane', match={'run_id': run_id}),
+            title='Aggregation per lane',
+            cols='lane_aggregation',
+            api_url=rest_query('aggregate/run_elements_by_lane', match={'run_id': run_id}),
+            default_sort_col='lane_number',
             paging=False,
             searching=False,
             info=False
@@ -68,9 +69,9 @@ def report_run(run_id):
                 'Demultiplexing reports per lane',
                 [
                     datatable_cfg(
-                        'Demultiplexing lane ' + str(lane),
-                        'demultiplexing',
-                        rest_query('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
+                        title='Demultiplexing lane ' + str(lane),
+                        cols='demultiplexing',
+                        api_url=rest_query('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
                         paging=False,
                         searching=False,
                         info=False
@@ -82,9 +83,9 @@ def report_run(run_id):
                 'Unexpected barcodes',
                 [
                     datatable_cfg(
-                        'Unexpected barcodes lane ' + str(lane),
-                        'unexpected_barcodes',
-                        rest_query('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
+                        title='Unexpected barcodes lane ' + str(lane),
+                        cols='unexpected_barcodes',
+                        api_url=rest_query('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
                         default_sort_col='passing_filter_reads',
                         paging=False,
                         searching=False,

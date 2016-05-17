@@ -1,3 +1,5 @@
+import copy
+
 __author__ = 'mwham'
 import os
 import yaml
@@ -73,7 +75,10 @@ class ColumnMappingConfig(Configuration):
                         raise ReferenceError('%s is not referenced in the column definition from the column mapping config'%self.content[key][i])
                 elif isinstance(self.content[key][i], dict):
                     if self.content[key][i]['column_def'] in self.column_def:
-                        self.content[key][i].update(self.column_def[self.content[key][i]['column_def']])
+                        #Take a copy of the column def and update it with the specific info
+                        tmp = copy.copy(self.column_def[self.content[key][i]['column_def']])
+                        tmp.update(self.content[key][i])
+                        self.content[key][i] = tmp
                     else:
                         #leave the definition as it is
                         pass
