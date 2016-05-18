@@ -7,17 +7,19 @@
 
 <div id="{{ tab_set.name }}_tabs" class="tab-content">
     <h2>{{ tab_set.title }}</h2>
-    <ul class="nav nav-tabs" id="{{ tab_set.name }}_ul">
-        <li class="nav active"><a data-target="#{{ tab_set.tables[0].name }}_tab" data-toggle="tab">{{ tab_set.tables[0].title }}</a></li>
-        {% for table in tab_set.tables[1:] %}
-            <li class="nav"><a data-target="#{{ table.name }}_tab" data-toggle="tab">{{ table.title }}</a></li>
-        {% endfor %}
-    </ul>
+    {% if tab_set.tables %}
+        <ul class="nav nav-tabs" id="{{ tab_set.name }}_ul">
+            <li class="nav active"><a data-target="#{{ tab_set.tables[0].name }}_tab" data-toggle="tab">{{ tab_set.tables[0].title }}</a></li>
+            {% for table in tab_set.tables[1:] %}
+                <li class="nav"><a data-target="#{{ table.name }}_tab" data-toggle="tab">{{ table.title }}</a></li>
+            {% endfor %}
+        </ul>
 
-    <div id="{{ tab_set.tables[0].name }}_tab" class="tab-pane fade in active">{{ datatable(tab_set.tables[0]) }}</div>
-    {% for table in tab_set.tables[1:] %}
-        <div id="{{ table.name }}_tab" class="tab-pane fade">{{ datatable(table) }}</div>
-    {% endfor %}
+        <div id="{{ tab_set.tables[0].name }}_tab" class="tab-pane fade in active">{{ datatable(tab_set.tables[0]) }}</div>
+        {% for table in tab_set.tables[1:] %}
+            <div id="{{ table.name }}_tab" class="tab-pane fade">{{ datatable(table) }}</div>
+        {% endfor %}
+    {% endif %}
 </div>
 {% endfor %}
 

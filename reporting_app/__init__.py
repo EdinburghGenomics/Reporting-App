@@ -98,7 +98,7 @@ def report_run(run_id):
         procs=query_api(
             'analysis_driver_procs',
             where={'dataset_type': 'run', 'dataset_name': run_id},
-            sort='-start_date'
+            sort='-_created'
         )
     )
 
@@ -136,7 +136,7 @@ def report_project(project_id):
 
 @app.route('/samples/<sample_id>')
 def report_sample(sample_id):
-    sample = query_api('samples', where={'sample_id': sample_id}, embedded={'analysis_driver_procs': 1})[0]
+    sample = query_api('samples', where={'sample_id': sample_id})[0]
 
     return fl.render_template(
         'sample_report.html',
@@ -160,5 +160,9 @@ def report_sample(sample_id):
                 info=False
             )
         ],
-        procs=sample.get('analysis_driver_procs', {})
+        procs=query_api(
+            'analysis_driver_procs',
+            where={'dataset_type': 'sample', 'dataset_name': sample_id},
+            sort='-_created'
+        )
     )
