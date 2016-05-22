@@ -45,17 +45,16 @@
     <p>Number of times processed: {{ procs|length }}</p>
     {% if procs %}
         <ul class="nav nav-tabs" id="analysis_driver_proc_ul">
-            <li class="active"><a href="#{{ procs[0].proc_id }}_tab" data-toggle="tab">{{ procs[0]._created }}</a></li>
+            <li class="nav active"><a data-target="#analysis_driver_proc_1_tab" data-toggle="tab">{{ procs[0]._created }}</a></li>
             {% for proc in procs[1:] %}
-                <li><a href="#{{ proc.proc_id }}_tab" data-toggle="tab">{{ proc._created }}</a></li>
+                <li class="nav"><a data-target="#analysis_driver_proc_{{ loop.index + 1 }}_tab" data-toggle="tab">{{ proc._created }}</a></li>
             {% endfor %}
         </ul>
         <div id="{{ procs[0].proc_id }}_tab" class="tab-pane fade in active"> {{ proc_display(procs[0]) }} </div>
         {% for proc in procs[1:] %}
-            <div id="{{ proc.proc_id }}_tab" class="tab-pane fade"> {{ proc_display(proc) }} </div>
+            <div id="analysis_driver_proc_{{ loop.index + 1 }}_tab" class="tab-pane fade"> {{ proc_display(proc) }} </div>
         {% endfor %}
     {% endif %}
-</div>
+    </div>
 
-<h1>WHAT IS  GOING ON!!</h1>
 {%- endmacro %}
