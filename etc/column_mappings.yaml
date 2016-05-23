@@ -47,7 +47,7 @@ column_def:
     run_ids:                  { data: 'run_ids',                              title: 'Run ids',                  fmt: { link: '/runs/' } }
     sample_id:                { data: 'sample_id',                            title: 'Sample ID',                fmt: { link: '/samples/' } }
     sample_ids:               { data: 'sample_ids',                           title: 'Sample list',              fmt: { link: '/samples/' } }
-    sample_contamination:     { data: 'sample_contamination',                 title: 'freemix',                  fmt: { type: 'float',  max: .03}  }
+    sample_contamination:     { data: 'sample_contamination.freemix',         title: 'freemix',                  fmt: { type: 'float',  max: .03}  }
     useable:                  { data: 'useable',                              title: 'Useable' }
     useable_statuses:         { data: 'useable_statuses',                     title: 'Useable'}
     user_sample_id:           { data: 'user_sample_id',                       title: 'User sample ID' }
