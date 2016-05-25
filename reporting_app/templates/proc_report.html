@@ -50,7 +50,7 @@
                 <li class="nav"><a data-target="#analysis_driver_proc_{{ loop.index + 1 }}_tab" data-toggle="tab">{{ proc._created }}</a></li>
             {% endfor %}
         </ul>
-        <div id="{{ procs[0].proc_id }}_tab" class="tab-pane fade in active"> {{ proc_display(procs[0]) }} </div>
+        <div id="analysis_driver_proc_1_tab" class="tab-pane fade in active"> {{ proc_display(procs[0]) }} </div>
         {% for proc in procs[1:] %}
             <div id="analysis_driver_proc_{{ loop.index + 1 }}_tab" class="tab-pane fade"> {{ proc_display(proc) }} </div>
         {% endfor %}
