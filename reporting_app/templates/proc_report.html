@@ -1,57 +1,60 @@
+{% macro proc_display(proc) -%}
+{# args:
+    proc (dict) - analysis_driver_proc from the Rest API.
+#}
+    <ul>
+        <li>Started: {{ proc._created }}</li>
+        <li>Ended:
+            {% if proc.end_date %}
+            {{ proc.end_date }}
+            {% else %}
+            running with pid: {{ proc.pid }}
+            {% endif %}
+        </li>
+        <li>
+            Status:
+            {% if proc.status %}
+            {{ proc.status }}
+            {% else %}
+            inactive
+            {% endif %}
+        </li>
+        <li>
+            Stages: <ul>
+            {% for s in proc.stages %}
+            <li>
+                <b>{{ s.stage_name }}</b>{% if not s.date_finished %} (running) {% endif %}<br/>
+                started: {{ s.date_started }}<br/>
+                {% if s.date_finished %}
+                finished: {{ s.date_finished }}
+                {% endif %}
+            </li>
+            {% endfor %}
+            </ul>
+        </li>
+    </ul>
+{%- endmacro %}
+
 {% macro proc_report(procs) -%}
 {# args:
     procs (list[dict]) - analysis_driver_procs from the Rest API.
 #}
 
-<div id="analysis_driver_proc_tabs">
+    <div id="analysis_driver_proc_tabs" class="tab-content">
     <h2>Analysis Driver processes</h2>
     <p>Number of times processed: {{ procs|length }}</p>
-    <ol>
-        {% for proc in procs %}
-        <li><a href="#{{ proc.proc_id }}_tab"><span>{{ proc._created }}</span></a></li>
-        {% endfor %}
-    </ol>
-    {% for proc in procs %}
-    <div id="{{ proc.proc_id }}_tab">
-        <br/>
-        <br/>
-        <ul>
-            <li>Started: {{ proc._created }}</li>
-            <li>Ended:
-                {% if proc.end_date %}
-                {{ proc.end_date }}
-                {% else %}
-                running with pid: {{ proc.pid }}
-                {% endif %}
-            </li>
-            <li>
-                Status:
-                {% if proc.status %}
-                {{ proc.status }}
-                {% else %}
-                inactive
-                {% endif %}
-            </li>
-            <li>
-                Stages: <ul>
-                {% for s in proc.stages %}
-                <li>
-                    <b>{{ s.stage_name }}</b>{% if not s.date_finished %} (running) {% endif %}<br/>
-                    started: {{ s.date_started }}<br/>
-                    {% if s.date_finished %}
-                    finished: {{ s.date_finished }}
-                    {% endif %}
-                </li>
-                {% endfor %}
-                </ul>
-            </li>
+    {% if procs %}
+        <ul class="nav nav-tabs" id="analysis_driver_proc_ul">
+            <li class="nav active"><a data-target="#analysis_driver_proc_1_tab" data-toggle="tab">{{ procs[0]._created }}</a></li>
+            {% for proc in procs[1:] %}
+                <li class="nav"><a data-target="#analysis_driver_proc_{{ loop.index + 1 }}_tab" data-toggle="tab">{{ proc._created }}</a></li>
+            {% endfor %}
         </ul>
+        <div id="{{ procs[0].proc_id }}_tab" class="tab-pane fade in active"> {{ proc_display(procs[0]) }} </div>
+        {% for proc in procs[1:] %}
+            <div id="analysis_driver_proc_{{ loop.index + 1 }}_tab" class="tab-pane fade"> {{ proc_display(proc) }} </div>
+        {% endfor %}
+    {% endif %}
     </div>
-    {% endfor %}
-</div>
-
-<script>
-   $("#analysis_driver_proc_tabs").tabs();
-</script>
 
 {%- endmacro %}

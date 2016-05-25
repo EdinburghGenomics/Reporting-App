@@ -47,7 +47,7 @@ column_def:
     run_ids:                  { data: 'run_ids',                              title: 'Run ids',                  fmt: { link: '/runs/' } }
     sample_id:                { data: 'sample_id',                            title: 'Sample ID',                fmt: { link: '/samples/' } }
     sample_ids:               { data: 'sample_ids',                           title: 'Sample list',              fmt: { link: '/samples/' } }
-    sample_contamination:     { data: 'sample_contamination',                 title: 'freemix',                  fmt: { type: 'float',  max: .03}  }
+    sample_contamination:     { data: 'sample_contamination.freemix',         title: 'freemix',                  fmt: { type: 'float',  max: .03}  }
     useable:                  { data: 'useable',                              title: 'Useable' }
     useable_statuses:         { data: 'useable_statuses',                     title: 'Useable'}
     user_sample_id:           { data: 'user_sample_id',                       title: 'User sample ID' }
@@ -81,10 +81,10 @@ demultiplexing:
     - project_id
     - sample_id
     - passing_filter_reads
-    - {column_def: 'yield_in_gb',  fmt: { type: 'float'} }
-    - {column_def: 'clean_yield_in_gb',  fmt: { type: 'float' }, visible: 'false' }
-    - {column_def: 'yield_q30_in_gb',  fmt: { type: 'float' } }
-    - {column_def: 'clean_yield_q30_in_gb',  fmt: { type: 'float' }, visible: 'false' }
+    - {column_def: 'yield_in_gb',  fmt: { type: 'float' }, visible: 'false' }
+    - {column_def: 'clean_yield_in_gb',  fmt: { type: 'float' }, visible: 'true' }
+    - {column_def: 'yield_q30_in_gb',  fmt: { type: 'float'}, visible: 'false' }
+    - {column_def: 'clean_yield_q30_in_gb',  fmt: { type: 'float' }, visible: 'true' }
     - pc_q30_r1
     - pc_q30_r2
     - lane_pc_optical_dups
@@ -96,15 +96,18 @@ lane_aggregation:
     - sample_ids
     - passing_filter_reads
     - pc_pass_filter
-    - yield_in_gb
-    - {column_def: 'clean_yield_in_gb',  fmt: { type: 'float',  min: 120 }, visible: 'false' }
-    - yield_q30_in_gb
-    - {column_def: 'clean_yield_q30_in_gb',  fmt: { type: 'float',  min: 95 }, visible: 'false' }
+    - {column_def: 'yield_in_gb',  fmt: { type: 'float',  min: 120 }, visible: 'false' }
+    - {column_def: 'clean_yield_in_gb',  fmt: { type: 'float',  min: 120 }, visible: 'true' }
+    - {column_def: 'yield_q30_in_gb',  fmt: { type: 'float',  min: 95 }, visible: 'false' }
+    - {column_def: 'clean_yield_q30_in_gb',  fmt: { type: 'float',  min: 95 }, visible: 'true' }
     - pc_q30
     - pc_q30_r1
     - pc_q30_r2
     - lane_pc_optical_dups
-    - cv
+    - {column_def: 'cv',  visible: 'false' }
+    - review_statuses
+    - useable_statuses
+
 
 
 unexpected_barcodes:
