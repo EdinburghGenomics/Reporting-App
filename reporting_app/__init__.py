@@ -166,3 +166,19 @@ def report_sample(sample_id):
             sort='-_created'
         )
     )
+
+
+@app.route('/test/<sample_id>')
+def report_test(sample_id):
+    sample = query_api('samples', where={'sample_id': sample_id})[0]
+
+    return fl.render_template(
+        'test_report.html',
+        title='Report for sample ' + sample_id,
+        description='(From project %s)' % sample['project_id'],
+        procs=query_api(
+            'analysis_driver_procs',
+            where={'dataset_type': 'sample', 'dataset_name': sample_id},
+            sort='-_created'
+        )
+    )
