@@ -1,75 +1,65 @@
-{% macro proc_display(proc) -%}
+{% macro proc_report(proc) -%}
 {# args:
     proc (dict) - analysis_driver_proc from the Rest API.
 #}
 
 
+{{ proc['species contamination check']['end_date'] }}
+
+{% set mydict = proc.stages %}
+
+
+
 
     {% set counter = 1 %}
     {% for s in proc.stages %}
-    {% set temp = '' %}
-
-    {% set temp = temp + 'id: ' + counter|string + ', content: ' + "'" + s.stage_name + "'" + ', start: '%}
-    {% set temp = temp + "'" + s.date_started.split('_')[2]  + '-' + s.date_started.split('_')[1] + s.date_started.split('_')[0] + ' ' %}
-    {% set temp = temp + s.date_started.split('_')[3] + "'" %}
-    {% set temp = temp + ', ' %}
 
 
-    {% if s.date_finished %}
 
-    {% set temp = temp + 'end: ' + "'" + s.date_finished.split('_')[2] + '-' +  s.date_finished.split('_')[1] + '-' + s.date_finished.split('_')[0] + ' ' + s.date_finished.split('_')[3] + "'" %}
-    {% set temp = temp + ' ' %}
 
-    {% endif %}
-    {% set counter = counter + 1 %}
-    {{ temp }}
+
+
+
     {% endfor %}
 
 
 
 
 
+    <html>
+    <!DOCTYPE html>
+    <body>
+    <script src="../static/node_modules/vis/dist/vis.js"></script>
+    <link href="{{ url_for('static', filename='node_modules/vis/dist/vis.css') }}" rel="stylesheet" type="text/css" />
+    <div id="visualization"></div>
+    <style type="text/css">
+        body, html {
+          font-family: sans-serif;
+        }
+      </style>
 
+    <script type="text/javascript">
+      // DOM element where the Timeline will be attached
+      var container = document.getElementById('visualization');
 
+      // Create a DataSet (allows two way data-binding)
+      var items = new vis.DataSet([
+        {id: 1, content: "{{ temp2 }}", start: '2016-05-23 10:55:11', end: '2016-05-23 12:12:11'},
+        {id: 2, content: 'item 2', start: '2016-05-23 16:45:11', end: '2016-05-23 19:05:11'}
+      ]);
 
+      // Configuration for the Timeline
+      var options = {};
 
-
-{% set temp = "'mystring'" %}
-{{ temp }}
-
-<html>
-<!DOCTYPE html>
-<body>
-<script src="../static/node_modules/vis/dist/vis.js"></script>
-<link href="{{ url_for('static', filename='node_modules/vis/dist/vis.css') }}" rel="stylesheet" type="text/css" />
-<div id="visualization"></div>
-<style type="text/css">
-    body, html {
-      font-family: sans-serif;
-    }
-  </style>
-
-<script type="text/javascript">
-  // DOM element where the Timeline will be attached
-  var container = document.getElementById('visualization');
-
-  // Create a DataSet (allows two way data-binding)
-  var items = new vis.DataSet([
-    {id: 1, content: "{{ temp }}", start: '2016-05-23 10:55:11', end: '2016-05-23 12:12:11'},
-    {id: 2, content: 'item 2', start: '2016-05-23 16:45:11', end: '2016-05-23 19:05:11'}
-  ]);
-
-  // Configuration for the Timeline
-  var options = {};
-
-  // Create a Timeline
-  var timeline = new vis.Timeline(container, items, options);
-</script>
-</body>
-</html>
+      // Create a Timeline
+      var timeline = new vis.Timeline(container, items, options);
+    </script>
+    </body>
+    </html>
 
 
 {%- endmacro %}
+
 
 {% macro proc_report(procs) -%}
 {# args:
