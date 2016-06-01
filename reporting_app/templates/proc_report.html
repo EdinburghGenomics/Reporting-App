@@ -67,13 +67,23 @@
 
     var stages = {{ proc.stages|list|safe }};
     var stage_names = stages.map(function(p){
+
+
+
+        if (p.date_finished){
         return {
         content: p.stage_name,
         'start': p.date_started.split("_")[2] + '-' +  p.date_started.split("_")[1] + '-' + p.date_started.split("_")[0] + ' ' + p.date_started.split("_")[3],
         'end': p.date_finished.split("_")[2] + '-' +  p.date_finished.split("_")[1] + '-' + p.date_finished.split("_")[0] + ' ' + p.date_finished.split("_")[3]}
-    });
+    } else {
+    return {
+        content: p.stage_name,
+        'start': p.date_started.split("_")[2] + '-' +  p.date_started.split("_")[1] + '-' + p.date_started.split("_")[0] + ' ' + p.date_started.split("_")[3], 'style': "color: red; background-color: pink;"}
 
-    var items = new vis.DataSet((stage_names));
+    }});
+
+
+    var items = new vis.DataSet(stage_names);
 
     var options = {};
 
