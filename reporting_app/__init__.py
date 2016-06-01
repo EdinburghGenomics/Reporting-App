@@ -180,6 +180,8 @@ def report_test(sample_id):
         exit_status = (p['exit_status'])
         procdict[stage_name] = {'start_date': start_date, 'end_date': end_date, 'exit_status': exit_status}
 
+    proc=query_api('analysis_driver_procs', where={'dataset_type': 'sample', 'dataset_name': sample_id}, sort='-_created')
+    print(proc)
     return fl.render_template(
         'test_report.html',
         title='Report for sample ' + sample_id,
