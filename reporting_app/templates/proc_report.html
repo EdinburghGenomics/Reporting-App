@@ -1,18 +1,42 @@
-{% macro proc_report(proc) -%}
+{% macro proc_display(proc) -%}
 {# args:
     proc (dict) - analysis_driver_proc from the Rest API.
 #}
 
 
-{{ proc['species contamination check']['end_date'] }}
+    <ul>
+        <li>Started: {{ proc._created }}</li>
+        <li>Ended:
+            {% if proc.end_date %}
+            {{ proc.end_date }}
+            {% else %}
+            running with pid: {{ proc.pid }}
+            {% endif %}
+        </li>
+        <li>
+            Status:
+            {% if proc.status %}
+            {{ proc.status }}
+            {% else %}
+            inactive
+            {% endif %}
+        </li>
+        <li>
+            Stages: <ul>
+            {% for s in proc.stages %}
+            <li>
+                <b>{{ s.stage_name }}</b>{% if not s.date_finished %} (running) {% endif %}<br/>
+                started: {{ s.date_started }}<br/>
+                {% if s.date_finished %}
+                finished: {{ s.date_finished }}
+                {% endif %}
+            </li>
+            {% endfor %}
+            </ul>
+        </li>
+    </ul>
+{%- endmacro %}
 
-{% set mydict = proc.stages %}
-
-
-
-
-    {% set counter = 1 %}
-    {% for s in proc.stages %}
 
 
 
@@ -20,17 +44,16 @@
 
 
 
-    {% endfor %}
 
-
-
-
+{% macro proc_timeline(proc) -%}
+{# args:
+    proc (dict) - analysis_driver_proc from the Rest API.
+#}
 
     <html>
-    <!DOCTYPE html>
     <body>
     <script src="../static/node_modules/vis/dist/vis.js"></script>
-    <link href="{{ url_for('static', filename='node_modules/vis/dist/vis.css') }}" rel="stylesheet" type="text/css" />
+    <link href="../static/node_modules/vis/dist/vis.css" rel="stylesheet" type="text/css" />
     <div id="visualization"></div>
     <style type="text/css">
         body, html {
@@ -42,29 +65,38 @@
       // DOM element where the Timeline will be attached
       var container = document.getElementById('visualization');
 
-      // Create a DataSet (allows two way data-binding)
-      var items = new vis.DataSet([
-        {id: 1, content: "{{ temp2 }}", start: '2016-05-23 10:55:11', end: '2016-05-23 12:12:11'},
-        {id: 2, content: 'item 2', start: '2016-05-23 16:45:11', end: '2016-05-23 19:05:11'}
-      ]);
+    var stages = {{ proc.stages|list|safe }};
+    var stage_names = stages.map(function(p){
+        return {
+        content: p.stage_name,
+        'start': p.date_started.split("_")[2] + '-' +  p.date_started.split("_")[1] + '-' + p.date_started.split("_")[0] + ' ' + p.date_started.split("_")[3],
+        'end': p.date_finished.split("_")[2] + '-' +  p.date_finished.split("_")[1] + '-' + p.date_finished.split("_")[0] + ' ' + p.date_finished.split("_")[3]}
+    });
 
-      // Configuration for the Timeline
-      var options = {};
+    var items = new vis.DataSet((stage_names));
 
-      // Create a Timeline
+    var options = {};
+
       var timeline = new vis.Timeline(container, items, options);
     </script>
     </body>
     </html>
 
-
 {%- endmacro %}
+
+
+
 
 
 {% macro proc_report(procs) -%}
 {# args:
     procs (list[dict]) - analysis_driver_procs from the Rest API.
 #}
+    {% for proc in procs[1:] %}
+    {{ proc_display(proc) }}
+    {% endfor %}
+
+
 
     <div id="analysis_driver_proc_tabs" class="tab-content">
     <h2>Analysis Driver processes</h2>
@@ -76,9 +108,9 @@
                 <li class="nav"><a data-target="#analysis_driver_proc_{{ loop.index + 1 }}_tab" data-toggle="tab">{{ proc._created }}</a></li>
             {% endfor %}
         </ul>
-        <div id="analysis_driver_proc_1_tab" class="tab-pane fade in active"> {{ proc_display(procs[0]) }} </div>
+        <div id="analysis_driver_proc_1_tab" class="tab-pane fade in active"> {{ proc_timeline(procs[0]) }} </div>
         {% for proc in procs[1:] %}
-            <div id="analysis_driver_proc_{{ loop.index + 1 }}_tab" class="tab-pane fade"> {{ proc_display(proc) }} </div>
+            <div id="analysis_driver_proc_{{ loop.index + 1 }}_tab" class="tab-pane fade"> {{ proc_timeline(proc) }} </div>
         {% endfor %}
     {% endif %}
     </div>
