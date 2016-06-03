@@ -47,3 +47,7 @@
     display: block;
     text-align: left;
 }
+
+.vis-item .vis-item-overflow {
+  overflow: visible;
+}
