@@ -3,7 +3,6 @@
     proc (dict) - analysis_driver_proc from the Rest API.
 #}
 
-
     <ul>
         <li>Started: {{ proc._created }}</li>
         <li>Ended:
@@ -25,75 +24,49 @@
 {%- endmacro %}
 
 
-
-
 {% macro proc_timeline(proc) -%}
 {# args:
     proc (dict) - analysis_driver_proc from the Rest API.
 #}
-
-
     <html>
     <body>
     <script src="../static/node_modules/vis/dist/vis.js"></script>
+    <script src="../static/node_modules/moment/moment.js"></script>
     <link href="../static/node_modules/vis/dist/vis.css" rel="stylesheet" type="text/css" />
     <div id="{{ proc.proc_id }}"></div>
 
 
     <script type="text/javascript">
-      // DOM element where the Timeline will be attached
       var container = document.getElementById('{{ proc.proc_id }}');
 
     var stages = {{ proc.stages|list|safe }};
 
     var stage_names = stages.map(function(p){
-
-
-
         if (p.date_finished){
         return {
         content: p.stage_name,
-        'start': p.date_started.split("_")[2] +
-        '-' +
-        p.date_started.split("_")[1] +
-        '-' + p.date_started.split("_")[0] +
-        ' ' +
-        p.date_started.split("_")[3],
-        'end': p.date_finished.split("_")[2] +
-        '-' +
-        p.date_finished.split("_")[1] +
-        '-' + p.date_finished.split("_")[0] +
-        ' ' +
-        p.date_finished.split("_")[3]}
+        'start': moment(p.date_started, "DD-MM-YYYY HH:mm:SS").format('YYYY-MM-DD HH:mm:SS'),
+        'end': moment(p.date_finished, "DD-MM-YYYY HH:mm:SS").format('YYYY-MM-DD HH:mm:SS')}
 
-    } else {
-    return {
-        content: p.stage_name,
-        'start': p.date_started.split("_")[2] +
-        '-' +
-        p.date_started.split("_")[1] +
-        '-' +
-        p.date_started.split("_")[0] +
-        ' ' +
-        p.date_started.split("_")[3],
-        'style': "color: red; background-color: pink;"}
+        } else {
+        return {
+        'start': moment(p.date_started, "DD-MM-YYYY HH:mm:SS").format('YYYY-MM-DD HH:mm:SS'),
+        'style': "color: red; background-color: pink;"
+        }
     }});
 
 
     var items = new vis.DataSet(stage_names);
-
+    startDate = (moment('{{ proc._created }}', "DD-MM-YYYY HH:mm:SS").format('YYYY-MM-DD HH:mm:SS'))
+    startMargin = moment(startDate).subtract(1, 'days')
+    endMargin = moment(startDate).add(6, 'days')
     var options = {
+    min: startMargin,
+    max: endMargin
+    }
+    var timeline = new vis.Timeline(container, items, options);
 
-    min: new Date('{{ (proc._created).split('_')[2] }}',
-    '{{ ((proc._created).split('_')[1]|int - 1)|string }}',
-    '{{ (proc._created).split('_')[0] }}'),
 
-    max: new Date('{{ (proc._created).split('_')[2] }}',
-    '{{ ((proc._created).split('_')[1]|int - 1)|string }}',
-    '{{ ((proc._created).split('_')[0]|int + 6)|string }}')
-    };
-
-      var timeline = new vis.Timeline(container, items, options);
 
 
     </script>
