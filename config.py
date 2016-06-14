@@ -1,4 +1,5 @@
 import os
+import copy
 import yaml
 
 
@@ -72,7 +73,10 @@ class ColumnMappingConfig(Configuration):
                         raise ReferenceError('No column definition found for ' + self.content[key][i])
                 elif isinstance(self.content[key][i], dict):
                     if self.content[key][i]['column_def'] in self.column_def:
-                        self.content[key][i].update(self.column_def[self.content[key][i]['column_def']])
+                        # take a copy of the column def and update it with the specific info
+                        tmp = copy.copy(self.column_def[self.content[key][i]['column_def']])
+                        tmp.update(self.content[key][i])
+                        self.content[key][i] = tmp
                     else:
                         # leave the definition as it is
                         pass

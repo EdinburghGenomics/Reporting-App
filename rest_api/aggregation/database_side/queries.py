@@ -11,7 +11,8 @@ run_elements_group_by_lane = [
             'lane': {'$first': '$lane'},
             'run_id': {'$first': '$run_id'},
             'sample_ids': {'$addToSet': '$sample_id'},
-            'useable': {'$addToSet': '$useable'},
+            'useable_statuses': {'$addToSet': '$useable'},
+            'review_statuses': {'$addToSet': '$reviewed'},
             'total_reads': {'$sum': '$total_reads'},
             'passing_filter_reads': {'$sum': '$passing_filter_reads'},
 
@@ -49,7 +50,8 @@ run_elements_group_by_lane = [
             'avg_pf': '$avg_pf',
             'cv': divide('$stdev_pf', '$avg_pf'),
             'lane_pc_optical_dups': '$lane_pc_optical_dups',
-            'useable': '$useable'
+            'useable_statuses': '$useable_statuses',
+            'review_statuses': '$review_statuses'
         }
     }
 ]
@@ -73,7 +75,6 @@ demultiplexing = [
             'yield_in_gb': divide(add('$bases_r1', '$bases_r2'), 1000000000),
             'clean_yield_in_gb': divide(add('$clean_bases_r1', '$clean_bases_r2'), 1000000000),
             'yield_q30_in_gb': divide(add('$q30_bases_r1', '$q30_bases_r2'), 1000000000),
-            'clean_yield_in_gb': divide(add('$clean_bases_r1', '$clean_bases_r2'), 1000000000),
             'clean_yield_q30_in_gb': divide(add('$clean_q30_bases_r1', '$clean_q30_bases_r2'), 1000000000)
         }
     }
@@ -94,7 +95,7 @@ sequencing_run_information.extend([
 
             'clean_bases_r1': {'$sum': '$run_elements.clean_bases_r1'},
             'clean_bases_r2': {'$sum': '$run_elements.clean_bases_r2'},
-            'clean_q30_bases_r1': {'$sum': '$run_elements.x'},
+            'clean_q30_bases_r1': {'$sum': '$run_elements.clean_q30_bases_r1'},
             'clean_q30_bases_r2': {'$sum': '$run_elements.clean_q30_bases_r2'},
 
             'reviewed': '$run_elements.reviewed',
@@ -124,8 +125,8 @@ sequencing_run_information.extend([
 
 sample = merge_analysis_driver_procs('sample_id', [
     'sample_id', 'number_of_lanes', 'project_id', 'sample_id', 'library_id', 'user_sample_id',
-    'bam_file_reads', 'mapped_reads', 'properly_mapped', 'duplicate_reads', 'median_coverage',
-    'genotype_validation','called_gender', 'provided_gender', 'reviewed', 'useable', 'delivered'])
+    'bam_file_reads', 'mapped_reads', 'properly_mapped_reads', 'duplicate_reads', 'median_coverage',
+    'genotype_validation', 'called_gender', 'provided_gender', 'reviewed', 'useable', 'delivered', 'review_comments'])
 
 sample.extend([
     lookup('run_elements', 'sample_id'),
@@ -147,6 +148,7 @@ sample.extend([
             'useable': '$useable',
             'delivered': '$delivered',
             'proc_status': '$most_recent_proc.status',
+            'review_comments': '$review_comments',
             'most_recent_proc': '$most_recent_proc',
 
             'bases_r1': {'$sum': '$run_elements.bases_r1'},
@@ -212,6 +214,7 @@ sample.extend([
             'useable': '$useable',
             'delivered': '$delivered',
             'proc_status': '$proc_status',
+            'review_comments': '$review_comments',
             'most_recent_proc': '$most_recent_proc',
 
             'pc_pass_filter': percentage('$passing_filter_reads', '$total_reads'),
