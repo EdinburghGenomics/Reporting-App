@@ -1,7 +1,6 @@
 import flask as fl
 import os.path
-from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg, yield_histogram_variables, chart_variables
-
+from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg
 from config import reporting_app_config as cfg
 
 app = fl.Flask(__name__)
@@ -14,9 +13,6 @@ def main_page():
 
 @app.route('/runs/')
 def run_reports():
-
-
-
     return fl.render_template(
         'untabbed_datatables.html',
         table=datatable_cfg('All runs', 'runs', api_url=rest_query('aggregate/all_runs'))
@@ -25,8 +21,6 @@ def run_reports():
 
 @app.route('/pipelines/<pipeline_type>/<view_type>')
 def pipeline_report(pipeline_type, view_type):
-
-
     statuses = {
         'queued': ('reprocess', 'force_ready'),
         'processing': ('processing',),
@@ -38,21 +32,11 @@ def pipeline_report(pipeline_type, view_type):
 
     if view_type == 'all':
         query = rest_query(endpoint)
-        test = query_api(endpoint)
     elif view_type in statuses:
         query = rest_query(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
-        args = ({'$or': [{'proc_status': s} for s in statuses[view_type]]})
-        test = query_api(endpoint, match=args)
     else:
         fl.abort(404)
         return None
-
-    clean_yield_histogram_values, \
-    yield_histogram_values, \
-    clean_yield_q30_histogram_values, \
-    yield_histogram_bins = chart_variables(test, endpoint)
-
-
 
     return fl.render_template(
         'untabbed_datatables.html',
@@ -60,14 +44,8 @@ def pipeline_report(pipeline_type, view_type):
             util.capitalise(view_type) + ' ' + pipeline_type,
             pipeline_type,
             query
-        ),
-        ser1 = yield_histogram_values,
-        ser2 = clean_yield_histogram_values,
-        ser3 = clean_yield_q30_histogram_values,
-        lab = yield_histogram_bins
-
+        )
     )
-
 
 
 @app.route('/runs/<run_id>')
@@ -78,9 +56,10 @@ def report_run(run_id):
         'run_report.html',
         title='Report for ' + run_id,
         lane_aggregation=datatable_cfg(
-            'Aggregation per lane',
-            'lane_aggregation',
-            rest_query('aggregate/run_elements_by_lane', match={'run_id': run_id}),
+            title='Aggregation per lane',
+            cols='lane_aggregation',
+            api_url=rest_query('aggregate/run_elements_by_lane', match={'run_id': run_id}),
+            default_sort_col='lane_number',
             paging=False,
             searching=False,
             info=False
@@ -90,9 +69,9 @@ def report_run(run_id):
                 'Demultiplexing reports per lane',
                 [
                     datatable_cfg(
-                        'Demultiplexing lane ' + str(lane),
-                        'demultiplexing',
-                        rest_query('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
+                        title='Demultiplexing lane ' + str(lane),
+                        cols='demultiplexing',
+                        api_url=rest_query('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
                         paging=False,
                         searching=False,
                         info=False
@@ -104,9 +83,9 @@ def report_run(run_id):
                 'Unexpected barcodes',
                 [
                     datatable_cfg(
-                        'Unexpected barcodes lane ' + str(lane),
-                        'unexpected_barcodes',
-                        rest_query('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
+                        title='Unexpected barcodes lane ' + str(lane),
+                        cols='unexpected_barcodes',
+                        api_url=rest_query('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
                         default_sort_col='passing_filter_reads',
                         paging=False,
                         searching=False,
@@ -119,7 +98,7 @@ def report_run(run_id):
         procs=query_api(
             'analysis_driver_procs',
             where={'dataset_type': 'run', 'dataset_name': run_id},
-            sort='-start_date'
+            sort='-_created'
         )
     )
 
@@ -157,12 +136,8 @@ def report_project(project_id):
 
 @app.route('/samples/<sample_id>')
 def report_sample(sample_id):
-<<<<<<< Updated upstream
-    sample = query_api('samples', where={'sample_id': sample_id}, embedded={'analysis_driver_procs': 1})[0]
-
-=======
     sample = query_api('samples', where={'sample_id': sample_id})[0]
->>>>>>> Stashed changes
+
     return fl.render_template(
         'sample_report.html',
         title='Report for sample ' + sample_id,
@@ -185,5 +160,9 @@ def report_sample(sample_id):
                 info=False
             )
         ],
-        procs=sample.get('analysis_driver_procs', {})
+        procs=query_api(
+            'analysis_driver_procs',
+            where={'dataset_type': 'sample', 'dataset_name': sample_id},
+            sort='-_created'
+        )
     )
