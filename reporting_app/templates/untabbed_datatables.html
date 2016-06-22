@@ -20,4 +20,22 @@
     {{ datatable(table) }}
 {% endif %}
 
+<link rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/chartist/0.9.7/chartist.min.css">
+<div class="ct-chart .ct-square"></div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/chartist/0.9.7/chartist.js"></script>
+
+<script type="text/javascript">
+var data = {
+
+   series: [
+    {{ ser1 }}, {{ ser2 }}, {{ ser3 }}
+  ],
+  labels:  {{ lab }}
+};
+new Chartist.Bar('.ct-chart', data);
+
+</script>
+
 {% endblock %}
+

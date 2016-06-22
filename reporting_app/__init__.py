@@ -1,6 +1,7 @@
 import flask as fl
 import os.path
-from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg
+from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg, yield_histogram_variables, chart_variables
+
 from config import reporting_app_config as cfg
 
 app = fl.Flask(__name__)
@@ -13,6 +14,9 @@ def main_page():
 
 @app.route('/runs/')
 def run_reports():
+
+
+
     return fl.render_template(
         'untabbed_datatables.html',
         table=datatable_cfg('All runs', 'runs', api_url=rest_query('aggregate/all_runs'))
@@ -21,6 +25,8 @@ def run_reports():
 
 @app.route('/pipelines/<pipeline_type>/<view_type>')
 def pipeline_report(pipeline_type, view_type):
+
+
     statuses = {
         'queued': ('reprocess', 'force_ready'),
         'processing': ('processing',),
@@ -32,11 +38,21 @@ def pipeline_report(pipeline_type, view_type):
 
     if view_type == 'all':
         query = rest_query(endpoint)
+        test = query_api(endpoint)
     elif view_type in statuses:
         query = rest_query(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
+        args = ({'$or': [{'proc_status': s} for s in statuses[view_type]]})
+        test = query_api(endpoint, match=args)
     else:
         fl.abort(404)
         return None
+
+    clean_yield_histogram_values, \
+    yield_histogram_values, \
+    clean_yield_q30_histogram_values, \
+    yield_histogram_bins = chart_variables(test, endpoint)
+
+
 
     return fl.render_template(
         'untabbed_datatables.html',
@@ -44,8 +60,14 @@ def pipeline_report(pipeline_type, view_type):
             util.capitalise(view_type) + ' ' + pipeline_type,
             pipeline_type,
             query
-        )
+        ),
+        ser1 = yield_histogram_values,
+        ser2 = clean_yield_histogram_values,
+        ser3 = clean_yield_q30_histogram_values,
+        lab = yield_histogram_bins
+
     )
+
 
 
 @app.route('/runs/<run_id>')
@@ -135,8 +157,12 @@ def report_project(project_id):
 
 @app.route('/samples/<sample_id>')
 def report_sample(sample_id):
+<<<<<<< Updated upstream
     sample = query_api('samples', where={'sample_id': sample_id}, embedded={'analysis_driver_procs': 1})[0]
 
+=======
+    sample = query_api('samples', where={'sample_id': sample_id})[0]
+>>>>>>> Stashed changes
     return fl.render_template(
         'sample_report.html',
         title='Report for sample ' + sample_id,

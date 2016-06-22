@@ -1,6 +1,8 @@
 import requests
 from flask import json
 from config import reporting_app_config as cfg, col_mappings
+import numpy
+import math
 
 
 def rest_query(resource, **query_args):
@@ -56,3 +58,47 @@ def capitalise(word):
 
 def snake_case(text):
     return text.lower().replace(' ', '_')
+
+def yield_histogram_variables(yield_gb):
+    topLimit = (math.ceil(max(yield_gb)/500) * 500)
+    histogram_bins = [r for r in range(0,topLimit+100,100)]
+    histogram_values = list(numpy.histogram(yield_gb, bins=histogram_bins)[0])
+    return histogram_values, histogram_bins
+
+
+
+def chart_variables(test, endpoint):
+
+
+
+
+    ###### histogram
+
+    clean_yield_gb = [t['clean_yield_in_gb'] for t in test]
+    yield_in_gb = [t['yield_in_gb'] for t in test]
+    clean_yield_q30_gb = None
+
+    if endpoint == 'aggregate/samples':
+        clean_yield_q30_gb = [t['clean_yield_q30'] for t in test]
+    elif endpoint == 'aggregate/all_runs':
+        clean_yield_q30_gb = [t['clean_yield_q30_in_gb'] for t in test]
+
+
+
+    clean_yield_histogram_values = None
+    yield_histogram_values = None
+    clean_yield_q30_histogram_values = None
+    yield_histogram_bins = None
+
+
+    if clean_yield_gb:
+        clean_yield_histogram_values, clean_yield_histogram_bins = yield_histogram_variables(clean_yield_gb)
+    if yield_in_gb:
+        yield_histogram_values, yield_histogram_bins = yield_histogram_variables(yield_in_gb)
+    if clean_yield_q30_gb:
+        clean_yield_q30_histogram_values, clean_yield_q30_histogram_bins = yield_histogram_variables(clean_yield_q30_gb)
+
+    return clean_yield_histogram_values, \
+           yield_histogram_values, \
+           clean_yield_q30_histogram_values, \
+           yield_histogram_bins

@@ -1,3 +1,78 @@
+<<<<<<< Updated upstream
+=======
+
+{% macro proc_timeline(proc) -%}
+{# args:
+    proc (dict) - analysis_driver_proc from the Rest API.
+#}
+
+    <br/>
+    <ul>
+    <li>Started: {{ proc._created }}</li>
+    <li>Ended:
+        {% if proc.end_date %}
+        {{ proc.end_date }}
+        {% else %}
+        running with pid: {{ proc.pid }}
+        {% endif %}
+    </li>
+    <li>
+        Status:
+        {% if proc.status %}
+        {{ proc.status }}
+        {% else %}
+        inactive
+        {% endif %}
+    </li>
+    <br/>
+    </ul>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+    <link href="../static/stylesheets/vis.css" rel="stylesheet" type="text/css" />
+    <div id="{{ proc.proc_id }}"></div>
+
+
+    <script type="text/javascript">
+      var container = document.getElementById('{{ proc.proc_id }}');
+
+    var stages = {{ proc.stages|list|safe }};
+
+    var stage_names = stages.map(function(p){
+        if (p.date_finished){
+        return {
+        content: p.stage_name,
+        'start': moment(p.date_started, "DD-MM-YYYY HH:mm:SS").format('YYYY-MM-DD HH:mm:SS'),
+        'end': moment(p.date_finished, "DD-MM-YYYY HH:mm:SS").format('YYYY-MM-DD HH:mm:SS')}
+
+        } else {
+        return {
+        'start': moment(p.date_started, "DD-MM-YYYY HH:mm:SS").format('YYYY-MM-DD HH:mm:SS'),
+        'style': "color: red; background-color: pink;"
+        }
+    }});
+
+
+    var items = new vis.DataSet(stage_names);
+    startDate = (moment('{{ proc._created }}', "DD-MM-YYYY HH:mm:SS").format('YYYY-MM-DD HH:mm:SS'))
+    startMargin = moment(startDate).subtract(1, 'days')
+    endMargin = moment(startDate).add(6, 'days')
+    var options = {
+    min: startMargin,
+    max: endMargin
+    }
+    var timeline = new vis.Timeline(container, items, options);
+
+    </script>
+    <br/>
+
+
+{%- endmacro %}
+
+
+
+>>>>>>> Stashed changes
 {% macro proc_report(procs) -%}
 {# args:
     procs (list[dict]) - analysis_driver_procs from the Rest API.
