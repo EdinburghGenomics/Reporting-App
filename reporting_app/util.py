@@ -1,6 +1,8 @@
 import requests
 from flask import json
 from config import reporting_app_config as cfg, col_mappings
+import numpy
+import math
 
 
 def rest_query(resource, **query_args):
@@ -56,3 +58,23 @@ def capitalise(word):
 
 def snake_case(text):
     return text.lower().replace(' ', '_')
+
+
+def chart_variables(data, endpoint):
+
+    clean_yield_gb = [d['clean_yield_in_gb'] for d in data]
+    yield_in_gb = [d['yield_in_gb'] for d in data]
+    clean_yield_q30_gb = None
+
+    if endpoint == 'aggregate/samples':
+        clean_yield_q30_gb = [d['clean_yield_q30'] for d in data]
+    elif endpoint == 'aggregate/all_runs':
+        clean_yield_q30_gb = [d['clean_yield_q30_in_gb'] for d in data]
+
+    histogram_variables = []
+    histogram_variables.append(['clean yield gb', 'yield in gb', 'clean yield q30 in gb'])
+    for r in range(len(yield_in_gb)):
+        hist_variable = [clean_yield_gb[r], yield_in_gb[r], clean_yield_q30_gb[r]]
+        histogram_variables.append(hist_variable)
+
+    return histogram_variables
