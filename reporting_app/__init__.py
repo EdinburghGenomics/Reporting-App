@@ -1,6 +1,6 @@
 import flask as fl
 import os.path
-from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg, chart_variables
+from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg
 from config import reporting_app_config as cfg
 
 app = fl.Flask(__name__)
@@ -32,17 +32,11 @@ def pipeline_report(pipeline_type, view_type):
 
     if view_type == 'all':
         query = rest_query(endpoint)
-        data = query_api(endpoint)
     elif view_type in statuses:
         query = rest_query(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
-        args = ({'$or': [{'proc_status': s} for s in statuses[view_type]]})
-        data = query_api(endpoint, match=args)
     else:
         fl.abort(404)
         return None
-
-    hist_variables = chart_variables(data, endpoint)
-
 
     return fl.render_template(
         'untabbed_datatables.html',
@@ -50,9 +44,7 @@ def pipeline_report(pipeline_type, view_type):
             util.capitalise(view_type) + ' ' + pipeline_type,
             pipeline_type,
             query
-        ),
-        hist = hist_variables
-
+        )
     )
 
 
