@@ -1,4 +1,3 @@
-import rest_api
 from rest_api.aggregation import server_side
 from tests.test_rest_api.test_aggregation import TestAggregation, FakeRequest
 import json
@@ -29,20 +28,20 @@ class TestRestSide(TestAggregation):
 
     def test_aggregate_embedded_run_elements(self):
         self._test_aggregation(
-            rest_api.aggregate_embedded_run_elements,
+            server_side.aggregate_embedded_run_elements,
             'lanes_embedded_run_elements.json'
         )
 
     def test_embed_run_elements_into_samples(self):
         self._test_aggregation(
-            rest_api.embed_run_elements_into_samples,
+            server_side.embed_run_elements_into_samples,
             'samples_embedded_run_elements.json',
             sort='-user_sample_id'
         )
 
     def test_run_element_basic_aggregation(self):
         self._test_aggregation(
-            rest_api.run_element_basic_aggregation,
+            server_side.run_element_basic_aggregation,
             'run_elements_basic.json'
         )
 
@@ -63,31 +62,31 @@ class TestServerSide(TestAggregation):
         }
     }
 
-    def _test_aggregation(self, aggregate, filename, incomplete=False):
+    def _test_aggregation(self, aggregate, filename, incomplete=False, trim_run_elements=False):
         if incomplete:
             filename += '_incomplete'
         filename += '.json'
         print()
         print(filename)
         self._compare_jsons(
-            json.loads(aggregate(json.load(self._json_test_file('pre', filename)))),
+            json.loads(server_side._aggregate_data(json.load(self._json_test_file('pre', filename)), aggregate, trim_run_elements=trim_run_elements)),
             json.load(self._json_test_file('post', filename))
         )
 
     def test_aggregations_complete_data(self):
-        for method, filename in (
-            (server_side.run_element_basic_aggregation, 'run_elements_basic'),
-            (server_side.aggregate_samples, 'samples_embedded_run_elements'),
-            (server_side.aggregate_lanes, 'lanes_embedded_run_elements')
+        for method, filename, trim_run_elements in (
+            (server_side._aggregate_run_element, 'run_elements_basic', False),
+            (server_side._aggregate_sample, 'samples_embedded_run_elements', True),
+            (server_side._aggregate_lane, 'lanes_embedded_run_elements', False)
         ):
-            self._test_aggregation(method, filename)
+            self._test_aggregation(method, filename, trim_run_elements=trim_run_elements)
 
     def test_aggregations_incomplete_data(self):
-        for method, filename in (
+        for method, filename, trim_run_elements in (
             # TODO rewrite these tests with more fine grain assertion
-            # (rest_api.aggregation.server_side.run_element_basic_aggregation, 'run_elements_basic'),
-            # (rest_api.aggregation.server_side.aggregate_samples, 'samples_embedded_run_elements'),
-            # (rest_api.aggregation.server_side.aggregate_lanes, 'lanes_embedded_run_elements')
+            # (server_side._aggregate_run_element, 'run_elements_basic', False),
+            # (server_side._aggregate_sample, 'samples_embedded_run_elements', True),
+            # (server_side._aggregate_lane, 'lanes_embedded_run_elements', False)
         ):
             self._test_aggregation(method, filename, incomplete=True)
 
