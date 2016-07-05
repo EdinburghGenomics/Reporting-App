@@ -1,5 +1,7 @@
 from tests import Helper
 from config import reporting_app_config, col_mappings
+from egcg_core.config import cfg
+cfg.load_config_file(Helper.config_file)
 from reporting_app import util
 
 
@@ -10,21 +12,6 @@ class TestBase(Helper):
 
 
 class TestReportingApp(TestBase):
-    def test_rest_query(self):
-        q = util.rest_query(
-            'test_resource',
-            this='that',
-            dict_query='{"other":1}',
-        )
-        expected = self.cfg['rest_api'] + '/test_resource?this=that&dict_query={"other":1}'
-        assert len(q) == len(expected)
-
-        q_base, q_query = q.split('?')
-        e_base, e_query = expected.split('?')
-
-        assert q_base == e_base
-        assert sorted(q_query.split('&')) == sorted(e_query.split('&'))
-
     def test_format_order(self):
         cols = (
             {'data': 'this', 'title': 'This'},

@@ -1,7 +1,8 @@
-__author__ = 'mwham'
+from os.path import dirname, abspath, join
 from unittest import TestCase
-import os.path
 
 
 class Helper(TestCase):
-    assets_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets')
+    top_level = dirname(dirname(abspath(__file__)))
+    assets_dir = join(top_level, 'tests', 'assets')
+    config_file = join(top_level, 'etc', 'example_reporting.yaml')
