@@ -3,10 +3,6 @@ from config import reporting_app_config, col_mappings
 from reporting_app import util
 
 
-class FakeUser:
-    api_token = 'an_api_token'
-
-
 class TestBase(Helper):
     def setUp(self):
         self.cfg = reporting_app_config
@@ -56,7 +52,6 @@ class TestReportingApp(TestBase):
         assert obs == exp
 
     def test_tab_set_cfg(self):
-
         dt_cfg = util.datatable_cfg('Test', 'demultiplexing', self.cfg['rest_api'])
         obs = util.tab_set_cfg('A Tab Set', [dt_cfg])
         exp = {
