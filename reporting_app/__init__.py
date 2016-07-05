@@ -1,75 +1,17 @@
-import os.path
 import flask as fl
-import flask_login
-from itsdangerous import TimedSerializer
-from config import reporting_app_config as cfg
-import auth
+import os.path
 from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg
+from config import reporting_app_config as cfg
 
 app = fl.Flask(__name__)
-app.secret_key = cfg['key'].encode()
-login_manager = flask_login.LoginManager()
-login_manager.init_app(app)
-
-
-def generate_api_token(user_id):
-        data = {}
-        if user_id:
-            data['token'] = user_id
-        return TimedSerializer(app.secret_key).dumps(data)
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    return auth.User(user_id)
-
-
-@login_manager.unauthorized_handler
-def unauthorised_handler():
-    return fl.redirect('/login')
 
 
 @app.route('/')
-@flask_login.login_required
 def main_page():
     return fl.render_template('main_page.html')
 
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if fl.request.method == 'GET':
-        return fl.render_template('login.html')
-    username = fl.request.form['username']
-    if auth.match_passwords(username, fl.request.form['pw']):
-        u = auth.User(username, api_token=generate_api_token(username))
-        flask_login.login_user(u)
-        return fl.redirect('/')
-    return 'Bad login'
-
-
-@app.route('/logout')
-def logout():
-    flask_login.current_user.erase_token()
-    flask_login.logout_user()
-    return 'Logged out'
-
-
-@app.route('/change_password', methods=['GET', 'POST'])
-@flask_login.login_required
-def change_password():
-    if fl.request.method == 'GET':
-        return fl.render_template('change_password.html')
-
-    user_id = flask_login.current_user.id
-    form = fl.request.form
-    if auth.match_passwords(user_id, form['old_pw']):
-        auth.change_pw(user_id, form['old_pw'], form['new_pw'])
-        return fl.redirect('/logout')
-    return 'Bad request'
-
-
 @app.route('/runs/')
-@flask_login.login_required
 def run_reports():
     return fl.render_template(
         'untabbed_datatables.html',
@@ -78,7 +20,6 @@ def run_reports():
 
 
 @app.route('/pipelines/<pipeline_type>/<view_type>')
-@flask_login.login_required
 def pipeline_report(pipeline_type, view_type):
     statuses = {
         'queued': ('reprocess', 'force_ready'),
@@ -108,7 +49,6 @@ def pipeline_report(pipeline_type, view_type):
 
 
 @app.route('/runs/<run_id>')
-@flask_login.login_required
 def report_run(run_id):
     lanes = sorted(set(e['lane_number'] for e in query_api('lanes', where={'run_id': run_id})))
 
@@ -164,7 +104,6 @@ def report_run(run_id):
 
 
 @app.route('/runs/<run_id>/<filename>')
-@flask_login.login_required
 def serve_fastqc_report(run_id, filename):
     if '..' in filename or filename.startswith('/'):
         fl.abort(404)
@@ -172,7 +111,6 @@ def serve_fastqc_report(run_id, filename):
 
 
 @app.route('/projects/')
-@flask_login.login_required
 def project_reports():
     return fl.render_template(
         'untabbed_datatables.html',
@@ -185,7 +123,6 @@ def project_reports():
 
 
 @app.route('/projects/<project_id>')
-@flask_login.login_required
 def report_project(project_id):
     return fl.render_template(
         'untabbed_datatables.html',
@@ -198,7 +135,6 @@ def report_project(project_id):
 
 
 @app.route('/samples/<sample_id>')
-@flask_login.login_required
 def report_sample(sample_id):
     sample = query_api('samples', where={'sample_id': sample_id})[0]
 
@@ -230,4 +166,3 @@ def report_sample(sample_id):
             sort='-_created'
         )
     )
-
