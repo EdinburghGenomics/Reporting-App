@@ -1,5 +1,6 @@
 import requests
-from flask import json
+import auth
+from flask_login import current_user
 from config import reporting_app_config as cfg, col_mappings
 
 
@@ -14,7 +15,8 @@ def rest_query(resource, **query_args):
 
 def query_api(resource, data_only=True, **query_args):
     url = rest_query(resource, **query_args)
-    j = json.loads(requests.get(url).content.decode('utf-8'))
+    r = requests.get(url, headers={'Authorization': 'Token ' + auth.encode_string(current_user.api_token)})
+    j = r.json()
     if data_only:
         j = j['data']
     return j
@@ -37,6 +39,7 @@ def datatable_cfg(title, cols, api_url, default_sort_col=None, **kwargs):
         'cols': col_mappings[cols],
         'api_url': api_url,
         'default_sort_col': default_sort_col,
+        'token': current_user.api_token
     }
     d.update(kwargs)
     return d

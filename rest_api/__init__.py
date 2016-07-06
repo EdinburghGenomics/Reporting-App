@@ -1,7 +1,8 @@
 import eve
 import flask
+import flask_cors
 from config import rest_config as cfg, schema
-
+import auth
 
 settings = {
     'DOMAIN': {
@@ -64,6 +65,7 @@ settings = {
     'PAGINATION_LIMIT': 100000,
 
     'X_DOMAINS': cfg['x_domains'],
+    'X_HEADERS': ['Authorization'],
 
     'URL_PREFIX': 'api',
     'API_VERSION': '0.1',
@@ -78,7 +80,9 @@ settings = {
 }
 
 
-app = eve.Eve(settings=settings)
+app = eve.Eve(settings=settings, auth=auth.DualAuth)
+app.secret_key = cfg['key'].encode()
+flask_cors.CORS(app, supports_credentials=True, allow_headers=('Authorization',))
 
 from rest_api import aggregation
 

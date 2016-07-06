@@ -1,4 +1,3 @@
-__author__ = 'mwham'
 from .expressions import *
 
 aggregate_run_element = {
@@ -13,7 +12,10 @@ aggregate_sample = {
     'pc_pass_filter': Percentage('passing_filter_reads', 'total_reads'),
     'clean_pc_q30_r1': Percentage('clean_q30_bases_r1', 'clean_bases_r1'),
     'clean_pc_q30_r2': Percentage('clean_q30_bases_r2', 'clean_bases_r2'),
-    'clean_pc_q30': Percentage(Add('clean_q30_bases_r1', 'clean_q30_bases_r2'), Add('clean_bases_r1', 'clean_bases_r2')),
+    'clean_pc_q30': Percentage(
+        Add('clean_q30_bases_r1', 'clean_q30_bases_r2'),
+        Add('clean_bases_r1', 'clean_bases_r2')
+    ),
     'clean_yield_in_gb': Divide(Add('clean_bases_r1', 'clean_bases_r2'), Constant(1000000000)),
     'clean_yield_q30': Divide(Add('clean_q30_bases_r1', 'clean_q30_bases_r2'), Constant(1000000000)),
     'pc_mapped_reads': Percentage('mapped_reads', 'bam_file_reads'),
@@ -27,7 +29,10 @@ aggregate_lane = {
     'pc_q30': Percentage(Add('q30_bases_r1', 'q30_bases_r2'), Add('bases_r1', 'bases_r2')),
     'pc_pass_filter': Percentage('passing_filter_reads', 'total_reads'),
     'yield_in_gb': Divide(Add('bases_r1', 'bases_r2'), Constant(1000000000)),
-    'cv': CoefficientOfVariation('run_elements.passing_filter_reads', filter_func=lambda x: x.get('barcode') != 'unknown')
+    'cv': CoefficientOfVariation(
+        'run_elements.passing_filter_reads',
+        filter_func=lambda x: x.get('barcode') != 'unknown'
+    )
 }
 
 aggregate_run = {
@@ -67,4 +72,3 @@ aggregate_embedded_run_elements = {  # multi-element
 aggregate_embedded_proc = {  # multi-element
     'analysis_driver_proc': MostRecent('analysis_driver_procs')
 }
-
