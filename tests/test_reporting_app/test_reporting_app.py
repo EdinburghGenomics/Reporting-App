@@ -1,11 +1,6 @@
-from unittest.mock import patch
 from tests import Helper
 from config import reporting_app_config, col_mappings
 from reporting_app import util
-
-
-class FakeUser:
-    api_token = 'an_api_token'
 
 
 class TestBase(Helper):
@@ -41,27 +36,23 @@ class TestReportingApp(TestBase):
         assert util._format_order('-other', cols) == [2, 'desc']
 
     def test_datatable_cfg(self):
-        with patch('reporting_app.util.current_user', new=FakeUser):
-            obs = util.datatable_cfg(
-                'A Datatable',
-                'demultiplexing',
-                self.cfg['rest_api'] + '/test_endpoint',
-                default_sort_col='-sample_id'
-            )
+        obs = util.datatable_cfg(
+            'A Datatable',
+            'demultiplexing',
+            self.cfg['rest_api'] + '/test_endpoint',
+            default_sort_col='-sample_id'
+        )
         exp = {
             'title': 'A Datatable',
             'name': 'a_datatable',
             'cols': col_mappings['demultiplexing'],
             'api_url': self.cfg['rest_api'] + '/test_endpoint',
-            'default_sort_col': [2, 'desc'],
-            'token': 'an_api_token'
+            'default_sort_col': [2, 'desc']
         }
         assert obs == exp
 
     def test_tab_set_cfg(self):
-
-        with patch('reporting_app.util.current_user', new=FakeUser):
-            dt_cfg = util.datatable_cfg('Test', 'demultiplexing', self.cfg['rest_api'])
+        dt_cfg = util.datatable_cfg('Test', 'demultiplexing', self.cfg['rest_api'])
         obs = util.tab_set_cfg('A Tab Set', [dt_cfg])
         exp = {
             'title': 'A Tab Set',
