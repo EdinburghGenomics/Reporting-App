@@ -22,7 +22,8 @@ $(document).ready(
                 'pageLength': 25,
                 'ajax': {
                     'url': api_url,
-                    'dataSrc': 'data'
+                    'dataSrc': 'data',
+                    'headers': {'Authorization': 'Token ' + btoa('{{ dt_config.token }}')}
                 },
                 'language': {'processing': '<i class="fa fa-refresh fa-spin">'},
                 'columns': cols.map(

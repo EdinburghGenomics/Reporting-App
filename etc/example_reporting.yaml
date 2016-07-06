@@ -3,17 +3,17 @@ reporting_app:
     webserver: tornado
     debug: False
     port: 5000
-    rest_api: 'http://localhost:4999/api/0.1'
+    key: 'a_key'
+    user_db: reporting_app_users.sqlite
 
-    logging:
-        stream_handlers:
-            - stream: 'ext://sys.stdout'
-              level: DEBUG
+    stream_handlers:
+        - stream: 'ext://sys.stdout'
+          level: DEBUG
 
-        timed_rotating_file_handlers:
-            - filename: /path/to/reporting_app.log
-              when: 'midnight'
-              level: DEBUG
+    timed_rotating_file_handlers:
+        - filename: /path/to/reporting_app.log
+          when: 'midnight'
+          level: DEBUG
 
 
 rest_app:
@@ -25,18 +25,17 @@ rest_app:
     db_name: 'test_db'
     db_host: 'mongodb://localhost'
     db_port: 4998
-
+    key: 'a_key'
     x_domains: ['http://localhost:5000']
 
-    logging:
-        stream_handlers:
-            - stream: 'ext://sys.stdout'
-              level: DEBUG
+    stream_handlers:
+        - stream: 'ext://sys.stdout'
+          level: DEBUG
 
-        timed_rotating_file_handlers:
-            - filename: /path/to/rest_api.log
-              when: 'midnight'
-              level: DEBUG
+    timed_rotating_file_handlers:
+        - filename: /path/to/rest_api.log
+          when: 'midnight'
+          level: DEBUG
 
 default:
     rest_api:

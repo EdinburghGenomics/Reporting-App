@@ -4,7 +4,7 @@ import logging
 import logging.config
 import logging.handlers
 import egcg_core.config
-from egcg_core.app_logging import logging_default as log_cfg
+from egcg_core.app_logging import LoggingConfiguration
 
 watched_files = [
     os.path.join(os.path.dirname(__file__), '..', 'etc', 'schema.yaml'),
@@ -23,6 +23,7 @@ def run_app(app, cfg):
     app.debug = cfg.get('debug', False)
 
     egcg_core.config.cfg.load_config_file(os.getenv('REPORTINGCONFIG'))
+    log_cfg = LoggingConfiguration(cfg)
     log_cfg.loggers.update(_webserver_loggers(webserver))
     log_cfg.loggers['app'] = app.logger
     app.logger.setLevel(logging.DEBUG)
