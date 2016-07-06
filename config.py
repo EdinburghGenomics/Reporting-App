@@ -1,76 +1,33 @@
 import os
 import copy
-import yaml
-
-
-class Configuration:
-    def __init__(self, env_config, home_config, etc_config):
-        self.env_config = env_config
-        self.home_config = home_config
-        self.etc_config = etc_config
-
-        self.content = self._load_config_file()
-
-    def get(self, item, ret_default=None):
-        try:
-            return self[item]
-        except KeyError:
-            return ret_default
-
-    def query(self, *parts, top_level=None, ret_default=None):
-        if top_level is None:
-            top_level = self
-        item = None
-
-        for p in parts:
-            item = top_level.get(p)
-            if item:
-                top_level = item
-            else:
-                return ret_default
-        return item
-
-    def _load_config_file(self):
-        return yaml.load(open(self._find_config_file(), 'r'))
-
-    def _find_config_file(self):
-        for config in (
-                os.getenv(self.env_config),
-                os.path.expanduser(self.home_config),
-                os.path.join(os.path.abspath(os.path.dirname(__file__)), 'etc', self.etc_config)
-        ):
-            if config and os.path.isfile(config):
-                return config
-
-        raise FileNotFoundError('Could not find config file')
-
-    def __getitem__(self, item):
-        return self.content[item]
+from egcg_core.config import Configuration
+from egcg_core.exceptions import ConfigError
 
 
 class SplitConfiguration(Configuration):
-    def __init__(self, env_config, home_config, etc_config, app_type):
+    def __init__(self, app_type, cfg_search_path=None):
         self.app_type = app_type
-        super().__init__(env_config, home_config, etc_config)
+        super().__init__(cfg_search_path)
 
-    def _load_config_file(self):
-        env = os.getenv('REPORTINGENV', 'default')
-        return yaml.load(open(self._find_config_file(), 'r'))[env][self.app_type]
+    def load_config_file(self, cfg_file):
+        super().load_config_file(cfg_file)
+        if self.content:
+            self.content = self.content[self.app_type]
 
 
 class ColumnMappingConfig(Configuration):
-    def __init__(self, env_config, home_config, etc_config):
-        super().__init__(env_config, home_config, etc_config)
+    def __init__(self, cfg_search_path):
+        super().__init__(cfg_search_path)
 
         self.column_def = self.content.pop('column_def')
         for key in self.content:
-            # self.content[key] needs to be a list of strings or dictionaries
+            # self.content[key] needs to be a list of strings or dicts
             for i in range(len(self.content[key])):
                 if isinstance(self.content[key][i], str):
                     if self.content[key][i] in self.column_def:
                         self.content[key][i] = self.column_def[self.content[key][i]]
                     else:
-                        raise ReferenceError('No column definition found for ' + self.content[key][i])
+                        raise ConfigError('No column definition for %s' % self.content[key][i])
                 elif isinstance(self.content[key][i], dict):
                     if self.content[key][i]['column_def'] in self.column_def:
                         # take a copy of the column def and update it with the specific info
@@ -82,17 +39,30 @@ class ColumnMappingConfig(Configuration):
                         pass
 
 
+def _cfg_file(cfg_path):
+    if cfg_path == cfg_path.upper():
+        return os.getenv(cfg_path)
+    elif cfg_path.startswith('~'):
+        return os.path.expanduser(cfg_path)
+    else:
+        return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'etc', cfg_path)
+
+
 reporting_app_config = SplitConfiguration(
-    'REPORTINGCONFIG',
-    '~/.reporting.yaml',
-    'example_reporting.yaml',
-    'reporting_app'
+    'reporting_app',
+    [
+        _cfg_file('REPORTINGCONFIG'),
+        _cfg_file('~/.reporting.yaml'),
+        _cfg_file('example_reporting.yaml')
+    ]
 )
 rest_config = SplitConfiguration(
-    'REPORTINGCONFIG',
-    '~/.reporting.yaml',
-    'example_reporting.yaml',
-    'rest_app'
+    'rest_app',
+    [
+        _cfg_file('REPORTINGCONFIG'),
+        _cfg_file('~/.reporting.yaml'),
+        _cfg_file('example_reporting.yaml')
+    ]
 )
-schema = Configuration('REPORTINGSCHEMA', '~/.reporting_schema.yaml', 'schema.yaml')
-col_mappings = ColumnMappingConfig('REPORTINGCOLS', '~/.reporting_cols.yaml', 'column_mappings.yaml')
+schema = Configuration([_cfg_file('schema.yaml')])
+col_mappings = ColumnMappingConfig([_cfg_file('column_mappings.yaml')])

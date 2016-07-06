@@ -2,9 +2,10 @@ import os.path
 import flask as fl
 import flask_login
 from itsdangerous import TimedSerializer
-from config import reporting_app_config as cfg
 import auth
-from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg
+from config import reporting_app_config as cfg
+from reporting_app.util import datatable_cfg, tab_set_cfg
+from egcg_core.rest_communication import api_url, get_documents
 
 app = fl.Flask(__name__)
 app.secret_key = cfg['key'].encode()
@@ -73,7 +74,7 @@ def change_password():
 def run_reports():
     return fl.render_template(
         'untabbed_datatables.html',
-        table=datatable_cfg('All runs', 'runs', api_url=rest_query('aggregate/all_runs'))
+        table=datatable_cfg('All runs', 'runs', api_url=api_url('aggregate/all_runs'))
     )
 
 
@@ -90,9 +91,9 @@ def pipeline_report(pipeline_type, view_type):
     endpoint = endpoints[pipeline_type]
 
     if view_type == 'all':
-        query = rest_query(endpoint)
+        query = api_url(endpoint)
     elif view_type in statuses:
-        query = rest_query(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
+        query = api_url(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
     else:
         fl.abort(404)
         return None
@@ -110,7 +111,7 @@ def pipeline_report(pipeline_type, view_type):
 @app.route('/runs/<run_id>')
 @flask_login.login_required
 def report_run(run_id):
-    lanes = sorted(set(e['lane_number'] for e in query_api('lanes', where={'run_id': run_id})))
+    lanes = sorted(set(e['lane_number'] for e in get_documents('lanes', where={'run_id': run_id})))
 
     return fl.render_template(
         'run_report.html',
@@ -118,7 +119,7 @@ def report_run(run_id):
         lane_aggregation=datatable_cfg(
             title='Aggregation per lane',
             cols='lane_aggregation',
-            api_url=rest_query('aggregate/run_elements_by_lane', match={'run_id': run_id}),
+            api_url=api_url('aggregate/run_elements_by_lane', match={'run_id': run_id}),
             default_sort_col='lane_number',
             paging=False,
             searching=False,
@@ -131,7 +132,7 @@ def report_run(run_id):
                     datatable_cfg(
                         title='Demultiplexing lane ' + str(lane),
                         cols='demultiplexing',
-                        api_url=rest_query('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
+                        api_url=api_url('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
                         paging=False,
                         searching=False,
                         info=False
@@ -145,7 +146,7 @@ def report_run(run_id):
                     datatable_cfg(
                         title='Unexpected barcodes lane ' + str(lane),
                         cols='unexpected_barcodes',
-                        api_url=rest_query('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
+                        api_url=api_url('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
                         default_sort_col='passing_filter_reads',
                         paging=False,
                         searching=False,
@@ -155,7 +156,7 @@ def report_run(run_id):
                 ]
             )
         ],
-        procs=query_api(
+        procs=get_documents(
             'analysis_driver_procs',
             where={'dataset_type': 'run', 'dataset_name': run_id},
             sort='-_created'
@@ -179,7 +180,7 @@ def project_reports():
         table=datatable_cfg(
             'Project list',
             'projects',
-            api_url=rest_query('aggregate/projects')
+            api_url=api_url('aggregate/projects')
         )
     )
 
@@ -192,7 +193,7 @@ def report_project(project_id):
         table=datatable_cfg(
             'Project report for ' + project_id,
             'samples',
-            rest_query('aggregate/samples', match={'project_id': project_id})
+            api_url('aggregate/samples', match={'project_id': project_id})
         )
     )
 
@@ -200,7 +201,7 @@ def report_project(project_id):
 @app.route('/samples/<sample_id>')
 @flask_login.login_required
 def report_sample(sample_id):
-    sample = query_api('samples', where={'sample_id': sample_id})[0]
+    sample = get_documents('samples', where={'sample_id': sample_id})[0]
 
     return fl.render_template(
         'sample_report.html',
@@ -210,7 +211,7 @@ def report_sample(sample_id):
             datatable_cfg(
                 'Sample report',
                 'samples',
-                rest_query('aggregate/samples', match={'sample_id': sample_id}),
+                api_url('aggregate/samples', match={'sample_id': sample_id}),
                 paging=False,
                 searching=False,
                 info=False
@@ -218,16 +219,15 @@ def report_sample(sample_id):
             datatable_cfg(
                 'Run elements report',
                 'sample_run_elements',
-                rest_query('aggregate/run_elements', match={'sample_id': sample_id}),
+                api_url('aggregate/run_elements', match={'sample_id': sample_id}),
                 paging=False,
                 searching=False,
                 info=False
             )
         ],
-        procs=query_api(
+        procs=get_documents(
             'analysis_driver_procs',
             where={'dataset_type': 'sample', 'dataset_name': sample_id},
             sort='-_created'
         )
     )
-
