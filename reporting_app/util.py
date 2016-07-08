@@ -1,8 +1,6 @@
 import requests
 from flask import json
 from config import reporting_app_config as cfg, col_mappings
-import numpy
-import math
 
 
 def rest_query(resource, **query_args):
