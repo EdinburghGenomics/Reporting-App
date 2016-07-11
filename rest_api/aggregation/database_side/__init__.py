@@ -46,7 +46,9 @@ def aggregate(endpoint, base_pipeline, post_processing=None):
 
 
 def aggregate_endpoint(route):
-    return '/%s/%s/aggregate/%s' % (app.config['URL_PREFIX'], app.config['API_VERSION'], route)
+    if 'URL_PREFIX' in app.config and 'API_VERSION' in app.config:
+        return '/%s/%s/aggregate/%s' % (app.config['URL_PREFIX'], app.config['API_VERSION'], route)
+    return '/aggregate/' + route  # Apache adds url prefix instead
 
 
 @app.route(aggregate_endpoint('run_elements_by_lane'))

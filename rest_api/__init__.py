@@ -67,9 +67,6 @@ settings = {
     'X_DOMAINS': cfg['x_domains'],
     'X_HEADERS': ['Authorization'],
 
-    'URL_PREFIX': 'api',
-    'API_VERSION': '0.1',
-
     'RESOURCE_METHODS': ['GET', 'POST', 'DELETE'],
     'ITEM_METHODS': ['GET', 'PUT', 'PATCH', 'DELETE'],
 
@@ -78,6 +75,9 @@ settings = {
 
     'DATE_FORMAT': '%d_%m_%Y_%H:%M:%S'
 }
+
+if 'url_prefix' in cfg and 'api_version' in cfg:
+    settings.update({'URL_PREFIX': cfg['url_prefix'], 'API_VERSION': cfg['api_version']})
 
 
 app = eve.Eve(settings=settings, auth=auth.DualAuth)

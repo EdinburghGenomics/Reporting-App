@@ -14,10 +14,10 @@ login_manager.init_app(app)
 
 
 def generate_api_token(user_id):
-        data = {}
-        if user_id:
-            data['token'] = user_id
-        return TimedSerializer(app.secret_key).dumps(data)
+    data = {}
+    if user_id:
+        data['token'] = user_id
+    return TimedSerializer(app.secret_key).dumps(data)
 
 
 @login_manager.user_loader

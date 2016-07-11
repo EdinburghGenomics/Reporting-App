@@ -17,7 +17,6 @@ reporting_app:
 
 
 rest_app:
-    database_side_aggregation: False
     webserver: tornado
     port: 4999
     debug: False
@@ -26,6 +25,10 @@ rest_app:
     db_host: 'mongodb://localhost'
     db_port: 4998
     key: 'a_key'
+
+    url_prefix: 'api'
+    api_version: '0.1'
+
     x_domains: ['http://localhost:5000']
 
     stream_handlers:
