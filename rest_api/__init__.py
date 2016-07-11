@@ -76,7 +76,7 @@ settings = {
     'DATE_FORMAT': '%d_%m_%Y_%H:%M:%S'
 }
 
-if 'url_prefix' in cfg and 'api_version' in cfg:
+if cfg.get('url_prefix') and cfg.get('api_version'):
     settings.update({'URL_PREFIX': cfg['url_prefix'], 'API_VERSION': cfg['api_version']})
 
 
