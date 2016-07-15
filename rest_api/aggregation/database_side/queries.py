@@ -71,6 +71,7 @@ demultiplexing = [
             'pc_q30_r1': percentage('$q30_bases_r1', '$bases_r1'),
             'pc_q30_r2': percentage('$q30_bases_r2', '$bases_r2'),
             'pc_q30': percentage(add('$q30_bases_r1', '$q30_bases_r2'), add('$bases_r1', '$bases_r2')),
+            'lane_pc_optical_dups': '$lane_pc_optical_dups',
             'yield_in_gb': divide(add('$bases_r1', '$bases_r2'), 1000000000),
             'clean_yield_in_gb': divide(add('$clean_bases_r1', '$clean_bases_r2'), 1000000000),
             'yield_q30_in_gb': divide(add('$q30_bases_r1', '$q30_bases_r2'), 1000000000),
@@ -127,8 +128,8 @@ sample = merge_analysis_driver_procs(
     [
         'sample_id', 'number_of_lanes', 'project_id', 'sample_id', 'library_id', 'user_sample_id',
         'bam_file_reads', 'mapped_reads', 'properly_mapped_reads', 'duplicate_reads', 'median_coverage',
-        'genotype_validation', 'called_gender', 'provided_gender', 'reviewed', 'useable', 'delivered',
-        'review_comments'
+        'genotype_validation', 'called_gender', 'provided_gender', 'sample_contamination', 'species_contamination',
+        'reviewed', 'useable', 'delivered', 'review_comments'
     ]
 )
 
@@ -148,6 +149,37 @@ sample.extend([
             'genotype_validation': '$genotype_validation',
             'called_gender': '$called_gender',
             'provided_gender': '$provided_gender',
+            'sample_contamination': '$sample_contamination',
+            'species_contamination': '$species_contamination',
+            'reviewed': '$reviewed',
+            'useable': '$useable',
+            'delivered': '$delivered',
+            'proc_status': '$most_recent_proc.status',
+            'review_comments': '$review_comments',
+            'most_recent_proc': '$most_recent_proc',
+            'run_elements': {'$filter':{
+                'input': '$run_elements',
+                'as': 're',
+                'cond': { '$eq': [ '$$re.useable', 'yes' ] }
+            }}
+        }
+    },
+    {
+        '$project': {
+            'project_id': '$project_id',
+            'sample_id': '$sample_id',
+            'library_id': '$library_id',
+            'user_sample_id': '$user_sample_id',
+            'bam_file_reads': '$bam_file_reads',
+            'mapped_reads': '$mapped_reads',
+            'properly_mapped_reads': '$properly_mapped_reads',
+            'duplicate_reads': '$duplicate_reads',
+            'median_coverage': '$median_coverage',
+            'genotype_validation': '$genotype_validation',
+            'called_gender': '$called_gender',
+            'provided_gender': '$provided_gender',
+            'sample_contamination': '$sample_contamination',
+            'species_contamination': '$species_contamination',
             'reviewed': '$reviewed',
             'useable': '$useable',
             'delivered': '$delivered',
@@ -201,6 +233,8 @@ sample.extend([
             'genotype_validation': '$genotype_validation',
             'called_gender': '$called_gender',
             'provided_gender': '$provided_gender',
+            'sample_contamination': '$sample_contamination',
+            'species_contamination': '$species_contamination',
             'gender_match': cond(eq('$called_gender', '$provided_gender'), '$called_gender', 'Mismatch'),
             'reviewed': '$reviewed',
             'useable': '$useable',
