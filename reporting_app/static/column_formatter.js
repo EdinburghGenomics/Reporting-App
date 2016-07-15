@@ -65,7 +65,6 @@ function species_contamination_fmt(data, fmt){
         }
     }
     return best_species.join()
-
 }
 
 var function_map = {
