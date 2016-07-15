@@ -272,8 +272,8 @@ project_info = [
                        'input': '$samples',
                        'as': 'sample',
                        'cond': or_(
-                           eq('$sample.reviewed', 'pass'),
-                           eq('$sample.reviewed', 'fail')
+                           eq('$$sample.reviewed', 'pass'),
+                           eq('$$sample.reviewed', 'fail')
                        )
                     }
                 }
@@ -283,7 +283,7 @@ project_info = [
                     '$filter': {
                        'input': '$samples',
                        'as': 'sample',
-                       'cond': eq('$sample.delivered', 'yes')
+                       'cond': eq('$$sample.delivered', 'yes')
                     }
                 }
             }

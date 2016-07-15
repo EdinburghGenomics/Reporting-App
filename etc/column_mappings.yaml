@@ -48,7 +48,7 @@ column_def:
     sample_id:                { data: 'sample_id',                            title: 'Sample ID',                fmt: { link: '/samples/' } }
     sample_ids:               { data: 'sample_ids',                           title: 'Sample list',              fmt: { link: '/samples/' } }
     freemix:                  { data: 'sample_contamination.freemix',         title: 'Freemix',                  fmt: { type: 'float',  max: .03}  }
-    contaminant_species:      { data: 'species_contamination',                title: 'Contaminant species',      visible: 'false', fmt: { name: 'species_contamination' } }
+    species_found:            { data: 'species_contamination',                title: 'Species Found species',    fmt: { name: 'species_contamination' } }
     useable:                  { data: 'useable',                              title: 'Useable' }
     useable_statuses:         { data: 'useable_statuses',                     title: 'Useable'}
     user_sample_id:           { data: 'user_sample_id',                       title: 'User sample ID' }
@@ -134,7 +134,7 @@ samples:
     - duplicate_reads
     - pc_duplicate_reads
     - median_coverage
-    - contaminant_species
+    - species_found
     - pc_callable
     - gender_match
     - called_gender
