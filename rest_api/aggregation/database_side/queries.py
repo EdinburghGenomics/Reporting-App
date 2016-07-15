@@ -157,6 +157,35 @@ sample.extend([
             'proc_status': '$most_recent_proc.status',
             'review_comments': '$review_comments',
             'most_recent_proc': '$most_recent_proc',
+            'run_elements': {'$filter':{
+                'input': '$run_elements',
+                'as': 're',
+                'cond': { '$eq': [ '$$re.useable', 'yes' ] }
+            }}
+        }
+    },
+    {
+        '$project': {
+            'project_id': '$project_id',
+            'sample_id': '$sample_id',
+            'library_id': '$library_id',
+            'user_sample_id': '$user_sample_id',
+            'bam_file_reads': '$bam_file_reads',
+            'mapped_reads': '$mapped_reads',
+            'properly_mapped_reads': '$properly_mapped_reads',
+            'duplicate_reads': '$duplicate_reads',
+            'median_coverage': '$median_coverage',
+            'genotype_validation': '$genotype_validation',
+            'called_gender': '$called_gender',
+            'provided_gender': '$provided_gender',
+            'sample_contamination': '$sample_contamination',
+            'species_contamination': '$species_contamination',
+            'reviewed': '$reviewed',
+            'useable': '$useable',
+            'delivered': '$delivered',
+            'proc_status': '$most_recent_proc.status',
+            'review_comments': '$review_comments',
+            'most_recent_proc': '$most_recent_proc',
 
             'bases_r1': {'$sum': '$run_elements.bases_r1'},
             'bases_r2': {'$sum': '$run_elements.bases_r2'},

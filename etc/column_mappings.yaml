@@ -159,8 +159,8 @@ sample_run_elements:
     - sample_id
     - passing_filter_reads
     - {column_def: 'yield_in_gb',  fmt: { type: 'float',  min: 120 } }
-    - lane_pc_optical_dups
     - pc_q30_r1
     - pc_q30_r2
+    - lane_pc_optical_dups
     - reviewed
     - useable
