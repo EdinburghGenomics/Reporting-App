@@ -4,7 +4,7 @@
  */
 
 function render_data(data, type, row, meta, fmt) {
-    if (!data) {
+    if (!data && data !== 0) {
         return null;
     }
     if (!fmt) {
