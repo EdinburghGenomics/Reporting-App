@@ -28,24 +28,58 @@ def add(*args):
     return {'$add': list(args)}
 
 
-def divide(numerator, denominator):
-    return {
-        '$cond': {
-            'if': {'$eq': [denominator, 0]},
-            'then': 0,
-            'else': {'$divide': [numerator, denominator]}
+def multiply(*args):
+    return {'$multiply': list(args)}
+
+
+def divide(numerator, denominator, simple=False):
+    div = {'$divide': [numerator, denominator]}
+    if simple:
+        return div
+    else:
+        return {
+            '$cond': {
+                'if': {'$eq': [denominator, 0]},
+                'then': 0,
+                'else': div
+            }
         }
-    }
 
 
 def percentage(numerator, denominator):
-    return {
-        '$cond': {
-            'if': {'$eq': [denominator, 0]},
-            'then': 0,
-            'else': {'$multiply': [{'$divide': [numerator, denominator]}, 100]}
-        }
-    }
+    return if_else(
+        eq(denominator, 0),
+        0,
+        multiply(divide(numerator, denominator, simple=True), 100)
+    )
+
+
+def and_(*args):
+    return {'$and': list(args)}
+
+
+def or_(*args):
+    return {'$or': list(args)}
+
+
+def lt(number, comparator):
+    return {'$lt': [number, comparator]}
+
+
+def gt(number, comparator):
+    return {'$gt': [number, comparator]}
+
+
+def eq(number, comparator):
+    return {'$eq': [number, comparator]}
+
+
+def cond(exp, if_true, if_false):
+    return {'$cond': [exp, if_true, if_false]}
+
+
+def if_else(exp, then, else_):
+    return {'$cond': {'if': exp, 'then': then, 'else': else_}}
 
 
 def merge_analysis_driver_procs(id_field, projection=None):
