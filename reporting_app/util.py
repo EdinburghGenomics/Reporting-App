@@ -1,25 +1,5 @@
-import requests
-import auth
 from flask_login import current_user
-from config import reporting_app_config as cfg, col_mappings
-
-
-def rest_query(resource, **query_args):
-    if not query_args:
-        return cfg['rest_api'] + '/' + resource
-
-    query = '?'
-    query += '&'.join(['%s=%s' % (k, v) for k, v in query_args.items()]).replace(' ', '').replace('\'', '"')
-    return cfg['rest_api'] + '/' + resource + query
-
-
-def query_api(resource, data_only=True, **query_args):
-    url = rest_query(resource, **query_args)
-    r = requests.get(url, headers={'Authorization': 'Token ' + auth.encode_string(current_user.api_token)})
-    j = r.json()
-    if data_only:
-        j = j['data']
-    return j
+from config import col_mappings
 
 
 def _format_order(col_name, cols):

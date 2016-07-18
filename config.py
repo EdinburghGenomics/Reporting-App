@@ -5,9 +5,9 @@ from egcg_core.exceptions import ConfigError
 
 
 class SplitConfiguration(Configuration):
-    def __init__(self, app_type, cfg_search_path=None):
+    def __init__(self, app_type, *cfg_search_path):
         self.app_type = app_type
-        super().__init__(cfg_search_path)
+        super().__init__(*cfg_search_path)
 
     def load_config_file(self, cfg_file):
         super().load_config_file(cfg_file)
@@ -16,8 +16,8 @@ class SplitConfiguration(Configuration):
 
 
 class ColumnMappingConfig(Configuration):
-    def __init__(self, cfg_search_path):
-        super().__init__(cfg_search_path)
+    def __init__(self, *cfg_search_path):
+        super().__init__(*cfg_search_path)
 
         self.column_def = self.content.pop('column_def')
         for key in self.content:
@@ -50,19 +50,15 @@ def _cfg_file(cfg_path):
 
 reporting_app_config = SplitConfiguration(
     'reporting_app',
-    [
-        _cfg_file('REPORTINGCONFIG'),
-        _cfg_file('~/.reporting.yaml'),
-        _cfg_file('example_reporting.yaml')
-    ]
+    _cfg_file('REPORTINGCONFIG'),
+    _cfg_file('~/.reporting.yaml'),
+    _cfg_file('example_reporting.yaml')
 )
 rest_config = SplitConfiguration(
     'rest_app',
-    [
-        _cfg_file('REPORTINGCONFIG'),
-        _cfg_file('~/.reporting.yaml'),
-        _cfg_file('example_reporting.yaml')
-    ]
+    _cfg_file('REPORTINGCONFIG'),
+    _cfg_file('~/.reporting.yaml'),
+    _cfg_file('example_reporting.yaml')
 )
-schema = Configuration([_cfg_file('schema.yaml')])
-col_mappings = ColumnMappingConfig([_cfg_file('column_mappings.yaml')])
+schema = Configuration(_cfg_file('schema.yaml'))
+col_mappings = ColumnMappingConfig(_cfg_file('column_mappings.yaml'))
