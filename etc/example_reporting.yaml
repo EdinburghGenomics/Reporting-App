@@ -5,6 +5,7 @@ reporting_app:
     port: 5000
     key: 'a_key'
     user_db: reporting_app_users.sqlite
+    rest_api: 'http://localhost:4999/api/0.1'
 
     stream_handlers:
         - stream: 'ext://sys.stdout'
