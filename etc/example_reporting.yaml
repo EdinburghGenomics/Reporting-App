@@ -39,9 +39,3 @@ rest_app:
         - filename: /path/to/rest_api.log
           when: 'midnight'
           level: DEBUG
-
-default:
-    rest_api:
-        url: an.api.url
-        username: this
-        password: that

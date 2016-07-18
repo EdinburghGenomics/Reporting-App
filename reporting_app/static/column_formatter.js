@@ -4,14 +4,14 @@
  */
 
 function render_data(data, type, row, meta, fmt) {
-    if (!data) {
+    if (!data && data !== 0) {
         return null;
     }
     if (!fmt) {
         return '<div class="dt_cell">' + data + '</div>';
     }
-    if (fmt['merge']) {
-        data = merge_column(data, row)
+    if (fmt['name']) {
+        data = function_map[fmt['name']](data, fmt)
     }
     return string_formatter(data, fmt)
 }
@@ -57,3 +57,16 @@ function merge_column(data, row){
     return data + '-' + row[1]
 }
 
+function species_contamination_fmt(data, fmt){
+    var best_species = [];
+    for (var species in data['contaminant_unique_mapped']){
+        if (data['contaminant_unique_mapped'][species] > 500){
+            best_species.push(species)
+        }
+    }
+    return best_species.join()
+}
+
+var function_map = {
+    'species_contamination': species_contamination_fmt
+};

@@ -1,91 +1,55 @@
 {% extends 'base.html' %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    {% block head %}
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- jQuery -->
-    <script type="text/javascript" charset="utf8" src="//code.jquery.com/jquery-1.10.2.min.js"></script>
-    <script type="text/javascript" charset="utf8" src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/jquery.css') }}">
-
-    <!-- IE8 support for HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-
-    <!-- Bootstrap/styling -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/bootstrap-3.3.6-dist/css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/bootstrap-3.3.6-dist/css/bootstrap-theme.min.css') }}">
-    <!-- vis/styling -->
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.min.css" type="text/css" />
-    <!-- reporting app/styling -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/reporting_app.css') }}">
-
-    <title>{% block title %}{% endblock %} - Edinburgh Genomics Analysis Driver Reports</title>
-    {% endblock %}
-</head>
-
-<body>
-    {% block body %}
-    <div class="navbar navbar-inverse navbar-static-top" role="navigation">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="sr-only">Toggle Navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a href="/" class="navbar-brand">
-                    <img style="height:28px;" src="{{ url_for('static', filename='img/EG_logo_final_version_colourwhite_cropped_white.svg') }}">
-                </a>
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav navbar-right" >
-                    <li class="dropdown">
-                        <a href="#" class="dropdown=toggle" data-toggle="dropdown">Runs<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="/pipelines/runs/all">All</a></li>
-                            <li><a href="/pipelines/runs/queued">Queued</a></li>
-                            <li><a href="/pipelines/runs/processing">Processing</a></li>
-                            <li><a href="/pipelines/runs/finished">Finished</a></li>
-                            <li><a href="/pipelines/runs/archived">Archived</a></li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a href="#" class="dropdown=toggle" data-toggle="dropdown">Samples<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="/pipelines/samples/all">All</a></li>
-                            <li><a href="/pipelines/samples/queued">Queued</a></li>
-                            <li><a href="/pipelines/samples/processing">Processing</a></li>
-                            <li><a href="/pipelines/samples/finished">Finished</a></li>
-                            <li><a href="/pipelines/samples/archived">Archived</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="/projects">Projects</a></li>
-
-                    <li class="dropdown">
-                        <a href="#" class="dropdown=toggle" data-toggle="dropdown">{{ current_user.id }}<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="/logout">Logout</a></li>
-                            <li><a href="/change_password">Change password</a></li>
-                        </ul>
-
-                    </li>
-                </ul>
-            </div>
-
+{% block body %}
+<div class="navbar navbar-inverse navbar-static-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle Navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="/" class="navbar-brand">
+                <img style="height:28px;" src="{{ url_for('static', filename='img/EG_logo_final_version_colourwhite_cropped_white.svg') }}">
+            </a>
         </div>
-    </div>
-    {{ super() }}
-    {% endblock %}
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav navbar-right" >
+                <li class="dropdown">
+                    <a href="#" class="dropdown=toggle" data-toggle="dropdown">Runs<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/pipelines/runs/all">All</a></li>
+                        <li><a href="/pipelines/runs/queued">Queued</a></li>
+                        <li><a href="/pipelines/runs/processing">Processing</a></li>
+                        <li><a href="/pipelines/runs/finished">Finished</a></li>
+                        <li><a href="/pipelines/runs/archived">Archived</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#" class="dropdown=toggle" data-toggle="dropdown">Samples<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/pipelines/samples/all">All</a></li>
+                        <li><a href="/pipelines/samples/queued">Queued</a></li>
+                        <li><a href="/pipelines/samples/processing">Processing</a></li>
+                        <li><a href="/pipelines/samples/finished">Finished</a></li>
+                        <li><a href="/pipelines/samples/archived">Archived</a></li>
+                    </ul>
+                </li>
+                <li><a href="/projects">Projects</a></li>
 
-</body>
-</html>
+                <li class="dropdown">
+                    <a href="#" class="dropdown=toggle" data-toggle="dropdown">{{ current_user.id }}<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/logout">Logout</a></li>
+                        <li><a href="/change_password">Change password</a></li>
+                    </ul>
+
+                </li>
+            </ul>
+        </div>
+
+    </div>
+</div>
+{{ super() }}
+{% endblock %}
