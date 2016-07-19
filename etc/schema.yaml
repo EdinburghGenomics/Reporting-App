@@ -89,9 +89,24 @@ samples:
     called_gender: {            type: 'string',  allowed: ['male', 'female', 'unknown'] }
     provided_gender: {          type: 'string',  allowed: ['male', 'female', 'unknown'] }
     gender_validation: {        type: 'dict',    schema: { hetX: { type: 'float' }, covY: { type: 'float' }, gender_genotype: { type: 'string',  allowed: ['male', 'female', 'unknown'] } } }
-    genotype_validation: {      type: 'dict',    schema: { matching_snps: { type: 'integer' }, mismatching_snps: { type: 'integer' }, no_call_seq: { type: 'integer' }, no_call_chip: { type: 'integer' } } }
-    species_contamination: {    type: 'dict',    required: False, schema: { percent_unmapped_focal: {type: 'float'}, percent_unmapped: {type: 'float'}, total_reads_mapped: {type: 'integer'}, contaminant_unique_mapped: {type: 'dict'} } }
-    sample_contamination: {     type: 'dict',    required: False, schema: { freemix: {type: 'float'}, best_matching_samples: {type: 'dict'} } }
+    genotype_validation: {      type: 'dict',    schema: {
+        matching_snps: { type: 'integer' },
+        mismatching_snps: { type: 'integer' },
+        no_call_seq: { type: 'integer' },
+        no_call_chip: { type: 'integer' } }
+    }
+    species_contamination: {    type: 'dict',    required: False, schema: {
+        percent_unmapped_focal: {type: 'float'},
+        percent_unmapped: {type: 'float'},
+        total_reads_mapped: {type: 'integer'},
+        contaminant_unique_mapped: {type: 'dict'} }
+    }
+    sample_contamination: {     type: 'dict',    required: False, schema: {
+        freemix: {type: 'float'},
+        best_matching_samples: {type: 'dict'} },
+        het_hom_ratio: {type: 'float'},
+        ti_tv_ratio: {type: 'float'}
+    }
 
     #Events
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'genotype missing', 'pass', 'fail'], default: 'not reviewed' }
