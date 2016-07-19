@@ -90,6 +90,7 @@ samples:
         pc_genome_with_min: {type: 'dict'}
     }
     }
+    #TODO: remove pc_callable
     pc_callable: {              type: 'float',   required: False }
 
     #QC validation
