@@ -54,10 +54,6 @@ function drawMyChart() {
 
 
 
-
-
-
-
       var data = {{ yield2date }};
       var test_array = []
       var test_map = data.map(function(t){
@@ -68,17 +64,12 @@ function drawMyChart() {
 
 
 
-      myMin = moment.min(test_array)
+      min_date = moment.min(test_array)
       myMax = moment.max(test_array)
-      console.log(myMax)
-
-
-      //var test_map = data.map(function(t){
-      //    week_number = moment(new Date(t[0])).week()
-      //    month_number = (moment(new Date(t[0])).month()) + 1
-      //    year_number = moment(new Date(t[0])).year()
-      //    yield = t[1]
-      //});
+      min_week = min_date.format('W')
+      //min_week_year = min_date.format(
+      console.log(min_date)
+      console.log(min_week)
 
 
 
@@ -87,50 +78,18 @@ function drawMyChart() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      //WEEK
-      //var data = data.sort(function(a,b){return b[0][2]-a[0][2];});
-
-      //YEAR
-      var data = data.sort(function(a,b){return a[0][0]-b[0][0];});
-
-      //MONTH
-      var data = data.sort(function(a,b){return a[0][1]-b[0][1];});
-
-
+      var data = {{ yield2date }};
+      console.log(data)
+      var data = data.sort(function(a,b){return b[0][0]-a[0][0];});
+      //var data = data.sort(function(a,b){return b[0][1]-a[0][1];});
       var aggregate_weeks = {}
       var aggregate_months = {}
       var count;
 
 
+
       var aggregate_weeks2 = []
       var aggregate_months2 = []
-
-
       var test_map = data.map(function(t){
           week_number = moment(new Date(t[0])).week()
           month_number = (moment(new Date(t[0])).month()) + 1
@@ -139,12 +98,71 @@ function drawMyChart() {
 });
 
 
+
+      var test_map = data.map(function(t){
+
+            week_number = moment(new Date(t[0])).week()
+            month_number = (moment(new Date(t[0])).month()) + 1
+            year_number = moment(new Date(t[0])).year()
+
+            var month_year = [month_number, year_number]
+            var week_year = [week_number, year_number]
+
+            if(typeof aggregate_weeks[week_year] == 'undefined'){
+                aggregate_weeks[week_year] = t[1]
+            } else {
+                aggregate_weeks[week_year] = aggregate_weeks[week_year] + t[1]
+            }
+
+            if(typeof aggregate_months[month_year] == 'undefined'){
+                aggregate_months[month_year] = t[1]
+            } else {
+                aggregate_months[month_year] = aggregate_months[month_year] + t[1]
+            }
+      });
+
+      console.log(aggregate_months)
+
+      var weeks_chart_data = []
+      var months_chart_data = []
+      for (var key in aggregate_months) {
+          month2yield = []
+          month2yield.push(key, Math.round(aggregate_months[key]))
+          months_chart_data.push(month2yield)
+      }
+
+
+
+
+
+      var run_yield_data = new google.visualization.DataTable();
+      run_yield_data.addColumn('string', 'X');
+      run_yield_data.addColumn('number', 'Yield');
+      run_yield_data.addRows(months_chart_data);
+      var run_yield_options = {
+        hAxis: {title: 'Date'},
+        vAxis: {title: 'Yield'}};
+      var chart1 = new google.visualization.LineChart(document.getElementById('run_yield_by_date'));
+      chart1.draw(run_yield_data, run_yield_options);
+
+      var histogram_data = google.visualization.arrayToDataTable( {{ hist | safe }});
+      var histogram_options = {
+      title: 'Yield metrics',
+      legend: { position: 'top', maxLines: 2 },
+      colors: ['#5C3292', '#1A8763', '#871B47', '#999999'],
+      interpolateNulls: false};
+      var chart2 = new google.visualization.Histogram(document.getElementById('yield_histogram'));
+      chart2.draw(histogram_data, histogram_options);
 }
 
 </script>
 </head>
 
+<body>
+<div id="yield_histogram"></div>
+<div id="run_yield_by_date"></div>
 
+</body>
 
 
 
