@@ -5,7 +5,7 @@ from reporting_app import util
 
 
 class FakeUser:
-    api_token = 'an_api_token'
+    login_token = 'an_api_token'
 
 
 class TestReportingApp(Helper):

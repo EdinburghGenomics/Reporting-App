@@ -1,31 +1,54 @@
 import sqlite3
 import base64
-import itsdangerous
+from itsdangerous import TimedSerializer, SignatureExpired, BadSignature
 from flask import request, current_app
 from flask_login import UserMixin
 from hashlib import sha256
 from eve.auth import TokenAuth
 from config import reporting_app_config as cfg
 
+_serialiser = None
 user_db = sqlite3.connect(cfg['user_db'])
 cursor = user_db.cursor()
-cursor.execute('CREATE TABLE IF NOT EXISTS users (id text UNIQUE, pw_hash text UNIQUE, api_token text)')
+cursor.execute('CREATE TABLE IF NOT EXISTS users (id text UNIQUE, pw_hash text UNIQUE, login_token text)')
 
 
 class User(UserMixin):
-    def __init__(self, uid, api_token=None):
-        self.id = uid
-        if api_token:
-            self.api_token = api_token
-            update_user(self.id, 'api_token', self.api_token)
-        else:
-            self.api_token = get_user(self.id)[2]
+    username = None
+    pw = None
+    login_token = None
+
+    def __init__(self, uid, generate_token=False):
+        self.username = uid
+        if self.exists():
+            self.username, self.pw, self.login_token = self.db_record()
+        if generate_token:
+            self.generate_token()
 
     def get_id(self):
-        return self.id
+        return self.username
+
+    def exists(self):
+        cursor.execute('SELECT count(id) FROM users WHERE id=?', (self.username,))
+        return cursor.fetchone()[0] == 1
 
     def erase_token(self):
-        update_user(self.id, 'api_token', None)
+        update_user(self.username, 'login_token', None)
+
+    def db_record(self):
+        cursor.execute('SELECT * FROM users WHERE id=?', (self.username,))
+        return cursor.fetchone()
+
+    def match_passwords(self, pw_hash):
+        token_okay = self.login_token is None or self.check_token()
+        return token_okay and pw_hash == self.pw
+
+    def check_token(self):
+        return check_login_token(encode_string(self.login_token))
+
+    def generate_token(self):
+        self.login_token = TimedSerializer(current_app.secret_key).dumps(self.username)
+        update_user(self.username, 'login_token', self.login_token)
 
 
 def hash_pw(text):
@@ -36,20 +59,17 @@ def encode_string(text):
     return base64.b64encode(text.encode()).decode('utf-8')
 
 
-def match_passwords(username, pw):
-    obs = hash_pw(pw)
-    exp = get_user(username)[1]
-    return obs == exp
+def check_user_auth(username, pw, new_token=False):
+    u = User(username, generate_token=new_token)
+    return u.exists() and u.match_passwords(hash_pw(pw))
 
 
-def get_user(username):
-    cursor.execute('SELECT * FROM users WHERE id=?', (username,))
-    return cursor.fetchone()
-
-
-def add_user(username, initial_pw='a_pw'):
-    cursor.execute('INSERT INTO users VALUES (?, ?, ?)', (username, hash_pw(initial_pw), None))
-    user_db.commit()
+def check_login_token(token_hash):
+    dc_token = base64.b64decode(token_hash)
+    try:
+        return TimedSerializer(current_app.secret_key).loads(dc_token, max_age=cfg.get('user_timeout', 7200))
+    except (SignatureExpired, BadSignature):
+        return None
 
 
 def update_user(username, field, new_value):
@@ -58,28 +78,56 @@ def update_user(username, field, new_value):
 
 
 def change_pw(username, old_pw, new_pw):
-    if match_passwords(username, old_pw):
+    if check_user_auth(username, old_pw):
         update_user(username, 'pw_hash', hash_pw(new_pw))
+        return True
+    return False
 
 
 class DualAuth(TokenAuth):
-    """Allows authentication by matching a username/password or an API token"""
+    """Allows authentication by matching a username/password or a login token"""
 
     def authorized(self, allowed_roles, resource, method):
         if hasattr(request.authorization, 'username'):
-            _auth = request.authorization
-            return _auth and match_passwords(_auth.username, _auth.password)
+            a = request.authorization
+            return a and check_user_auth(a.username, a.password)
 
         elif request.headers.get('Authorization'):
-            _auth = request.headers.get('Authorization').strip()
-            auth_type, _auth = _auth.split(' ')
+            a = request.headers.get('Authorization').strip()
+            auth_type, a = a.split(' ')
             if auth_type.lower() == 'token':
-                return _auth and self.check_auth(_auth, allowed_roles, resource, method)
+                return a and self.check_auth(a, allowed_roles, resource, method)
 
     def check_auth(self, token_hash, allowed_roles, resource, method):
-        s = itsdangerous.TimedSerializer(current_app.secret_key)
-        dc_token = base64.b64decode(token_hash)
-        try:
-            return s.loads(dc_token, max_age=7200).get('token')
-        except (itsdangerous.SignatureExpired, itsdangerous.BadSignature):
-            return None
+        return check_login_token(token_hash)
+
+
+def admin_users():
+    from argparse import ArgumentParser
+    a = ArgumentParser()
+    for op in ('add', 'remove', 'reset'):
+        a.add_argument('--' + op, nargs='+', type=str, default=())
+    args = a.parse_args()
+
+    def _add_user(username):
+        cursor.execute('INSERT INTO users VALUES (?, ?, ?)', (username, hash_pw(username), None))
+        user_db.commit()
+
+    def _remove_user(username):
+        cursor.execute('DELETE FROM users WHERE id=?', (username,))
+        user_db.commit()
+
+    for u in args.add:
+        _add_user(u)
+
+    for u in args.remove:
+        _remove_user(u)
+
+    for u in args.reset:
+        _remove_user(u)
+        _add_user(u)
+
+
+if __name__ == '__main__':
+    print('Using database at ' + cfg['user_db'])
+    admin_users()

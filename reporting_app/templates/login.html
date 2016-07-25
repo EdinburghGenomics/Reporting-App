@@ -2,7 +2,28 @@
 
 {% block title %}Login{% endblock %}
 
+{% block body %}
+<div class="navbar navbar-inverse navbar-static-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle Navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="/" class="navbar-brand">
+                <img style="height:28px;" src="{{ url_for('static', filename='img/EG_logo_final_version_colourwhite_cropped_white.svg') }}">
+            </a>
+        </div>
+    </div>
+</div>
+{{ super() }}
+{% endblock %}
+
 {% block content %}
+<p>{{ message }}</p>
+
 <form action="login" method="POST">
     <input type="text" name="username" id="username" placeholder="username"/>
     <input type="password" name="pw" id="pw" placeholder="password"/>

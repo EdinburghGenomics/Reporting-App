@@ -1,7 +1,6 @@
 import os.path
 import flask as fl
 import flask_login
-from itsdangerous import TimedSerializer
 import auth
 from config import reporting_app_config as cfg
 from reporting_app.util import datatable_cfg, tab_set_cfg
@@ -17,20 +16,15 @@ _communicator = None
 def rest_api():
     global _communicator
     if _communicator is None:
-        _communicator = Communicator(auth.encode_string(flask_login.current_user.api_token), cfg['rest_api'])
+        _communicator = Communicator(auth.encode_string(flask_login.current_user.login_token), cfg['rest_api'])
     return _communicator
-
-
-def generate_api_token(user_id):
-    data = {}
-    if user_id:
-        data['token'] = user_id
-    return TimedSerializer(app.secret_key).dumps(data)
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    return auth.User(user_id)
+    u = auth.User(user_id)
+    if u.check_token():
+        return u
 
 
 @login_manager.unauthorized_handler
@@ -47,20 +41,20 @@ def main_page():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if fl.request.method == 'GET':
-        return fl.render_template('login.html')
+        return fl.render_template('login.html', message='Welcome to the EGCG Reporting App. Log in here.')
     username = fl.request.form['username']
-    if auth.match_passwords(username, fl.request.form['pw']):
-        u = auth.User(username, api_token=generate_api_token(username))
+    if auth.check_user_auth(username, fl.request.form['pw'], new_token=True):
+        u = auth.User(username, generate_token=True)
         flask_login.login_user(u)
         return fl.redirect('/')
-    return 'Bad login'
+    return fl.render_template('login.html', message='Bad login.')
 
 
 @app.route('/logout')
 def logout():
     flask_login.current_user.erase_token()
     flask_login.logout_user()
-    return 'Logged out'
+    return fl.render_template('login.html', message='Logged out.')
 
 
 @app.route('/change_password', methods=['GET', 'POST'])
@@ -71,10 +65,9 @@ def change_password():
 
     user_id = flask_login.current_user.id
     form = fl.request.form
-    if auth.match_passwords(user_id, form['old_pw']):
-        auth.change_pw(user_id, form['old_pw'], form['new_pw'])
+    if auth.change_pw(user_id, form['old_pw'], form['new_pw']):
         return fl.redirect('/logout')
-    return 'Bad request'
+    return fl.render_template('login.html', message='Bad request.')
 
 
 @app.route('/runs/')

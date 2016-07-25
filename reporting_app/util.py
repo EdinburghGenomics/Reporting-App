@@ -19,7 +19,7 @@ def datatable_cfg(title, cols, api_url, default_sort_col=None, **kwargs):
         'cols': col_mappings[cols],
         'api_url': api_url,
         'default_sort_col': default_sort_col,
-        'token': current_user.api_token
+        'token': current_user.login_token
     }
     d.update(kwargs)
     return d
