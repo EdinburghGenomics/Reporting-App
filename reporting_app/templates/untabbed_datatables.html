@@ -22,31 +22,130 @@
 
 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-  <div id="chart_div"></div>
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+
+
+
+<head>
 
 <script type="text/javascript">
 
-google.charts.load('current', {packages: ['corechart', 'bar']});
-google.charts.setOnLoadCallback(drawColColors);
+
+
+var hashtable = {};
+var moment1 = moment('2016-03-21T00:00:00.000Z').week()
+var moment2 = moment("2016-03-07T00:00:00.000Z").week()
+hashtable[moment1] = 12
+//console.log(hashtable)
+hashtable[moment1] = hashtable[moment1] + 4
 
 
 
-function drawColColors() {
-      var data = google.visualization.arrayToDataTable( {{ hist | safe }}
-);
 
 
-      var options = {
-    title: 'Charges of subatomic particles',
-    legend: { position: 'top', maxLines: 2 },
-    colors: ['#5C3292', '#1A8763', '#871B47', '#999999'],
-    interpolateNulls: false,
-  };
 
-      var chart = new google.visualization.Histogram(document.getElementById('chart_div'));
-      chart.draw(data, options);
-    }
+
+
+google.charts.load('current', {packages: ['corechart', 'line', 'bar']});
+google.charts.setOnLoadCallback(drawMyChart);
+
+function drawMyChart() {
+
+
+
+
+
+
+
+      var data = {{ yield2date }};
+      var test_array = []
+      var test_map = data.map(function(t){
+             var test = moment(new Date(t[0]))
+             test_month = test.format('W');
+             test_array.push(test)
+      });
+
+
+
+      myMin = moment.min(test_array)
+      myMax = moment.max(test_array)
+      console.log(myMax)
+
+
+      //var test_map = data.map(function(t){
+      //    week_number = moment(new Date(t[0])).week()
+      //    month_number = (moment(new Date(t[0])).month()) + 1
+      //    year_number = moment(new Date(t[0])).year()
+      //    yield = t[1]
+      //});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      //WEEK
+      //var data = data.sort(function(a,b){return b[0][2]-a[0][2];});
+
+      //YEAR
+      var data = data.sort(function(a,b){return a[0][0]-b[0][0];});
+
+      //MONTH
+      var data = data.sort(function(a,b){return a[0][1]-b[0][1];});
+
+
+      var aggregate_weeks = {}
+      var aggregate_months = {}
+      var count;
+
+
+      var aggregate_weeks2 = []
+      var aggregate_months2 = []
+
+
+      var test_map = data.map(function(t){
+          week_number = moment(new Date(t[0])).week()
+          month_number = (moment(new Date(t[0])).month()) + 1
+          year_number = moment(new Date(t[0])).year()
+          yield = t[1]
+});
+
+
+}
 
 </script>
+</head>
+
+
+
+
+
 {% endblock %}

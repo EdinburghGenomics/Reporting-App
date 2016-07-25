@@ -1,6 +1,6 @@
 import flask as fl
 import os.path
-from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg, chart_variables
+from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg, chart_variables, yield_by_date
 from config import reporting_app_config as cfg
 
 app = fl.Flask(__name__)
@@ -43,6 +43,8 @@ def pipeline_report(pipeline_type, view_type):
 
     hist_variables = chart_variables(data, endpoint)
 
+    yield2date = yield_by_date(data, endpoint)
+
 
     return fl.render_template(
         'untabbed_datatables.html',
@@ -51,8 +53,8 @@ def pipeline_report(pipeline_type, view_type):
             pipeline_type,
             query
         ),
-        hist = hist_variables
-
+        hist = hist_variables,
+        yield2date = yield2date
     )
 
 

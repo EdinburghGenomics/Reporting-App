@@ -3,6 +3,7 @@ from flask import json
 from config import reporting_app_config as cfg, col_mappings
 import numpy
 import math
+import datetime
 
 
 def rest_query(resource, **query_args):
@@ -63,7 +64,6 @@ def snake_case(text):
 def chart_variables(data, endpoint):
 
     clean_yield_gb = [d['clean_yield_in_gb'] for d in data]
-    yield_in_gb = [d['yield_in_gb'] for d in data]
     clean_yield_q30_gb = None
 
     if endpoint == 'aggregate/samples':
@@ -72,9 +72,25 @@ def chart_variables(data, endpoint):
         clean_yield_q30_gb = [d['clean_yield_q30_in_gb'] for d in data]
 
     histogram_variables = []
-    histogram_variables.append(['clean yield gb', 'yield in gb', 'clean yield q30 in gb'])
-    for r in range(len(yield_in_gb)):
-        hist_variable = [clean_yield_gb[r], yield_in_gb[r], clean_yield_q30_gb[r]]
+    histogram_variables.append(['clean yield q30 (gb)', 'clean yield (gb)'])
+    for r in range(len(clean_yield_gb)):
+        hist_variable = [clean_yield_gb[r], clean_yield_q30_gb[r]]
         histogram_variables.append(hist_variable)
 
     return histogram_variables
+
+def yield_by_date(data, endpoint):
+    if endpoint == 'aggregate/samples':
+        return None
+    date_yield = []
+    for d in data:
+        date = int(d.get('_id').split('_')[0])
+        year = int(''.join(list(str(date))[0:2])) + 2000
+        month = int(''.join(list(str(date))[2:4]))
+        day = int(''.join(list(str(date))[4:6]))
+        date2 = [year, month, day]
+        run_yield = d.get('yield_in_gb')
+        if run_yield != 0.0:
+            date_yield.append([date2, run_yield])
+    date_yield.sort(key=lambda x: x[0])
+    return date_yield
