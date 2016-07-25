@@ -39,7 +39,7 @@ def datatable_cfg(title, cols, api_url, default_sort_col=None, **kwargs):
         'name': snake_case(title),
         'cols': col_mappings[cols],
         'api_url': api_url,
-        'default_sort_col': default_sort_col,
+        'default_sort_col': default_sort_col
     }
     d.update(kwargs)
     return d

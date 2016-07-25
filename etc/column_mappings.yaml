@@ -1,9 +1,9 @@
 column_def:
     bam_file_reads:           { data: 'bam_file_reads',                       title: 'Initial reads in bam',     fmt: { type: 'int',   min: 1500 } }
     barcode:                  { data: 'barcode',                              title: 'Barcode' }
-    clean_pc_q30:             { data: 'clean_pc_q30',                         title: '% Q30 - cleaned',          fmt: { type: 'percentage', min: 70 } }
-    clean_pc_q30_r1:          { data: 'clean_pc_q30_r1',                      title: '% Q30 R1 - cleaned',           visible: 'false',       fmt: { type: 'percentage', min: 70 } }
-    clean_pc_q30_r2:          { data: 'clean_pc_q30_r2',                      title: '% Q30 R2 - cleaned',           visible: 'false',       fmt: { type: 'percentage', min: 70 } }
+    clean_pc_q30:             { data: 'clean_pc_q30',                         title: '% Q30 - cleaned',          fmt: { type: 'percentage', min: 75 } }
+    clean_pc_q30_r1:          { data: 'clean_pc_q30_r1',                      title: '% Q30 R1 - cleaned',           visible: 'false',       fmt: { type: 'percentage', min: 75 } }
+    clean_pc_q30_r2:          { data: 'clean_pc_q30_r2',                      title: '% Q30 R2 - cleaned',           visible: 'false',       fmt: { type: 'percentage', min: 75 } }
     clean_yield_in_gb:        { data: 'clean_yield_in_gb',                    title: 'Yield (Gb - cleaned)',     fmt: { type: 'float' } }
     clean_yield_q30_in_gb:    { data: 'clean_yield_q30_in_gb',                title: 'Yield Q30 (Gb - cleaned)', fmt: { type: 'float',  min: 770 } }
     clean_yield_q30:          { data: 'clean_yield_q30',                      title: 'Yield Q30 (Gb - cleaned)', fmt: { type: 'float' } }
@@ -29,7 +29,7 @@ column_def:
     gender_match:             { data: 'gender_match',                         title: 'Gender' }
     passing_filter_reads:     { data: 'passing_filter_reads',                 title: 'Passing-filter reads',     fmt: { type: 'int',    min: 1500 } }
     pc_callable:              { data: 'pc_callable',                          title: '% callable',               visible: 'false' ,   fmt: { type: 'percentage', min: 70 } }
-    pc_duplicate_reads:       { data: 'pc_duplicate_reads',                   title: '% duplicate reads',        fmt: { type: 'percentage', max: 15 } }
+    pc_duplicate_reads:       { data: 'pc_duplicate_reads',                   title: '% duplicate reads',        fmt: { type: 'percentage', max: 20 } }
     pc_mapped_reads:          { data: 'pc_mapped_reads',                      title: '% mapped reads',           fmt: { type: 'percentage', min: 70 } }
     pc_pass_filter:           { data: 'pc_pass_filter',                       title: '% Pass filter',            fmt: { type: 'percentage' } }
     pc_properly_mapped_reads: { data: 'pc_properly_mapped_reads',             title: '% properly mapped reads',  visible: 'false',  fmt: { type: 'percentage', min: 70 } }
@@ -47,7 +47,8 @@ column_def:
     run_ids:                  { data: 'run_ids',                              title: 'Run ids',                  fmt: { link: '/runs/' } }
     sample_id:                { data: 'sample_id',                            title: 'Sample ID',                fmt: { link: '/samples/' } }
     sample_ids:               { data: 'sample_ids',                           title: 'Sample list',              fmt: { link: '/samples/' } }
-    sample_contamination:     { data: 'sample_contamination.freemix',         title: 'freemix',                  fmt: { type: 'float',  max: .03}  }
+    freemix:                  { data: 'sample_contamination.freemix',         title: 'Freemix',                  fmt: { type: 'float',  max: .03}  }
+    species_found:            { data: 'species_contamination',                title: 'Species found',            fmt: { name: 'species_contamination' } }
     useable:                  { data: 'useable',                              title: 'Useable' }
     useable_statuses:         { data: 'useable_statuses',                     title: 'Useable'}
     user_sample_id:           { data: 'user_sample_id',                       title: 'User sample ID' }
@@ -133,6 +134,7 @@ samples:
     - duplicate_reads
     - pc_duplicate_reads
     - median_coverage
+    - species_found
     - pc_callable
     - gender_match
     - called_gender
@@ -142,7 +144,7 @@ samples:
     - mismatching_snps
     - no_call_seq
     - no_call_chip
-    - sample_contamination
+    - freemix
     - proc_status
     - reviewed
     - useable
@@ -159,5 +161,6 @@ sample_run_elements:
     - {column_def: 'yield_in_gb',  fmt: { type: 'float',  min: 120 } }
     - pc_q30_r1
     - pc_q30_r2
+    - lane_pc_optical_dups
     - reviewed
     - useable

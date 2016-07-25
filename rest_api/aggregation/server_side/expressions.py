@@ -64,7 +64,7 @@ class Accumulation(Expression):
         if self.filter_func:
             element = list(filter(self.filter_func, element))
 
-        assert type(element) is list, "in %s: element is not a list %s "%(self.__class__.__name__, element)
+        assert type(element) is list, 'In %s: element %s is not a list' % (self.__class__.__name__, element)
         return [e.get(pparam[-1]) for e in element]
 
 
@@ -130,7 +130,8 @@ class MostRecent(SingleExp):
         super().__init__(*args)
 
     def _expression(self, elements):
-        return sorted(elements, key=lambda x: datetime.datetime.strptime(x.get(self.date_field), self.date_format))[-1]
+        return sorted(elements,
+                      key=lambda x: datetime.datetime.strptime(x.get(self.date_field), self.date_format))[-1]
 
 
 __all__ = (

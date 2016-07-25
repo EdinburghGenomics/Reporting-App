@@ -72,6 +72,7 @@ projects:
 samples:
     library_id: {               type: 'string',  required: False }
     project_id: {               type: 'string',  required: True  }
+    plate_name: {               type: 'string',  required: False }
     sample_id: {                type: 'string',  required: True, unique: True }
     user_sample_id: {           type: 'string',  required: False }
 
@@ -93,7 +94,7 @@ samples:
     sample_contamination: {     type: 'dict',    required: False, schema: { freemix: {type: 'float'}, best_matching_samples: {type: 'dict'} } }
 
     #Events
-    reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'], default: 'not reviewed' }
+    reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'genotype missing', 'pass', 'fail'], default: 'not reviewed' }
     review_comments: {          type: 'string',  required: False }
     useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ], default: 'not marked' }
     useable_comments: {         type: 'multilinestring',  required: False }

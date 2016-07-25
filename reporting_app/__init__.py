@@ -176,4 +176,3 @@ def report_sample(sample_id):
             sort='-_created'
         )
     )
-

@@ -1,4 +1,3 @@
-__author__ = 'mwham'
 import os
 import argparse
 import logging

@@ -1,4 +1,3 @@
-__author__ = 'mwham'
 from unittest import TestCase
 import os.path
 
