@@ -55,51 +55,95 @@ function drawMyChart() {
 
 
       var data = {{ yield2date }};
-      var test_array = []
+
+
+
+
+
+
+
+
+
+
+
+
+      var all_month_year = []
+      var all_week_year = []
+      test_array = []
+
       var test_map = data.map(function(t){
-             var test = moment(new Date(t[0]))
-             test_month = test.format('W');
-             test_array.push(test)
+
+             var week_year = []
+             var month_year = []
+
+             var date = moment(new Date(t[0]))
+             week = date.format('W')
+             month = date.format('M')
+             year = date.format('Y')
+             var v = [week, year]
+             test_array.push(date)
       });
 
 
 
+
+
+
+
+
+
+
+
+
       min_date = moment.min(test_array)
-      myMax = moment.max(test_array)
+      max_date = moment.max(test_array)
       min_week = min_date.format('W')
-      //min_week_year = min_date.format(
-      console.log(min_date)
-      console.log(min_week)
+      min_month = min_date.format('M')
+      min_year = min_date.format('Y')
+      var number_of_weeks = max_date.diff(min_date, 'weeks') + 1
+      var number_of_months = max_date.diff(min_date, 'months') + 1
+      var week_range = Array.apply(null, {length: number_of_weeks}).map(Number.call, Number)
+      var month_range = Array.apply(null, {length: number_of_months}).map(Number.call, Number)
+      var weeks = {}
+      var months = {}
+
+      current_week = min_week
+      current_year = min_year
+
+      var populate_blank_weeks = week_range.map(function(t){
+            if (current_week < 52) {
+                  weeks[([parseInt(current_week), parseInt(current_year)])] = 0
+                  current_week = parseInt(current_week, 10) + 1
+
+            } else if (current_week == 52) {
+                  weeks[([parseInt(current_week), parseInt(current_year)])] = 0
+                  current_week = 1
+                  current_year = parseInt(current_year, 10) + 1
+            }
+      });
 
 
+      current_month = min_month
+      current_year = min_year
 
 
+      var populate_blank_months = month_range.map(function(t){
+            if (current_month < 12) {
+                  months[([parseInt(current_month), parseInt(current_year)])] = 0
+                  current_month = parseInt(current_month, 10) + 1
+
+            } else if (current_month == 12) {
+                  months[([parseInt(current_month), parseInt(current_year)])] = 0
+                  current_month = 1
+                  current_year = parseInt(current_year, 10) + 1
+            }
+      });
 
 
-
-
-      var data = {{ yield2date }};
-      console.log(data)
-      var data = data.sort(function(a,b){return b[0][0]-a[0][0];});
-      //var data = data.sort(function(a,b){return b[0][1]-a[0][1];});
       var aggregate_weeks = {}
       var aggregate_months = {}
-      var count;
 
-
-
-      var aggregate_weeks2 = []
-      var aggregate_months2 = []
-      var test_map = data.map(function(t){
-          week_number = moment(new Date(t[0])).week()
-          month_number = (moment(new Date(t[0])).month()) + 1
-          year_number = moment(new Date(t[0])).year()
-          yield = t[1]
-});
-
-
-
-      var test_map = data.map(function(t){
+      var available_dates = data.map(function(t){
 
             week_number = moment(new Date(t[0])).week()
             month_number = (moment(new Date(t[0])).month()) + 1
@@ -121,24 +165,35 @@ function drawMyChart() {
             }
       });
 
-      console.log(aggregate_months)
 
-      var weeks_chart_data = []
-      var months_chart_data = []
-      for (var key in aggregate_months) {
-          month2yield = []
-          month2yield.push(key, Math.round(aggregate_months[key]))
-          months_chart_data.push(month2yield)
+      by_month_yield_data = []
+      by_week_yield_data = []
+
+
+      for (var key in weeks) {
+            if(typeof aggregate_weeks[key] != 'undefined') {
+                  by_week_yield_data.push([key, aggregate_weeks[key]])
+            } else if(typeof aggregate_weeks[key] == 'undefined') {
+                  by_week_yield_data.push([key, weeks[key]])
+            }
+
       }
 
 
+      for (var key in months) {
+            if(typeof aggregate_months[key] != 'undefined') {
+                  by_month_yield_data.push([key, aggregate_months[key]])
+            } else if(typeof aggregate_months[key] == 'undefined') {
+                  by_month_yield_data.push([key, months[key]])
+            }
 
+      }
 
 
       var run_yield_data = new google.visualization.DataTable();
       run_yield_data.addColumn('string', 'X');
       run_yield_data.addColumn('number', 'Yield');
-      run_yield_data.addRows(months_chart_data);
+      run_yield_data.addRows(by_month_yield_data);
       var run_yield_options = {
         hAxis: {title: 'Date'},
         vAxis: {title: 'Yield'}};
