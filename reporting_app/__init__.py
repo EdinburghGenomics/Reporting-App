@@ -1,4 +1,4 @@
-import os.path
+from os.path import join, dirname
 import flask as fl
 import flask_login
 import auth
@@ -10,6 +10,7 @@ app = fl.Flask(__name__)
 app.secret_key = cfg['key'].encode()
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
+version = open(join(dirname(dirname(__file__)), 'version.txt')).read()
 _communicator = None
 
 
@@ -18,6 +19,10 @@ def rest_api():
     if _communicator is None:
         _communicator = Communicator(auth.encode_string(flask_login.current_user.login_token), cfg['rest_api'])
     return _communicator
+
+
+def render_template(template, title=None, **context):
+    return fl.render_template(template, title=title, version=version, **context)
 
 
 @login_manager.user_loader
@@ -35,48 +40,39 @@ def unauthorised_handler():
 @app.route('/')
 @flask_login.login_required
 def main_page():
-    return fl.render_template('main_page.html')
+    return render_template('main_page.html', 'Main Page')
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if fl.request.method == 'GET':
-        return fl.render_template('login.html', message='Welcome to the EGCG Reporting App. Log in here.')
+        return render_template('login.html', 'Login', message='Welcome to the EGCG Reporting App. Log in here.')
     username = fl.request.form['username']
     if auth.check_user_auth(username, fl.request.form['pw'], new_token=True):
         u = auth.User(username, generate_token=True)
         flask_login.login_user(u)
         return fl.redirect('/')
-    return fl.render_template('login.html', message='Bad login.')
+    return render_template('login.html', 'Login', message='Bad login.')
 
 
 @app.route('/logout')
 def logout():
     flask_login.current_user.erase_token()
     flask_login.logout_user()
-    return fl.render_template('login.html', message='Logged out.')
+    return render_template('login.html', 'Logout', message='Logged out.')
 
 
 @app.route('/change_password', methods=['GET', 'POST'])
 @flask_login.login_required
 def change_password():
     if fl.request.method == 'GET':
-        return fl.render_template('change_password.html')
+        return render_template('change_password.html', 'Change Password')
 
     user_id = flask_login.current_user.id
     form = fl.request.form
     if auth.change_pw(user_id, form['old_pw'], form['new_pw']):
         return fl.redirect('/logout')
-    return fl.render_template('login.html', message='Bad request.')
-
-
-@app.route('/runs/')
-@flask_login.login_required
-def run_reports():
-    return fl.render_template(
-        'untabbed_datatables.html',
-        table=datatable_cfg('All runs', 'runs', api_url=rest_api().api_url('aggregate/all_runs'))
-    )
+    return render_template('login.html', 'Login', message='Bad request.')
 
 
 @app.route('/pipelines/<pipeline_type>/<view_type>')
@@ -99,24 +95,23 @@ def pipeline_report(pipeline_type, view_type):
         fl.abort(404)
         return None
 
-    return fl.render_template(
+    title = util.capitalise(view_type) + ' ' + pipeline_type
+
+    return render_template(
         'untabbed_datatables.html',
-        table=datatable_cfg(
-            util.capitalise(view_type) + ' ' + pipeline_type,
-            pipeline_type,
-            query
-        )
+        title,
+        table=datatable_cfg(title, pipeline_type, query)
     )
 
 
-@app.route('/runs/<run_id>')
+@app.route('/run/<run_id>')
 @flask_login.login_required
 def report_run(run_id):
     lanes = sorted(set(e['lane_number'] for e in rest_api().get_documents('lanes', where={'run_id': run_id})))
 
-    return fl.render_template(
+    return render_template(
         'run_report.html',
-        title='Report for ' + run_id,
+        title=run_id + ' Run Report',
         lane_aggregation=datatable_cfg(
             title='Aggregation per lane',
             cols='lane_aggregation',
@@ -170,14 +165,15 @@ def report_run(run_id):
 def serve_fastqc_report(run_id, filename):
     if '..' in filename or filename.startswith('/'):
         fl.abort(404)
-    return fl.send_file(os.path.join(os.path.dirname(__file__), 'static', 'runs', run_id, filename))
+    return fl.send_file(join(dirname(__file__), 'static', 'runs', run_id, filename))
 
 
 @app.route('/projects/')
 @flask_login.login_required
 def project_reports():
-    return fl.render_template(
+    return render_template(
         'untabbed_datatables.html',
+        'Projects',
         table=datatable_cfg(
             'Project list',
             'projects',
@@ -189,8 +185,9 @@ def project_reports():
 @app.route('/projects/<project_id>')
 @flask_login.login_required
 def report_project(project_id):
-    return fl.render_template(
+    return render_template(
         'untabbed_datatables.html',
+        project_id + ' Project Report',
         table=datatable_cfg(
             'Project report for ' + project_id,
             'samples',
@@ -199,14 +196,14 @@ def report_project(project_id):
     )
 
 
-@app.route('/samples/<sample_id>')
+@app.route('/sample/<sample_id>')
 @flask_login.login_required
 def report_sample(sample_id):
     sample = rest_api().get_documents('samples', where={'sample_id': sample_id})[0]
 
-    return fl.render_template(
+    return render_template(
         'sample_report.html',
-        title='Report for sample ' + sample_id,
+        title=sample_id + ' Sample Report',
         description='(From project %s)' % sample['project_id'],
         tables=[
             datatable_cfg(

@@ -26,7 +26,7 @@
     <!-- reporting app/styling -->
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/reporting_app.css') }}">
 
-    <title>{% block title %}{% endblock %} - Edinburgh Genomics Analysis Driver Reports</title>
+    <title>{% block title %}{% if title %}{{ title }} - {% endif %}{% endblock %}Edinburgh Genomics Analysis Driver Reporting App</title>
     {% endblock %}
 </head>
 
