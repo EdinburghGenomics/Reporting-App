@@ -6,6 +6,7 @@ from flask_login import UserMixin
 from hashlib import sha256
 from eve.auth import TokenAuth
 from config import reporting_app_config as cfg
+from egcg_core.rest_communication import Communicator
 
 _serialiser = None
 user_db = sqlite3.connect(cfg['user_db'])
@@ -17,6 +18,7 @@ class User(UserMixin):
     username = None
     pw = None
     login_token = None
+    _communicator = None
 
     def __init__(self, uid, generate_token=False):
         self.username = uid
@@ -49,6 +51,12 @@ class User(UserMixin):
     def generate_token(self):
         self.login_token = TimedSerializer(current_app.secret_key).dumps(self.username)
         update_user(self.username, 'login_token', self.login_token)
+
+    @property
+    def comm(self):
+        if self._communicator is None:
+            self._communicator = Communicator(encode_string(self.login_token), cfg['rest_api'])
+        return self._communicator
 
 
 def hash_pw(text):

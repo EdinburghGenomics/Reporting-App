@@ -1,24 +1,20 @@
 from os.path import join, dirname
+from urllib.parse import quote, unquote
 import flask as fl
 import flask_login
 import auth
 from config import reporting_app_config as cfg
 from reporting_app.util import datatable_cfg, tab_set_cfg
-from egcg_core.rest_communication import Communicator
 
 app = fl.Flask(__name__)
 app.secret_key = cfg['key'].encode()
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
 version = open(join(dirname(dirname(__file__)), 'version.txt')).read()
-_communicator = None
 
 
 def rest_api():
-    global _communicator
-    if _communicator is None:
-        _communicator = Communicator(auth.encode_string(flask_login.current_user.login_token), cfg['rest_api'])
-    return _communicator
+    return flask_login.current_user.comm
 
 
 def render_template(template, title=None, **context):
@@ -34,7 +30,7 @@ def load_user(user_id):
 
 @login_manager.unauthorized_handler
 def unauthorised_handler():
-    return fl.redirect('/login')
+    return fl.redirect('/login?redirect=' + quote(fl.request.full_path, safe=()))
 
 
 @app.route('/')
@@ -46,12 +42,18 @@ def main_page():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if fl.request.method == 'GET':
-        return render_template('login.html', 'Login', message='Welcome to the EGCG Reporting App. Log in here.')
+        return render_template(
+            'login.html',
+            'Login',
+            message='Welcome to the EGCG Reporting App. Log in here.',
+            redirect=quote(fl.request.args.get('redirect'), safe=())
+        )
     username = fl.request.form['username']
+    redirect = fl.request.form['redirect']
     if auth.check_user_auth(username, fl.request.form['pw'], new_token=True):
         u = auth.User(username, generate_token=True)
         flask_login.login_user(u)
-        return fl.redirect('/')
+        return fl.redirect(unquote(redirect))
     return render_template('login.html', 'Login', message='Bad login.')
 
 
