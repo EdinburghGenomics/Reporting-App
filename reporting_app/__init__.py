@@ -23,14 +23,18 @@ def render_template(template, title=None, **context):
 
 @login_manager.user_loader
 def load_user(user_id):
-    u = auth.User(user_id)
-    if u.check_token():
-        return u
+    return auth.User.get(user_id)
 
 
 @login_manager.unauthorized_handler
 def unauthorised_handler():
     return fl.redirect('/login?redirect=' + quote(fl.request.full_path, safe=()))
+
+
+@login_manager.token_loader
+def load_token(token_hash):
+    uid = auth.check_login_token(token_hash)
+    return auth.User.get(uid)
 
 
 @app.route('/')
@@ -50,16 +54,15 @@ def login():
         )
     username = fl.request.form['username']
     redirect = fl.request.form['redirect']
-    if auth.check_user_auth(username, fl.request.form['pw'], new_token=True):
-        u = auth.User(username, generate_token=True)
-        flask_login.login_user(u)
+    if auth.check_user_auth(username, fl.request.form['pw']):
+        u = auth.User(username)
+        flask_login.login_user(u, remember=True)
         return fl.redirect(unquote(redirect))
     return render_template('login.html', 'Login', message='Bad login.')
 
 
 @app.route('/logout')
 def logout():
-    flask_login.current_user.erase_token()
     flask_login.logout_user()
     return render_template('login.html', 'Logout', message='Logged out.')
 
@@ -70,7 +73,7 @@ def change_password():
     if fl.request.method == 'GET':
         return render_template('change_password.html', 'Change Password')
 
-    user_id = flask_login.current_user.id
+    user_id = flask_login.current_user.username
     form = fl.request.form
     if auth.change_pw(user_id, form['old_pw'], form['new_pw']):
         return fl.redirect('/logout')

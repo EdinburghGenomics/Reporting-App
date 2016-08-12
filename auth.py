@@ -17,45 +17,40 @@ cursor.execute('CREATE TABLE IF NOT EXISTS users (id text UNIQUE, pw_hash text U
 class User(UserMixin):
     username = None
     pw = None
-    login_token = None
     _communicator = None
 
-    def __init__(self, uid, generate_token=False):
+    def __init__(self, uid):
         self.username = uid
         if self.exists():
-            self.username, self.pw, self.login_token = self.db_record()
-        if generate_token:
-            self.generate_token()
+            self.username, self.pw = self.db_record()
+
+    @staticmethod
+    def get(uid):
+        cursor.execute('SELECT id FROM users WHERE id=?', (uid,))
+        r = cursor.fetchone()
+        return User(r[0])
 
     def get_id(self):
         return self.username
 
+    def get_auth_token(self):
+        return TimedSerializer(current_app.secret_key).dumps(self.username)
+
     def exists(self):
         cursor.execute('SELECT count(id) FROM users WHERE id=?', (self.username,))
         return cursor.fetchone()[0] == 1
-
-    def erase_token(self):
-        update_user(self.username, 'login_token', None)
 
     def db_record(self):
         cursor.execute('SELECT * FROM users WHERE id=?', (self.username,))
         return cursor.fetchone()
 
     def match_passwords(self, pw_hash):
-        token_okay = self.login_token is None or self.check_token()
-        return token_okay and pw_hash == self.pw
-
-    def check_token(self):
-        return check_login_token(encode_string(self.login_token))
-
-    def generate_token(self):
-        self.login_token = TimedSerializer(current_app.secret_key).dumps(self.username)
-        update_user(self.username, 'login_token', self.login_token)
+        return pw_hash == self.pw
 
     @property
     def comm(self):
         if self._communicator is None:
-            self._communicator = Communicator(encode_string(self.login_token), cfg['rest_api'])
+            self._communicator = Communicator(encode_string(request.cookies.get('remember_token')), cfg['rest_api'])
         return self._communicator
 
 
@@ -67,8 +62,8 @@ def encode_string(text):
     return base64.b64encode(text.encode()).decode('utf-8')
 
 
-def check_user_auth(username, pw, new_token=False):
-    u = User(username, generate_token=new_token)
+def check_user_auth(username, pw):
+    u = User(username)
     return u.exists() and u.match_passwords(hash_pw(pw))
 
 

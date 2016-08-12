@@ -1,4 +1,5 @@
-from flask_login import current_user
+from flask import request
+from auth import encode_string
 from config import col_mappings
 
 
@@ -19,13 +20,13 @@ def datatable_cfg(title, cols, api_url, default_sort_col=None, **kwargs):
         'cols': col_mappings[cols],
         'api_url': api_url,
         'default_sort_col': default_sort_col,
-        'token': current_user.login_token
+        'token': encode_string(request.cookies.get('remember_token'))
     }
     d.update(kwargs)
     return d
 
 
-def tab_set_cfg(title, tables):
+def tab_set_cfg(title, *tables):
     return {
         'title': title,
         'name': snake_case(title),

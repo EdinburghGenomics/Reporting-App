@@ -23,7 +23,7 @@ $(document).ready(
                 'ajax': {
                     'url': api_url,
                     'dataSrc': 'data',
-                    'headers': {'Authorization': 'Token ' + btoa('{{ dt_config.token }}')}
+                    'headers': {'Authorization': 'Token {{ dt_config.token }}'}
                 },
                 'language': {'processing': '<i class="fa fa-refresh fa-spin">'},
                 'columns': cols.map(
