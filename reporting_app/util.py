@@ -26,7 +26,7 @@ def datatable_cfg(title, cols, api_url, default_sort_col=None, **kwargs):
     return d
 
 
-def tab_set_cfg(title, *tables):
+def tab_set_cfg(title, tables):
     return {
         'title': title,
         'name': snake_case(title),

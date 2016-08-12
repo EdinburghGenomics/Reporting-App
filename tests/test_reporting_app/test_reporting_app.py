@@ -8,6 +8,10 @@ class FakeUser:
     login_token = 'an_api_token'
 
 
+class FakeRequest:
+    cookies = {'remember_token': 'a_token'}
+
+
 class TestReportingApp(Helper):
     def test_format_order(self):
         cols = (
@@ -20,7 +24,7 @@ class TestReportingApp(Helper):
         assert util._format_order('-other', cols) == [2, 'desc']
 
     def test_datatable_cfg(self):
-        with patch('reporting_app.util.current_user', new=FakeUser):
+        with patch('reporting_app.util.request', new=FakeRequest):
             obs = util.datatable_cfg(
                 'A Datatable',
                 'demultiplexing',
@@ -33,13 +37,13 @@ class TestReportingApp(Helper):
             'cols': col_mappings['demultiplexing'],
             'api_url': cfg['rest_api'] + '/test_endpoint',
             'default_sort_col': [2, 'desc'],
-            'token': 'an_api_token'
+            'token': util.encode_string('a_token')
         }
         assert obs == exp
 
     def test_tab_set_cfg(self):
 
-        with patch('reporting_app.util.current_user', new=FakeUser):
+        with patch('reporting_app.util.request', new=FakeRequest):
             dt_cfg = util.datatable_cfg('Test', 'demultiplexing', cfg['rest_api'])
         obs = util.tab_set_cfg('A Tab Set', [dt_cfg])
         exp = {
