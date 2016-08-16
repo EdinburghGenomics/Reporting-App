@@ -8,7 +8,7 @@ from eve.auth import requires_auth
 from eve.methods.get import _pagination_links, _meta_links
 from rest_api import app
 from config import rest_config as cfg
-from . import queries
+from . import queries, stages
 from ..server_side import post_processing as pp
 
 
