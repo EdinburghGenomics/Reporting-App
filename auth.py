@@ -28,7 +28,8 @@ class User(UserMixin):
     def get(uid):
         cursor.execute('SELECT id FROM users WHERE id=?', (uid,))
         r = cursor.fetchone()
-        return User(r[0])
+        if check_login_token(get_login_token()) == uid:
+            return User(r[0])
 
     def get_id(self):
         return self.username
@@ -50,7 +51,7 @@ class User(UserMixin):
     @property
     def comm(self):
         if self._communicator is None:
-            self._communicator = Communicator(encode_string(request.cookies.get('remember_token')), cfg['rest_api'])
+            self._communicator = Communicator(get_login_token(), cfg['rest_api'])
         return self._communicator
 
 
@@ -60,6 +61,10 @@ def hash_pw(text):
 
 def encode_string(text):
     return base64.b64encode(text.encode()).decode('utf-8')
+
+
+def get_login_token():
+    return encode_string(request.cookies.get('remember_token'))
 
 
 def check_user_auth(username, pw):
