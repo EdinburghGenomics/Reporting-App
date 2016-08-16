@@ -1,6 +1,6 @@
 import flask as fl
 import os.path
-from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg, chart_variables, yield_by_date
+from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg, chart_variables, yield_by_date, sample_sequencing_metrics
 from config import reporting_app_config as cfg
 
 app = fl.Flask(__name__)
@@ -32,19 +32,27 @@ def pipeline_report(pipeline_type, view_type):
 
     if view_type == 'all':
         query = rest_query(endpoint)
-        data = query_api(endpoint)
+        run_data = query_api('aggregate/all_runs')
+        sample_data = query_api('aggregate/samples')
+
     elif view_type in statuses:
         query = rest_query(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
         args = ({'$or': [{'proc_status': s} for s in statuses[view_type]]})
-        data = query_api(endpoint, match=args)
+        run_data = query_api('aggregate/all_runs', match=args)
+        sample_data = query_api('aggregate/samples', match=args)
     else:
         fl.abort(404)
         return None
 
-    hist_variables = chart_variables(data, endpoint)
 
-    yield2date = yield_by_date(data, endpoint)
-
+    if pipeline_type == 'runs':
+        hist_variables = chart_variables(endpoint, run_data)
+        yield2date = yield_by_date(run_data)
+        samples_sequenced = None
+    elif pipeline_type == 'samples':
+        hist_variables = chart_variables(endpoint, sample_data)
+        yield2date = None
+        samples_sequenced = sample_sequencing_metrics(sample_data)
 
     return fl.render_template(
         'untabbed_datatables.html',
@@ -53,10 +61,11 @@ def pipeline_report(pipeline_type, view_type):
             pipeline_type,
             query
         ),
+        pipeline = [pipeline_type],
         hist = hist_variables,
-        yield2date = yield2date
+        yield2date = yield2date,
+        samples_sequenced = samples_sequenced
     )
-
 
 @app.route('/runs/<run_id>')
 def report_run(run_id):
