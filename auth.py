@@ -24,11 +24,11 @@ class User(UserMixin):
         if self.exists():
             self.username, self.pw = self.db_record()
 
-    @staticmethod
-    def get(uid):
+    @classmethod
+    def get(cls, uid):
         cursor.execute('SELECT id FROM users WHERE id=?', (uid,))
         r = cursor.fetchone()
-        if check_login_token(get_login_token()) == uid:
+        if check_login_token(cls.get_login_token()) == uid:
             return User(r[0])
 
     def get_id(self):
@@ -51,8 +51,12 @@ class User(UserMixin):
     @property
     def comm(self):
         if self._communicator is None:
-            self._communicator = Communicator(get_login_token(), cfg['rest_api'])
+            self._communicator = Communicator(self.get_login_token(), cfg['rest_api'])
         return self._communicator
+
+    @staticmethod
+    def get_login_token():
+        return encode_string(request.cookies.get('remember_token'))
 
 
 def hash_pw(text):
@@ -61,10 +65,6 @@ def hash_pw(text):
 
 def encode_string(text):
     return base64.b64encode(text.encode()).decode('utf-8')
-
-
-def get_login_token():
-    return encode_string(request.cookies.get('remember_token'))
 
 
 def check_user_auth(username, pw):
