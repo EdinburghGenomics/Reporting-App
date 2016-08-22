@@ -2,11 +2,7 @@
 {% from 'proc_report.html' import proc_report %}
 {% from 'datatable.html' import datatable %}
 
-{% block title %}Sample report{% endblock %}
-
 {% block content %}
-
 {{ super() }}
 {{ proc_report(procs) }}
-
 {% endblock %}

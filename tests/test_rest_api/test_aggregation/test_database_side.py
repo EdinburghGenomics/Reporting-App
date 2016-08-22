@@ -158,7 +158,20 @@ def test_aggregate():
     patched_request = patch('rest_api.aggregation.database_side.request', new=FakeRequest({}))
     patched_jsonify = patch('rest_api.aggregation.database_side.jsonify', new=dict)
     with patched_resolve_pipeline, patched_request, patched_jsonify:
-        obs = database_side.aggregate('test_endpoint', [{'a': 'test', 'aggregataion': 'pipeline'}])
+        obs = database_side.aggregate(
+            'test_endpoint',
+            [{'a': 'test', 'aggregataion': 'pipeline'}],
+            Mock(
+                logger=Mock(),
+                config={
+                    'QUERY_PAGE': 'page',
+                    'QUERY_MAX_RESULTS': 'max_results',
+                    'META': '_meta',
+                    'LINKS': '_links',
+                    'ITEMS': 'data'
+                }
+            )
+        )
     exp = {
         '_meta': {'total': 2},
         'data': fake_data
