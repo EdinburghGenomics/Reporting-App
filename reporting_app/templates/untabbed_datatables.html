@@ -142,7 +142,8 @@ function aggregateData(data) {
 
 function drawCharts() {
 
-      var pipeline_type = {{ pipeline | safe }};
+      var pipeline_type = "{{ pipeline }}";
+      console.log(pipeline_type)
 
       if (pipeline_type == 'runs') {
 
@@ -236,9 +237,9 @@ function drawCharts() {
 
           for (var key in weeks) {
                 if(typeof aggregate_weeks[key] != 'undefined') {
-                      by_week_samples_data.push([key, aggregate_weeks[key]])
+                      by_week_samples_data.push([key, aggregate_weeks[key][0], aggregate_weeks[key][1], aggregate_weeks[key][2]])
                 } else if(typeof aggregate_weeks[key] == 'undefined') {
-                      by_week_samples_data.push([key, weeks[key]])
+                      by_week_samples_data.push([key, weeks[key], weeks[key], weeks[key]])
                 }
           }
 
@@ -250,17 +251,46 @@ function drawCharts() {
                 }
           }
 
-          var sample_data = new google.visualization.DataTable();
-          sample_data.addColumn('string', 'X');
-          sample_data.addColumn('number', 'First');
-          sample_data.addColumn('number', 'Repeat');
-          sample_data.addColumn('number', 'Total');
-          sample_data.addRows(by_month_samples_data);
+          var sample_data_month = new google.visualization.DataTable();
+          sample_data_month.addColumn('string', 'X');
+          sample_data_month.addColumn('number', 'First');
+          sample_data_month.addColumn('number', 'Repeat');
+          sample_data_month.addColumn('number', 'Total');
+          sample_data_month.addRows(by_month_samples_data);
+
+          var sample_data_week = new google.visualization.DataTable();
+          sample_data_week.addColumn('string', 'X');
+          sample_data_week.addColumn('number', 'First');
+          sample_data_week.addColumn('number', 'Repeat');
+          sample_data_week.addColumn('number', 'Total');
+          sample_data_week.addRows(by_week_samples_data);
+
+
+          var chart3 = new google.visualization.LineChart(document.getElementById('samples_sequenced'));
           var sample_options = {
             hAxis: {title: 'Date'},
             vAxis: {title: 'Number of Samples'}};
-          var chart3 = new google.visualization.LineChart(document.getElementById('samples_sequenced'));
-          chart3.draw(sample_data, sample_options);
+
+          chart3.draw(sample_data_month, sample_options);
+
+          var show_months = document.getElementById("ShowMonths");
+          show_months.onclick = function()
+          {
+             view = new google.visualization.DataView(sample_data_month);
+             chart3.draw(sample_data_month, sample_options);
+          }
+          var show_weeks = document.getElementById("ShowWeeks");
+          show_weeks.onclick = function()
+          {
+             view = new google.visualization.DataView(sample_data_week);
+             chart3.draw(sample_data_week, sample_options);
+          }
+
+
+
+
+          //var chart3 = new google.visualization.LineChart(document.getElementById('samples_sequenced'));
+          //chart3.draw(sample_data_week, sample_options);
 
           var histogram_data = google.visualization.arrayToDataTable( {{ hist | safe }});
           var histogram_options = {
@@ -280,7 +310,10 @@ function drawCharts() {
 <div id="yield_histogram"></div>
 <div id="run_yield_by_date"></div>
 <div id="cumulative_run_yield_by_date"></div>
-<div id="samples_sequenced"></div>
+<div id="samples_sequenced" style="width: 900px; height: 500px;"></div>
+
+<button type="button" id="ShowMonths"  >Show Months</button>
+<button type="button" id="ShowWeeks"  >Show Weeks</button>
 
 </body>
 

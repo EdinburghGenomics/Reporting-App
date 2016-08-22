@@ -1,9 +1,6 @@
 import requests
 from flask import json
 from config import reporting_app_config as cfg, col_mappings
-import numpy
-import math
-import datetime
 
 
 def rest_query(resource, **query_args):
@@ -59,6 +56,8 @@ def capitalise(word):
 
 def snake_case(text):
     return text.lower().replace(' ', '_')
+
+
 
 
 def chart_variables(endpoint, data):
