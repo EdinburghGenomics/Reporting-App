@@ -46,8 +46,8 @@ def run_info():
 def demultiplexing():
     return aggregate(
         'run_elements',
-        app,
-        queries.demultiplexing
+        queries.demultiplexing,
+        app
     )
 
 
