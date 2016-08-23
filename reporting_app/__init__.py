@@ -51,7 +51,7 @@ def pipeline_report(pipeline_type, view_type):
         yield2date = None
         samples_sequenced = sample_sequencing_metrics(data)
     return fl.render_template(
-        'untabbed_datatables.html',
+        'pipeline_report.html',
         table=datatable_cfg(
             util.capitalise(view_type) + ' ' + pipeline_type,
             pipeline_type,
