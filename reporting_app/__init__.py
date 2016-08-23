@@ -33,35 +33,21 @@ def pipeline_report(pipeline_type, view_type):
 
     if view_type == 'all':
         query = rest_query(endpoint)
-        data = query_api(endpoint)
     elif view_type in statuses:
         query = rest_query(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
-        args = ({'$or': [{'proc_status': s} for s in statuses[view_type]]})
-        data = query_api(endpoint, match=args)
     else:
         fl.abort(404)
         return None
 
-    if pipeline_type == 'runs':
-        hist_variables = chart_variables(endpoint, data)
-        yield2date = yield_by_date(data)
-        samples_sequenced = None
-    elif pipeline_type == 'samples':
-        hist_variables = chart_variables(endpoint, data)
-        yield2date = None
-        samples_sequenced = sample_sequencing_metrics(data)
     return fl.render_template(
-        'pipeline_report.html',
+        'untabbed_datatables.html',
         table=datatable_cfg(
             util.capitalise(view_type) + ' ' + pipeline_type,
             pipeline_type,
             query
-        ),
-        pipeline = pipeline_type,
-        hist = hist_variables,
-        yield2date = yield2date,
-        samples_sequenced = samples_sequenced
+        )
     )
+
 
 @app.route('/runs/<run_id>')
 def report_run(run_id):
@@ -180,4 +166,28 @@ def report_sample(sample_id):
             where={'dataset_type': 'sample', 'dataset_name': sample_id},
             sort='-_created'
         )
+    )
+
+
+@app.route('/plotting/<plot_type>')
+def plotting_report(plot_type):
+
+    endpoints = {'samples': 'aggregate/samples', 'runs': 'aggregate/all_runs'}
+    endpoint = endpoints[plot_type]
+    data = query_api(endpoint)
+
+    if plot_type == 'runs':
+        hist_variables = chart_variables(endpoint, data)
+        yield2date = yield_by_date(data)
+        samples_sequenced = None
+    elif plot_type == 'samples':
+        hist_variables = chart_variables(endpoint, data)
+        yield2date = None
+        samples_sequenced = sample_sequencing_metrics(data)
+    return fl.render_template(
+        'charts.html',
+        pipeline = plot_type,
+        hist = hist_variables,
+        yield2date = yield2date,
+        samples_sequenced = samples_sequenced
     )
