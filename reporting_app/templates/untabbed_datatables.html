@@ -1,7 +1,6 @@
 {% extends 'reporting_base.html' %}
 {% from 'datatable.html' import datatable, dt_header %}
 
-{% block title %}{{ title }}{% endblock %}
 {% block head %}
     {{ super() }}
     {{ dt_header() }}
@@ -9,7 +8,6 @@
 
 {% block content %}
 
-<h1>{{ title }}</h1>
 {{ description }}
 
 {% if tables %}

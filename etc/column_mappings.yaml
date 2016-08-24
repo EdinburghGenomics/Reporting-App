@@ -43,10 +43,10 @@ column_def:
     properly_mapped_reads:    { data: 'properly_mapped_reads',                title: '# properly mapped reads',  visible: 'false' ,  fmt: { type: 'int',   min: 1500 } }
     reviewed:                 { data: 'reviewed',                             title: 'Review status' }
     review_statuses:          { data: 'review_statuses',                      title: 'Review' }
-    run_id:                   { data: 'run_id',                               title: 'Run ID',                   fmt: { link: '/runs/' } }
-    run_ids:                  { data: 'run_ids',                              title: 'Run ids',                  fmt: { link: '/runs/' } }
-    sample_id:                { data: 'sample_id',                            title: 'Sample ID',                fmt: { link: '/samples/' } }
-    sample_ids:               { data: 'sample_ids',                           title: 'Sample list',              fmt: { link: '/samples/' } }
+    run_id:                   { data: 'run_id',                               title: 'Run ID',                   fmt: { link: '/run/' } }
+    run_ids:                  { data: 'run_ids',                              title: 'Run ids',                  fmt: { link: '/run/' } }
+    sample_id:                { data: 'sample_id',                            title: 'Sample ID',                fmt: { link: '/sample/' } }
+    sample_ids:               { data: 'sample_ids',                           title: 'Sample list',              fmt: { link: '/sample/' } }
     freemix:                  { data: 'sample_contamination.freemix',         title: 'Freemix',                  fmt: { type: 'float',  max: .03}  }
     species_found:            { data: 'species_contamination',                title: 'Species found',            fmt: { name: 'species_contamination' } }
     useable:                  { data: 'useable',                              title: 'Useable' }
