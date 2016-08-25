@@ -109,7 +109,7 @@ function runCharts(hist, yield2date) {
     for (var week in weeks) {
         if(week in aggregate_weeks) {
             current_week_cumulative_yield += (parseInt(aggregate_weeks[week]))
-            by_week_yield_data.push([week, aggregate_weeks[week]])
+            by_week_yield_data.push([week, aggregate_weeks[week][0]])
             by_week_yield_data_cumulative.push([week, current_week_cumulative_yield])
         } else {
             by_week_yield_data.push([week, 0])
@@ -130,28 +130,73 @@ function runCharts(hist, yield2date) {
 
     // draw run charts
 
-    var run_yield_data = new google.visualization.DataTable();
-    run_yield_data.addColumn('string', 'X');
-    run_yield_data.addColumn('number', 'Yield');
-    run_yield_data.addRows(by_month_yield_data);
-    var run_yield_options = {
+    var run_yield_data_weeks = new google.visualization.DataTable();
+    run_yield_data_weeks.addColumn('string', 'X');
+    run_yield_data_weeks.addColumn('number', 'Yield');
+    run_yield_data_weeks.addRows(by_week_yield_data);
+    var run_yield_options_weeks = {
+    title: 'Run yield per week',
+    hAxis: {title: 'Week / Year'},
+    vAxis: {title: 'Yield'}};
+
+    var run_yield_data_months = new google.visualization.DataTable();
+    run_yield_data_months.addColumn('string', 'X');
+    run_yield_data_months.addColumn('number', 'Yield');
+    run_yield_data_months.addRows(by_month_yield_data);
+    var run_yield_options_months = {
     title: 'Run yield per month',
     hAxis: {title: 'Month / Year'},
     vAxis: {title: 'Yield'}};
     var yield_chart = new google.visualization.ColumnChart(document.getElementById('run_yield_by_date'));
-    yield_chart.draw(run_yield_data, run_yield_options);
 
-    var cumulative_run_yield_data = new google.visualization.DataTable();
-    cumulative_run_yield_data.addColumn('string', 'X');
-    cumulative_run_yield_data.addColumn('number', 'Yield');
-    cumulative_run_yield_data.addRows(by_month_yield_data_cumulative);
-    var cumulative_run_yield_options = {
+    yield_chart.draw(run_yield_data_months, run_yield_options_months);
+
+    var show_months = document.getElementById("ShowRunYieldMonths");
+    show_months.onclick = function()
+    {
+    view = new google.visualization.DataView(run_yield_data_months);
+    yield_chart.draw(run_yield_data_months, run_yield_options_months);
+    }
+    var show_weeks = document.getElementById("ShowRunYieldWeeks");
+    show_weeks.onclick = function()
+    {
+    view = new google.visualization.DataView(run_yield_data_weeks);
+    yield_chart.draw(run_yield_data_weeks, run_yield_options_weeks);
+    }
+
+    var cumulative_run_yield_data_week = new google.visualization.DataTable();
+    cumulative_run_yield_data_week.addColumn('string', 'X');
+    cumulative_run_yield_data_week.addColumn('number', 'Yield');
+    cumulative_run_yield_data_week.addRows(by_week_yield_data_cumulative);
+    var cumulative_run_yield_options_week = {
+    title: 'Cumulative run yield per week',
+    hAxis: {title: 'Week / Year'},
+    vAxis: {title: 'Cumulative Yield'}};
+
+    var cumulative_run_yield_data_month = new google.visualization.DataTable();
+    cumulative_run_yield_data_month.addColumn('string', 'X');
+    cumulative_run_yield_data_month.addColumn('number', 'Yield');
+    cumulative_run_yield_data_month.addRows(by_month_yield_data_cumulative);
+    var cumulative_run_yield_options_month = {
     title: 'Cumulative run yield per month',
     hAxis: {title: 'Month / Year'},
     vAxis: {title: 'Cumulative Yield'}};
     var cumulative_yield_chart = new google.visualization.LineChart(document.getElementById('cumulative_run_yield_by_date'));
-    cumulative_yield_chart.draw(cumulative_run_yield_data, cumulative_run_yield_options);
 
+    cumulative_yield_chart.draw(cumulative_run_yield_data_month, cumulative_run_yield_options_month);
+
+    var show_months_cumulative = document.getElementById("ShowCumulativeRunYieldMonths");
+    show_months_cumulative.onclick = function()
+    {
+    view = new google.visualization.DataView(cumulative_run_yield_data_month);
+    cumulative_yield_chart.draw(cumulative_run_yield_data_month, cumulative_run_yield_options_month);
+    }
+    var show_weeks_cumulative = document.getElementById("ShowCumulativeRunYieldWeeks");
+    show_weeks_cumulative.onclick = function()
+    {
+    view = new google.visualization.DataView(cumulative_run_yield_data_week);
+    cumulative_yield_chart.draw(cumulative_run_yield_data_week, cumulative_run_yield_options_week);
+    }
 }
 
 function sampleCharts(samples_sequenced, hist) {

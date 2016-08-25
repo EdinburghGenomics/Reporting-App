@@ -3,8 +3,7 @@ from urllib.parse import quote, unquote
 import flask as fl
 import flask_login
 import auth
-import os.path
-from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg, chart_variables, yield_by_date, sample_sequencing_metrics
+from reporting_app.util import datatable_cfg, tab_set_cfg, chart_variables, yield_by_date, sample_sequencing_metrics
 from config import reporting_app_config as cfg
 from reporting_app.util import datatable_cfg, tab_set_cfg
 
@@ -243,7 +242,8 @@ def plotting_report(plot_type):
 
     endpoints = {'samples': 'aggregate/samples', 'runs': 'aggregate/all_runs'}
     endpoint = endpoints[plot_type]
-    data = query_api(endpoint)
+    data = rest_api().get_documents(endpoint)
+    print(data)
 
     if plot_type == 'runs':
         hist_variables = chart_variables(endpoint, data)
