@@ -29,12 +29,9 @@
 {% if pipeline == 'runs' %}
     <div id="run_yield_by_date"></div>
 
-    <button type="button" id="ShowRunYieldMonths"  >Show Months</button>
-    <button type="button" id="ShowRunYieldWeeks"  >Show Weeks</button>
-
     <div id="cumulative_run_yield_by_date"></div>
-    <button type="button" id="ShowCumulativeRunYieldMonths"  >Show Months</button>
-    <button type="button" id="ShowCumulativeRunYieldWeeks"  >Show Weeks</button>
+    <input type="radio" id="ShowCumulativeRunYieldMonths" name="radio_button">Show Months</input>
+    <input type="radio" id="ShowCumulativeRunYieldWeeks" name="radio_button">Show Weeks</input>
 
 {% else %}
 
@@ -43,8 +40,8 @@
     <div id="cumulative_run_yield_by_date"></div>
     <div id="samples_sequenced" style="width: 900px; height: 500px;"></div>
 
-    <button type="button" id="ShowMonths"  >Show Months</button>
-    <button type="button" id="ShowWeeks"  >Show Weeks</button>
+    <input type="radio" id="ShowMonths" name="radio_button">Show Months</input>
+    <input type="radio" id="ShowWeeks" name="radio_button">Show Weeks</input>
 
 {% endif %}
 

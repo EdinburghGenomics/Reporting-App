@@ -128,6 +128,10 @@ function runCharts(hist, yield2date) {
         }
     }
 
+
+
+
+
     // draw run charts
 
     var run_yield_data_weeks = new google.visualization.DataTable();
@@ -149,20 +153,7 @@ function runCharts(hist, yield2date) {
     vAxis: {title: 'Yield'}};
     var yield_chart = new google.visualization.ColumnChart(document.getElementById('run_yield_by_date'));
 
-    yield_chart.draw(run_yield_data_months, run_yield_options_months);
 
-    var show_months = document.getElementById("ShowRunYieldMonths");
-    show_months.onclick = function()
-    {
-    view = new google.visualization.DataView(run_yield_data_months);
-    yield_chart.draw(run_yield_data_months, run_yield_options_months);
-    }
-    var show_weeks = document.getElementById("ShowRunYieldWeeks");
-    show_weeks.onclick = function()
-    {
-    view = new google.visualization.DataView(run_yield_data_weeks);
-    yield_chart.draw(run_yield_data_weeks, run_yield_options_weeks);
-    }
 
     var cumulative_run_yield_data_week = new google.visualization.DataTable();
     cumulative_run_yield_data_week.addColumn('string', 'X');
@@ -183,19 +174,21 @@ function runCharts(hist, yield2date) {
     vAxis: {title: 'Cumulative Yield'}};
     var cumulative_yield_chart = new google.visualization.LineChart(document.getElementById('cumulative_run_yield_by_date'));
 
+
+    yield_chart.draw(run_yield_data_months, run_yield_options_months);
     cumulative_yield_chart.draw(cumulative_run_yield_data_month, cumulative_run_yield_options_month);
 
     var show_months_cumulative = document.getElementById("ShowCumulativeRunYieldMonths");
     show_months_cumulative.onclick = function()
     {
-    view = new google.visualization.DataView(cumulative_run_yield_data_month);
     cumulative_yield_chart.draw(cumulative_run_yield_data_month, cumulative_run_yield_options_month);
+    yield_chart.draw(run_yield_data_months, run_yield_options_months);
     }
     var show_weeks_cumulative = document.getElementById("ShowCumulativeRunYieldWeeks");
     show_weeks_cumulative.onclick = function()
     {
-    view = new google.visualization.DataView(cumulative_run_yield_data_week);
     cumulative_yield_chart.draw(cumulative_run_yield_data_week, cumulative_run_yield_options_week);
+    yield_chart.draw(run_yield_data_weeks, run_yield_options_weeks);
     }
 }
 
