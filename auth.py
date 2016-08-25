@@ -11,7 +11,7 @@ from egcg_core.rest_communication import Communicator
 _serialiser = None
 user_db = sqlite3.connect(cfg['user_db'])
 cursor = user_db.cursor()
-cursor.execute('CREATE TABLE IF NOT EXISTS users (id text UNIQUE, pw_hash text UNIQUE, login_token text)')
+cursor.execute('CREATE TABLE IF NOT EXISTS users (id text UNIQUE, pw_hash text UNIQUE)')
 
 
 class User(UserMixin):
@@ -118,7 +118,7 @@ def admin_users():
     args = a.parse_args()
 
     def _add_user(username):
-        cursor.execute('INSERT INTO users VALUES (?, ?, ?)', (username, hash_pw(username), None))
+        cursor.execute('INSERT INTO users VALUES (?, ?)', (username, hash_pw(username)))
         user_db.commit()
 
     def _remove_user(username):
@@ -127,13 +127,16 @@ def admin_users():
 
     for u in args.add:
         _add_user(u)
+        print('Added user ' + u)
 
     for u in args.remove:
         _remove_user(u)
+        print('Removed user ' + u)
 
     for u in args.reset:
         _remove_user(u)
         _add_user(u)
+        print('Reset user ' + u)
 
 
 if __name__ == '__main__':
