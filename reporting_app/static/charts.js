@@ -128,10 +128,6 @@ function runCharts(hist, yield2date) {
         }
     }
 
-
-
-
-
     // draw run charts
 
     var run_yield_data_weeks = new google.visualization.DataTable();
@@ -152,8 +148,6 @@ function runCharts(hist, yield2date) {
     hAxis: {title: 'Month / Year'},
     vAxis: {title: 'Yield'}};
     var yield_chart = new google.visualization.ColumnChart(document.getElementById('run_yield_by_date'));
-
-
 
     var cumulative_run_yield_data_week = new google.visualization.DataTable();
     cumulative_run_yield_data_week.addColumn('string', 'X');
