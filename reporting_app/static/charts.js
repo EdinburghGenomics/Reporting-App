@@ -172,7 +172,7 @@ function runCharts(yield2date) {
     var cumulative_yield_chart = new google.visualization.LineChart(document.getElementById('cumulative_run_yield_by_date'));
 
 
-    yield_chart.draw(run_yield_data_weeks, run_yield_options_weeks);
+    yield_chart.draw(run_yield_data_months, run_yield_options_months);
     cumulative_yield_chart.draw(cumulative_run_yield_data_month, cumulative_run_yield_options_month);
 
     var show_months_cumulative = document.getElementById("ShowCumulativeRunYieldMonths");
