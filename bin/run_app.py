@@ -22,7 +22,7 @@ def run_app(app, cfg):
     webserver = cfg.get('webserver', 'werkzeug')
     app.debug = cfg.get('debug', False)
 
-    egcg_core.config.cfg.load_config_file(os.getenv('REPORTINGCONFIG'))
+    cfg.load_config_file(os.getenv('REPORTINGCONFIG'))
     log_cfg = LoggingConfiguration(cfg)
     log_cfg.loggers.update(_webserver_loggers(webserver))
     log_cfg.loggers['app'] = app.logger

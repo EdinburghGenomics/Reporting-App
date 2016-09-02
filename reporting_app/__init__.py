@@ -238,6 +238,7 @@ def report_sample(sample_id):
 
 
 @app.route('/plotting/<plot_type>')
+@flask_login.login_required
 def plotting_report(plot_type):
 
     endpoints = {'samples': 'aggregate/samples', 'runs': 'aggregate/all_runs'}
