@@ -82,7 +82,6 @@ def yield_by_date(data):
         date = run_name_to_date(run_id)
         run_yield = [d.get('yield_in_gb')]
         date_yield.append([date, run_yield])
-    #date_yield.sort(key=lambda x: x[0])
     return date_yield
 
 
