@@ -126,7 +126,6 @@ def sample_sequencing_metrics(data):
         format_date = [date, samples2date[date]]
         return_samples2date.append(format_date)
     return_samples2date.sort(key=lambda x: x[0])
-    print(return_samples2date)
     return return_samples2date
 
 
