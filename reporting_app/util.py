@@ -1,6 +1,7 @@
 from flask import request
 from auth import encode_string
 from config import col_mappings
+import datetime, time
 
 
 def _format_order(col_name, cols):
@@ -69,19 +70,19 @@ def run_name_to_date(run_id):
     year = int(''.join(list(str(run_date))[0:2])) + 2000
     month = int(''.join(list(str(run_date))[2:4]))
     day = int(''.join(list(str(run_date))[4:6]))
-    return year, month, day
+    d = datetime.datetime(year, month, day)
+    date = int(time.mktime(d.timetuple())) * 1000
+    return date
 
 
 def yield_by_date(data):
     date_yield = []
     for d in data:
         run_id = d.get('_id')
-        year, month, day = run_name_to_date(run_id)
-        date = [year, month, day]
+        date = run_name_to_date(run_id)
         run_yield = [d.get('yield_in_gb')]
-        if run_yield != 0.0:
-            date_yield.append([date, run_yield])
-    date_yield.sort(key=lambda x: x[0])
+        date_yield.append([date, run_yield])
+    #date_yield.sort(key=lambda x: x[0])
     return date_yield
 
 
@@ -94,21 +95,20 @@ def sample_sequencing_metrics(data):
     for d in data:
         run_ids = ((sorted(d.get('run_ids'))))
         if len(run_ids) == 1:
-            year, month, day = run_name_to_date(run_ids[0])
-            date = (year, month, day)
+            date = run_name_to_date(run_ids[0])
             date_samples_first_sequenced.append(date)
             date_samples_sequenced_total.append(date)
             samples2date[date] = [0, 0, 0]
         elif len(run_ids) > 1:
-            year, month, day = run_name_to_date(run_ids[0])
-            date = (year, month, day)
+            date = run_name_to_date(run_ids[0])
             date_samples_first_sequenced.append(date)
             date_samples_sequenced_total.append(date)
             samples2date[date] = [0, 0, 0]
+
+
             run_ids = run_ids[1:]
             for run in run_ids:
-                year, month, day = run_name_to_date(run)
-                date = (year, month, day)
+                date = run_name_to_date(run)
                 date_samples_repeat_sequened.append(date)
                 date_samples_sequenced_total.append(date)
                 samples2date[date] = [0, 0, 0]
@@ -120,14 +120,15 @@ def sample_sequencing_metrics(data):
     for date in date_samples_sequenced_total:
         samples2date[date][2] += 1
 
-
     return_samples2date = []
 
     for date in samples2date:
-        format_date = [list(date), samples2date[date]]
+        format_date = [date, samples2date[date]]
         return_samples2date.append(format_date)
     return_samples2date.sort(key=lambda x: x[0])
+    print(return_samples2date)
     return return_samples2date
+
 
 
 

@@ -15,7 +15,7 @@
     function drawCharts() {
           var pipeline_type = "{{ pipeline }}";
           if (pipeline_type == 'runs') {
-            runCharts({{ hist | safe }}, {{ yield2date | safe }});
+            runCharts({{ yield2date | safe }});
           } else if (pipeline_type == 'samples') {
             sampleCharts({{ samples_sequenced | safe }}, {{ hist | safe }});
         }
@@ -30,8 +30,10 @@
     <div id="run_yield_by_date"></div>
 
     <div id="cumulative_run_yield_by_date"></div>
-    <input type="radio" id="ShowCumulativeRunYieldMonths" name="radio_button">Show Months</input>
+    <input type="radio" id="ShowCumulativeRunYieldMonths" name="radio_button" checked="checked">Show Months</input>
     <input type="radio" id="ShowCumulativeRunYieldWeeks" name="radio_button">Show Weeks</input>
+
+
 
 {% else %}
 
@@ -40,9 +42,12 @@
     <div id="cumulative_run_yield_by_date"></div>
     <div id="samples_sequenced" style="width: 900px; height: 500px;"></div>
 
-    <input type="radio" id="ShowMonths" name="radio_button">Show Months</input>
+    <input type="radio" id="ShowMonths" name="radio_button" checked="checked">Show Months</input>
     <input type="radio" id="ShowWeeks" name="radio_button">Show Weeks</input>
 
 {% endif %}
+
+
+
 
 {% endblock %}

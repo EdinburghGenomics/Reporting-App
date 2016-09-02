@@ -28,11 +28,10 @@ function aggregateData(data) {
     // make a blank dict with keys as the week and the year of each week for earliest to latest
     var populate_blank_weeks = week_range.map(function(t){
     if (current_week < 52) {
-          weeks[([parseInt(current_week) + '/' + parseInt(current_year)])] = 0
+          weeks[moment().year(current_year).week(current_week).day("Monday")] = 0
           current_week = parseInt(current_week, 10) + 1
-
     } else if (current_week == 52) {
-          weeks[([parseInt(current_week) + '/' + parseInt(current_year)])] = 0
+          weeks[moment().year(current_year).week(current_week).day("Monday")] = 0
           current_week = 1
           current_year = parseInt(current_year, 10) + 1
     }
@@ -44,10 +43,10 @@ function aggregateData(data) {
     // make a blank dict with keys as the month and the year of each month for earliest to latest
     var populate_blank_months = month_range.map(function(t){
     if (current_month < 12) {
-        months[([parseInt(current_month) + '/' + parseInt(current_year)])] = 0
+        months[moment().year(current_year).month(current_month).day("Monday")] = 0
         current_month = parseInt(current_month, 10) + 1
     } else if (current_month == 12) {
-        months[([parseInt(current_month) + '/' + parseInt(current_year)])] = 0
+        months[moment().year(current_year).month(current_month).day("Monday")] = 0
         current_month = 1
         current_year = parseInt(current_year, 10) + 1
     }
@@ -55,6 +54,7 @@ function aggregateData(data) {
 
     var aggregate_weeks = {}
     var aggregate_months = {}
+
 
     // make dict to aggregate data provided by month and by week
     // for each date that exists in the data provided, set the value as the associated data for that date
@@ -65,20 +65,21 @@ function aggregateData(data) {
         var month_number = (moment(new Date(t[0])).month()) + 1
         var year_number = moment(new Date(t[0])).year()
 
-        var month_year = ([parseInt(month_number) + '/' + parseInt(year_number)])
-        var week_year = (parseInt(week_number) + '/' + parseInt(year_number))
-        if(typeof aggregate_weeks[week_year] == 'undefined'){
-            aggregate_weeks[week_year] = t[1]
+        var week_date = moment().year(year_number).week(week_number).day("Monday")
+        var month_date = moment().year(year_number).month(month_number).day("Monday")
+
+        if(typeof aggregate_weeks[week_date] == 'undefined'){
+            aggregate_weeks[week_date] = t[1]
         } else {
             for(var i = 0; i < ((t[1]).length); i++) {
-                aggregate_weeks[week_year][i] = aggregate_weeks[week_year][i] + t[1][i]
+                aggregate_weeks[week_date][i] = aggregate_weeks[week_date][i] + t[1][i]
             }
         }
-        if(typeof aggregate_months[month_year] == 'undefined'){
-            aggregate_months[month_year] = t[1]
+        if(typeof aggregate_months[month_date] == 'undefined'){
+            aggregate_months[month_date] = t[1]
         } else {
             for(var i = 0; i < ((t[1]).length); i++) {
-                aggregate_months[month_year][i] = aggregate_months[month_year][i] + t[1][i]
+                aggregate_months[month_date][i] = aggregate_months[month_date][i] + t[1][i]
             }
         }
     });
@@ -86,14 +87,26 @@ function aggregateData(data) {
     return [weeks, months, aggregate_weeks, aggregate_months]
 }
 
-function runCharts(hist, yield2date) {
+function sortDictByDate(dict){
+    sorted_dict = {}
+    var sort = (Object.keys(dict)).sort(function(a, b) {
+    return new Date(a) - new Date(b);
+    });
+    var sort_aggregate_weeks = sort.map(function(t){
+        sorted_dict[t] = dict[t]
+    });
+    return sorted_dict
+}
+
+function runCharts(yield2date) {
+
+    var date_map = yield2date.map(function(t){
+        (t[0]) = (new Date(t[0]))
+    });
 
     var yield2date_aggregate = aggregateData(yield2date)
-
-    var weeks = yield2date_aggregate[0]
-    var months = yield2date_aggregate[1]
-    var aggregate_weeks = yield2date_aggregate[2]
-    var aggregate_months = yield2date_aggregate[3]
+    var aggregate_weeks = sortDictByDate(yield2date_aggregate[2])
+    var aggregate_months = sortDictByDate(yield2date_aggregate[3])
 
     var by_month_yield_data = []
     var by_week_yield_data = []
@@ -102,36 +115,24 @@ function runCharts(hist, yield2date) {
     var current_month_cumulative_yield = 0
     var current_week_cumulative_yield = 0
 
-    // for each week/month in time range of input data, check if there is aggregated data available for that month
-    // if not, set the value for that week/month as zero
+    // format dates and yield for google charts
     // keep running total of values to add to cumulative value
 
-    for (var week in weeks) {
-        if(week in aggregate_weeks) {
-            current_week_cumulative_yield += (parseInt(aggregate_weeks[week]))
-            by_week_yield_data.push([week, aggregate_weeks[week][0]])
-            by_week_yield_data_cumulative.push([week, current_week_cumulative_yield])
-        } else {
-            by_week_yield_data.push([week, 0])
-            by_week_yield_data_cumulative.push([week, current_week_cumulative_yield])
-        }
+    for (var i in aggregate_weeks) {
+        by_week_yield_data.push([new Date(i), aggregate_weeks[i][0]])
+        current_week_cumulative_yield += (parseInt(aggregate_weeks[i][0]))
+        by_week_yield_data_cumulative.push([new Date(i), current_week_cumulative_yield])
     }
-
-    for (var month in months) {
-        if(month in aggregate_months) {
-              current_month_cumulative_yield += parseInt(aggregate_months[month])
-              by_month_yield_data.push([month, aggregate_months[month][0]])
-              by_month_yield_data_cumulative.push([month, current_month_cumulative_yield])
-        } else {
-              by_month_yield_data.push([month, 0])
-              by_month_yield_data_cumulative.push([month, current_month_cumulative_yield])
-        }
+    for (var i in aggregate_months) {
+        by_month_yield_data.push([new Date(i), aggregate_months[i][0]])
+        current_month_cumulative_yield += (parseInt(aggregate_months[i][0]))
+        by_month_yield_data_cumulative.push([new Date(i), current_month_cumulative_yield])
     }
 
     // draw run charts
 
     var run_yield_data_weeks = new google.visualization.DataTable();
-    run_yield_data_weeks.addColumn('string', 'X');
+    run_yield_data_weeks.addColumn('date', 'X');
     run_yield_data_weeks.addColumn('number', 'Yield');
     run_yield_data_weeks.addRows(by_week_yield_data);
     var run_yield_options_weeks = {
@@ -140,7 +141,7 @@ function runCharts(hist, yield2date) {
     vAxis: {title: 'Yield'}};
 
     var run_yield_data_months = new google.visualization.DataTable();
-    run_yield_data_months.addColumn('string', 'X');
+    run_yield_data_months.addColumn('date', 'X');
     run_yield_data_months.addColumn('number', 'Yield');
     run_yield_data_months.addRows(by_month_yield_data);
     var run_yield_options_months = {
@@ -149,8 +150,10 @@ function runCharts(hist, yield2date) {
     vAxis: {title: 'Yield'}};
     var yield_chart = new google.visualization.ColumnChart(document.getElementById('run_yield_by_date'));
 
+
+
     var cumulative_run_yield_data_week = new google.visualization.DataTable();
-    cumulative_run_yield_data_week.addColumn('string', 'X');
+    cumulative_run_yield_data_week.addColumn('date', 'X');
     cumulative_run_yield_data_week.addColumn('number', 'Yield');
     cumulative_run_yield_data_week.addRows(by_week_yield_data_cumulative);
     var cumulative_run_yield_options_week = {
@@ -159,7 +162,7 @@ function runCharts(hist, yield2date) {
     vAxis: {title: 'Cumulative Yield'}};
 
     var cumulative_run_yield_data_month = new google.visualization.DataTable();
-    cumulative_run_yield_data_month.addColumn('string', 'X');
+    cumulative_run_yield_data_month.addColumn('date', 'X');
     cumulative_run_yield_data_month.addColumn('number', 'Yield');
     cumulative_run_yield_data_month.addRows(by_month_yield_data_cumulative);
     var cumulative_run_yield_options_month = {
@@ -169,7 +172,7 @@ function runCharts(hist, yield2date) {
     var cumulative_yield_chart = new google.visualization.LineChart(document.getElementById('cumulative_run_yield_by_date'));
 
 
-    yield_chart.draw(run_yield_data_months, run_yield_options_months);
+    yield_chart.draw(run_yield_data_weeks, run_yield_options_weeks);
     cumulative_yield_chart.draw(cumulative_run_yield_data_month, cumulative_run_yield_options_month);
 
     var show_months_cumulative = document.getElementById("ShowCumulativeRunYieldMonths");
@@ -186,52 +189,40 @@ function runCharts(hist, yield2date) {
     }
 }
 
-function sampleCharts(samples_sequenced, hist) {
+function sampleCharts(samples_sequenced) {
 
     var samples_sequenced_aggregate = aggregateData(samples_sequenced)
 
-    var weeks = samples_sequenced_aggregate[0]
-    var months = samples_sequenced_aggregate[1]
     var aggregate_weeks = samples_sequenced_aggregate[2]
     var aggregate_months = samples_sequenced_aggregate[3]
 
-    var by_month_samples_data = []
-    var by_week_samples_data = []
 
-    // for each date in weeks/months, add to a list the date and each value associated with that date
-    // if no data is associated with that date, add to the list the date and zeros instead
 
-    for (var week in weeks) {
-        if(week in aggregate_weeks) {
-              by_week_samples_data.push([week, aggregate_weeks[week][0], aggregate_weeks[week][1], aggregate_weeks[week][2]])
-        } else {
-              by_week_samples_data.push([week, 0, 0, 0])
-        }
+    var one = []
+    var two = []
+
+    for (var week in aggregate_weeks) {
+        one.push([new Date(week), aggregate_weeks[week][0], aggregate_weeks[week][1], aggregate_weeks[week][2]])
     }
 
-    for (var month in months) {
-        if(month in aggregate_months) {
-              by_month_samples_data.push([month, aggregate_months[month][0], aggregate_months[month][1], aggregate_months[month][2]])
-        } else {
-              by_month_samples_data.push([month, 0, 0, 0])
-        }
+    for (var month in aggregate_months) {
+        two.push([new Date(month), aggregate_months[month][0], aggregate_months[month][1], aggregate_months[month][2]])
     }
 
-    // draw sample charts
 
     var sample_data_month = new google.visualization.DataTable();
-    sample_data_month.addColumn('string', 'X');
+    sample_data_month.addColumn('date', 'X');
     sample_data_month.addColumn('number', 'First');
     sample_data_month.addColumn('number', 'Repeat');
     sample_data_month.addColumn('number', 'Total');
-    sample_data_month.addRows(by_month_samples_data);
+    sample_data_month.addRows(two);
 
     var sample_data_week = new google.visualization.DataTable();
-    sample_data_week.addColumn('string', 'X');
+    sample_data_week.addColumn('date', 'X');
     sample_data_week.addColumn('number', 'First');
     sample_data_week.addColumn('number', 'Repeat');
     sample_data_week.addColumn('number', 'Total');
-    sample_data_week.addRows(by_week_samples_data);
+    sample_data_week.addRows(one);
 
     var samples_sequenced_chart = new google.visualization.LineChart(document.getElementById('samples_sequenced'));
 
@@ -252,13 +243,13 @@ function sampleCharts(samples_sequenced, hist) {
     var show_months = document.getElementById("ShowMonths");
     show_months.onclick = function()
     {
-     view = new google.visualization.DataView(sample_data_month);
-     samples_sequenced_chart.draw(sample_data_month, sample_month_options);
+    view = new google.visualization.DataView(sample_data_month);
+    samples_sequenced_chart.draw(sample_data_month, sample_month_options);
     }
     var show_weeks = document.getElementById("ShowWeeks");
     show_weeks.onclick = function()
     {
-     view = new google.visualization.DataView(sample_data_week);
-     samples_sequenced_chart.draw(sample_data_week, sample_week_options);
+    view = new google.visualization.DataView(sample_data_week);
+    samples_sequenced_chart.draw(sample_data_week, sample_week_options);
     }
 }

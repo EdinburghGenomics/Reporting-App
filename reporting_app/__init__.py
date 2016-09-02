@@ -243,7 +243,6 @@ def plotting_report(plot_type):
     endpoints = {'samples': 'aggregate/samples', 'runs': 'aggregate/all_runs'}
     endpoint = endpoints[plot_type]
     data = rest_api().get_documents(endpoint)
-    print(data)
 
     if plot_type == 'runs':
         hist_variables = chart_variables(endpoint, data)
