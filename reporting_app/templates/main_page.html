@@ -1,13 +1,9 @@
 {% extends 'reporting_base.html' %}
-{% block title %}Main page{% endblock %}
-{% block head %}
-    {{ super() }}
-{% endblock %}
 
 {% block content %}
-<h1>Analysis Driver reports</h1>
-<p>Visit one of the report types below</p>
-<a href="/runs">runs</a>
-<br/>
-<a href="/projects">projects</a>
+<p>
+Welcome to the Edinburgh Genomics Reporting App. Here, you can view QC data for pipeline runs, sequencing
+runs, samples and projects. Select a view from the toolbar above.
+</p>
+
 {% endblock %}

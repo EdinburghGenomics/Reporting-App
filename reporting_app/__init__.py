@@ -1,25 +1,87 @@
+from os.path import join, dirname
+from urllib.parse import quote, unquote
 import flask as fl
-import os.path
-from reporting_app.util import query_api, rest_query, datatable_cfg, tab_set_cfg
+import flask_login
+import auth
 from config import reporting_app_config as cfg
+from reporting_app.util import datatable_cfg, tab_set_cfg
 
 app = fl.Flask(__name__)
+app.secret_key = cfg['key'].encode()
+login_manager = flask_login.LoginManager()
+login_manager.init_app(app)
+version = open(join(dirname(dirname(__file__)), 'version.txt')).read()
+
+
+def rest_api():
+    return flask_login.current_user.comm
+
+
+def render_template(template, title=None, **context):
+    return fl.render_template(template, title=title, version=version, **context)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return auth.User.get(user_id)
+
+
+@login_manager.unauthorized_handler
+def unauthorised_handler():
+    return fl.redirect('/login?redirect=' + quote(fl.request.full_path, safe=()))
+
+
+@login_manager.token_loader
+def load_token(token_hash):
+    uid = auth.check_login_token(token_hash)
+    return auth.User.get(uid)
 
 
 @app.route('/')
+@flask_login.login_required
 def main_page():
-    return fl.render_template('main_page.html')
+    return render_template('main_page.html', 'Main Page')
 
 
-@app.route('/runs/')
-def run_reports():
-    return fl.render_template(
-        'untabbed_datatables.html',
-        table=datatable_cfg('All runs', 'runs', api_url=rest_query('aggregate/all_runs'))
-    )
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if fl.request.method == 'GET':
+        return render_template(
+            'login.html',
+            'Login',
+            message='Welcome to the EGCG Reporting App. Log in here.',
+            redirect=quote(fl.request.args.get('redirect'), safe=())
+        )
+    username = fl.request.form['username']
+    redirect = fl.request.form['redirect']
+    if auth.check_user_auth(username, fl.request.form['pw']):
+        u = auth.User(username)
+        flask_login.login_user(u, remember=True)
+        return fl.redirect(unquote(redirect))
+    return render_template('login.html', 'Login', message='Bad login.')
+
+
+@app.route('/logout')
+def logout():
+    flask_login.logout_user()
+    return render_template('login.html', 'Logout', message='Logged out.')
+
+
+@app.route('/change_password', methods=['GET', 'POST'])
+@flask_login.login_required
+def change_password():
+    if fl.request.method == 'GET':
+        return render_template('change_password.html', 'Change Password')
+
+    user_id = flask_login.current_user.username
+    form = fl.request.form
+    if auth.change_pw(user_id, form['old_pw'], form['new_pw']):
+        return fl.redirect('/logout')
+    return render_template('login.html', 'Login', message='Bad request.')
 
 
 @app.route('/pipelines/<pipeline_type>/<view_type>')
+@flask_login.login_required
 def pipeline_report(pipeline_type, view_type):
     statuses = {
         'queued': ('reprocess', 'force_ready'),
@@ -31,34 +93,34 @@ def pipeline_report(pipeline_type, view_type):
     endpoint = endpoints[pipeline_type]
 
     if view_type == 'all':
-        query = rest_query(endpoint)
+        query = rest_api().api_url(endpoint)
     elif view_type in statuses:
-        query = rest_query(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
+        query = rest_api().api_url(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
     else:
         fl.abort(404)
         return None
 
-    return fl.render_template(
+    title = util.capitalise(view_type) + ' ' + pipeline_type
+
+    return render_template(
         'untabbed_datatables.html',
-        table=datatable_cfg(
-            util.capitalise(view_type) + ' ' + pipeline_type,
-            pipeline_type,
-            query
-        )
+        title,
+        table=datatable_cfg(title, pipeline_type, query)
     )
 
 
-@app.route('/runs/<run_id>')
+@app.route('/run/<run_id>')
+@flask_login.login_required
 def report_run(run_id):
-    lanes = sorted(set(e['lane_number'] for e in query_api('lanes', where={'run_id': run_id})))
+    lanes = sorted(set(e['lane_number'] for e in rest_api().get_documents('lanes', where={'run_id': run_id})))
 
-    return fl.render_template(
+    return render_template(
         'run_report.html',
-        title='Report for ' + run_id,
+        title=run_id + ' Run Report',
         lane_aggregation=datatable_cfg(
             title='Aggregation per lane',
             cols='lane_aggregation',
-            api_url=rest_query('aggregate/run_elements_by_lane', match={'run_id': run_id}),
+            api_url=rest_api().api_url('aggregate/run_elements_by_lane', match={'run_id': run_id}),
             default_sort_col='lane_number',
             paging=False,
             searching=False,
@@ -71,7 +133,7 @@ def report_run(run_id):
                     datatable_cfg(
                         title='Demultiplexing lane ' + str(lane),
                         cols='demultiplexing',
-                        api_url=rest_query('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
+                        api_url=rest_api().api_url('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
                         paging=False,
                         searching=False,
                         info=False
@@ -85,7 +147,7 @@ def report_run(run_id):
                     datatable_cfg(
                         title='Unexpected barcodes lane ' + str(lane),
                         cols='unexpected_barcodes',
-                        api_url=rest_query('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
+                        api_url=rest_api().api_url('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
                         default_sort_col='passing_filter_reads',
                         paging=False,
                         searching=False,
@@ -95,7 +157,7 @@ def report_run(run_id):
                 ]
             )
         ],
-        procs=query_api(
+        procs=rest_api().get_documents(
             'analysis_driver_procs',
             where={'dataset_type': 'run', 'dataset_name': run_id},
             sort='-_created'
@@ -104,49 +166,55 @@ def report_run(run_id):
 
 
 @app.route('/runs/<run_id>/<filename>')
+@flask_login.login_required
 def serve_fastqc_report(run_id, filename):
     if '..' in filename or filename.startswith('/'):
         fl.abort(404)
-    return fl.send_file(os.path.join(os.path.dirname(__file__), 'static', 'runs', run_id, filename))
+    return fl.send_file(join(dirname(__file__), 'static', 'runs', run_id, filename))
 
 
 @app.route('/projects/')
+@flask_login.login_required
 def project_reports():
-    return fl.render_template(
+    return render_template(
         'untabbed_datatables.html',
+        'Projects',
         table=datatable_cfg(
             'Project list',
             'projects',
-            api_url=rest_query('aggregate/projects')
+            api_url=rest_api().api_url('aggregate/projects')
         )
     )
 
 
 @app.route('/projects/<project_id>')
+@flask_login.login_required
 def report_project(project_id):
-    return fl.render_template(
+    return render_template(
         'untabbed_datatables.html',
+        project_id + ' Project Report',
         table=datatable_cfg(
             'Project report for ' + project_id,
             'samples',
-            rest_query('aggregate/samples', match={'project_id': project_id})
+            rest_api().api_url('aggregate/samples', match={'project_id': project_id})
         )
     )
 
 
-@app.route('/samples/<sample_id>')
+@app.route('/sample/<sample_id>')
+@flask_login.login_required
 def report_sample(sample_id):
-    sample = query_api('samples', where={'sample_id': sample_id})[0]
+    sample = rest_api().get_documents('samples', where={'sample_id': sample_id})[0]
 
-    return fl.render_template(
+    return render_template(
         'sample_report.html',
-        title='Report for sample ' + sample_id,
+        title=sample_id + ' Sample Report',
         description='(From project %s)' % sample['project_id'],
         tables=[
             datatable_cfg(
                 'Sample report',
                 'samples',
-                rest_query('aggregate/samples', match={'sample_id': sample_id}),
+                rest_api().api_url('aggregate/samples', match={'sample_id': sample_id}),
                 paging=False,
                 searching=False,
                 info=False
@@ -154,13 +222,13 @@ def report_sample(sample_id):
             datatable_cfg(
                 'Run elements report',
                 'sample_run_elements',
-                rest_query('aggregate/run_elements', match={'sample_id': sample_id}),
+                rest_api().api_url('aggregate/run_elements', match={'sample_id': sample_id}),
                 paging=False,
                 searching=False,
                 info=False
             )
         ],
-        procs=query_api(
+        procs=rest_api().get_documents(
             'analysis_driver_procs',
             where={'dataset_type': 'sample', 'dataset_name': sample_id},
             sort='-_created'

@@ -51,3 +51,8 @@
 .vis-item .vis-item-overflow:hover {
   overflow: visible;
 }
+
+.footer {
+    text-align: center;
+    font-size: 75%;
+}

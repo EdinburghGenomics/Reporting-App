@@ -1,23 +1,6 @@
-import requests
-from flask import json
-from config import reporting_app_config as cfg, col_mappings
-
-
-def rest_query(resource, **query_args):
-    if not query_args:
-        return cfg['rest_api'] + '/' + resource
-
-    query = '?'
-    query += '&'.join(['%s=%s' % (k, v) for k, v in query_args.items()]).replace(' ', '').replace('\'', '"')
-    return cfg['rest_api'] + '/' + resource + query
-
-
-def query_api(resource, data_only=True, **query_args):
-    url = rest_query(resource, **query_args)
-    j = json.loads(requests.get(url).content.decode('utf-8'))
-    if data_only:
-        j = j['data']
-    return j
+from flask import request
+from auth import encode_string
+from config import col_mappings
 
 
 def _format_order(col_name, cols):
@@ -36,7 +19,8 @@ def datatable_cfg(title, cols, api_url, default_sort_col=None, **kwargs):
         'name': snake_case(title),
         'cols': col_mappings[cols],
         'api_url': api_url,
-        'default_sort_col': default_sort_col
+        'default_sort_col': default_sort_col,
+        'token': encode_string(request.cookies.get('remember_token'))
     }
     d.update(kwargs)
     return d
