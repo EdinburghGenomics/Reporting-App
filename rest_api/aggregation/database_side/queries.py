@@ -125,15 +125,11 @@ sequencing_run_information.extend([
 
 sample = merge_analysis_driver_procs(
     'sample_id',
-    [
-        'sample_id', 'number_of_lanes', 'project_id', 'sample_id', 'library_id', 'user_sample_id',
-        'bam_file_reads', 'mapped_reads', 'properly_mapped_reads', 'duplicate_reads', 'median_coverage',
-        'genotype_validation', 'called_gender', 'provided_gender', 'sample_contamination', 'species_contamination',
-        'reviewed', 'useable', 'delivered', 'review_comments'
-    ]
-)
-
-sample.extend([
+    ['sample_id', 'number_of_lanes', 'project_id', 'sample_id', 'library_id', 'user_sample_id',
+     'bam_file_reads', 'mapped_reads', 'properly_mapped_reads', 'duplicate_reads', 'median_coverage',
+     'genotype_validation', 'called_gender', 'provided_gender', 'sample_contamination',
+     'species_contamination', 'reviewed', 'useable', 'delivered', 'review_comments']
+) + [
     lookup('run_elements', 'sample_id'),
     {
         '$project': {
@@ -157,11 +153,13 @@ sample.extend([
             'proc_status': '$most_recent_proc.status',
             'review_comments': '$review_comments',
             'most_recent_proc': '$most_recent_proc',
-            'run_elements': {'$filter':{
-                'input': '$run_elements',
-                'as': 're',
-                'cond': { '$eq': [ '$$re.useable', 'yes' ] }
-            }}
+            'run_elements': {
+                '$filter': {
+                    'input': '$run_elements',
+                    'as': 're',
+                    'cond': {'$eq': ['$$re.useable', 'yes']}
+                }
+            }
         }
     },
     {
@@ -215,20 +213,20 @@ sample.extend([
             'properly_mapped_reads': '$properly_mapped_reads',
             'duplicate_reads': '$duplicate_reads',
             'median_coverage': '$median_coverage',
-            'genotype_match': cond(
+            'genotype_match': if_else(
+                eq('$genotype_validation', None),
+                None,
                 and_(
                     lt('$genotype_validation.mismatching_snps', 6),
                     lt(add('$genotype_validation.no_call_chip', '$genotype_validation.no_call_seq'), 15)
                 ),
                 'Match',
-                cond(
-                    and_(
-                        gt('$genotype_validation.mismatching_snps', 5),
-                        lt(add('$genotype_validation.no_call_chip', '$genotype_validation.no_call_seq'), 15)
-                    ),
-                    'Mismatch',
-                    'Unknown'
-                )
+                and_(
+                    gt('$genotype_validation.mismatching_snps', 5),
+                    lt(add('$genotype_validation.no_call_chip', '$genotype_validation.no_call_seq'), 15)
+                ),
+                'Mismatch',
+                else_='Unknown'
             ),
             'genotype_validation': '$genotype_validation',
             'called_gender': '$called_gender',
@@ -256,7 +254,7 @@ sample.extend([
             'pc_duplicate_reads': percentage('$duplicate_reads', '$bam_file_reads')
         }
     }
-])
+]
 
 
 project_info = [

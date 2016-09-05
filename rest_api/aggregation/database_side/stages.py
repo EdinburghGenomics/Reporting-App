@@ -37,17 +37,11 @@ def divide(numerator, denominator, simple=False):
     if simple:
         return div
     else:
-        return {
-            '$cond': {
-                'if': {'$eq': [denominator, 0]},
-                'then': 0,
-                'else': div
-            }
-        }
+        return cond({'$eq': [denominator, 0]}, 0, div)
 
 
 def percentage(numerator, denominator):
-    return if_else(
+    return cond(
         eq(denominator, 0),
         0,
         multiply(divide(numerator, denominator, simple=True), 100)
@@ -78,8 +72,27 @@ def cond(exp, if_true, if_false):
     return {'$cond': [exp, if_true, if_false]}
 
 
-def if_else(exp, then, else_):
-    return {'$cond': {'if': exp, 'then': then, 'else': else_}}
+def if_else(*exprs, else_=None):
+    """
+    Translate a sequence of if/else statements into a nested aggregation query of $conds. E.g:
+    if_else(
+        {'$eq': ['$x', 0]},
+        'X is 0',
+        {'$eq': ['$x', 1]},
+        'X is 1',
+        else_='X is something else'
+    )
+    :param exprs: An alternating sequence of expression followed by a corresponding result (i.e., must be of
+    even length!).
+    :param else_: Final value to return if none of the if/elses are met.
+    """
+    assert len(exprs) % 2 == 0
+    if exprs:
+        exp, result = exprs[0:2]
+        exprs = exprs[2:]
+        return {'$cond': [exp, result, if_else(*exprs, else_=else_)]}
+    else:
+        return else_
 
 
 def merge_analysis_driver_procs(id_field, projection=None):
