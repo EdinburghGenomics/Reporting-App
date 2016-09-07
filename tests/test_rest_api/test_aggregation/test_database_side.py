@@ -1,7 +1,7 @@
 from tests.test_rest_api.test_aggregation import TestAggregation, FakeRequest
 from unittest.mock import Mock, patch
 from rest_api.aggregation import database_side
-import rest_api.aggregation.database_side.stages as stages
+from rest_api.aggregation.database_side import stages as s
 
 
 class FakeMongoClient(Mock):
@@ -58,36 +58,36 @@ class TestStages(TestAggregation):
                 'as': 'embedded_run_elements'
             }
         }
-        assert stages.lookup('run_elements', 'run_id', embed_as='embedded_run_elements') == exp
+        assert s.lookup('run_elements', 'run_id', embed_as='embedded_run_elements') == exp
 
     def test_order(self):
         exp = {'$sort': {'sort_col': -1}}
-        assert stages.order('-sort_col') == exp
+        assert s.order('-sort_col') == exp
         exp = {'$sort': {'sort_col': 1}}
-        assert stages.order('sort_col') == exp
+        assert s.order('sort_col') == exp
 
     def test_add(self):
-        assert stages.add('$this', '$that', '$other') == {'$add': ['$this', '$that', '$other']}
+        assert s.add('$this', '$that', '$other') == {'$add': ['$this', '$that', '$other']}
 
     def test_divide(self):
         exp = {
-            '$cond': {
-                'if': {'$eq': ['$denom_col', 0]},
-                'then': 0,
-                'else': {'$divide': ['$num_col', '$denom_col']}
-            }
+            '$cond': [
+                {'$eq': ['$denom_col', 0]},
+                0,
+                {'$divide': ['$num_col', '$denom_col']}
+            ]
         }
-        assert stages.divide('$num_col', '$denom_col') == exp
+        assert s.divide('$num_col', '$denom_col') == exp
 
     def test_percentage(self):
         exp = {
-            '$cond': {
-                'if': {'$eq': ['$denom_col', 0]},
-                'then': 0,
-                'else': {'$multiply': [{'$divide': ['$num_col', '$denom_col']}, 100]}
-            }
+            '$cond': [
+                {'$eq': ['$denom_col', 0]},
+                0,
+                {'$multiply': [{'$divide': ['$num_col', '$denom_col']}, 100]}
+            ]
         }
-        assert stages.percentage('$num_col', '$denom_col') == exp
+        assert s.percentage('$num_col', '$denom_col') == exp
 
     def test_merge_analysis_driver_procs(self):
         exp = [
@@ -121,7 +121,32 @@ class TestStages(TestAggregation):
                 }
             }
         ]
-        obs = stages.merge_analysis_driver_procs('id_field', projection=('this', 'that', 'other'))
+        obs = s.merge_analysis_driver_procs('id_field', projection=('this', 'that', 'other'))
+        assert obs == exp
+
+    def test_if_else(self):
+        obs = s.if_else(
+            s.eq('$x', None),
+            'X is null',
+            s.eq('$x', 6),
+            'X is 6',
+            s.eq('$x', 5),
+            'X is 5',
+            else_='X is something else'
+        )
+        exp = s.cond(
+            s.eq('$x', None),
+            'X is null',
+            s.cond(
+                s.eq('$x', 6),
+                'X is 6',
+                s.cond(
+                    s.eq('$x', 5),
+                    'X is 5',
+                    'X is something else'
+                )
+            )
+        )
         assert obs == exp
 
 
