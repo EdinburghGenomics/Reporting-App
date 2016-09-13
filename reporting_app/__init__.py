@@ -243,7 +243,7 @@ def plotting_report(plot_type):
 
     endpoints = {'samples': 'aggregate/samples', 'runs': 'aggregate/all_runs'}
     endpoint = endpoints[plot_type]
-    data = rest_api().get_documents(endpoint)
+    data = rest_api().get_documents(endpoint, paginate=False)
 
     if plot_type == 'runs':
         yield2date = yield_by_date(data)
