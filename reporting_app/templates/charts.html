@@ -17,7 +17,7 @@
           if (pipeline_type == 'runs') {
             runCharts({{ yield2date | safe }});
           } else if (pipeline_type == 'samples') {
-            sampleCharts({{ samples_sequenced | safe }}, {{ hist | safe }});
+            sampleCharts({{ samples_sequenced | safe }});
         }
     }
 

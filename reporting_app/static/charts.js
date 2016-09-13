@@ -1,94 +1,31 @@
 
-function aggregateData(data) {
 
-    // get all dates in input data and add to date_array
-    var date_array = []
-    var date_map = data.map(function(t){
-        var date = moment(new Date(t[0]))
-        date_array.push(date)
-    });
-
-    // get min and max year, month and week for input data dates
-    var min_date = moment.min(date_array)
-    var max_date = moment.max(date_array)
-    var min_week = min_date.format('W')
-    var min_month = min_date.format('M')
-    var min_year = min_date.format('Y')
-    var number_of_weeks = max_date.diff(min_date, 'weeks') + 1
-    var number_of_months = max_date.diff(min_date, 'months') + 1
-    var week_range = Array.apply(null, {length: number_of_weeks}).map(Number.call, Number)
-    var month_range = Array.apply(null, {length: number_of_months}).map(Number.call, Number)
-
-    var weeks = {}
-    var months = {}
-
-    var current_week = min_week
-    var current_year = min_year
-
-    // make a blank dict with keys as the week and the year of each week for earliest to latest
-    var populate_blank_weeks = week_range.map(function(t){
-    if (current_week < 52) {
-          weeks[moment().year(current_year).week(current_week).day("Monday")] = 0
-          current_week = parseInt(current_week, 10) + 1
-    } else if (current_week == 52) {
-          weeks[moment().year(current_year).week(current_week).day("Monday")] = 0
-          current_week = 1
-          current_year = parseInt(current_year, 10) + 1
-    }
-    });
-
-    var current_month = min_month
-    var current_year = min_year
-
-    // make a blank dict with keys as the month and the year of each month for earliest to latest
-    var populate_blank_months = month_range.map(function(t){
-    if (current_month < 12) {
-        months[moment().year(current_year).month(current_month).day("Monday")] = 0
-        current_month = parseInt(current_month, 10) + 1
-    } else if (current_month == 12) {
-        months[moment().year(current_year).month(current_month).day("Monday")] = 0
-        current_month = 1
-        current_year = parseInt(current_year, 10) + 1
-    }
-    });
-
-    var aggregate_weeks = {}
-    var aggregate_months = {}
-
-
+function aggregateData(data, time_period) {
+    var data = data;
+    var time_period = time_period;
+    var aggregate = {};
     // make dict to aggregate data provided by month and by week
     // for each date that exists in the data provided, set the value as the associated data for that date
     // if data already exists for date corresponding to that key, add the current associated data to the existing values
 
-    var available_dates = data.map(function(t){
-        var week_number = moment(new Date(t[0])).week()
-        var month_number = (moment(new Date(t[0])).month()) + 1
-        var year_number = moment(new Date(t[0])).year()
+    for (var element=0; element < data.length; element++) {
+        var d = data[element]
 
-        var week_date = moment().year(year_number).week(week_number).day("Monday")
-        var month_date = moment().year(year_number).month(month_number).day("Monday")
 
-        if(typeof aggregate_weeks[week_date] == 'undefined'){
-            aggregate_weeks[week_date] = t[1]
+        var start_of_time_period = (moment(new Date(d[0]))).startOf(time_period).add(1, 'days');
+        if(typeof aggregate[start_of_time_period] == 'undefined'){
+            aggregate[start_of_time_period] = d[1];
         } else {
-            for(var i = 0; i < ((t[1]).length); i++) {
-                aggregate_weeks[week_date][i] = aggregate_weeks[week_date][i] + t[1][i]
+            for(var i = 0; i < ((d[1]).length); i++) {
+                aggregate[start_of_time_period][i] += d[1][i];
             }
         }
-        if(typeof aggregate_months[month_date] == 'undefined'){
-            aggregate_months[month_date] = t[1]
-        } else {
-            for(var i = 0; i < ((t[1]).length); i++) {
-                aggregate_months[month_date][i] = aggregate_months[month_date][i] + t[1][i]
-            }
-        }
-    });
-
-    return [weeks, months, aggregate_weeks, aggregate_months]
+    }
+    return aggregate
 }
 
 function sortDictByDate(dict){
-    sorted_dict = {}
+    var sorted_dict = {}
     var sort = (Object.keys(dict)).sort(function(a, b) {
     return new Date(a) - new Date(b);
     });
@@ -99,14 +36,10 @@ function sortDictByDate(dict){
 }
 
 function runCharts(yield2date) {
-
+    var yield2date = yield2date
     var date_map = yield2date.map(function(t){
         (t[0]) = (new Date(t[0]))
     });
-
-    var yield2date_aggregate = aggregateData(yield2date)
-    var aggregate_weeks = sortDictByDate(yield2date_aggregate[2])
-    var aggregate_months = sortDictByDate(yield2date_aggregate[3])
 
     var by_month_yield_data = []
     var by_week_yield_data = []
@@ -118,15 +51,20 @@ function runCharts(yield2date) {
     // format dates and yield for google charts
     // keep running total of values to add to cumulative value
 
-    for (var i in aggregate_weeks) {
-        by_week_yield_data.push([new Date(i), aggregate_weeks[i][0]])
-        current_week_cumulative_yield += (parseInt(aggregate_weeks[i][0]))
-        by_week_yield_data_cumulative.push([new Date(i), current_week_cumulative_yield])
+    var aggregate_months = sortDictByDate(aggregateData(yield2date, 'month'))
+    var aggregate_weeks = sortDictByDate(aggregateData(yield2date, 'week'))
+
+
+    for (var x in aggregate_weeks) {
+        by_week_yield_data.push([new Date(x), aggregate_weeks[x][0]])
+        current_week_cumulative_yield += (parseInt(aggregate_weeks[x][0]))
+        by_week_yield_data_cumulative.push([new Date(x), current_week_cumulative_yield])
     }
-    for (var i in aggregate_months) {
-        by_month_yield_data.push([new Date(i), aggregate_months[i][0]])
-        current_month_cumulative_yield += (parseInt(aggregate_months[i][0]))
-        by_month_yield_data_cumulative.push([new Date(i), current_month_cumulative_yield])
+
+    for (var y in aggregate_months) {
+        by_month_yield_data.push([new Date(y), aggregate_months[y][0]])
+        current_month_cumulative_yield += (parseInt(aggregate_months[y][0]))
+        by_month_yield_data_cumulative.push([new Date(y), current_month_cumulative_yield])
     }
 
     // draw run charts
@@ -191,12 +129,8 @@ function runCharts(yield2date) {
 
 function sampleCharts(samples_sequenced) {
 
-    var samples_sequenced_aggregate = aggregateData(samples_sequenced)
-
-    var aggregate_weeks = samples_sequenced_aggregate[2]
-    var aggregate_months = samples_sequenced_aggregate[3]
-
-
+    var aggregate_weeks = sortDictByDate(aggregateData(samples_sequenced, 'week'))
+    var aggregate_months = sortDictByDate(aggregateData(samples_sequenced, 'month'))
 
     var one = []
     var two = []

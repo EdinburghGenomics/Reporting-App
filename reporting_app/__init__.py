@@ -246,17 +246,14 @@ def plotting_report(plot_type):
     data = rest_api().get_documents(endpoint)
 
     if plot_type == 'runs':
-        hist_variables = chart_variables(endpoint, data)
         yield2date = yield_by_date(data)
         samples_sequenced = None
     elif plot_type == 'samples':
-        hist_variables = chart_variables(endpoint, data)
         yield2date = None
         samples_sequenced = sample_sequencing_metrics(data)
     return fl.render_template(
         'charts.html',
         pipeline = plot_type,
-        hist = hist_variables,
         yield2date = yield2date,
         samples_sequenced = samples_sequenced
     )
