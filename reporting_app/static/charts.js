@@ -1,8 +1,6 @@
 
 
-function aggregateData(data, time_period) {
-    var data = data;
-    var time_period = time_period;
+function aggregate_on_date(data, time_period, fields){
     var aggregate = {};
     // make dict to aggregate data provided by month and by week
     // for each date that exists in the data provided, set the value as the associated data for that date
@@ -10,20 +8,23 @@ function aggregateData(data, time_period) {
 
     for (var e=0; e < data.length; e++) {
         var d = data[e];
-        st = moment(d[0]).startOf(time_period);
-        en = moment(d[0]).endOf(time_period);
-        middle = st.add(en.diff(st) / 2);
-        var middle_of_time_period = middle;
+        st = moment(d['date']).startOf(time_period);
+        en = moment(d['date']).endOf(time_period);
+        var middle_of_time_period = st.add(en.diff(st) / 2);
         if(typeof aggregate[middle_of_time_period] == 'undefined'){
-            aggregate[middle_of_time_period] = d[1].slice(0);
+            aggregate[middle_of_time_period] = [];
+            for(var i = 0; i < fields.length; i++) {
+                aggregate[middle_of_time_period][i] = d[fields[i]];
+            }
         } else {
-            for(var i = 0; i < ((d[1]).length); i++) {
-                aggregate[middle_of_time_period][i] += d[1][i];
+            for(var i = 0; i < fields.length; i++) {
+                aggregate[middle_of_time_period][i] += d[fields[i]];
             }
         }
     }
     return aggregate
 }
+
 
 function sortDictByDate(dict){
     var sorted_dict = {};
@@ -36,7 +37,17 @@ function sortDictByDate(dict){
     return sorted_dict
 }
 
-function runCharts(yield2date) {
+function runCharts(run_data) {
+
+    // This function adds a date object in a dict
+    run_data.map(function(element) {
+        element['date'] = moment(element['run_id'].split("_")[0], "YYMMDD").toDate();
+    });
+
+    // Aggregate per month and weeks
+    var aggregate_months = sortDictByDate(aggregate_on_date(run_data, 'month', ['yield_in_gb']));
+    var aggregate_weeks = sortDictByDate(aggregate_on_date(run_data, 'week', ['yield_in_gb']));
+
     var by_month_yield_data = [];
     var by_week_yield_data = [];
     var by_month_yield_data_cumulative = [];
@@ -46,9 +57,6 @@ function runCharts(yield2date) {
 
     // format dates and yield for google charts
     // keep running total of values to add to cumulative value
-
-    var aggregate_months = sortDictByDate(aggregateData(yield2date, 'month'));
-    var aggregate_weeks = sortDictByDate(aggregateData(yield2date, 'week'));
 
 
     for (var x in aggregate_weeks) {
@@ -128,10 +136,40 @@ function runCharts(yield2date) {
     }
 }
 
-function sampleCharts(samples_sequenced) {
+function unwind_samples_sequenced(sample_data){
+    var all_sample_data = [];
+    for (var e=0; e < sample_data.length; e++) {
+        d = sample_data[e];
+        run_ids = d['all_run_ids'].slice(0);
+        if (run_ids.length > 0){
+            run_ids.sort();
+            console.log(d['sample_id']);
+            console.log(run_ids)
+            all_sample_data.push({
+                'date': moment(run_ids[0].split("_")[0], "YYMMDD").toDate(),
+                'total': 1,
+                'first': 1,
+                'repeat': 0
+            });
 
-    var aggregate_weeks = sortDictByDate(aggregateData(samples_sequenced, 'week'))
-    var aggregate_months = sortDictByDate(aggregateData(samples_sequenced, 'month'))
+            for (run in run_ids.slice(1)){
+                all_sample_data.push({
+                    'date': moment(run_ids[0].split("_")[0], "YYMMDD").toDate(),
+                    'total': 1,
+                    'first': 0,
+                    'repeat': 1
+                });
+            }
+        }
+    }
+    return all_sample_data
+}
+
+function sampleCharts(sample_data) {
+
+    var unwinded_samples = unwind_samples_sequenced(sample_data);
+    var aggregate_weeks = sortDictByDate(aggregate_on_date(unwinded_samples, 'week', ['first', 'repeat', 'total']))
+    var aggregate_months = sortDictByDate(aggregate_on_date(unwinded_samples, 'month', ['first', 'repeat', 'total']))
 
     var one = []
     var two = []

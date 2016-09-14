@@ -3,7 +3,8 @@ from urllib.parse import quote, unquote
 import flask as fl
 import flask_login
 import auth
-from reporting_app.util import datatable_cfg, tab_set_cfg, chart_variables, yield_by_date, sample_sequencing_metrics
+from reporting_app.util import datatable_cfg, tab_set_cfg, chart_variables, yield_by_date, sample_sequencing_metrics, \
+    get_token
 from config import reporting_app_config as cfg
 from reporting_app.util import datatable_cfg, tab_set_cfg
 
@@ -236,24 +237,15 @@ def report_sample(sample_id):
         )
     )
 
-
 @app.route('/plotting/<plot_type>')
 @flask_login.login_required
 def plotting_report(plot_type):
 
     endpoints = {'samples': 'aggregate/samples', 'runs': 'aggregate/all_runs'}
     endpoint = endpoints[plot_type]
-    data = rest_api().get_documents(endpoint, paginate=False)
-
-    if plot_type == 'runs':
-        yield2date = yield_by_date(data)
-        samples_sequenced = None
-    elif plot_type == 'samples':
-        yield2date = None
-        samples_sequenced = sample_sequencing_metrics(data)
     return fl.render_template(
         'charts.html',
         pipeline = plot_type,
-        yield2date = yield2date,
-        samples_sequenced = samples_sequenced
+        api_url=rest_api().api_url(endpoint, paginate=False),
+        ajax_token = get_token()
     )

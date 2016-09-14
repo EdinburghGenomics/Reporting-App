@@ -153,6 +153,7 @@ sample = merge_analysis_driver_procs(
             'proc_status': '$most_recent_proc.status',
             'review_comments': '$review_comments',
             'most_recent_proc': '$most_recent_proc',
+            'all_run_elements': '$run_elements',
             'run_elements': {
                 '$filter': {
                     'input': '$run_elements',
@@ -197,6 +198,7 @@ sample = merge_analysis_driver_procs(
             'passing_filter_reads': {'$sum': '$run_elements.passing_filter_reads'},
             'clean_reads': {'$sum': '$run_elements.clean_reads'},
             'run_ids': '$run_elements.run_id',
+            'all_run_ids': '$run_elements.run_id',
             'run_elements': '$run_elements.run_element_id'
         }
     },
@@ -207,6 +209,7 @@ sample = merge_analysis_driver_procs(
             'library_id': '$library_id',
             'user_sample_id': '$user_sample_id',
             'run_ids': '$run_ids',
+            'all_run_ids': '$all_run_ids',
             'run_elements': '$run_elements',
             'bam_file_reads': '$bam_file_reads',
             'mapped_reads': '$mapped_reads',

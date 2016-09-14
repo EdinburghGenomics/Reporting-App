@@ -21,7 +21,7 @@ def datatable_cfg(title, cols, api_url, default_sort_col=None, **kwargs):
         'cols': col_mappings[cols],
         'api_url': api_url,
         'default_sort_col': default_sort_col,
-        'token': encode_string(request.cookies.get('remember_token'))
+        'token': get_token()
     }
     d.update(kwargs)
     return d
@@ -33,6 +33,9 @@ def tab_set_cfg(title, tables):
         'name': snake_case(title),
         'tables': tables
     }
+
+def get_token():
+    return 'Token ' + encode_string(request.cookies.get('remember_token'))
 
 
 def capitalise(word):
@@ -92,7 +95,7 @@ def sample_sequencing_metrics(data):
     samples2date = {}
     samples_per_date = []
     for d in data:
-        run_ids = ((sorted(d.get('run_ids'))))
+        run_ids = ((sorted(d.get('all_run_ids'))))
         if len(run_ids) == 1:
             date = run_name_to_date(run_ids[0])
             date_samples_first_sequenced.append(date)

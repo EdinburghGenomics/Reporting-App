@@ -13,12 +13,22 @@
     google.charts.setOnLoadCallback(drawCharts);
 
     function drawCharts() {
-          var pipeline_type = "{{ pipeline }}";
-          if (pipeline_type == 'runs') {
-            runCharts({{ yield2date | safe }});
-          } else if (pipeline_type == 'samples') {
-            sampleCharts({{ samples_sequenced | safe }});
+        var pipeline_type = "{{ pipeline }}";
+        if (pipeline_type == 'runs') {
+            var charts = runCharts;
+        } else if (pipeline_type == 'samples') {
+            var charts = sampleCharts;
         }
+
+        // Get the run data from the REST API
+        $.ajax({
+          url: '{{ api_url|safe }}',
+          dataType: "json",
+          async: true,
+          headers: {'Authorization': '{{ ajax_token | safe}}'},
+          success: function(json) { charts(json['data']); }
+        });
+
     }
 
     </script>
