@@ -86,7 +86,8 @@ samples:
         median: {type: 'float'},
         mean: {type: 'float'},
         std_dev: {type: 'float'},
-        percentiles: {type: 'dict'},
+        coverage_percentiles: {type: 'dict', schema: { percentile_5: { type: 'integer' }, percentile_25: { type: 'integer' }, percentile_50: { type: 'integer' }, percentile_75: { type: 'integer' }, percentile_95: { type: 'integer'} } },
+        bases_at_coverage: {type: 'dict', schema: { bases_at_5X: {type: 'integer'}, bases_at_15X: {type: 'integer'}, bases_at_30X: {type: 'integer' } } },
         pc_genome_with_min: {type: 'dict'}
     }
     }

@@ -1,6 +1,7 @@
 import sqlite3
 import base64
-from itsdangerous import TimedSerializer, SignatureExpired, BadSignature
+import binascii
+import itsdangerous
 from flask import request, current_app
 from flask_login import UserMixin
 from hashlib import sha256
@@ -28,6 +29,8 @@ class User(UserMixin):
     def get(cls, uid):
         cursor.execute('SELECT id FROM users WHERE id=?', (uid,))
         r = cursor.fetchone()
+        if r is None:
+            current_app.logger.error("Could not find user '%s' in database", uid)
         if check_login_token(cls.get_login_token()) == uid:
             return User(r[0])
 
@@ -35,7 +38,8 @@ class User(UserMixin):
         return self.username
 
     def get_auth_token(self):
-        return TimedSerializer(current_app.secret_key).dumps(self.username)
+        """Used by flask_login to set cookie/login token."""
+        return itsdangerous.TimedSerializer(current_app.secret_key).dumps(self.username)
 
     def exists(self):
         cursor.execute('SELECT count(id) FROM users WHERE id=?', (self.username,))
@@ -75,8 +79,11 @@ def check_user_auth(username, pw):
 def check_login_token(token_hash):
     dc_token = base64.b64decode(token_hash)
     try:
-        return TimedSerializer(current_app.secret_key).loads(dc_token, max_age=cfg.get('user_timeout', 7200))
-    except (SignatureExpired, BadSignature):
+        return itsdangerous.TimedSerializer(current_app.secret_key).loads(dc_token, max_age=cfg.get('user_timeout', 7200))
+    except (itsdangerous.SignatureExpired, itsdangerous.BadSignature):
+        return None
+    except binascii.Error as e:
+        current_app.logger.warning("binascii.Error: '%s' from token hash '%s'", str(e), token_hash)
         return None
 
 
