@@ -3,10 +3,8 @@ from urllib.parse import quote, unquote
 import flask as fl
 import flask_login
 import auth
-from reporting_app.util import datatable_cfg, tab_set_cfg, chart_variables, yield_by_date, sample_sequencing_metrics, \
-    get_token
+from reporting_app.util import datatable_cfg, tab_set_cfg, get_token
 from config import reporting_app_config as cfg
-from reporting_app.util import datatable_cfg, tab_set_cfg
 
 app = fl.Flask(__name__)
 app.secret_key = cfg['key'].encode()

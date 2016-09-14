@@ -23,8 +23,8 @@ function aggregate_on_date(data, time_period, fields){
         }
     }
     return aggregate
-}
 
+}
 
 function sortDictByDate(dict){
     var sorted_dict = {};
@@ -140,21 +140,20 @@ function unwind_samples_sequenced(sample_data){
     var all_sample_data = [];
     for (var e=0; e < sample_data.length; e++) {
         d = sample_data[e];
-        run_ids = d['all_run_ids'].slice(0);
-        if (run_ids.length > 0){
-            run_ids.sort();
-            console.log(d['sample_id']);
-            console.log(run_ids)
+        var run_ids = d['all_run_ids'].slice(0);
+        var unique_run_ids = Array.from(new Set(run_ids));
+        if (unique_run_ids.length > 0){
+            unique_run_ids.sort();
             all_sample_data.push({
-                'date': moment(run_ids[0].split("_")[0], "YYMMDD").toDate(),
+                'date': moment(unique_run_ids[0].split("_")[0], "YYMMDD").toDate(),
                 'total': 1,
                 'first': 1,
                 'repeat': 0
             });
 
-            for (run in run_ids.slice(1)){
+            for (run in unique_run_ids.slice(1)){
                 all_sample_data.push({
-                    'date': moment(run_ids[0].split("_")[0], "YYMMDD").toDate(),
+                    'date': moment(unique_run_ids[0].split("_")[0], "YYMMDD").toDate(),
                     'total': 1,
                     'first': 0,
                     'repeat': 1
@@ -166,20 +165,19 @@ function unwind_samples_sequenced(sample_data){
 }
 
 function sampleCharts(sample_data) {
-
     var unwinded_samples = unwind_samples_sequenced(sample_data);
     var aggregate_weeks = sortDictByDate(aggregate_on_date(unwinded_samples, 'week', ['first', 'repeat', 'total']))
     var aggregate_months = sortDictByDate(aggregate_on_date(unwinded_samples, 'month', ['first', 'repeat', 'total']))
 
-    var one = []
-    var two = []
+    var week_array = []
+    var month_array = []
 
     for (var week in aggregate_weeks) {
-        one.push([new Date(week), aggregate_weeks[week][0], aggregate_weeks[week][1], aggregate_weeks[week][2]])
+        week_array.push([new Date(week), aggregate_weeks[week][0], aggregate_weeks[week][1], aggregate_weeks[week][2]])
     }
 
     for (var month in aggregate_months) {
-        two.push([new Date(month), aggregate_months[month][0], aggregate_months[month][1], aggregate_months[month][2]])
+        month_array.push([new Date(month), aggregate_months[month][0], aggregate_months[month][1], aggregate_months[month][2]])
     }
 
 
@@ -188,14 +186,14 @@ function sampleCharts(sample_data) {
     sample_data_month.addColumn('number', 'First');
     sample_data_month.addColumn('number', 'Repeat');
     sample_data_month.addColumn('number', 'Total');
-    sample_data_month.addRows(two);
+    sample_data_month.addRows(month_array);
 
     var sample_data_week = new google.visualization.DataTable();
     sample_data_week.addColumn('date', 'X');
     sample_data_week.addColumn('number', 'First');
     sample_data_week.addColumn('number', 'Repeat');
     sample_data_week.addColumn('number', 'Total');
-    sample_data_week.addRows(one);
+    sample_data_week.addRows(week_array);
 
     var samples_sequenced_chart = new google.visualization.LineChart(document.getElementById('samples_sequenced'));
 
