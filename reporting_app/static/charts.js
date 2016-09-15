@@ -138,7 +138,7 @@ function runCharts(run_data) {
         series: {
             0: {targetAxisIndex:0, type: 'bars'},
             1: {targetAxisIndex:0, type: 'bars'},
-            2: {targetAxisIndex:1, type: 'line'},
+            2: {targetAxisIndex:1, type: 'line', curveType: 'function'},
         },
         vAxes: {
             0: {title: 'Yield'},
@@ -153,7 +153,7 @@ function runCharts(run_data) {
         series: {
             0: {targetAxisIndex:0, type: 'bars'},
             1: {targetAxisIndex:0, type: 'bars'},
-            2: {targetAxisIndex:1, type: 'line'},
+            2: {targetAxisIndex:1, type: 'line', curveType: 'function'},
         },
         vAxes: {
             0: {title: 'Yield'},
