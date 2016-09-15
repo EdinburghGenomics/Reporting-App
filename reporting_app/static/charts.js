@@ -235,7 +235,8 @@ function sampleCharts(sample_data) {
     var aggregate_weeks = sortDictByDate(aggregate_on_date(unwinded_samples, 'week', fields))
     var aggregate_months = sortDictByDate(aggregate_on_date(unwinded_samples, 'month', fields))
 
-    var sample_data_month = datatable_from_dict(aggregate_weeks, {'format': format_week}, fields);
+    //construct that datatables
+    var sample_data_month = datatable_from_dict(aggregate_months, {'format': format_month}, fields);
     var sample_data_week = datatable_from_dict(aggregate_weeks, {'format': format_week}, fields);
 
     var samples_sequenced_chart = new google.visualization.LineChart(document.getElementById('samples_sequenced'));
