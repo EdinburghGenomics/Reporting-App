@@ -5,20 +5,19 @@ function aggregate_on_date(data, time_period, fields){
     // make dict to aggregate data provided by month and by week
     // for each date that exists in the data provided, set the value as the associated data for that date
     // if data already exists for date corresponding to that key, add the current associated data to the existing values
-
     for (var e=0; e < data.length; e++) {
         var d = data[e];
         st = moment(d['date']).startOf(time_period);
         en = moment(d['date']).endOf(time_period);
         var middle_of_time_period = st.add(en.diff(st) / 2);
         if(typeof aggregate[middle_of_time_period] == 'undefined'){
-            aggregate[middle_of_time_period] = [];
-            for(var i = 0; i < fields.length; i++) {
-                aggregate[middle_of_time_period][i] = d[fields[i]];
+            aggregate[middle_of_time_period] = {};
+            for (var i = 0; i < fields.length; i++) {
+                aggregate[middle_of_time_period][fields[i]['name']] = d[fields[i]['name']];
             }
         } else {
-            for(var i = 0; i < fields.length; i++) {
-                aggregate[middle_of_time_period][i] += d[fields[i]];
+            for (var i = 0; i < fields.length; i++) {
+                aggregate[middle_of_time_period][fields[i]['name']] += d[fields[i]['name']];
             }
         }
     }
@@ -37,72 +36,130 @@ function sortDictByDate(dict){
     return sorted_dict
 }
 
+function cummulative(dict){
+    cummul = {};
+    prev = {};
+    for (var k1 in dict){
+        cummul[k1] = {};
+        for (var k2 in dict[k1]){
+            cummul[k1][k2] = (prev[k2] || 0) + dict[k1][k2];
+            prev[k2] = cummul[k1][k2];
+        }
+    }
+    return cummul;
+}
+
+// This function will generate a google charts datatable from a dict of values where the key will be the
+// X axis and the value a dict containing the fields to display.
+// The X formating is described in the X format dict and fields is a list discribing the fields that are needed and their format
+function datatable_from_dict(dict, X_format, fields){
+    var cols = [];
+    var rows = [];
+    cols.push({
+        'id':X_format['name'] || 'Date',
+        'label': X_format['name'] || 'Date',
+        'type': X_format['type'] || 'date'
+    });
+    for (var i = 0; i < fields.length; i++) {
+        cols.push({
+            'id': fields[i]['name'],
+            'label': fields[i]['title'] || field['name'],
+            'type': fields[i]['type'] || 'number'
+        });
+    }
+    for (var k in dict) {
+        var cells = [];
+        if (X_format['format'] !== undefined){
+            cells.push(X_format['format'](k));
+        }else{
+            cells.push({'v':new Date(k)});
+        }
+        for (var i = 0; i < fields.length; i++) {
+            if (fields[i]['format'] !== undefined){
+                cells.push(
+                    field['format'](dict[k][fields[i]['name']])
+                );
+            }else{
+                cells.push({'v': dict[k][fields[i]['name']]});
+            }
+        }
+        rows.push({'c': cells});
+    }
+    return new google.visualization.DataTable({'cols': cols, 'rows': rows});
+}
+
+// Format a date
+function format_week(d){
+    return {'v': new Date(d), 'f': 'week '+ moment(new Date(d)).format('w YYYY')};
+}
+
+function format_month(m){
+    return {'v': new Date(m), 'f': moment(new Date(m)).format('MMM YYYY')};
+}
+
+function add_percentage(dict, numerator, denominator, name){
+    for (k in dict){
+        dict[k][name] = dict[k][numerator]/dict[k][denominator];
+    }
+}
 function runCharts(run_data) {
 
     // This function adds a date object in a dict
     run_data.map(function(element) {
         element['date'] = moment(element['run_id'].split("_")[0], "YYMMDD").toDate();
     });
+    fields = [
+        {'name':'yield_in_gb', 'title': 'Yield'},
+        {'name':'yield_q30_in_gb', 'title': 'Yield Q30'}
+    ];
 
     // Aggregate per month and weeks
-    var aggregate_months = sortDictByDate(aggregate_on_date(run_data, 'month', ['yield_in_gb']));
-    var aggregate_weeks = sortDictByDate(aggregate_on_date(run_data, 'week', ['yield_in_gb']));
+    var aggregate_months = sortDictByDate(aggregate_on_date(run_data, 'month', fields));
+    var aggregate_weeks = sortDictByDate(aggregate_on_date(run_data, 'week', fields));
+    var cum_weeks = cummulative(aggregate_weeks);
+    var cum_months = cummulative(aggregate_months);
 
-    var by_month_yield_data = [];
-    var by_week_yield_data = [];
-    var by_month_yield_data_cumulative = [];
-    var by_week_yield_data_cumulative = [];
-    var current_month_cumulative_yield = 0;
-    var current_week_cumulative_yield = 0;
+    add_percentage(aggregate_weeks, 'yield_q30_in_gb', 'yield_in_gb', 'ratio');
+    add_percentage(aggregate_months, 'yield_q30_in_gb', 'yield_in_gb', 'ratio');
 
-    // format dates and yield for google charts
-    // keep running total of values to add to cumulative value
-
-
-    for (var x in aggregate_weeks) {
-        d = new Date(x);
-        by_week_yield_data.push([d, aggregate_weeks[x][0]]);
-        current_week_cumulative_yield += (parseInt(aggregate_weeks[x][0]));
-        by_week_yield_data_cumulative.push([d, current_week_cumulative_yield]);
-    }
-    for (var x in aggregate_months) {
-        d = new Date(x);
-        by_month_yield_data.push([d, aggregate_months[x][0]]);
-        current_month_cumulative_yield += (parseInt(aggregate_months[x][0]));
-        by_month_yield_data_cumulative.push([d, current_month_cumulative_yield]);
-    }
 
     //construct that datatables
-    var run_yield_data_weeks = new google.visualization.DataTable();
-    run_yield_data_weeks.addColumn('date', 'X');
-    run_yield_data_weeks.addColumn('number', 'Yield');
-    run_yield_data_weeks.addRows(by_week_yield_data);
+    var cumulative_run_yield_data_week = datatable_from_dict(cum_weeks, {'format': format_week}, fields);
+    var cumulative_run_yield_data_month = datatable_from_dict(cum_months, {'format': format_month}, fields);
 
-    var run_yield_data_months = new google.visualization.DataTable();
-    run_yield_data_months.addColumn('date', 'X');
-    run_yield_data_months.addColumn('number', 'Yield');
-    run_yield_data_months.addRows(by_month_yield_data);
-
-    var cumulative_run_yield_data_week = new google.visualization.DataTable();
-    cumulative_run_yield_data_week.addColumn('date', 'X');
-    cumulative_run_yield_data_week.addColumn('number', 'Yield');
-    cumulative_run_yield_data_week.addRows(by_week_yield_data_cumulative);
-
-    var cumulative_run_yield_data_month = new google.visualization.DataTable();
-    cumulative_run_yield_data_month.addColumn('date', 'X');
-    cumulative_run_yield_data_month.addColumn('number', 'Yield');
-    cumulative_run_yield_data_month.addRows(by_month_yield_data_cumulative);
+    fields.push({'name':'ratio', 'title': 'Ratio'});
+    var run_yield_data_weeks = datatable_from_dict(aggregate_weeks, {'format': format_week}, fields);
+    var run_yield_data_months = datatable_from_dict(aggregate_months, {'format': format_month}, fields);
 
     // google charts options
     var run_yield_options_weeks = {
         title: 'Run yield per week',
         hAxis: {title: 'Week / Year'},
-        vAxis: {title: 'Yield'}
+        series: {
+            0: {targetAxisIndex:0, type: 'bars'},
+            1: {targetAxisIndex:0, type: 'bars'},
+            2: {targetAxisIndex:1, type: 'line'},
+        },
+        vAxes: {
+            0: {title: 'Yield'},
+            1: {title: 'Ratio', format:"#%"},
+        },
+        seriesType: 'bars',
+
     };
     var run_yield_options_months = {
         title: 'Run yield per month',
         hAxis: {title: 'Month / Year'},
-        vAxis: {title: 'Yield'}
+        series: {
+            0: {targetAxisIndex:0, type: 'bars'},
+            1: {targetAxisIndex:0, type: 'bars'},
+            2: {targetAxisIndex:1, type: 'line'},
+        },
+        vAxes: {
+            0: {title: 'Yield'},
+            1: {title: 'Ratio', format:"#%"},
+        },
+
     };
     var cumulative_run_yield_options_week = {
         title: 'Cumulative run yield per week',
@@ -116,23 +173,27 @@ function runCharts(run_data) {
     };
 
     // draw run charts
-    var yield_chart = new google.visualization.ColumnChart(document.getElementById('run_yield_by_date'));
+    var yield_chart = new google.visualization.ComboChart(document.getElementById('run_yield_by_date'));
     var cumulative_yield_chart = new google.visualization.LineChart(document.getElementById('cumulative_run_yield_by_date'));
+    var yield_table = new google.visualization.Table(document.getElementById('table_run_yield_by_date'));
 
     yield_chart.draw(run_yield_data_months, run_yield_options_months);
     cumulative_yield_chart.draw(cumulative_run_yield_data_month, cumulative_run_yield_options_month);
+    yield_table.draw(run_yield_data_months);
 
     var show_months_cumulative = document.getElementById("ShowCumulativeRunYieldMonths");
     show_months_cumulative.onclick = function()
     {
         cumulative_yield_chart.draw(cumulative_run_yield_data_month, cumulative_run_yield_options_month);
         yield_chart.draw(run_yield_data_months, run_yield_options_months);
+        yield_table.draw(run_yield_data_months);
     }
     var show_weeks_cumulative = document.getElementById("ShowCumulativeRunYieldWeeks");
     show_weeks_cumulative.onclick = function()
     {
         cumulative_yield_chart.draw(cumulative_run_yield_data_week, cumulative_run_yield_options_week);
         yield_chart.draw(run_yield_data_weeks, run_yield_options_weeks);
+        yield_table.draw(run_yield_data_weeks);
     }
 }
 
@@ -165,37 +226,20 @@ function unwind_samples_sequenced(sample_data){
 }
 
 function sampleCharts(sample_data) {
+    fields = [
+        {'name':'first', 'title': 'First'},
+        {'name':'repeat', 'title': 'Repeat'},
+        {'name':'total', 'title': 'Total'}
+    ];
     var unwinded_samples = unwind_samples_sequenced(sample_data);
-    var aggregate_weeks = sortDictByDate(aggregate_on_date(unwinded_samples, 'week', ['first', 'repeat', 'total']))
-    var aggregate_months = sortDictByDate(aggregate_on_date(unwinded_samples, 'month', ['first', 'repeat', 'total']))
+    var aggregate_weeks = sortDictByDate(aggregate_on_date(unwinded_samples, 'week', fields))
+    var aggregate_months = sortDictByDate(aggregate_on_date(unwinded_samples, 'month', fields))
 
-    var week_array = []
-    var month_array = []
-
-    for (var week in aggregate_weeks) {
-        week_array.push([new Date(week), aggregate_weeks[week][0], aggregate_weeks[week][1], aggregate_weeks[week][2]])
-    }
-
-    for (var month in aggregate_months) {
-        month_array.push([new Date(month), aggregate_months[month][0], aggregate_months[month][1], aggregate_months[month][2]])
-    }
-
-
-    var sample_data_month = new google.visualization.DataTable();
-    sample_data_month.addColumn('date', 'X');
-    sample_data_month.addColumn('number', 'First');
-    sample_data_month.addColumn('number', 'Repeat');
-    sample_data_month.addColumn('number', 'Total');
-    sample_data_month.addRows(month_array);
-
-    var sample_data_week = new google.visualization.DataTable();
-    sample_data_week.addColumn('date', 'X');
-    sample_data_week.addColumn('number', 'First');
-    sample_data_week.addColumn('number', 'Repeat');
-    sample_data_week.addColumn('number', 'Total');
-    sample_data_week.addRows(week_array);
+    var sample_data_month = datatable_from_dict(aggregate_weeks, {'format': format_week}, fields);
+    var sample_data_week = datatable_from_dict(aggregate_weeks, {'format': format_week}, fields);
 
     var samples_sequenced_chart = new google.visualization.LineChart(document.getElementById('samples_sequenced'));
+    var samples_sequenced_table = new google.visualization.Table(document.getElementById('table_samples_sequenced'));
 
     var sample_week_options = {
     title: 'Number of samples sequenced per week',
@@ -210,17 +254,18 @@ function sampleCharts(sample_data) {
     // draw the chart by month, then have buttons to switch between by-week and by-month view
 
     samples_sequenced_chart.draw(sample_data_month, sample_month_options);
+    samples_sequenced_table.draw(sample_data_month);
 
     var show_months = document.getElementById("ShowMonths");
     show_months.onclick = function()
     {
-    view = new google.visualization.DataView(sample_data_month);
-    samples_sequenced_chart.draw(sample_data_month, sample_month_options);
+        samples_sequenced_chart.draw(sample_data_month, sample_month_options);
+        samples_sequenced_table.draw(sample_data_month);
     }
     var show_weeks = document.getElementById("ShowWeeks");
     show_weeks.onclick = function()
     {
-    view = new google.visualization.DataView(sample_data_week);
-    samples_sequenced_chart.draw(sample_data_week, sample_week_options);
+        samples_sequenced_chart.draw(sample_data_week, sample_week_options);
+        samples_sequenced_table.draw(sample_data_week);
     }
 }

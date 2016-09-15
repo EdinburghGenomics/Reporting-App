@@ -245,6 +245,9 @@ def plotting_report(plot_type):
     return fl.render_template(
         'charts.html',
         pipeline = plot_type,
+        # api_url=rest_api().api_url(endpoint, paginate=False, match={'$or': [{'run_id': '160721_E00328_0109_AHNFF7CCXX'},
+        #                                                                     {'run_id': '160705_E00373_0122_AHNCJHCCXX'},
+        #                                                                     {'run_id': '160623_E00306_0135_BHNC3YCCXX'}]}),
         api_url=rest_api().api_url(endpoint, paginate=False),
         ajax_token = get_token()
     )
