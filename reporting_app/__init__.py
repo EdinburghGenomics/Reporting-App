@@ -240,7 +240,7 @@ def report_sample(sample_id):
 @flask_login.login_required
 def plotting_report(plot_type):
 
-    endpoints = {'samples': 'aggregate/samples', 'runs': 'aggregate/all_runs'}
+    endpoints = {'samples': 'aggregate/samples', 'runs': 'aggregate/run_elements'}
     endpoint = endpoints[plot_type]
     return fl.render_template(
         'charts.html',

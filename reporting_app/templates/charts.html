@@ -9,7 +9,7 @@
     <script src="{{ url_for('static', filename='charts.js') }}"></script>
     <script type="text/javascript">
 
-    google.charts.load('current', {packages: ['corechart', 'line', 'bar', 'table']});
+    google.charts.load('current', {packages: ['corechart', 'line', 'bar', 'controls', 'table']});
     google.charts.setOnLoadCallback(drawCharts);
 
     function drawCharts() {
@@ -30,21 +30,24 @@
         });
 
     }
-
     </script>
 
 {% endblock %}
 
 {% block content %}
 {% if pipeline == 'runs' %}
-    <input type="radio" id="ShowCumulativeRunYieldMonths" name="radio_button" checked="checked">Show Months</input>
-    <input type="radio" id="ShowCumulativeRunYieldWeeks" name="radio_button">Show Weeks</input>
-    <div id="run_yield_by_date"></div>
-    <div id="cumulative_run_yield_by_date"></div>
-    <div id="table_run_yield_by_date"></div>
+    <div id="dashboard_div">
+        <input type="radio" id="ShowWeeks" name="radio_button" checked="checked">Show Weeks</input>
+        <input type="radio" id="ShowMonths" name="radio_button">Show Months</input>
+        <div id="run_yield_by_date"><!-- Line chart renders here --></div>
+        <div id="cumulative_run_yield_by_date"></div>
+        <div id="control_div"><!-- Controls renders here --></div>
+        <div id="table_run_yield_by_date"><!-- Table renders here --></div>
+    </div>
+
 {% else %}
-    <input type="radio" id="ShowMonths" name="radio_button" checked="checked">Show Months</input>
-    <input type="radio" id="ShowWeeks" name="radio_button">Show Weeks</input>
+    <input type="radio" id="ShowWeeks" name="radio_button" checked="checked">Show Weeks</input>
+    <input type="radio" id="ShowMonths" name="radio_button">Show Months</input>
     <div id="samples_sequenced"></div>
     <div id="table_samples_sequenced"></div>
 {% endif %}
