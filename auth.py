@@ -77,8 +77,8 @@ def check_user_auth(username, pw):
 
 
 def check_login_token(token_hash):
-    dc_token = base64.b64decode(token_hash)
     try:
+        dc_token = base64.b64decode(token_hash)
         return itsdangerous.TimedSerializer(current_app.secret_key).loads(dc_token, max_age=cfg.get('user_timeout', 7200))
     except (itsdangerous.SignatureExpired, itsdangerous.BadSignature):
         return None
