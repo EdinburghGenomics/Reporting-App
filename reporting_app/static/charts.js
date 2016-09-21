@@ -25,6 +25,44 @@ function aggregate_on_date(data, time_period, fields){
 
 }
 
+function unwind_samples_sequenced(sample_data){
+    var all_sample_data = [];
+    var seen_sample_ids = {};
+    for (var e=0; e < sample_data.length; e++) {
+        d = sample_data[e];
+        sample_id = d['sample_id'];
+        run_id = d['run_id']
+        if (!(Object.keys(seen_sample_ids).indexOf(sample_id) > -1)) {
+            seen_sample_ids[sample_id] = [run_id]
+        } else if (Object.keys(seen_sample_ids).indexOf(sample_id) > -1) {
+            seen_sample_ids[sample_id].push(run_id)
+        }
+    }
+    for (var key in seen_sample_ids) {
+        var runs = seen_sample_ids[key].slice(0);
+        var unique_runs = (Array.from(new Set(runs)));
+        var repeat_unique_runs = unique_runs.slice(1)
+
+        if (unique_runs.length > 0) {
+            unique_runs.sort()
+            all_sample_data.push({'date': moment(unique_runs[0].split("_")[0], "YYMMDD").toDate(),
+            'total': 1,
+            'first': 1,
+            'repeat': 0
+            });
+            for (run in repeat_unique_runs) {
+                all_sample_data.push({
+                    'date': moment(repeat_unique_runs[run].split("_")[0], "YYMMDD").toDate(),
+                    'total': 1,
+                    'first': 0,
+                    'repeat': 1
+                });
+            }
+        }
+    }
+    return all_sample_data
+}
+
 function sortDictByDate(dict){
     var sorted_dict = {};
     var sort = (Object.keys(dict)).sort(function(a, b) {
@@ -102,10 +140,9 @@ function add_percentage(dict, numerator, denominator, name){
     }
 }
 
-function runCharts(run_data) {
-
+function plotRunCharts(input_data) {
     // This function adds a date object in a dict
-    run_data.map(function(element) {
+    input_data.map(function(element) {
         element['date'] = moment(element['run_id'].split("_")[0], "YYMMDD").toDate();
     });
     fields = [
@@ -114,8 +151,8 @@ function runCharts(run_data) {
     ];
 
     // Aggregate per month and weeks
-    var aggregate_months = sortDictByDate(aggregate_on_date(run_data, 'month', fields));
-    var aggregate_weeks = sortDictByDate(aggregate_on_date(run_data, 'week', fields));
+    var aggregate_months = sortDictByDate(aggregate_on_date(input_data, 'month', fields));
+    var aggregate_weeks = sortDictByDate(aggregate_on_date(input_data, 'week', fields));
     add_percentage(aggregate_weeks, 'yield_q30_in_gb', 'yield_in_gb', 'ratio');
     add_percentage(aggregate_months, 'yield_q30_in_gb', 'yield_in_gb', 'ratio');
 
@@ -196,57 +233,20 @@ function runCharts(run_data) {
 
     dashboard.draw(run_yield_data_weeks);
 
-    var show_months_cumulative = document.getElementById("ShowMonths");
+    var show_months_cumulative = document.getElementById("ShowRunMonths");
     show_months_cumulative.onclick = function(){dashboard.draw(run_yield_data_months);}
-    var show_weeks_cumulative = document.getElementById("ShowWeeks");
+    var show_weeks_cumulative = document.getElementById("ShowRunWeeks");
     show_weeks_cumulative.onclick = function(){dashboard.draw(run_yield_data_weeks);}
+
 }
 
-function unwind_samples_sequenced(sample_data){
-    var all_sample_data = [];
-    var seen_sample_ids = {};
-    for (var e=0; e < sample_data.length; e++) {
-        d = sample_data[e];
-        sample_id = d['sample_id'];
-        run_id = d['run_id']
-        if (!(Object.keys(seen_sample_ids).indexOf(sample_id) > -1)) {
-            seen_sample_ids[sample_id] = [run_id]
-        } else if (Object.keys(seen_sample_ids).indexOf(sample_id) > -1) {
-            seen_sample_ids[sample_id].push(run_id)
-        }
-    }
-    for (var key in seen_sample_ids) {
-        var runs = seen_sample_ids[key].slice(0);
-        var unique_runs = (Array.from(new Set(runs)));
-        var repeat_unique_runs = unique_runs.slice(1)
-
-        if (unique_runs.length > 0) {
-            unique_runs.sort()
-            all_sample_data.push({'date': moment(unique_runs[0].split("_")[0], "YYMMDD").toDate(),
-            'total': 1,
-            'first': 1,
-            'repeat': 0
-            });
-            for (run in repeat_unique_runs) {
-                all_sample_data.push({
-                    'date': moment(repeat_unique_runs[run].split("_")[0], "YYMMDD").toDate(),
-                    'total': 1,
-                    'first': 0,
-                    'repeat': 1
-                });
-            }
-        }
-    }
-    return all_sample_data
-}
-
-function sampleCharts(sample_data) {
+function plotSampleCharts(input_data) {
     fields = [
         {'name':'first', 'title': 'First'},
         {'name':'repeat', 'title': 'Repeat'},
         {'name':'total', 'title': 'Total'}
     ];
-    var unwinded_samples = unwind_samples_sequenced(sample_data);
+    var unwinded_samples = unwind_samples_sequenced(input_data);
     var aggregate_weeks = sortDictByDate(aggregate_on_date(unwinded_samples, 'week', fields))
     var aggregate_months = sortDictByDate(aggregate_on_date(unwinded_samples, 'month', fields))
 
@@ -272,16 +272,21 @@ function sampleCharts(sample_data) {
     samples_sequenced_chart.draw(sample_data_month, sample_month_options);
     samples_sequenced_table.draw(sample_data_month);
 
-    var show_months = document.getElementById("ShowMonths");
+    var show_months = document.getElementById("ShowSampleMonths");
     show_months.onclick = function()
     {
         samples_sequenced_chart.draw(sample_data_month, sample_month_options);
         samples_sequenced_table.draw(sample_data_month);
     }
-    var show_weeks = document.getElementById("ShowWeeks");
+    var show_weeks = document.getElementById("ShowSampleWeeks");
     show_weeks.onclick = function()
     {
         samples_sequenced_chart.draw(sample_data_week, sample_week_options);
         samples_sequenced_table.draw(sample_data_week);
     }
+}
+
+function plotCharts(data) {
+    plotRunCharts(data)
+    plotSampleCharts(data)
 }

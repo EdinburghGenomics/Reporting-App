@@ -236,15 +236,11 @@ def report_sample(sample_id):
         )
     )
 
-@app.route('/plotting/<plot_type>')
+@app.route('/charts')
 @flask_login.login_required
-def plotting_report(plot_type):
-
-    endpoints = {'samples': 'aggregate/run_elements', 'runs': 'aggregate/run_elements'}
-    endpoint = endpoints[plot_type]
+def plotting_report():
     return fl.render_template(
         'charts.html',
-        pipeline = plot_type,
-        api_url=rest_api().api_url(endpoint, paginate=False),
+        api_url=rest_api().api_url('aggregate/run_elements', paginate=False),
         ajax_token = get_token()
     )

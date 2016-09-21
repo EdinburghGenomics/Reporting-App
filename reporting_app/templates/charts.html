@@ -13,13 +13,7 @@
     google.charts.setOnLoadCallback(drawCharts);
 
     function drawCharts() {
-        var pipeline_type = "{{ pipeline }}";
-        if (pipeline_type == 'runs') {
-            var charts = runCharts;
-        } else if (pipeline_type == 'samples') {
-            var charts = sampleCharts;
-        }
-
+        var charts = plotCharts;
         // Get the run data from the REST API
         $.ajax({
           url: '{{ api_url|safe }}',
@@ -35,24 +29,30 @@
 {% endblock %}
 
 {% block content %}
-{% if pipeline == 'runs' %}
-    <div id="dashboard_div">
-        <input type="radio" id="ShowWeeks" name="radio_button" checked="checked">Show Weeks</input>
-        <input type="radio" id="ShowMonths" name="radio_button">Show Months</input>
-        <div id="run_yield_by_date"><!-- Line chart renders here --></div>
-        <div id="cumulative_run_yield_by_date"></div>
-        <div id="control_div"><!-- Controls renders here --></div>
-        <div id="table_run_yield_by_date"><!-- Table renders here --></div>
-    </div>
-
-{% else %}
-    <input type="radio" id="ShowWeeks" name="radio_button" checked="checked">Show Weeks</input>
-    <input type="radio" id="ShowMonths" name="radio_button">Show Months</input>
+<div id="dashboard_div">
+    <br><br><br>
+    <font size="6">Run Charts</font>
+    <br><br><br>
+    <input type="radio" id="ShowRunWeeks" name="radio_button1" checked="checked">Show Weeks</input>
+    <input type="radio" id="ShowRunMonths" name="radio_button1">Show Months</input>
+    <br><br><br>
+    <div id="run_yield_by_date"><!-- Line chart renders here --></div>
+    <br><br><br>
+    <div id="cumulative_run_yield_by_date"></div>
+    <br><br><br>
+    <div id="control_div"><!-- Controls renders here --></div>
+    <br><br><br>
+    <center><div id="table_run_yield_by_date"><!-- Table renders here --></div></center>
+    <br><br><br>
+    <br><br><br><br><br><br>
+    <font size="6">Sample Charts</font>
+    <br><br><br>
+    <input type="radio" id="ShowSampleWeeks" name="radio_button2" checked="checked">Show Weeks</input>
+    <input type="radio" id="ShowSampleMonths" name="radio_button2">Show Months</input>
+    <br><br><br>
     <div id="samples_sequenced"></div>
-    <div id="table_samples_sequenced"></div>
-{% endif %}
-
-
-
-
+    <br><br><br>
+    <center><div id="table_samples_sequenced"></div></center>
+    <br><br><br>
+</div>
 {% endblock %}
