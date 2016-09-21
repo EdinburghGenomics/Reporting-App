@@ -32,15 +32,16 @@ function unwind_samples_sequenced(sample_data){
         d = sample_data[e];
         sample_id = d['sample_id'];
         run_id = d['run_id']
-        if (!(Object.keys(seen_sample_ids).indexOf(sample_id) > -1)) {
+        if (! (sample_id in seen_sample_ids) ) {
             seen_sample_ids[sample_id] = [run_id]
-        } else if (Object.keys(seen_sample_ids).indexOf(sample_id) > -1) {
+        } else {
             seen_sample_ids[sample_id].push(run_id)
         }
     }
     for (var key in seen_sample_ids) {
         var runs = seen_sample_ids[key].slice(0);
-        var unique_runs = (Array.from(new Set(runs)));
+        var unique_runs = Array.from(new Set(runs));
+        unique_runs.sort();
         var repeat_unique_runs = unique_runs.slice(1)
 
         if (unique_runs.length > 0) {
@@ -140,6 +141,17 @@ function add_percentage(dict, numerator, denominator, name){
     }
 }
 
+
+function merge_dict_of_object(obj1, obj2){
+    var obj3 = {};
+    for (k in obj1){
+        obj3[k]={};
+        for (var attrname in obj1[k]) { obj3[k][attrname] = obj1[k][attrname]; }
+        for (var attrname in obj2[k]) { obj3[k][attrname] = obj2[k][attrname]; }
+    }
+    return obj3;
+}
+
 function plotRunCharts(input_data) {
     // This function adds a date object in a dict
     input_data.map(function(element) {
@@ -163,6 +175,27 @@ function plotRunCharts(input_data) {
     fields.push({'name':'cumm_yield_in_gb', 'title': 'Cummulative Yield'});
     fields.push({'name':'cumm_yield_q30_in_gb', 'title': 'Cummulative Yield Q30'});
 
+    fields_sample = [
+        {'name':'first', 'title': 'First'},
+        {'name':'repeat', 'title': 'Repeat'},
+        {'name':'total', 'title': 'Total'}
+    ];
+    var unwinded_samples = unwind_samples_sequenced(input_data);
+
+    aggregate_weeks = sortDictByDate(
+        merge_dict_of_object(
+            aggregate_weeks,
+            aggregate_on_date(unwinded_samples, 'week', fields_sample)
+        )
+    );
+    aggregate_months = sortDictByDate(
+        merge_dict_of_object(
+            aggregate_months,
+            aggregate_on_date(unwinded_samples, 'month', fields_sample)
+        )
+    );
+
+    fields.push(...fields_sample);
     var run_yield_data_weeks = datatable_from_dict(aggregate_weeks, {'format': format_week}, fields);
     var run_yield_data_months = datatable_from_dict(aggregate_months, {'format': format_month}, fields);
 
@@ -187,6 +220,11 @@ function plotRunCharts(input_data) {
         legend:  {'position': 'none'},
     };
 
+    var sample_options = {
+        title: 'Number of samples sequenced',
+        vAxis: {title: 'Number of Samples'}
+    };
+
     // draw run charts
     var dashboard = new google.visualization.Dashboard(document.getElementById('dashboard_div'));
     var dateSlider = new google.visualization.ControlWrapper({
@@ -200,7 +238,8 @@ function plotRunCharts(input_data) {
                     'height': 50,
                     'chartArea': {'width': '90%'},
                     'hAxis': {'baselineColor': 'none'}
-                }
+                },
+                'chartView': {'columns': [0]}
             }
         },
         'state' : {
@@ -216,6 +255,12 @@ function plotRunCharts(input_data) {
         'view': {'columns': [0, 1, 2, 3]},
         'options': run_yield_options
     });
+    var samples_sequenced_chart = new google.visualization.ChartWrapper({
+        'chartType': 'LineChart',
+        'containerId': 'samples_sequenced',
+        'view': {'columns': [0, 6, 7, 8]},
+        'options': sample_options
+    });
     var yield_cumm_chart = new google.visualization.ChartWrapper({
         'chartType': 'LineChart',
         'containerId': 'cumulative_run_yield_by_date',
@@ -228,6 +273,7 @@ function plotRunCharts(input_data) {
     });
 
     dashboard.bind([dateSlider], yield_chart);
+    dashboard.bind([dateSlider], samples_sequenced_chart);
     dashboard.bind([dateSlider], yield_cumm_chart);
     dashboard.bind([dateSlider], yield_table);
 
@@ -240,53 +286,7 @@ function plotRunCharts(input_data) {
 
 }
 
-function plotSampleCharts(input_data) {
-    fields = [
-        {'name':'first', 'title': 'First'},
-        {'name':'repeat', 'title': 'Repeat'},
-        {'name':'total', 'title': 'Total'}
-    ];
-    var unwinded_samples = unwind_samples_sequenced(input_data);
-    var aggregate_weeks = sortDictByDate(aggregate_on_date(unwinded_samples, 'week', fields))
-    var aggregate_months = sortDictByDate(aggregate_on_date(unwinded_samples, 'month', fields))
-
-    //construct that datatables
-    var sample_data_month = datatable_from_dict(aggregate_months, {'format': format_month}, fields);
-    var sample_data_week = datatable_from_dict(aggregate_weeks, {'format': format_week}, fields);
-
-    var samples_sequenced_chart = new google.visualization.LineChart(document.getElementById('samples_sequenced'));
-    var samples_sequenced_table = new google.visualization.Table(document.getElementById('table_samples_sequenced'));
-
-    var sample_week_options = {
-    title: 'Number of samples sequenced per week',
-    hAxis: {title: 'Week Number / Year'},
-    vAxis: {title: 'Number of Samples'}};
-
-    var sample_month_options = {
-    title: 'Number of samples sequenced per month',
-    hAxis: {title: 'Month Number / Year'},
-    vAxis: {title: 'Number of Samples'}};
-
-    // draw the chart by month, then have buttons to switch between by-week and by-month view
-
-    samples_sequenced_chart.draw(sample_data_month, sample_month_options);
-    samples_sequenced_table.draw(sample_data_month);
-
-    var show_months = document.getElementById("ShowSampleMonths");
-    show_months.onclick = function()
-    {
-        samples_sequenced_chart.draw(sample_data_month, sample_month_options);
-        samples_sequenced_table.draw(sample_data_month);
-    }
-    var show_weeks = document.getElementById("ShowSampleWeeks");
-    show_weeks.onclick = function()
-    {
-        samples_sequenced_chart.draw(sample_data_week, sample_week_options);
-        samples_sequenced_table.draw(sample_data_week);
-    }
-}
-
 function plotCharts(data) {
     plotRunCharts(data)
-    plotSampleCharts(data)
+    //plotSampleCharts(data)
 }
