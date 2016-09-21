@@ -101,6 +101,7 @@ function add_percentage(dict, numerator, denominator, name){
         dict[k][name] = dict[k][numerator]/dict[k][denominator];
     }
 }
+
 function runCharts(run_data) {
 
     // This function adds a date object in a dict
@@ -189,7 +190,6 @@ function runCharts(run_data) {
         'containerId': 'table_run_yield_by_date'
     });
 
-
     dashboard.bind([dateSlider], yield_chart);
     dashboard.bind([dateSlider], yield_cumm_chart);
     dashboard.bind([dateSlider], yield_table);
@@ -204,22 +204,32 @@ function runCharts(run_data) {
 
 function unwind_samples_sequenced(sample_data){
     var all_sample_data = [];
+    var seen_sample_ids = {};
     for (var e=0; e < sample_data.length; e++) {
         d = sample_data[e];
-        var run_ids = d['all_run_ids'].slice(0);
-        var unique_run_ids = Array.from(new Set(run_ids));
-        if (unique_run_ids.length > 0){
-            unique_run_ids.sort();
-            all_sample_data.push({
-                'date': moment(unique_run_ids[0].split("_")[0], "YYMMDD").toDate(),
-                'total': 1,
-                'first': 1,
-                'repeat': 0
-            });
+        sample_id = d['sample_id'];
+        run_id = d['run_id']
+        if (!(Object.keys(seen_sample_ids).indexOf(sample_id) > -1)) {
+            seen_sample_ids[sample_id] = [run_id]
+        } else if (Object.keys(seen_sample_ids).indexOf(sample_id) > -1) {
+            seen_sample_ids[sample_id].push(run_id)
+        }
+    }
+    for (var key in seen_sample_ids) {
+        var runs = seen_sample_ids[key].slice(0);
+        var unique_runs = (Array.from(new Set(runs)));
+        var repeat_unique_runs = unique_runs.slice(1)
 
-            for (run in unique_run_ids.slice(1)){
+        if (unique_runs.length > 0) {
+            unique_runs.sort()
+            all_sample_data.push({'date': moment(unique_runs[0].split("_")[0], "YYMMDD").toDate(),
+            'total': 1,
+            'first': 1,
+            'repeat': 0
+            });
+            for (run in repeat_unique_runs) {
                 all_sample_data.push({
-                    'date': moment(unique_run_ids[0].split("_")[0], "YYMMDD").toDate(),
+                    'date': moment(repeat_unique_runs[run].split("_")[0], "YYMMDD").toDate(),
                     'total': 1,
                     'first': 0,
                     'repeat': 1
