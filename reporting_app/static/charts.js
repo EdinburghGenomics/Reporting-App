@@ -45,7 +45,6 @@ function unwind_samples_sequenced(sample_data){
         var repeat_unique_runs = unique_runs.slice(1)
 
         if (unique_runs.length > 0) {
-            unique_runs.sort()
             all_sample_data.push({'date': moment(unique_runs[0].split("_")[0], "YYMMDD").toDate(),
             'total': 1,
             'first': 1,
@@ -239,7 +238,7 @@ function plotRunCharts(input_data) {
                     'chartArea': {'width': '90%'},
                     'hAxis': {'baselineColor': 'none'}
                 },
-                'chartView': {'columns': [0]}
+                'chartView': {'columns': [0,1,2,3,4,5,6,7,8]}
             }
         },
         'state' : {
