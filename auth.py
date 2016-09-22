@@ -39,7 +39,8 @@ class User(UserMixin):
 
     def get_auth_token(self):
         """Used by flask_login to set cookie/login token."""
-        return itsdangerous.TimedSerializer(current_app.secret_key).dumps(self.username)
+        s = itsdangerous.TimedSerializer(current_app.secret_key)
+        return encode_string(s.dumps(self.username))
 
     def exists(self):
         cursor.execute('SELECT count(id) FROM users WHERE id=?', (self.username,))
@@ -60,7 +61,7 @@ class User(UserMixin):
 
     @staticmethod
     def get_login_token():
-        return encode_string(request.cookies.get('remember_token'))
+        return request.cookies.get('remember_token')
 
 
 def hash_pw(text):
@@ -79,7 +80,8 @@ def check_user_auth(username, pw):
 def check_login_token(token_hash):
     try:
         dc_token = base64.b64decode(token_hash)
-        return itsdangerous.TimedSerializer(current_app.secret_key).loads(dc_token, max_age=cfg.get('user_timeout', 7200))
+        s = itsdangerous.TimedSerializer(current_app.secret_key)
+        return s.loads(dc_token, max_age=cfg.get('user_timeout', 7200))
     except (itsdangerous.SignatureExpired, itsdangerous.BadSignature):
         return None
     except binascii.Error as e:

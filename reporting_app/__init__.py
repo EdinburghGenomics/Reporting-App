@@ -34,7 +34,8 @@ def unauthorised_handler():
 @login_manager.token_loader
 def load_token(token_hash):
     uid = auth.check_login_token(token_hash)
-    return auth.User.get(uid)
+    if uid:
+        return auth.User.get(uid)
 
 
 @app.route('/')
