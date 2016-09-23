@@ -1,6 +1,7 @@
 from flask import request
 from auth import encode_string
 from config import col_mappings
+import datetime, time
 
 
 def _format_order(col_name, cols):
@@ -20,7 +21,7 @@ def datatable_cfg(title, cols, api_url, default_sort_col=None, **kwargs):
         'cols': col_mappings[cols],
         'api_url': api_url,
         'default_sort_col': default_sort_col,
-        'token': encode_string(request.cookies.get('remember_token'))
+        'token': get_token()
     }
     d.update(kwargs)
     return d
@@ -33,6 +34,9 @@ def tab_set_cfg(title, tables):
         'tables': tables
     }
 
+def get_token():
+    return 'Token ' + encode_string(request.cookies.get('remember_token'))
+
 
 def capitalise(word):
     return word[0].upper() + word[1:]
@@ -40,3 +44,6 @@ def capitalise(word):
 
 def snake_case(text):
     return text.lower().replace(' ', '_')
+
+
+

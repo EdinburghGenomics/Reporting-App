@@ -3,8 +3,8 @@ from urllib.parse import quote, unquote
 import flask as fl
 import flask_login
 import auth
+from reporting_app.util import datatable_cfg, tab_set_cfg, get_token
 from config import reporting_app_config as cfg
-from reporting_app.util import datatable_cfg, tab_set_cfg
 
 app = fl.Flask(__name__)
 app.secret_key = cfg['key'].encode()
@@ -235,4 +235,13 @@ def report_sample(sample_id):
             where={'dataset_type': 'sample', 'dataset_name': sample_id},
             sort='-_created'
         )
+    )
+
+@app.route('/charts')
+@flask_login.login_required
+def plotting_report():
+    return fl.render_template(
+        'charts.html',
+        api_url=rest_api().api_url('aggregate/run_elements', paginate=False),
+        ajax_token = get_token()
     )

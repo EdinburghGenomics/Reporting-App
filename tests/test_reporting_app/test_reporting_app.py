@@ -37,7 +37,7 @@ class TestReportingApp(Helper):
             'cols': col_mappings['demultiplexing'],
             'api_url': cfg['rest_api'] + '/test_endpoint',
             'default_sort_col': [2, 'desc'],
-            'token': util.encode_string('a_token')
+            'token': 'Token ' + util.encode_string('a_token')
         }
         assert obs == exp
 
