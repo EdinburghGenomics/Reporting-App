@@ -22,7 +22,6 @@ function aggregate_on_date(data, time_period, fields){
         }
     }
     return aggregate
-
 }
 
 function unwind_samples_sequenced(sample_data){
@@ -125,7 +124,11 @@ function datatable_from_dict(dict, X_format, fields){
 
 // Format a date as a week
 function format_week(d){
-    return {'v': new Date(d), 'f': 'week '+ moment(new Date(d)).format('w YYYY')};
+    var m = moment(new Date(d));
+    return {
+        'v': new Date(d),
+        'f': 'week '+ m.format('w YYYY') + ' (' + m.startOf('week').format('DD/MM') + ' -  ' + m.endOf('week').format('DD/MM') + ')'
+    } ;
 }
 
 // Format a date as a month
@@ -151,26 +154,39 @@ function merge_dict_of_object(obj1, obj2){
     return obj3;
 }
 
-function plotRunCharts(input_data) {
+function plotCharts(input_data) {
     // This function adds a date object in a dict
     input_data.map(function(element) {
         element['date'] = moment(element['run_id'].split("_")[0], "YYMMDD").toDate();
     });
+    // Add filtered data
+    input_data.map(function(element) {
+        if (element['useable'] == 'yes'){
+            element['useable_yield_in_gb'] = element['yield_in_gb'];
+        }else{
+            element['useable_yield_in_gb'] = 0;
+        }
+    });
+
     fields = [
         {'name':'yield_in_gb', 'title': 'Yield'},
-        {'name':'yield_q30_in_gb', 'title': 'Yield Q30'}
+        {'name':'yield_q30_in_gb', 'title': 'Yield Q30'},
+        {'name': 'useable_yield_in_gb', 'title': 'Useable yield'}
     ];
 
     // Aggregate per month and weeks
     var aggregate_months = sortDictByDate(aggregate_on_date(input_data, 'month', fields));
     var aggregate_weeks = sortDictByDate(aggregate_on_date(input_data, 'week', fields));
-    add_percentage(aggregate_weeks, 'yield_q30_in_gb', 'yield_in_gb', 'ratio');
-    add_percentage(aggregate_months, 'yield_q30_in_gb', 'yield_in_gb', 'ratio');
+    add_percentage(aggregate_weeks, 'yield_q30_in_gb', 'yield_in_gb', 'ratio_Q30');
+    add_percentage(aggregate_months, 'yield_q30_in_gb', 'yield_in_gb', 'ratio_Q30');
+    add_percentage(aggregate_weeks, 'useable_yield_in_gb', 'yield_in_gb', 'ratio_useable');
+    add_percentage(aggregate_months, 'useable_yield_in_gb', 'yield_in_gb', 'ratio_useable');
 
     add_cummulative(aggregate_weeks, fields);
     add_cummulative(aggregate_months, fields);
 
-    fields.push({'name':'ratio', 'title': 'Ratio'});
+    fields.push({'name':'ratio_Q30', 'title': '%Q30'});
+    fields.push({'name':'ratio_useable', 'title': '% useable'});
     fields.push({'name':'cumm_yield_in_gb', 'title': 'Cummulative Yield'});
     fields.push({'name':'cumm_yield_q30_in_gb', 'title': 'Cummulative Yield Q30'});
 
@@ -198,34 +214,9 @@ function plotRunCharts(input_data) {
     var run_yield_data_weeks = datatable_from_dict(aggregate_weeks, {'format': format_week}, fields);
     var run_yield_data_months = datatable_from_dict(aggregate_months, {'format': format_month}, fields);
 
-    // google charts options
-    var run_yield_options = {
-        title: 'Run yield',
-        series: {
-            0: {targetAxisIndex:0, type: 'bars'},
-            1: {targetAxisIndex:0, type: 'bars'},
-            2: {targetAxisIndex:1, type: 'line', curveType: 'function'},
-        },
-        vAxes: {
-            0: {title: 'Yield'},
-            1: {title: 'Ratio', format:"#%"},
-        },
-        seriesType: 'bars',
-    };
-
-    var cumulative_run_yield_options = {
-        title: 'Cumulative run yield ',
-        vAxis: {title: 'Yield'},
-        legend:  {'position': 'none'},
-    };
-
-    var sample_options = {
-        title: 'Number of samples sequenced',
-        vAxis: {title: 'Number of Samples'}
-    };
-
     // draw run charts
     var dashboard = new google.visualization.Dashboard(document.getElementById('dashboard_div'));
+
     var dateSlider = new google.visualization.ControlWrapper({
         'controlType': 'ChartRangeFilter',
         'containerId': 'control_div',
@@ -238,7 +229,7 @@ function plotRunCharts(input_data) {
                     'chartArea': {'width': '90%'},
                     'hAxis': {'baselineColor': 'none'}
                 },
-                'chartView': {'columns': [0,1,2,3,4,5,6,7,8]}
+                'chartView': {'columns': [0, 1]}
             }
         },
         'state' : {
@@ -251,24 +242,50 @@ function plotRunCharts(input_data) {
     var yield_chart = new google.visualization.ChartWrapper({
         'chartType': 'ComboChart',
         'containerId': 'run_yield_by_date',
-        'view': {'columns': [0, 1, 2, 3]},
-        'options': run_yield_options
+        'view': {'columns': [0, 1, 4, 5]},
+        'options': {
+            title: 'Run yield',
+            series: {
+                0: {targetAxisIndex:0, type: 'bars'},
+                1: {targetAxisIndex:1, type: 'line', curveType: 'function'},
+                2: {targetAxisIndex:1, type: 'line', curveType: 'function'},
+            },
+            vAxes: {
+                0: {title: 'Yield'},
+                1: {title: 'Ratio', format:"#%"},
+            },
+            seriesType: 'bars',
+        }
     });
     var samples_sequenced_chart = new google.visualization.ChartWrapper({
-        'chartType': 'LineChart',
+        'chartType': 'ColumnChart',
         'containerId': 'samples_sequenced',
-        'view': {'columns': [0, 6, 7, 8]},
-        'options': sample_options
+        'view': {'columns': [0, 8, 9]},
+        'options': {
+            title: 'Number of samples sequenced',
+            vAxis: {title: 'Number of Samples'},
+            'isStacked' : true
+        }
     });
     var yield_cumm_chart = new google.visualization.ChartWrapper({
         'chartType': 'LineChart',
         'containerId': 'cumulative_run_yield_by_date',
-        'view': {'columns': [0, 4, 5]},
-        'options': cumulative_run_yield_options
+        'view': {'columns': [0, 6, 7]},
+        'options': {
+            title: 'Cumulative run yield ',
+            vAxis: {title: 'Yield'},
+            legend:  {'position': 'none'},
+        }
     });
     var yield_table = new google.visualization.ChartWrapper({
         'chartType': 'Table',
-        'containerId': 'table_run_yield_by_date'
+        'containerId': 'table_run_yield_by_date',
+        'options':{
+            'sortColumn': 0,
+            'sortAscending': false,
+            'page': 'enable',
+            'pageSize': 20
+        }
     });
 
     dashboard.bind([dateSlider], yield_chart);
@@ -282,10 +299,5 @@ function plotRunCharts(input_data) {
     show_months_cumulative.onclick = function(){dashboard.draw(run_yield_data_months);}
     var show_weeks_cumulative = document.getElementById("ShowRunWeeks");
     show_weeks_cumulative.onclick = function(){dashboard.draw(run_yield_data_weeks);}
-
 }
 
-function plotCharts(data) {
-    plotRunCharts(data)
-    //plotSampleCharts(data)
-}
