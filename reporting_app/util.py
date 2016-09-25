@@ -1,7 +1,5 @@
-from flask import request
-from auth import encode_string
+import auth
 from config import col_mappings
-import datetime, time
 
 
 def _format_order(col_name, cols):
@@ -35,7 +33,7 @@ def tab_set_cfg(title, tables):
     }
 
 def get_token():
-    return 'Token ' + encode_string(request.cookies.get('remember_token'))
+    return 'Token ' + auth.User.get_login_token()
 
 
 def capitalise(word):
