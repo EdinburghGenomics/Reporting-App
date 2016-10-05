@@ -49,9 +49,10 @@ run_elements:
 
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'], default: 'not reviewed' }
     review_comments: {          type: 'string',  required: False }
+    review_date: {              type: 'datetime' required: False }
     useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ], default: 'not marked' }
     useable_comments: {         type: 'multilinestring',  required: False }
-
+    useable_date: {              type: 'datetime' required: False }
 
 
 unexpected_barcodes:
@@ -75,6 +76,9 @@ samples:
     plate_name: {               type: 'string',  required: False }
     sample_id: {                type: 'string',  required: True, unique: True }
     user_sample_id: {           type: 'string',  required: False }
+    species_name: {             type: 'string',  required: False }
+    expected_coverage: {        type: 'integer', required: False }
+    expected_yield: {           type: 'integer', required: False }
 
     #QC metrics
     bam_file_reads: {           type: 'integer', required: False }  # reads initially found in the bam file, used to be 'no adaptor reads'
@@ -88,7 +92,7 @@ samples:
         std_dev: {type: 'float'},
         coverage_percentiles: {type: 'dict', schema: { percentile_5: { type: 'integer' }, percentile_25: { type: 'integer' }, percentile_50: { type: 'integer' }, percentile_75: { type: 'integer' }, percentile_95: { type: 'integer'} } },
         bases_at_coverage: {type: 'dict', schema: { bases_at_5X: {type: 'integer'}, bases_at_15X: {type: 'integer'}, bases_at_30X: {type: 'integer' } } },
-        pc_genome_with_min: {type: 'dict'}
+        genome_size: {type: 'integer'}
     }
     }
     #TODO: remove pc_callable
@@ -97,7 +101,12 @@ samples:
     #QC validation
     called_gender: {            type: 'string',  allowed: ['male', 'female', 'unknown'] }
     provided_gender: {          type: 'string',  allowed: ['male', 'female', 'unknown'] }
-    gender_validation: {        type: 'dict',    schema: { hetX: { type: 'float' }, covY: { type: 'float' }, gender_genotype: { type: 'string',  allowed: ['male', 'female', 'unknown'] } } }
+    gender_validation: {        type: 'dict',    schema: {
+        hetX: { type: 'float' },
+        covY: { type: 'float' },
+        gender_genotype: { type: 'string',  allowed: ['male', 'female', 'unknown'] }
+    }
+    }
     genotype_validation: {      type: 'dict',    schema: {
         matching_snps: { type: 'integer' },
         mismatching_snps: { type: 'integer' },
@@ -123,9 +132,12 @@ samples:
     #Events
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'genotype missing', 'pass', 'fail'], default: 'not reviewed' }
     review_comments: {          type: 'string',  required: False }
+    review_date: {              type: 'datetime' required: False }
     useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ], default: 'not marked' }
     useable_comments: {         type: 'multilinestring',  required: False }
+    useable_date: {             type: 'datetime' required: False }
     delivered: {                type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no' }
+    delivery_date: {            type: 'datetime' required: False }
     input_fastqs_deleted: {     type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no'}
 
     #Links
