@@ -49,10 +49,10 @@ run_elements:
 
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'], default: 'not reviewed' }
     review_comments: {          type: 'string',  required: False }
-    review_date: {              type: 'datetime' required: False }
+    review_date: {              type: 'datetime', required: False }
     useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ], default: 'not marked' }
     useable_comments: {         type: 'multilinestring',  required: False }
-    useable_date: {              type: 'datetime' required: False }
+    useable_date: {              type: 'datetime', required: False }
 
 
 unexpected_barcodes:
@@ -132,12 +132,12 @@ samples:
     #Events
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'genotype missing', 'pass', 'fail'], default: 'not reviewed' }
     review_comments: {          type: 'string',  required: False }
-    review_date: {              type: 'datetime' required: False }
+    review_date: {              type: 'datetime', required: False }
     useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ], default: 'not marked' }
     useable_comments: {         type: 'multilinestring',  required: False }
-    useable_date: {             type: 'datetime' required: False }
+    useable_date: {             type: 'datetime', required: False }
     delivered: {                type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no' }
-    delivery_date: {            type: 'datetime' required: False }
+    delivery_date: {            type: 'datetime', required: False }
     input_fastqs_deleted: {     type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no'}
 
     #Links
