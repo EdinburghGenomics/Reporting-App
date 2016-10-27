@@ -41,7 +41,7 @@ rest_app:
           when: 'midnight'
           level: DEBUG
 
-    database:
+    lims_database:
         username: 'user'
         password: 'pw'
         url: 'dbhost'
