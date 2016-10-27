@@ -67,6 +67,13 @@ function species_contamination_fmt(data, fmt){
     return best_species.join()
 }
 
+function coverage_15X_fmt(data, fmt){
+    if ("<bases_at_coverage>" in data && "<bases_at_15X>" in data['bases_at_coverage'] && "<genome_size>" in data ) {
+        return data['bases_at_coverage']['bases_at_15X']/data['genome_size'];
+    }
+}
+
 var function_map = {
-    'species_contamination': species_contamination_fmt
+    'species_contamination': species_contamination_fmt,
+    'coverage_15X': coverage_15X_fmt
 };
