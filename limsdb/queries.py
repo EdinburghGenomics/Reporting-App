@@ -23,9 +23,11 @@ sample_statuses = OrderedDict((
 
 def get_samples_and_processes(session, project_name=None, list_process=None, workstatus=None, only_open_project=True):
     """This method runs a query that return the sample name and the processeses they went through"""
-    q = session.query(t.Project.name, t.Sample.name, t.ProcessType.displayname, t.Process.workstatus)\
-           .distinct(t.Sample.name, t.Process.processid)\
-           .join(t.Sample.project)\
+    q = session.query(t.Project.name, t.Project.opendate, t.Researcher.firstname, t.Researcher.lastname,
+                      t.Sample.name, t.ProcessType.displayname, t.Process.workstatus)\
+           .distinct(t.Sample.name, t.Process.processid) \
+           .join(t.Sample.project) \
+           .join(t.Project.researcher) \
            .join(t.Sample.artifacts)\
            .join(t.Artifact.processiotrackers)\
            .join(t.ProcessIOTracker.process)\
@@ -102,6 +104,8 @@ class Sample():
 class Project():
     def __init__(self):
         self.samples = defaultdict(Sample)
+        self.open_date = None
+        self.researcher_name = None
 
     def samples_per_status(self):
         sample_per_status = defaultdict(list)
@@ -112,11 +116,18 @@ class Project():
 def sample_status_per_project(session, project_name=None):
     all_projects = defaultdict(Project)
     for result in get_samples_and_processes(session, project_name, workstatus='COMPLETE'):
-        project_name, sample_name, process_name, process_status = result
+        project_name, open_date, firstname, lastname, sample_name, process_name, process_status = result
         all_projects[project_name].samples[sample_name].processes.add(process_name)
+        all_projects[project_name].open_date = open_date.isoformat() + 'Z'
+        all_projects[project_name].researcher_name = '%s %s'%(firstname, lastname)
+
     res = []
     for project_name in all_projects:
-        project = {'project_id': project_name}
+        project = {
+            'project_id': project_name,
+            'open_date': all_projects[project_name].open_date,
+            'researcher_name': all_projects[project_name].researcher_name
+        }
         project.update(all_projects[project_name].samples_per_status())
         res.append(project)
     return res

@@ -252,6 +252,7 @@ def project_status_reports():
     return render_template(
         'untabbed_datatables.html',
         'Project Status',
+        description='This table shows the number of sample in different categories based on the workflow they completed',
         table=datatable_cfg(
             'Project Status',
             'project_status',

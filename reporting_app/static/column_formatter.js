@@ -26,11 +26,19 @@ function string_formatter(data, fmt){
         formatted_data = Humanize.intComma(formatted_data);
     } else if (fmt['type'] == 'float') {
         formatted_data = Humanize.formatNumber(formatted_data, 2);
+    } else if (fmt['type'] == 'date') {
+        formatted_data = moment(new Date(formatted_data)).format('YYYY-MM-DD');
     }
 
     if (fmt['link']) {
+        if (fmt['link_format_function']){
+            formatted_link = function_map[fmt['link_format_function']](data, fmt);
+        }
+        else{
+            formatted_link = data;
+        }
         if (data instanceof Array && data.length > 1) {
-            formatted_data = '<div class="dropdown"><div class="dropbtn">' + data + '</div><div class="dropdown-content">';
+            formatted_data = '<div class="dropdown"><div class="dropbtn">' + formatted_link + '</div><div class="dropdown-content">';
             for (var i=0, tot=data.length; i < tot; i++){
                 formatted_data = formatted_data.concat('<a href=' + fmt['link'] + data[i] + '>' + data[i] + '</a>');
             }
