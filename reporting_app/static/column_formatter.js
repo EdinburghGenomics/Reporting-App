@@ -67,6 +67,11 @@ function species_contamination_fmt(data, fmt){
     return best_species.join()
 }
 
+function count_entities_fmt(data, fmt){
+    return data.length;
+}
+
 var function_map = {
-    'species_contamination': species_contamination_fmt
+    'species_contamination': species_contamination_fmt,
+    'count_entities': count_entities_fmt
 };

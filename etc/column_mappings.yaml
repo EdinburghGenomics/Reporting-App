@@ -22,6 +22,14 @@ column_def:
     nb_samples_delivered:     { data: 'nb_samples_delivered',                 title: 'Samples Delivered' }
     nb_samples:               { data: 'nb_samples',                           title: 'Nb of Samples' }
     nb_samples_reviewed:      { data: 'nb_samples_reviewed',                  title: 'Samples Reviewed' }
+    nb_sample_submission:     { data: 'Sample Submission',                    title: 'Sample Submission' ,       fmt: {name: 'count_entities'}}
+    nb_sample_qc:             { data: 'Sample QC',                            title: 'Sample QC' ,               fmt: {name: 'count_entities'}}
+    nb_library_preparation:   { data: 'Library Preparation',                  title: 'Library Preparation' ,     fmt: {name: 'count_entities'}}
+    nb_library_qc:            { data: 'Library QC',                           title: 'Library QC' ,              fmt: {name: 'count_entities'}}
+    nb_sequencing:            { data: 'Sequencing',                           title: 'Sequencing' ,              fmt: {name: 'count_entities'}}
+    nb_bioinformatics:        { data: 'Bioinformatics',                       title: 'Bioinformatics' ,          fmt: {name: 'count_entities'}}
+    nb_delivery:              { data: 'Delivery',                             title: 'Delivery' ,                fmt: {name: 'count_entities'}}
+    nb_finished:              { data: 'Finished',                             title: 'Finished' ,                fmt: {name: 'count_entities'}}
     no_call_chip:             { data: 'genotype_validation.no_call_chip',     title: 'No-call (chip)' ,          visible: 'false'}
     no_call_seq:              { data: 'genotype_validation.no_call_seq',      title: 'No-call (seq)' ,           visible: 'false'}
     called_gender:            { data: 'called_gender',                        title: 'Called Gender' ,           visible: 'false'}
@@ -76,6 +84,16 @@ projects:
     - nb_samples_delivered
     - _created
 
+project_status:
+    - project_id
+    - nb_sample_submission
+    - nb_sample_qc
+    - nb_library_preparation
+    - nb_library_qc
+    - nb_sequencing
+    - nb_bioinformatics
+    - nb_delivery
+    - nb_finished
 
 demultiplexing:
     - barcode
