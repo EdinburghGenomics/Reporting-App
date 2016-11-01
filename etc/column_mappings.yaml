@@ -18,6 +18,7 @@ column_def:
     mapped_reads:             { data: 'mapped_reads',                         title: '# mapped reads',           visible: 'false',           fmt: { type: 'int',   min: 1500 } }
     matching_snps:            { data: 'genotype_validation.matching_snps',    title: 'Matching snps' ,           visible: 'false'}
     median_coverage:          { data: 'median_coverage',                      title: 'Median coverage',          fmt: { type: 'float', min: 30 } }
+    coverage_15X:             { data: 'coverage',                             title: '% covered 15X',            fmt: { name: 'coverage_15X', type: 'percentage', min: 85 } }
     mismatching_snps:         { data: 'genotype_validation.mismatching_snps', title: 'Mismatching snps' ,           visible: 'false'}
     nb_samples_delivered:     { data: 'nb_samples_delivered',                 title: 'Samples Delivered' }
     nb_samples:               { data: 'nb_samples',                           title: 'Nb of Samples' }
@@ -155,6 +156,7 @@ samples:
     - duplicate_reads
     - pc_duplicate_reads
     - median_coverage
+    - coverage_15X
     - species_found
     - pc_callable
     - gender_match

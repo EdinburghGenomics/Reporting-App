@@ -79,7 +79,14 @@ function count_entities_fmt(data, fmt){
     return data.length;
 }
 
+function coverage_15X_fmt(data, fmt){
+    if ("<bases_at_coverage>" in data && "<bases_at_15X>" in data['bases_at_coverage'] && "<genome_size>" in data ) {
+        return data['bases_at_coverage']['bases_at_15X']/data['genome_size'];
+    }
+}
+
 var function_map = {
     'species_contamination': species_contamination_fmt,
-    'count_entities': count_entities_fmt
+    'count_entities': count_entities_fmt,
+    'coverage_15X': coverage_15X_fmt
 };
