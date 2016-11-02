@@ -48,5 +48,5 @@ def lims_extract(endpoint, app):
     else:
         ret_dict[app.config['META']] = {'total': total_items}
     ret_dict[app.config['ITEMS']] = data
-    j = jsonify(loads(dumps(ret_dict)))  # cast ObjectIDs to dicts
+    j = jsonify(ret_dict)
     return j
