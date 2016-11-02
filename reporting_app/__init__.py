@@ -245,3 +245,18 @@ def plotting_report():
         api_url=rest_api().api_url('aggregate/run_elements', paginate=False),
         ajax_token = get_token()
     )
+
+@app.route('/project_status/')
+@flask_login.login_required
+def project_status_reports():
+    return render_template(
+        'untabbed_datatables.html',
+        'Project Status',
+        description='This table shows the number of sample in different categories based on the workflow they completed',
+        table=datatable_cfg(
+            'Project Status',
+            'project_status',
+            api_url=rest_api().api_url('lims/project_status')
+        )
+    )
+

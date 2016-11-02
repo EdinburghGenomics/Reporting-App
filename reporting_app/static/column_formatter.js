@@ -26,11 +26,19 @@ function string_formatter(data, fmt){
         formatted_data = Humanize.intComma(formatted_data);
     } else if (fmt['type'] == 'float') {
         formatted_data = Humanize.formatNumber(formatted_data, 2);
+    } else if (fmt['type'] == 'date') {
+        formatted_data = moment(new Date(formatted_data)).format('YYYY-MM-DD');
     }
 
     if (fmt['link']) {
+        if (fmt['link_format_function']){
+            formatted_link = function_map[fmt['link_format_function']](data, fmt);
+        }
+        else{
+            formatted_link = data;
+        }
         if (data instanceof Array && data.length > 1) {
-            formatted_data = '<div class="dropdown"><div class="dropbtn">' + data + '</div><div class="dropdown-content">';
+            formatted_data = '<div class="dropdown"><div class="dropbtn">' + formatted_link + '</div><div class="dropdown-content">';
             for (var i=0, tot=data.length; i < tot; i++){
                 formatted_data = formatted_data.concat('<a href=' + fmt['link'] + data[i] + '>' + data[i] + '</a>');
             }
@@ -67,6 +75,10 @@ function species_contamination_fmt(data, fmt){
     return best_species.join()
 }
 
+function count_entities_fmt(data, fmt){
+    return data.length;
+}
+
 function coverage_15X_fmt(data, fmt){
     if ("<bases_at_coverage>" in data && "<bases_at_15X>" in data['bases_at_coverage'] && "<genome_size>" in data ) {
         return data['bases_at_coverage']['bases_at_15X']/data['genome_size'];
@@ -75,5 +87,6 @@ function coverage_15X_fmt(data, fmt){
 
 var function_map = {
     'species_contamination': species_contamination_fmt,
+    'count_entities': count_entities_fmt,
     'coverage_15X': coverage_15X_fmt
 };

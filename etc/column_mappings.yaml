@@ -23,6 +23,14 @@ column_def:
     nb_samples_delivered:     { data: 'nb_samples_delivered',                 title: 'Samples Delivered' }
     nb_samples:               { data: 'nb_samples',                           title: 'Nb of Samples' }
     nb_samples_reviewed:      { data: 'nb_samples_reviewed',                  title: 'Samples Reviewed' }
+    nb_sample_submission:     { data: 'Sample Submission',                    title: 'Sample Submission' ,       fmt: {link_format_function: 'count_entities', link: '/sample/' } }
+    nb_sample_qc:             { data: 'Sample QC',                            title: 'Sample QC' ,               fmt: {link_format_function: 'count_entities', link: '/sample/' } }
+    nb_library_preparation:   { data: 'Library Preparation',                  title: 'Library Preparation' ,     fmt: {link_format_function: 'count_entities', link: '/sample/' } }
+    nb_library_qc:            { data: 'Library QC',                           title: 'Library QC' ,              fmt: {link_format_function: 'count_entities', link: '/sample/' } }
+    nb_sequencing:            { data: 'Sequencing',                           title: 'Sequencing' ,              fmt: {link_format_function: 'count_entities', link: '/sample/' } }
+    nb_bioinformatics:        { data: 'Bioinformatics',                       title: 'Bioinformatics' ,          fmt: {link_format_function: 'count_entities', link: '/sample/' } }
+    nb_delivery:              { data: 'Delivery',                             title: 'Delivery' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' } }
+    nb_finished:              { data: 'Finished',                             title: 'Finished' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' } }
     no_call_chip:             { data: 'genotype_validation.no_call_chip',     title: 'No-call (chip)' ,          visible: 'false'}
     no_call_seq:              { data: 'genotype_validation.no_call_seq',      title: 'No-call (seq)' ,           visible: 'false'}
     called_gender:            { data: 'called_gender',                        title: 'Called Gender' ,           visible: 'false'}
@@ -55,7 +63,8 @@ column_def:
     user_sample_id:           { data: 'user_sample_id',                       title: 'User sample ID' }
     yield_in_gb:              { data: 'yield_in_gb',                          title: 'Yield (Gb)',               fmt: { type: 'float',  min: 120 } }
     yield_q30_in_gb:          { data: 'yield_q30_in_gb',                      title: 'Yield Q30(Gb)',            fmt: { type: 'float',  min: 95 } }
-
+    reseacher:                { data: 'researcher_name',                      title: 'Researcher'   }
+    open_date:                { data: 'open_date',                            title: 'Open Since',               fmt: { type: 'date' } }
 
 runs:
     - run_id
@@ -77,6 +86,18 @@ projects:
     - nb_samples_delivered
     - _created
 
+project_status:
+    - project_id
+    - reseacher
+    - open_date
+    - nb_sample_submission
+    - nb_sample_qc
+    - nb_library_preparation
+    - nb_library_qc
+    - nb_sequencing
+    - nb_bioinformatics
+    - nb_delivery
+    - nb_finished
 
 demultiplexing:
     - barcode

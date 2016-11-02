@@ -4,6 +4,7 @@ from eve.auth import requires_auth
 import flask_cors
 import auth
 from config import rest_config as cfg
+from rest_api.limsdb import lims_extract
 from rest_api.aggregation import server_side
 from rest_api.aggregation.database_side import aggregate, queries
 
@@ -22,6 +23,12 @@ def _aggregate_endpoint(route):
     if app.config.get('URL_PREFIX') and app.config.get('API_VERSION'):
         return '/%s/%s/aggregate/%s' % (app.config['URL_PREFIX'], app.config['API_VERSION'], route)
     return '/aggregate/' + route  # Apache adds url prefix instead
+
+
+def _lims_endpoint(route):
+    if app.config.get('URL_PREFIX') and app.config.get('API_VERSION'):
+        return '/%s/%s/lims/%s' % (app.config['URL_PREFIX'], app.config['API_VERSION'], route)
+    return '/lims/' + route  # Apache adds url prefix instead
 
 
 @app.route(_aggregate_endpoint('run_elements_by_lane'))
@@ -70,4 +77,13 @@ def project_info():
         queries.project_info,
         app,
         post_processing=[server_side.post_processing.date_to_string('_created')]
+    )
+
+
+@app.route(_lims_endpoint('project_status'))
+@requires_auth('home')
+def lims_project_info():
+    return lims_extract(
+        'project_status',
+        app
     )
