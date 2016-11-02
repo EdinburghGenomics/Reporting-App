@@ -240,7 +240,7 @@ def report_sample(sample_id):
 @app.route('/charts')
 @flask_login.login_required
 def plotting_report():
-    return fl.render_template(
+    return render_template(
         'charts.html',
         api_url=rest_api().api_url('aggregate/run_elements', paginate=False),
         ajax_token = get_token()
