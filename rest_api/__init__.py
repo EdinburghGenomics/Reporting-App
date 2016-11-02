@@ -4,7 +4,7 @@ from eve.auth import requires_auth
 import flask_cors
 import auth
 from config import rest_config as cfg
-from limsdb import lims_extract
+from rest_api.limsdb import lims_extract
 from rest_api.aggregation import server_side
 from rest_api.aggregation.database_side import aggregate, queries
 

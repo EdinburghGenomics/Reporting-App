@@ -2,7 +2,7 @@ from collections import defaultdict, OrderedDict
 
 import genologics_sql.tables as t
 
-SAMPLE_SUB_STEPS = [set(['Receive Sample 4.0'])]
+SAMPLE_SUB_STEPS = [set(['Receive Sample 4.0']), set(['Receive Sample EG 6.1'])]
 SAMPLE_QC_STEPS = [set(['Eval Project Quant'])]
 LIBRARY_PREP_STEPS = [set(['Read and Eval SSQC'])]
 LIBRARY_QC_STEPS = [set(['Eval qPCR Quant'])]
@@ -88,8 +88,10 @@ class Sample():
             for steps_to_match in sample_statuses.get(status):
                 if steps_to_match.issubset(self.processes):
                     match = True
+                    break
             if match:
                 fs.append(status)
+
         return fs
 
     @property
