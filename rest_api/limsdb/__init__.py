@@ -1,41 +1,45 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
 from genologics_sql.tables import Base
-
-from json import loads
-from bson.json_util import dumps
 from flask import jsonify, request
 from eve.utils import parse_request
 from eve.methods.get import _pagination_links, _meta_links
 from config import rest_config as cfg
 from rest_api.limsdb.queries import sample_status_per_project
 
+_session = None
+
 
 def get_engine(echo=False):
-    """generates a SQLAlchemy engine for PostGres with the CONF currently used
-    :returns: the SQLAlchemy engine"""
-    uri="postgresql://{username}:{password}@{url}/{db}".format(**cfg.get('lims_database'))
+    """
+    Generate a SQLAlchemy engine for PostGres with the CONF currently used
+    :returns: the SQLAlchemy engine
+    """
+    uri = "postgresql://{username}:{password}@{url}/{db}".format(**cfg.get('lims_database'))
     return create_engine(uri, echo=echo)
 
+
 def get_session(echo=False):
-    """Generates a SQLAlchemy session based on the CONF
+    """
+    Generate a SQLAlchemy session based on the CONF
     :returns: the SQLAlchemy session
     """
-    engine=get_engine(echo=echo)
-    Base.metadata.bind = engine
-    DBSession = sessionmaker(bind=engine)
-    session = DBSession()
-    return session
+    global _session
+    if _session is None:
+        engine = get_engine(echo=echo)
+        Base.metadata.bind = engine
+        DBSession = sessionmaker(bind=engine)
+        _session = DBSession()
+    return _session
 
-session = get_session()
 
 function_mapping = {
-    'project_status' : sample_status_per_project
+    'project_status': sample_status_per_project
 }
 
+
 def lims_extract(endpoint, app):
-    data = function_mapping[endpoint](session)
+    data = function_mapping[endpoint](get_session())
     total_items = len(data)
     ret_dict = {}
     page_number = int(request.args.get(app.config['QUERY_PAGE'], '0'))
