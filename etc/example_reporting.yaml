@@ -40,3 +40,9 @@ rest_app:
         - filename: /path/to/rest_api.log
           when: 'midnight'
           level: DEBUG
+
+    lims_database:
+        username: 'user'
+        password: 'pw'
+        url: 'dbhost'
+        db: 'dbname'
