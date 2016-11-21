@@ -112,6 +112,7 @@ samples:
         contaminant_unique_mapped: {type: 'dict'}
     }
     }
+    contamination_blast: {            type: 'list',    required: False }
     sample_contamination: {     type: 'dict',    required: False, schema: {
         freemix: {type: 'float'},
         best_matching_samples: {type: 'dict'},
