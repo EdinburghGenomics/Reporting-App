@@ -1,5 +1,4 @@
 from collections import defaultdict, OrderedDict
-
 import genologics_sql.tables as t
 
 SAMPLE_SUB_STEPS = [set(['Receive Sample 4.0']), set(['Receive Sample EG 6.1'])]
@@ -24,14 +23,14 @@ sample_statuses = OrderedDict((
 def get_samples_and_processes(session, project_name=None, list_process=None, workstatus=None, only_open_project=True):
     """This method runs a query that return the sample name and the processeses they went through"""
     q = session.query(t.Project.name, t.Project.opendate, t.Researcher.firstname, t.Researcher.lastname,
-                      t.Sample.name, t.ProcessType.displayname, t.Process.workstatus)\
-           .distinct(t.Sample.name, t.Process.processid) \
-           .join(t.Sample.project) \
-           .join(t.Project.researcher) \
-           .join(t.Sample.artifacts)\
-           .join(t.Artifact.processiotrackers)\
-           .join(t.ProcessIOTracker.process)\
-           .join(t.Process.type)
+                      t.Sample.name, t.ProcessType.displayname, t.Process.workstatus) \
+        .distinct(t.Sample.name, t.Process.processid) \
+        .join(t.Sample.project) \
+        .join(t.Project.researcher) \
+        .join(t.Sample.artifacts) \
+        .join(t.Artifact.processiotrackers) \
+        .join(t.ProcessIOTracker.process) \
+        .join(t.Process.type)
     if list_process:
         q = q.filter(t.ProcessType.displayname.in_(list_process))
     if project_name:
@@ -39,8 +38,9 @@ def get_samples_and_processes(session, project_name=None, list_process=None, wor
     if workstatus:
         q = q.filter(t.Process.workstatus == workstatus)
     if only_open_project:
-        q = q.filter(t.Project.closedate == None)
+        q = q.filter(t.Project.closedate == None)  # this must be '==', not 'is'!
     return q.all()
+
 
 def non_QC_queues(session, project_name=None, sample_name=None, list_process=None):
     """
@@ -68,18 +68,16 @@ def non_QC_queues(session, project_name=None, sample_name=None, list_process=Non
         q = q.filter(t.Sample.name == sample_name)
     if list_process:
         q = q.filter(t.ProcessType.displayname.in_(list_process))
-    # StageTransition.workflowrunid is positive when the transition in not complete and negative when the transition is completed
+    # StageTransition.workflowrunid is positive when the transition is not complete and negative when the transition is completed
     q = q.filter(t.StageTransition.workflowrunid > 0)
     q = q.filter(t.StageTransition.completedbyid.is_(None))
     return q.all()
 
 
-
-class Sample():
+class Sample:
     def __init__(self):
         self.processes = set()
         self.unfinished_processes = set()
-
 
     def finished_steps(self):
         fs = []
@@ -103,7 +101,8 @@ class Sample():
         else:
             return all_steps[0]
 
-class Project():
+
+class Project:
     def __init__(self):
         self.samples = defaultdict(Sample)
         self.open_date = None
@@ -115,13 +114,14 @@ class Project():
             sample_per_status[self.samples[sample_name].next_step].append(sample_name)
         return sample_per_status
 
+
 def sample_status_per_project(session, project_name=None):
     all_projects = defaultdict(Project)
     for result in get_samples_and_processes(session, project_name, workstatus='COMPLETE'):
         project_name, open_date, firstname, lastname, sample_name, process_name, process_status = result
         all_projects[project_name].samples[sample_name].processes.add(process_name)
         all_projects[project_name].open_date = open_date.isoformat() + 'Z'
-        all_projects[project_name].researcher_name = '%s %s'%(firstname, lastname)
+        all_projects[project_name].researcher_name = '%s %s' % (firstname, lastname)
 
     res = []
     for project_name in all_projects:
@@ -133,6 +133,7 @@ def sample_status_per_project(session, project_name=None):
         project.update(all_projects[project_name].samples_per_status())
         res.append(project)
     return res
+
 
 def all_processes_per_project(session, project_name=None):
     all_projects = defaultdict(dict)
@@ -152,4 +153,4 @@ def all_processes_per_project(session, project_name=None):
         for process_name in all_processes:
             row.append(str(len(all_projects[project].get(process_name, []))))
         rows.append(row)
-    return {'title':'Processes', 'cols':columns, 'rows':rows}
+    return {'title': 'Processes', 'cols': columns, 'rows': rows}
