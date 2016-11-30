@@ -206,15 +206,14 @@ def report_project(project_id):
 @app.route('/sample/<sample_id>')
 @flask_login.login_required
 def report_sample(sample_id):
-    sample = rest_api().get_documents('samples', where={'sample_id': sample_id})[0]
+    sample = rest_api().get_document('samples', where={'sample_id': sample_id})
 
     return render_template(
         'sample_report.html',
         title=sample_id + ' Sample Report',
-        description='(From project %s)' % sample['project_id'],
         tables=[
             datatable_cfg(
-                'Sample report',
+                'Bioinformatics report for '+sample_id,
                 'samples',
                 rest_api().api_url('aggregate/samples', match={'sample_id': sample_id}),
                 paging=False,
@@ -222,7 +221,7 @@ def report_sample(sample_id):
                 info=False
             ),
             datatable_cfg(
-                'Run elements report',
+                'Run elements generated for '+ sample_id,
                 'sample_run_elements',
                 rest_api().api_url('aggregate/run_elements', match={'sample_id': sample_id}),
                 paging=False,
