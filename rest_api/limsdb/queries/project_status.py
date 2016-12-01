@@ -1,41 +1,12 @@
 import operator
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from datetime import datetime
 
 from egcg_core.clarity import sanitize_user_id
 from flask import request, json
 
 from rest_api.limsdb.queries import get_samples_and_processes, non_QC_queues, get_project_info
-
-
-SAMPLE_SUBMISSION = 'Sample Submission'
-SAMPLE_QC = 'Sample QC'
-LIBRARY_QUEUE = 'Library Queue'
-LIBRARY_PREP = 'Library Preparation'
-LIBRARY_QC = 'Library QC'
-SEQUENCING = 'Sequencing'
-BIOINFORMATICS = 'Bioinformatics'
-DELIVERY = 'Delivery'
-FINISHED = 'Finished'
-STATUS_ORDER = [SAMPLE_SUBMISSION, SAMPLE_QC, LIBRARY_QUEUE, LIBRARY_PREP, SEQUENCING, BIOINFORMATICS, DELIVERY, FINISHED]
-
-step_completed_to_status = {
-    'Receive Sample 4.0': SAMPLE_SUBMISSION,
-    'Receive Sample EG 6.1': SAMPLE_SUBMISSION,
-    'Eval Project Quant': SAMPLE_QC,
-    'Awaiting User Response EG 2.0': SAMPLE_QC,
-    'Sequencing Plate Preparation EG 2.0': LIBRARY_QUEUE,
-    'Sequencing Plate Preparation EG 1.0': LIBRARY_QUEUE,
-    'Eval qPCR Quant': LIBRARY_PREP,
-    'AUTOMATED - Sequence': SEQUENCING,
-    'bioinformatics': BIOINFORMATICS,
-    'Data Release EG 1.0': DELIVERY
-}
-
-step_queued = {
-    'Sequencing Plate Preparation EG 2.0': LIBRARY_QUEUE,
-    'AUTOMATED - Make CST': SEQUENCING
-}
+from config import project_status as status_cfg
 
 class Sample:
     def __init__(self):
@@ -53,18 +24,20 @@ class Sample:
     def status(self):
         self.processes.sort(key=operator.itemgetter(1), reverse=True)
         for process, date, type in self.processes:
-            if type == 'complete' and process in step_completed_to_status:
-                finished_status = step_completed_to_status.get(process)
-                return STATUS_ORDER[STATUS_ORDER.index(finished_status) + 1]
-            elif type == 'queued' and process in step_queued:
-                return  step_queued.get(process)
-        return STATUS_ORDER[0]
+            if type == 'complete' and process in status_cfg.step_completed_to_status:
+                finished_status = status_cfg.step_completed_to_status.get(process)
+                return status_cfg.status_order[status_cfg.status_order.index(finished_status) + 1]
+            elif type == 'queued' and process in status_cfg.step_queued_to_status:
+                return  status_cfg.step_queued_to_status.get(process)
+        return status_cfg.status_order[0]
 
     @property
     def status_date(self):
         self.processes.sort(key=operator.itemgetter(1), reverse=True)
         for process, date, type in self.processes:
-            if type == 'complete' and process in step_completed_to_status:
+            if type == 'complete' and process in status_cfg.step_completed_to_status:
+                return date
+            elif type == 'queued' and process in status_cfg.step_queued_to_status:
                 return date
         return datetime.now()
 
@@ -106,11 +79,12 @@ def sample_status_per_project(session):
         all_projects[pjct_name].researcher_name = '%s %s' % (firstname, lastname)
         all_projects[pjct_name].nb_quoted_samples = nb_quoted_samples
 
-    for result in get_samples_and_processes(session, project_name, workstatus='COMPLETE', list_process=step_completed_to_status):
+    for result in get_samples_and_processes(session, project_name, workstatus='COMPLETE',
+                                            list_process=status_cfg.step_completed_to_status):
         (pjct_name, sample_name, process_name, process_status, date_run) = result
         all_projects[pjct_name].samples[sanitize_user_id(sample_name)].add_completed_process(process_name, date_run)
 
-    for result in non_QC_queues(session, project_name, list_process=step_queued):
+    for result in non_QC_queues(session, project_name, list_process=status_cfg.step_queued_to_status):
         pjct_name, sample_name, process_name, queued_date = result
         all_projects[pjct_name].samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date)
 

@@ -29,6 +29,7 @@ column_def:
     nb_sample_qc:             { data: 'Sample QC',                            title: 'Sample QC' ,               fmt: {link_format_function: 'count_entities', link: '/sample/' } }
     nb_library_queue:         { data: 'Library Queue',                        title: 'Library Queue' ,           fmt: {link_format_function: 'count_entities', link: '/sample/' } }
     nb_library_preparation:   { data: 'Library Preparation',                  title: 'Library Preparation' ,     fmt: {link_format_function: 'count_entities', link: '/sample/' } }
+    nb_sequencing_queue:      { data: 'Sequencing Queue',                     title: 'Sequencing Queue' ,        fmt: {link_format_function: 'count_entities', link: '/sample/' } }
     nb_sequencing:            { data: 'Sequencing',                           title: 'Sequencing' ,              fmt: {link_format_function: 'count_entities', link: '/sample/' } }
     nb_bioinformatics:        { data: 'Bioinformatics',                       title: 'Bioinformatics' ,          fmt: {link_format_function: 'count_entities', link: '/sample/' } }
     nb_delivery:              { data: 'Delivery',                             title: 'Delivery' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' } }
@@ -97,6 +98,7 @@ project_status:
     - nb_sample_qc
     - nb_library_queue
     - nb_library_preparation
+    - nb_sequencing_queue
     - nb_sequencing
     - nb_bioinformatics
     - nb_delivery
