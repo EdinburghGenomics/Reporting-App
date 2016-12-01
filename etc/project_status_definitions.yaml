@@ -1,3 +1,5 @@
+# This section describe the name of the different statuses
+# Note that to add/remove columns to the project status table the entry needs to be added to the column_mappings.yaml
 status_names:
     SAMPLE_SUBMISSION: Sample Submission
     SAMPLE_QC: Sample QC
@@ -9,6 +11,8 @@ status_names:
     DELIVERY: Delivery
     FINISHED: Finished
 
+# This section describe the order of the different statuses
+# Note that the order of the columns in the project status table needs to be changed in column_mappings.yaml
 status_order:
     - SAMPLE_SUBMISSION
     - SAMPLE_QC
