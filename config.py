@@ -52,7 +52,6 @@ class ProjectStatusConfig(Configuration):
         )
 
 
-
 def _cfg_file(cfg_path):
     if cfg_path == cfg_path.upper():
         return os.getenv(cfg_path)

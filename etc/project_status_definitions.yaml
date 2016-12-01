@@ -3,7 +3,6 @@ status_names:
     SAMPLE_QC: Sample QC
     LIBRARY_QUEUE: Library Queue
     LIBRARY_PREP: Library Preparation
-    LIBRARY_QC: Library QC
     SEQUENCING_QUEUE: Sequencing Queue
     SEQUENCING: Sequencing
     BIOINFORMATICS: Bioinformatics
@@ -41,9 +40,9 @@ step_completed_to_status:
 # This section describe the LIMS steps that specify that the sample is queued in a status
 # ie: if the sample is queued 'Sequencing Plate Preparation EG 2.0' then it is in LIBRARY_QUEUE
 step_queued_to_status:
-    Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE,
-    Create PDP Pool: SEQUENCING_QUEUE,
-    Create Pooling CST Batch: SEQUENCING_QUEUE,
-    Create Production CST Batch: SEQUENCING_QUEUE,
+    Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
+    Create PDP Pool: SEQUENCING_QUEUE
+    Create Pooling CST Batch: SEQUENCING_QUEUE
+    Create Production CST Batch: SEQUENCING_QUEUE
     AUTOMATED - Make CST: SEQUENCING
 
