@@ -13,6 +13,7 @@ class Sample:
         self.completed_processes = []
         self.processes = []
         self.queue_location = {}
+        self._status_and_date = None
 
     def add_completed_process(self, process_name, completed_date):
         self.processes.append((process_name, completed_date, 'complete'))
@@ -20,27 +21,29 @@ class Sample:
     def add_queue_location(self, process_name, queued_date):
         self.processes.append((process_name, queued_date, 'queued'))
 
+    def _get_status_and_date(self):
+        if not self._status_and_date:
+            self.processes.sort(key=operator.itemgetter(1), reverse=True)
+            self._status_and_date = status_cfg.status_order[0], datetime.now()
+            for process, date, type in self.processes:
+                if type == 'complete' and process in status_cfg.step_completed_to_status:
+                    finished_status = status_cfg.step_completed_to_status.get(process)
+                    self._status_and_date = status_cfg.status_order[status_cfg.status_order.index(finished_status) + 1], date
+                    break
+                elif type == 'queued' and process in status_cfg.step_queued_to_status:
+                    self._status_and_date = status_cfg.step_queued_to_status.get(process), date
+                    break
+        return self._status_and_date
+
     @property
     def status(self):
-        self.processes.sort(key=operator.itemgetter(1), reverse=True)
-        for process, date, type in self.processes:
-            if type == 'complete' and process in status_cfg.step_completed_to_status:
-                finished_status = status_cfg.step_completed_to_status.get(process)
-                return status_cfg.status_order[status_cfg.status_order.index(finished_status) + 1]
-            elif type == 'queued' and process in status_cfg.step_queued_to_status:
-                return  status_cfg.step_queued_to_status.get(process)
-        return status_cfg.status_order[0]
+        status, date = self._get_status_and_date()
+        return status
 
     @property
     def status_date(self):
-        self.processes.sort(key=operator.itemgetter(1), reverse=True)
-        for process, date, type in self.processes:
-            if type == 'complete' and process in status_cfg.step_completed_to_status:
-                return date
-            elif type == 'queued' and process in status_cfg.step_queued_to_status:
-                return date
-        return datetime.now()
-
+        status, date = self._get_status_and_date()
+        return date
 
 class Project:
     def __init__(self):
@@ -61,10 +64,25 @@ class Project:
             'project_id': self.name,
             'open_date': self.open_date,
             'researcher_name': self.researcher_name,
-            'nb_quoted_samples': self.nb_quoted_samples
+            'nb_quoted_samples': self.nb_quoted_samples,
+            'finished_date': self.finished_date
         }
         ret.update(self.samples_per_status())
         return ret
+
+    @property
+    def finished_date(self):
+        finished_samples = [
+                (sample_name, self.samples[sample_name].status_date)
+                for sample_name in self.samples
+                if self.samples[sample_name].status == status_cfg.status_order[-1]
+            ]
+        if finished_samples and self.nb_quoted_samples and len(finished_samples) >= int(self.nb_quoted_samples):
+            finished_samples.sort(key=operator.itemgetter(1))
+            print(finished_samples)
+            s, d = finished_samples[-1]
+            return d.isoformat() + 'Z'
+        return None
 
 
 def sample_status_per_project(session):
