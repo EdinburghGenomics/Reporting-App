@@ -206,7 +206,6 @@ def report_project(project_id):
 @app.route('/sample/<sample_id>')
 @flask_login.login_required
 def report_sample(sample_id):
-    sample = rest_api().get_document('samples', where={'sample_id': sample_id})
 
     return render_template(
         'sample_report.html',
@@ -221,7 +220,7 @@ def report_sample(sample_id):
                 info=False
             ),
             datatable_cfg(
-                'Run elements generated for '+ sample_id,
+                'Run elements generated for ' + sample_id,
                 'sample_run_elements',
                 rest_api().api_url('aggregate/run_elements', match={'sample_id': sample_id}),
                 paging=False,
@@ -236,14 +235,16 @@ def report_sample(sample_id):
         )
     )
 
+
 @app.route('/charts')
 @flask_login.login_required
 def plotting_report():
     return render_template(
         'charts.html',
         api_url=rest_api().api_url('aggregate/run_elements', paginate=False),
-        ajax_token = get_token()
+        ajax_token=get_token()
     )
+
 
 @app.route('/project_status/')
 @flask_login.login_required
@@ -257,15 +258,19 @@ def project_status_reports():
         if status_idx + 1 < len(project_status_cfg.status_order):
             next_status = project_status_cfg.status_order[status_idx+1]
         steps = [step for step, st in project_status_cfg.step_completed_to_status.items() if st == status]
-        if steps: status_to_steps[next_status] = steps
+        if steps:
+            status_to_steps[next_status] = steps
     table = '<table class="table"><th>Status</th> <th>Completed Steps</th> <th>Queued in Steps</th>'
-    print(project_status_cfg.step_queued_to_status.items())
     for status in project_status_cfg.status_order:
         table += ''.join([
             '<tr>',
             '<th>' + status + '</th>',
             '<td>' + ', '.join(status_to_steps.get(status, [])) + '</td>',
-            '<td>' + ', '.join([step for step, st in project_status_cfg.step_queued_to_status.items() if st == status]) + '</td>',
+            '<td>' + ', '.join([
+                                    step for step, st
+                                    in project_status_cfg.step_queued_to_status.items()
+                                    if st == status
+                                ]) + '</td>',
             '</tr>'
         ])
     table += '</table>'
@@ -284,4 +289,3 @@ they're queued. the steps involved are described bellow.''' + table + '</div>'
             api_url=rest_api().api_url('lims/project_status')
         )
     )
-
