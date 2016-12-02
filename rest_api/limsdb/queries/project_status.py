@@ -98,7 +98,13 @@ class Project:
     @property
     def started_date(self):
         if self.samples:
-            return sorted([self.samples.get(sample_name).started_date for sample_name in self.samples])[0]
+            dates = sorted([
+                              self.samples.get(sample_name).started_date
+                              for sample_name in self.samples
+                              if self.samples.get(sample_name).started_date
+                           ])
+            if dates:
+                return dates[0]
         return None
 
 
