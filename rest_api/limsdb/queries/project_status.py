@@ -8,6 +8,7 @@ from flask import request, json
 from rest_api.limsdb.queries import get_samples_and_processes, non_QC_queues, get_project_info
 from config import project_status as status_cfg
 
+
 class Sample:
     def __init__(self):
         self.completed_processes = []
@@ -25,12 +26,12 @@ class Sample:
         if not self._status_and_date:
             self.processes.sort(key=operator.itemgetter(1), reverse=True)
             self._status_and_date = status_cfg.status_order[0], datetime.now()
-            for process, date, type in self.processes:
-                if type == 'complete' and process in status_cfg.step_completed_to_status:
+            for process, date, process_type in self.processes:
+                if process_type == 'complete' and process in status_cfg.step_completed_to_status:
                     finished_status = status_cfg.step_completed_to_status.get(process)
                     self._status_and_date = status_cfg.status_order[status_cfg.status_order.index(finished_status) + 1], date
                     break
-                elif type == 'queued' and process in status_cfg.step_queued_to_status:
+                elif process_type == 'queued' and process in status_cfg.step_queued_to_status:
                     self._status_and_date = status_cfg.step_queued_to_status.get(process), date
                     break
         return self._status_and_date
@@ -44,6 +45,16 @@ class Sample:
     def status_date(self):
         status, date = self._get_status_and_date()
         return date
+
+    @property
+    def started_date(self):
+        self.processes.sort(key=operator.itemgetter(1), reverse=True)
+        for p in reversed(self.processes):
+            process, date, type = p
+            if type == 'complete':
+                return date
+
+
 
 class Project:
     def __init__(self):
@@ -65,7 +76,8 @@ class Project:
             'open_date': self.open_date,
             'researcher_name': self.researcher_name,
             'nb_quoted_samples': self.nb_quoted_samples,
-            'finished_date': self.finished_date
+            'finished_date': self.finished_date,
+            'started_date': self.started_date
         }
         ret.update(self.samples_per_status())
         return ret
@@ -79,17 +91,22 @@ class Project:
             ]
         if finished_samples and self.nb_quoted_samples and len(finished_samples) >= int(self.nb_quoted_samples):
             finished_samples.sort(key=operator.itemgetter(1))
-            print(finished_samples)
             s, d = finished_samples[-1]
             return d.isoformat() + 'Z'
         return None
+
+    @property
+    def started_date(self):
+        if self.samples:
+            return sorted([self.samples.get(sample_name).started_date for sample_name in self.samples])[0]
+        return None
+
 
 
 def sample_status_per_project(session):
     match = json.loads(request.args.get('match', '{}'))
     project_name = match.get('project_name')
     all_projects = defaultdict(Project)
-
     for project_info in get_project_info(session, project_name, udfs=['Number of Quoted Samples']):
         pjct_name, open_date, firstname, lastname, udf_name , nb_quoted_samples = project_info
         all_projects[pjct_name].name = pjct_name
@@ -111,9 +128,8 @@ def sample_status_per_project(session):
 def sample_info(session):
     #match = json.loads(request.args.get('match', '{}'))
     #sample_id = match.get('sample_id')
-    sample_id = 'X16129P001D01'
+    sample_id = ''
     all_projects = defaultdict(Project)
-
     for result in  get_samples_and_processes(session, sample_name=sample_id):
         project_name, open_date, firstname, lastname, sample_name, process_name, process_status, date_run = result
         all_projects[project_name].samples[sanitize_user_id(sample_name)].processes[process_name] = date_run

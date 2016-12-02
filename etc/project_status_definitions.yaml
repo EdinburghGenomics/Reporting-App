@@ -40,10 +40,12 @@ step_completed_to_status:
     AUTOMATED - Sequence: SEQUENCING
     bioinformatics: BIOINFORMATICS
     Data Release EG 1.0: DELIVERY
+    Finance - Invoice To Be Sent: DELIVERY
 
 # This section describe the LIMS steps that specify that the sample is queued in a status
 # ie: if the sample is queued 'Sequencing Plate Preparation EG 2.0' then it is in LIBRARY_QUEUE
 step_queued_to_status:
+    Receive Sample EG 6.1: SAMPLE_SUBMISSION
     Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
     Create PDP Pool: SEQUENCING_QUEUE
     Create Pooling CST Batch: SEQUENCING_QUEUE

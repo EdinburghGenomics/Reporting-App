@@ -277,8 +277,8 @@ def project_status_reports():
 
     collapse_description = '''<button data-toggle="collapse" data-target="#description">Description</button>
 <div id="description" class="collapse">
-The project status table shows the number sample in each project based on the qorkflow they completed and the step
-they're queued. the steps involved are described bellow.''' + table + '</div>'
+The project status table shows the number sample in each project based on the workflow they completed and the step
+they're queued. the steps involved are described below.''' + table + '</div>'
     return render_template(
         'untabbed_datatables.html',
         'Project Status',

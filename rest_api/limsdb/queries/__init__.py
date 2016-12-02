@@ -46,7 +46,7 @@ def get_project(session, project_name=None, only_open_project=True, udfs=None):
 def get_samples_and_processes(session, project_name=None, sample_name=None, list_process=None, workstatus=None, only_open_project=True):
     """This method runs a query that return the sample name and the processeses they went through"""
     q = session.query(t.Project.name, t.Sample.name, t.ProcessType.displayname,
-                      t.Process.workstatus, t.Process.daterun) \
+                      t.Process.workstatus, t.Process.createddate) \
         .distinct(t.Sample.name, t.Process.processid) \
         .join(t.Sample.project) \
         .join(t.Sample.artifacts) \
