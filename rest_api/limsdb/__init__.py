@@ -5,7 +5,7 @@ from flask import jsonify, request
 from eve.utils import parse_request
 from eve.methods.get import _pagination_links, _meta_links
 from config import rest_config as cfg
-from rest_api.limsdb.queries import sample_status_per_project
+from rest_api.limsdb.queries.project_status import sample_status_per_project, sample_info
 
 _session = None
 

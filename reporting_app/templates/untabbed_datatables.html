@@ -7,8 +7,11 @@
 {% endblock %}
 
 {% block content %}
-
-{{ description }}
+{% if description_html %}
+    {{ description_html|safe }}
+{% else %}
+    {{ description }}
+{% endif %}
 
 {% if tables %}
     {% for table in tables %}

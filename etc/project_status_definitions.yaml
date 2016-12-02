@@ -1,0 +1,54 @@
+# This section describe the name of the different statuses
+# Note that to add/remove columns to the project status table the entry needs to be added to the column_mappings.yaml
+status_names:
+    SAMPLE_SUBMISSION: Sample Submission
+    SAMPLE_QC: Sample QC
+    LIBRARY_QUEUE: Library Queue
+    LIBRARY_PREP: Library Preparation
+    SEQUENCING_QUEUE: Sequencing Queue
+    SEQUENCING: Sequencing
+    BIOINFORMATICS: Bioinformatics
+    DELIVERY: Delivery
+    FINISHED: Finished
+
+# This section describe the order of the different statuses
+# Note that the order of the columns in the project status table needs to be changed in column_mappings.yaml
+status_order:
+    - SAMPLE_SUBMISSION
+    - SAMPLE_QC
+    - LIBRARY_QUEUE
+    - LIBRARY_PREP
+    - SEQUENCING_QUEUE
+    - SEQUENCING
+    - BIOINFORMATICS
+    - DELIVERY
+    - FINISHED
+
+# This section describe the LIMS steps that specify the exit from a status.
+# ie: if the sample finished 'Receive Sample EG 6.1' then it completed SAMPLE_SUBMISSION
+#     and will be move to the next one.
+step_completed_to_status:
+    Receive Sample 4.0: SAMPLE_SUBMISSION
+    Receive Sample EG 6.1: SAMPLE_SUBMISSION
+    Eval Project Quant: SAMPLE_QC
+    Awaiting User Response EG 2.0: SAMPLE_QC
+    Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
+    Sequencing Plate Preparation EG 1.0: LIBRARY_QUEUE
+    Eval qPCR Quant: LIBRARY_PREP
+    Create Pooling CST Batch: SEQUENCING_QUEUE
+    Create Production CST Batch: SEQUENCING_QUEUE
+    AUTOMATED - Sequence: SEQUENCING
+    bioinformatics: BIOINFORMATICS
+    Data Release EG 1.0: DELIVERY
+    Finance - Invoice To Be Sent: DELIVERY
+
+# This section describe the LIMS steps that specify that the sample is queued in a status
+# ie: if the sample is queued 'Sequencing Plate Preparation EG 2.0' then it is in LIBRARY_QUEUE
+step_queued_to_status:
+    Receive Sample EG 6.1: SAMPLE_SUBMISSION
+    Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
+    Create PDP Pool: SEQUENCING_QUEUE
+    Create Pooling CST Batch: SEQUENCING_QUEUE
+    Create Production CST Batch: SEQUENCING_QUEUE
+    AUTOMATED - Make CST: SEQUENCING
+

@@ -206,15 +206,13 @@ def report_project(project_id):
 @app.route('/sample/<sample_id>')
 @flask_login.login_required
 def report_sample(sample_id):
-    sample = rest_api().get_documents('samples', where={'sample_id': sample_id})[0]
 
     return render_template(
         'sample_report.html',
         title=sample_id + ' Sample Report',
-        description='(From project %s)' % sample['project_id'],
         tables=[
             datatable_cfg(
-                'Sample report',
+                'Bioinformatics report for '+sample_id,
                 'samples',
                 rest_api().api_url('aggregate/samples', match={'sample_id': sample_id}),
                 paging=False,
@@ -222,7 +220,7 @@ def report_sample(sample_id):
                 info=False
             ),
             datatable_cfg(
-                'Run elements report',
+                'Run elements generated for ' + sample_id,
                 'sample_run_elements',
                 rest_api().api_url('aggregate/run_elements', match={'sample_id': sample_id}),
                 paging=False,
@@ -237,26 +235,57 @@ def report_sample(sample_id):
         )
     )
 
+
 @app.route('/charts')
 @flask_login.login_required
 def plotting_report():
     return render_template(
         'charts.html',
         api_url=rest_api().api_url('aggregate/run_elements', paginate=False),
-        ajax_token = get_token()
+        ajax_token=get_token()
     )
+
 
 @app.route('/project_status/')
 @flask_login.login_required
 def project_status_reports():
+    # FIXME: Remove this ugly html generation when the page status becomes more stable
+    from config import project_status as project_status_cfg
+    status_to_steps = {}
+    for status_idx in range(len(project_status_cfg.status_order)):
+        status = project_status_cfg.status_order[status_idx]
+        next_status = None
+        if status_idx + 1 < len(project_status_cfg.status_order):
+            next_status = project_status_cfg.status_order[status_idx+1]
+        steps = [step for step, st in project_status_cfg.step_completed_to_status.items() if st == status]
+        if steps:
+            status_to_steps[next_status] = steps
+    table = '<table class="table"><th>Status</th> <th>Completed Steps</th> <th>Queued in Steps</th>'
+    for status in project_status_cfg.status_order:
+        table += ''.join([
+            '<tr>',
+            '<th>' + status + '</th>',
+            '<td>' + ', '.join(status_to_steps.get(status, [])) + '</td>',
+            '<td>' + ', '.join([
+                                    step for step, st
+                                    in project_status_cfg.step_queued_to_status.items()
+                                    if st == status
+                                ]) + '</td>',
+            '</tr>'
+        ])
+    table += '</table>'
+
+    collapse_description = '''<button data-toggle="collapse" data-target="#description">Description</button>
+<div id="description" class="collapse">
+The project status table shows the number sample in each project based on the workflow they completed and the step
+they're queued. the steps involved are described below.''' + table + '</div>'
     return render_template(
         'untabbed_datatables.html',
         'Project Status',
-        description='This table shows the number of sample in different categories based on the workflow they completed',
+        description_html=collapse_description,
         table=datatable_cfg(
             'Project Status',
             'project_status',
             api_url=rest_api().api_url('lims/project_status')
         )
     )
-

@@ -38,6 +38,19 @@ class ColumnMappingConfig(Configuration):
                         # leave the definition as it is
                         pass
 
+class ProjectStatusConfig(Configuration):
+    def __init__(self, *cfg_search_path):
+        super().__init__(*cfg_search_path)
+
+        self.status_names = self.content.get('status_names')
+        self.status_order = [self.status_names.get(x) for x in self.content['status_order']]
+        self.step_completed_to_status = dict(
+            [(k, self.status_names.get(v)) for k, v  in self.content['step_completed_to_status'].items()]
+        )
+        self.step_queued_to_status = dict(
+            [(k, self.status_names.get(v)) for k, v in self.content['step_queued_to_status'].items()]
+        )
+
 
 def _cfg_file(cfg_path):
     if cfg_path == cfg_path.upper():
@@ -62,3 +75,4 @@ rest_config = SplitConfiguration(
 )
 schema = Configuration(_cfg_file('schema.yaml'))
 col_mappings = ColumnMappingConfig(_cfg_file('column_mappings.yaml'))
+project_status = ProjectStatusConfig(_cfg_file('project_status_definitions.yaml'))
