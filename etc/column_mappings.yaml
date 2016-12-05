@@ -19,7 +19,7 @@ column_def:
     matching_snps:            { data: 'genotype_validation.matching_snps',    title: 'Matching snps' ,           visible: 'false'}
     median_coverage:          { data: 'median_coverage',                      title: 'Median coverage',          fmt: { type: 'float', min: 30 } }
     coverage_15X:             { data: 'coverage',                             title: '% covered 15X',            fmt: { name: 'coverage_15X', type: 'percentage', min: 85 } }
-    evenness:                 { data: 'coverage.evenness',                    title: '% Evenness',               fmt: { type: 'percentage', min: 80 } }
+    evenness:                 { data: 'coverage.evenness',                    title: '% Evenness',               fmt: { type: 'ratio_percentage', min: .8 } }
     mismatching_snps:         { data: 'genotype_validation.mismatching_snps', title: 'Mismatching snps' ,           visible: 'false'}
     nb_quoted_samples:        { data: 'nb_quoted_samples',                    title: 'Quoted Samples' }
     nb_samples_delivered:     { data: 'nb_samples_delivered',                 title: 'Samples Delivered' }

@@ -22,6 +22,8 @@ function string_formatter(data, fmt){
 
     if (fmt['type'] == 'percentage') {
         formatted_data = Humanize.toFixed(formatted_data, 1) + '%';
+    }if (fmt['type'] == 'ratio_percentage') {
+        formatted_data = Humanize.toFixed(formatted_data * 100, 1) + '%';
     } else if (fmt['type'] == 'int') {
         formatted_data = Humanize.intComma(formatted_data);
     } else if (fmt['type'] == 'float') {
