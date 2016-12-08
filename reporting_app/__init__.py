@@ -195,11 +195,29 @@ def report_project(project_id):
     return render_template(
         'untabbed_datatables.html',
         project_id + ' Project Report',
-        table=datatable_cfg(
-            'Project report for ' + project_id,
-            'samples',
-            rest_api().api_url('aggregate/samples', match={'project_id': project_id})
-        )
+        tables=[
+            datatable_cfg(
+                'Project Status for ' + project_id,
+                'project_status',
+                api_url=rest_api().api_url('lims/status/project_status', match={'project_id': project_id}),
+                paging=False,
+                searching=False,
+                info=False
+            ),
+            datatable_cfg(
+                'Plate Status for ' + project_id,
+                'plate_status',
+                api_url=rest_api().api_url('lims/status/plate_status', match={'project_id': project_id}),
+                paging=False,
+                searching = False,
+                info = False
+            ),
+            datatable_cfg(
+                'Bioinformatics report for ' + project_id,
+                'samples',
+                rest_api().api_url('aggregate/samples', match={'project_id': project_id})
+            )
+        ]
     )
 
 
@@ -286,6 +304,7 @@ they're queued. the steps involved are described below.''' + table + '</div>'
         table=datatable_cfg(
             'Project Status',
             'project_status',
-            api_url=rest_api().api_url('lims/project_status')
+            api_url=rest_api().api_url('lims/status/project_status'),
+            fixed_header=True
         )
     )

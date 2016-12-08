@@ -8,9 +8,10 @@ $(document).ready(
         var searching = {{'true' if dt_config.searching|default(true) else 'false' }};
         var info = {{'true' if dt_config.info|default(true) else 'false' }};
         var default_sort_col = {{ dt_config.default_sort_col|safe }};
-
+        var fixed_header = {{'true' if dt_config.fixed_header|default(false) else 'false' }};
         var table = $('#{{dt_config.name}}').DataTable(
             {
+                'fixedHeader': fixed_header,
                 'paging': paging,
                 'searching': searching,
                 'info': info,
@@ -37,7 +38,8 @@ $(document).ready(
                             'orderable': !c.orderable || String(c.orderable).toLowerCase() == 'true',
                             'visible': !c.visible || String(c.visible).toLowerCase() == 'true',
                             'defaultContent': '',
-                            'width': c.width || '10%'
+                            'width': c.width || '10%',
+                            'className': c.className
                         };
                     }
                 ),

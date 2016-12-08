@@ -39,7 +39,7 @@ function string_formatter(data, fmt){
         else{
             formatted_link = data;
         }
-        if (data instanceof Array && data.length > 1) {
+        if (data instanceof Array && data.length > 1 || data != formatted_link) {
             formatted_data = '<div class="dropdown"><div class="dropbtn">' + formatted_link + '</div><div class="dropdown-content">';
             for (var i=0, tot=data.length; i < tot; i++){
                 formatted_data = formatted_data.concat('<a href=' + fmt['link'] + data[i] + '>' + data[i] + '</a>');
@@ -62,6 +62,7 @@ function string_formatter(data, fmt){
     formatted_data = '<div class="dt_cell">' + formatted_data + '</div>';
     return formatted_data;
 }
+
 
 function merge_column(data, row){
     return data + '-' + row[1]

@@ -1,3 +1,5 @@
+# Datatables column definition:
+# This entrie define specific columns used in datatables in the reporting app
 column_def:
     bam_file_reads:           { data: 'bam_file_reads',                       title: 'Initial reads in bam',     fmt: { type: 'int',   min: 1500 } }
     barcode:                  { data: 'barcode',                              title: 'Barcode' }
@@ -21,19 +23,21 @@ column_def:
     coverage_15X:             { data: 'coverage',                             title: '% covered 15X',            fmt: { name: 'coverage_15X', type: 'percentage', min: 85 } }
     evenness:                 { data: 'coverage.evenness',                    title: '% Evenness',               fmt: { type: 'ratio_percentage', min: .8 } }
     mismatching_snps:         { data: 'genotype_validation.mismatching_snps', title: 'Mismatching snps' ,           visible: 'false'}
-    nb_quoted_samples:        { data: 'nb_quoted_samples',                    title: 'Quoted Samples' }
+    nb_quoted_samples:        { data: 'nb_quoted_samples',                    title: 'Quoted Samples' , className: 'text-center' }
     nb_samples_delivered:     { data: 'nb_samples_delivered',                 title: 'Samples Delivered' }
     nb_samples:               { data: 'nb_samples',                           title: 'Nb of Samples' }
     nb_samples_reviewed:      { data: 'nb_samples_reviewed',                  title: 'Samples Reviewed' }
-    nb_sample_submission:     { data: 'Sample Submission',                    title: 'Sample Submission' ,       fmt: {link_format_function: 'count_entities', link: '/sample/' } }
-    nb_sample_qc:             { data: 'Sample QC',                            title: 'Sample QC' ,               fmt: {link_format_function: 'count_entities', link: '/sample/' } }
-    nb_library_queue:         { data: 'Library Queue',                        title: 'Library Queue' ,           fmt: {link_format_function: 'count_entities', link: '/sample/' } }
-    nb_library_preparation:   { data: 'Library Preparation',                  title: 'Library Preparation' ,     fmt: {link_format_function: 'count_entities', link: '/sample/' } }
-    nb_sequencing_queue:      { data: 'Sequencing Queue',                     title: 'Sequencing Queue' ,        fmt: {link_format_function: 'count_entities', link: '/sample/' } }
-    nb_sequencing:            { data: 'Sequencing',                           title: 'Sequencing' ,              fmt: {link_format_function: 'count_entities', link: '/sample/' } }
-    nb_bioinformatics:        { data: 'Bioinformatics',                       title: 'Bioinformatics' ,          fmt: {link_format_function: 'count_entities', link: '/sample/' } }
-    nb_delivery:              { data: 'Delivery',                             title: 'Delivery' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' } }
-    nb_finished:              { data: 'Finished',                             title: 'Finished' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' } }
+    nb_sample_submission:     { data: 'sample_submission',                    title: 'Sample Submission' ,       fmt: {link_format_function: 'count_entities', link: '/sample/' }, className: 'text-center' }
+    nb_sample_qc:             { data: 'sample_qc',                            title: 'Sample QC' ,               fmt: {link_format_function: 'count_entities', link: '/sample/' }, className: 'text-center' }
+    nb_library_queue:         { data: 'library_queue',                        title: 'Library Queue' ,           fmt: {link_format_function: 'count_entities', link: '/sample/' }, className: 'text-center' }
+    nb_library_preparation:   { data: 'library_preparation',                  title: 'Library Preparation' ,     fmt: {link_format_function: 'count_entities', link: '/sample/' }, className: 'text-center' }
+    nb_sequencing_queue:      { data: 'sequencing_queue',                     title: 'Sequencing Queue' ,        fmt: {link_format_function: 'count_entities', link: '/sample/' }, className: 'text-center' }
+    nb_sequencing:            { data: 'sequencing',                           title: 'Sequencing' ,              fmt: {link_format_function: 'count_entities', link: '/sample/' }, className: 'text-center' }
+    nb_bioinformatics:        { data: 'bioinformatics',                       title: 'Bioinformatics' ,          fmt: {link_format_function: 'count_entities', link: '/sample/' }, className: 'text-center' }
+    nb_delivery:              { data: 'delivery',                             title: 'Delivery' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, className: 'text-center' }
+    nb_finished:              { data: 'finished',                             title: 'Finished' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, className: 'text-center' }
+    nb_genotyped:             { data: 'genotyped',                            title: 'Genotyped' ,               fmt: {link_format_function: 'count_entities', link: '/sample/' }, className: 'text-center', visible: 'false' }
+    nb_invoiced:              { data: 'invoiced',                             title: 'Invoiced' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, className: 'text-center', visible: 'false' }
     no_call_chip:             { data: 'genotype_validation.no_call_chip',     title: 'No-call (chip)' ,          visible: 'false'}
     no_call_seq:              { data: 'genotype_validation.no_call_seq',      title: 'No-call (seq)' ,           visible: 'false'}
     called_gender:            { data: 'called_gender',                        title: 'Called Gender' ,           visible: 'false'}
@@ -52,6 +56,7 @@ column_def:
     proc_status:              { data: 'proc_status',                          title: 'Status' }
     project_id:               { data: 'project_id',                           title: 'Project ID',               fmt: { link: '/projects/' }  }
     project_ids:              { data: 'project_ids',                          title: 'Projects',                 fmt: { link: '/projects/' } }
+    plate_id:                 { data: 'plate_id',                             title: 'Plate'                     }
     properly_mapped_reads:    { data: 'properly_mapped_reads',                title: '# properly mapped reads',  visible: 'false' ,  fmt: { type: 'int',   min: 1500 } }
     reviewed:                 { data: 'reviewed',                             title: 'Review status' }
     review_statuses:          { data: 'review_statuses',                      title: 'Review' }
@@ -71,6 +76,9 @@ column_def:
     finished_date:            { data: 'finished_date',                        title: 'Date finished',            visible: 'false', fmt: { type: 'date' } }
     started_date:             { data: 'started_date',                         title: 'Date started',             visible: 'false', fmt: { type: 'date' } }
 
+# Datatables tables definition
+# the remaining top level entries each define a table with a list of column
+# each column can be customised by entering a dict with a key called 'column_def' instead of the columns name
 runs:
     - run_id
     - project_ids
@@ -93,11 +101,28 @@ projects:
 
 project_status:
     - project_id
-    - nb_quoted_samples
     - reseacher
+    - nb_quoted_samples
+    - nb_invoiced
+    - nb_genotyped
     - open_date
     - started_date
     - finished_date
+    - nb_sample_submission
+    - nb_sample_qc
+    - nb_library_queue
+    - nb_library_preparation
+    - nb_sequencing_queue
+    - nb_sequencing
+    - nb_bioinformatics
+    - nb_delivery
+    - nb_finished
+
+plate_status:
+    - project_id
+    - plate_id
+    - nb_invoiced
+    - nb_genotyped
     - nb_sample_submission
     - nb_sample_qc
     - nb_library_queue

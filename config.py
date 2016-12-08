@@ -44,12 +44,12 @@ class ProjectStatusConfig(Configuration):
 
         self.status_names = self.content.get('status_names')
         self.status_order = [self.status_names.get(x) for x in self.content['status_order']]
-        self.step_completed_to_status = dict(
-            [(k, self.status_names.get(v)) for k, v  in self.content['step_completed_to_status'].items()]
-        )
-        self.step_queued_to_status = dict(
-            [(k, self.status_names.get(v)) for k, v in self.content['step_queued_to_status'].items()]
-        )
+        for section in ['step_completed_to_status', 'step_queued_to_status', 'additional_step_completed']:
+            transformed_section = dict(
+                [(k, self.status_names.get(v)) for k, v in self.content[section].items()]
+            )
+            setattr(self, section, transformed_section)
+
 
 
 def _cfg_file(cfg_path):

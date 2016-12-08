@@ -5,7 +5,7 @@ from flask import jsonify, request
 from eve.utils import parse_request
 from eve.methods.get import _pagination_links, _meta_links
 from config import rest_config as cfg
-from rest_api.limsdb.queries.project_status import sample_status_per_project, sample_info
+from rest_api.limsdb.queries.project_status import sample_status_per_project, sample_status_per_plate
 
 _session = None
 
@@ -34,7 +34,8 @@ def get_session(echo=False):
 
 
 function_mapping = {
-    'project_status': sample_status_per_project
+    'project_status': sample_status_per_project,
+    'plate_status': sample_status_per_plate
 }
 
 

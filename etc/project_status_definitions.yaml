@@ -1,17 +1,19 @@
 # This section describe the name of the different statuses
 # Note that to add/remove columns to the project status table the entry needs to be added to the column_mappings.yaml
 status_names:
-    SAMPLE_SUBMISSION: Sample Submission
-    SAMPLE_QC: Sample QC
-    LIBRARY_QUEUE: Library Queue
-    LIBRARY_PREP: Library Preparation
-    SEQUENCING_QUEUE: Sequencing Queue
-    SEQUENCING: Sequencing
-    BIOINFORMATICS: Bioinformatics
-    DELIVERY: Delivery
-    FINISHED: Finished
+    SAMPLE_SUBMISSION: sample_submission
+    SAMPLE_QC: sample_qc
+    LIBRARY_QUEUE: library_queue
+    LIBRARY_PREP: library_preparation
+    SEQUENCING_QUEUE: sequencing_queue
+    SEQUENCING: sequencing
+    BIOINFORMATICS: bioinformatics
+    DELIVERY: delivery
+    FINISHED: finished
+    GENOTYPING: genotyped
+    INVOICED: invoiced
 
-# This section describe the order of the different statuses
+# This section describe the order in which sample travel through the different status.
 # Note that the order of the columns in the project status table needs to be changed in column_mappings.yaml
 status_order:
     - SAMPLE_SUBMISSION
@@ -51,4 +53,13 @@ step_queued_to_status:
     Create Pooling CST Batch: SEQUENCING_QUEUE
     Create Production CST Batch: SEQUENCING_QUEUE
     AUTOMATED - Make CST: SEQUENCING
+    AUTOMATED - Make Pooled CST: SEQUENCING
+
+
+additional_step_completed:
+    QuantStudio Data Import EG 1.0: GENOTYPING
+    Genotyping Data Received EG 1.0: GENOTYPING
+    Finance - Invoice Processed: INVOICED
+
+
 

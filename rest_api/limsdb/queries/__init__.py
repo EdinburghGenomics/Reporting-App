@@ -42,6 +42,18 @@ def get_project(session, project_name=None, only_open_project=True, udfs=None):
         q = q.filter(or_(t.EntityUdfView.udfname.in_(udfs), t.EntityUdfView.udfname == None))
     return q.all()
 
+def get_sample_container_placement(session, project_name=None, sample_name=None, only_open_project=True):
+    """This method runs a query that return samples and its associated original container"""
+    q = session.query(t.Project.name, t.Sample.name, t.Container.name,
+                      t.ContainerPlacement.wellxposition, t.ContainerPlacement.wellyposition) \
+        .distinct(t.Sample.name) \
+        .join(t.Sample.project) \
+        .join(t.Sample.artifacts) \
+        .join(t.Artifact.containerplacement) \
+        .join(t.ContainerPlacement.container)
+    q = q.filter(t.Artifact.isoriginal)
+    q = add_filters(q, project_name=project_name, sample_name=sample_name, only_open_project=only_open_project)
+    return q.all()
 
 def get_samples_and_processes(session, project_name=None, sample_name=None, list_process=None, workstatus=None, only_open_project=True):
     """This method runs a query that return the sample name and the processeses they went through"""
@@ -90,5 +102,5 @@ def non_QC_queues(session, project_name=None, sample_name=None, list_process=Non
 if __name__ == "__main__":
     from rest_api.limsdb import get_session
     session = get_session()
-    res = get_project_info(session, udfs=['Number of Quoted Samples'])
+    res = get_sample_container_placement(session, sample_name='X16137P001E01')
     print('\n'.join([str(r) for r in res]))
