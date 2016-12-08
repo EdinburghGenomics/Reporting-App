@@ -20,4 +20,4 @@ class SampleTest(TestCase):
         pass
 
     def test_status(self):
-        assert self.sample.status == 'Sample QC'
+        assert self.sample.status == 'sample_qc'
