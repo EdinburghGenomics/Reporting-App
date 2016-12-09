@@ -39,11 +39,12 @@ $(document).ready(
                             'visible': !c.visible || String(c.visible).toLowerCase() == 'true',
                             'defaultContent': '',
                             'width': c.width || '10%',
-                            'className': c.className
+                            'className': c.class_name
                         };
                     }
                 ),
-                'order': [default_sort_col]
+                'order': [default_sort_col],
+                "footerCallback": {{ dt_config.table_foot if dt_config.table_foot else 'null'}}
             }
         );
 
@@ -56,4 +57,38 @@ $(document).ready(
     }
 );
 
+function count_column( row, data, start, end, display ) {
+    var api = this.api();
+    // Total over current page
+    api.columns('.sum', { page: 'current' }).every(function () {
+        console.log(this);
+        var sum = this
+                .cells( null, this.index(), { page: 'current'} )
+                .data()
+                .reduce(function (a, b) {
+                    if (b.constructor === Array){
+                        return a + b.length;
+                    }else if (!isNaN(parseFloat(b)) && isFinite(b)){
+                        return a + parseFloat(b);
+                    }else if (b === ''){
+                        return a;
+                    }else{
+                        return Number.NaN;
+                    }
+                }, 0);
+         console.log(sum);
+        // Update footer
+        if (isNaN(sum) ){
+            $(this.footer()).html( '' );
+        }else{
+            $(this.footer()).html( sum );
+        }
+    });
+
+}
+
+
 {% endmacro %}
+
+
+

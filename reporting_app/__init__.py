@@ -216,7 +216,8 @@ def report_project(project_id):
                 api_url=rest_api().api_url('lims/status/plate_status', match={'project_id': project_id}),
                 paging=False,
                 searching = False,
-                info = False
+                info = False,
+                default_sort_col = 'plate_id'
             ),
             datatable_cfg(
                 'Bioinformatics report for ' + project_id,
@@ -311,6 +312,7 @@ they're queued. the steps involved are described below.''' + table + '</div>'
             'Project Status',
             'project_status',
             api_url=rest_api().api_url('lims/status/project_status'),
-            fixed_header=True
+            fixed_header=True,
+            table_foot='count_column'
         )
     )
