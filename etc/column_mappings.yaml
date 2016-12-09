@@ -16,7 +16,7 @@ column_def:
     lane_pc_optical_dups:     { data: 'lane_pc_optical_dups',                 title: 'Estimated dupl rate',      fmt: { type: 'float', max: 20 } }
     lane_number:              { data: 'lane_number',                          title: 'Lane' }
     library_id:               { data: 'library_id',                           title: 'Library ID' }
-    library_type:             { data: 'library_type',                         title: 'Library' }
+    library_type:             { data: 'library_type',                         title: 'Library',                  visible: 'false' }
     genotype_match:           { data: 'genotype_match',                       title: 'Genotype'   }
     mapped_reads:             { data: 'mapped_reads',                         title: '# mapped reads',           visible: 'false',           fmt: { type: 'int',   min: 1500 } }
     matching_snps:            { data: 'genotype_validation.matching_snps',    title: 'Matching snps' ,           visible: 'false'}

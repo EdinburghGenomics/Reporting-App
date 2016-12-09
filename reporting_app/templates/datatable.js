@@ -57,7 +57,7 @@ $(document).ready(
     }
 );
 
-function count_column( row, data, start, end, display ) {
+function sum_row_per_column( row, data, start, end, display ) {
     var api = this.api();
     // Total over current page
     api.columns('.sum', { page: 'current' }).every(function () {

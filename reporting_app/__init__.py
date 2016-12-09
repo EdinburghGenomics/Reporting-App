@@ -313,6 +313,6 @@ they're queued. the steps involved are described below.''' + table + '</div>'
             'project_status',
             api_url=rest_api().api_url('lims/status/project_status'),
             fixed_header=True,
-            table_foot='count_column'
+            table_foot='sum_row_per_column'
         )
     )
