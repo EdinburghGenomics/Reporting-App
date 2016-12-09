@@ -1,4 +1,6 @@
-from flask import request, json
+import copy
+import datetime
+from flask import request, json, current_app as app
 from config import schema
 from .stages import *
 
@@ -298,8 +300,10 @@ project_info = [
 
 def resolve_pipeline(endpoint, base_pipeline):
     pipeline = []
-    schema_keys = schema[endpoint].keys()
-    sort_col = request.args.get('sort', list(schema_keys)[0])
+    schema_endpoint =  copy.deepcopy(schema[endpoint])
+    schema_endpoint[app.config['DATE_CREATED']] = {type: 'datetime'}
+    schema_endpoint[app.config['LAST_UPDATED']] = {type: 'datetime'}
+    sort_col = request.args.get('sort', list(schema_endpoint)[0])
     match = json.loads(request.args.get('match', '{}'))
     or_match = match.pop('$or', None)  # TODO: make complex matches generic
     if or_match:
@@ -308,9 +312,9 @@ def resolve_pipeline(endpoint, base_pipeline):
     orderer = order(sort_col)
     sorting_done = False
 
-    for k in schema_keys:
+    for k in schema_endpoint:
         if k in match:
-            pipeline.append({'$match': resolve_match(k, match.pop(k))})
+            pipeline.append({'$match': mongotize(resolve_match(k, match.pop(k)))})
         if not sorting_done and k == sort_col.lstrip('-'):
             pipeline.append(orderer)
             sorting_done = True
@@ -320,7 +324,7 @@ def resolve_pipeline(endpoint, base_pipeline):
 
         for k in stage.get('$project', {}):
             if k in [col.lstrip('$') for col in match]:
-                pipeline.append({'$match': resolve_match(k, match.pop(k))})
+                pipeline.append({'$match': mongotize(resolve_match(k, match.pop(k)))})
             if not sorting_done and k == sort_col.lstrip('-'):
                 pipeline.append(orderer)
                 sorting_done = True
@@ -336,3 +340,28 @@ def resolve_match(key, match_value):
         return match_value
     else:
         return {key: match_value}
+
+
+def mongotize(source):
+    """ Recursively iterates a JSON dictionary, turning RFC-1123 strings
+    into datetime values.
+    """
+    def try_cast(v):
+        try:
+            return datetime.datetime.strptime(v, app.config['DATE_FORMAT'])
+        except Exception as e :
+            return v
+
+    for k, v in source.items():
+        if isinstance(v, dict):
+            mongotize(v)
+        elif isinstance(v, list):
+            for i, v1 in enumerate(v):
+                if isinstance(v1, dict):
+                    source[k][i] = mongotize(v1)
+                else:
+                    source[k][i] = try_cast(v1)
+        elif isinstance(v, str):
+            source[k] = try_cast(v)
+
+    return source

@@ -1,10 +1,13 @@
 from os.path import join, dirname
 from urllib.parse import quote, unquote
+import datetime
+
 import flask as fl
 import flask_login
 import auth
 from reporting_app.util import datatable_cfg, tab_set_cfg, get_token
 from config import reporting_app_config as cfg
+from rest_api import settings
 
 app = fl.Flask(__name__)
 app.secret_key = cfg['key'].encode()
@@ -96,6 +99,9 @@ def pipeline_report(pipeline_type, view_type):
 
     if view_type == 'all':
         query = rest_api().api_url(endpoint)
+    elif view_type == 'recent':
+        month_ago = datetime.datetime.now() - datetime.timedelta(days=30)
+        query = rest_api().api_url(endpoint, match={"_created":{"$gte":month_ago.strftime(settings.DATE_FORMAT)}})
     elif view_type in statuses:
         query = rest_api().api_url(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
     else:
