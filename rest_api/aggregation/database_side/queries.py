@@ -300,9 +300,9 @@ project_info = [
 
 def resolve_pipeline(endpoint, base_pipeline):
     pipeline = []
-    schema_endpoint =  copy.deepcopy(schema[endpoint])
-    schema_endpoint[app.config['DATE_CREATED']] = {type: 'datetime'}
-    schema_endpoint[app.config['LAST_UPDATED']] = {type: 'datetime'}
+    schema_endpoint =  list(schema[endpoint])
+    schema_endpoint.append(app.config['DATE_CREATED'])
+    schema_endpoint.append(app.config['LAST_UPDATED'])
     sort_col = request.args.get('sort', list(schema_endpoint)[0])
     match = json.loads(request.args.get('match', '{}'))
     or_match = match.pop('$or', None)  # TODO: make complex matches generic
