@@ -30,27 +30,20 @@ def get_project_info(session, project_name=None, only_open_project=True, udfs=No
     return q.all()
 
 
-def get_project(session, project_name=None, only_open_project=True, udfs=None):
-    """This method runs a query that return the get projects and specific udfs"""
-    q = session.query(t.Project.name, t.Project.opendate, t.Researcher.firstname, t.Researcher.lastname,
-                      t.EntityUdfView.udfname, t.EntityUdfView.udfvalue) \
-        .distinct(t.Project.name) \
-        .outerjoin(t.Project.researcher) \
-        .outerjoin(t.Project.udfs)
-    q = add_filters(q, project_name=project_name, only_open_project=only_open_project)
-    if udfs:
-        q = q.filter(or_(t.EntityUdfView.udfname.in_(udfs), t.EntityUdfView.udfname == None))
-    return q.all()
-
-def get_sample_container_placement(session, project_name=None, sample_name=None, only_open_project=True):
-    """This method runs a query that return samples and its associated original container"""
+def get_sample_info(session, project_name=None, sample_name=None, only_open_project=True, udfs=None):
+    """This method runs a query that return samples, its associated original container and some specified UDFs"""
     q = session.query(t.Project.name, t.Sample.name, t.Container.name,
-                      t.ContainerPlacement.wellxposition, t.ContainerPlacement.wellyposition) \
+                      t.ContainerPlacement.wellxposition, t.ContainerPlacement.wellyposition,
+                      t.SampleUdfView.udfname, t.SampleUdfView.udfvalue) \
         .distinct(t.Sample.name) \
         .join(t.Sample.project) \
         .join(t.Sample.artifacts) \
         .join(t.Artifact.containerplacement) \
-        .join(t.ContainerPlacement.container)
+        .join(t.ContainerPlacement.container) \
+        .outerjoin(t.Sample.udfs)
+    if udfs:
+        q = q.distinct(t.Sample.name, t.SampleUdfView.udfname)
+        q = q.filter(or_(t.SampleUdfView.udfname.in_(udfs), t.SampleUdfView.udfname == None))
     q = q.filter(t.Artifact.isoriginal)
     q = add_filters(q, project_name=project_name, sample_name=sample_name, only_open_project=only_open_project)
     return q.all()
@@ -102,5 +95,5 @@ def non_QC_queues(session, project_name=None, sample_name=None, list_process=Non
 if __name__ == "__main__":
     from rest_api.limsdb import get_session
     session = get_session()
-    res = get_sample_container_placement(session, sample_name='X16137P001E01')
+    res = get_sample_info(session, sample_name='X16137P001E01', udfs=['Prep Workflow'])
     print('\n'.join([str(r) for r in res]))

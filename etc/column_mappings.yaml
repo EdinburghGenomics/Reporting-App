@@ -16,6 +16,7 @@ column_def:
     lane_pc_optical_dups:     { data: 'lane_pc_optical_dups',                 title: 'Estimated dupl rate',      fmt: { type: 'float', max: 20 } }
     lane_number:              { data: 'lane_number',                          title: 'Lane' }
     library_id:               { data: 'library_id',                           title: 'Library ID' }
+    library_type:             { data: 'library_type',                         title: 'Library' }
     genotype_match:           { data: 'genotype_match',                       title: 'Genotype'   }
     mapped_reads:             { data: 'mapped_reads',                         title: '# mapped reads',           visible: 'false',           fmt: { type: 'int',   min: 1500 } }
     matching_snps:            { data: 'genotype_validation.matching_snps',    title: 'Matching snps' ,           visible: 'false'}
@@ -103,6 +104,7 @@ project_status:
     - project_id
     - reseacher
     - nb_quoted_samples
+    - library_type
     - nb_invoiced
     - nb_genotyped
     - open_date
@@ -121,6 +123,7 @@ project_status:
 plate_status:
     - project_id
     - plate_id
+    - library_type
     - nb_invoiced
     - nb_genotyped
     - nb_sample_submission

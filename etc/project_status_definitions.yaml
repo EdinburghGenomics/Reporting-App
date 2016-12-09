@@ -12,6 +12,9 @@ status_names:
     FINISHED: finished
     GENOTYPING: genotyped
     INVOICED: invoiced
+    TRUSEQ_NANO: nano
+    TRUSEQ_PCR_FREE: PCR free
+
 
 # This section describe the order in which sample travel through the different status.
 # Note that the order of the columns in the project status table needs to be changed in column_mappings.yaml
@@ -61,5 +64,12 @@ additional_step_completed:
     Genotyping Data Received EG 1.0: GENOTYPING
     Finance - Invoice Processed: INVOICED
 
+library_type_step_completed:
+    Read and Eval SSQC: TRUSEQ_PCR_FREE
+    Amp PCR: TRUSEQ_NANO
 
-
+library_planned_alias:
+    TruSeq Nano DNA Sample Prep: TRUSEQ_NANO
+    TruSeq PCR-Free DNA Sample Prep: TRUSEQ_PCR_FREE
+    TruSeq PCR-Free Sample Prep: TRUSEQ_PCR_FREE
+    TruSeq DNA PCR-Free Sample Prep: TRUSEQ_PCR_FREE

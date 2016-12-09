@@ -44,7 +44,13 @@ class ProjectStatusConfig(Configuration):
 
         self.status_names = self.content.get('status_names')
         self.status_order = [self.status_names.get(x) for x in self.content['status_order']]
-        for section in ['step_completed_to_status', 'step_queued_to_status', 'additional_step_completed']:
+        for section in [
+            'step_completed_to_status',
+            'step_queued_to_status',
+            'additional_step_completed',
+            'library_type_step_completed',
+            'library_planned_alias'
+        ]:
             transformed_section = dict(
                 [(k, self.status_names.get(v)) for k, v in self.content[section].items()]
             )

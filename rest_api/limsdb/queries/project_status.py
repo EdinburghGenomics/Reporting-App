@@ -6,7 +6,7 @@ from egcg_core.clarity import sanitize_user_id
 from flask import request, json
 
 from rest_api.limsdb.queries import get_samples_and_processes, non_QC_queues, get_project_info, \
-    get_sample_container_placement
+    get_sample_info
 from config import project_status as status_cfg
 
 
@@ -16,6 +16,7 @@ class Sample:
         self.processes = []
         self.queue_location = {}
         self._status_and_date = None
+        self.planned_library = None
 
     def add_completed_process(self, process_name, completed_date):
         self.processes.append((process_name, completed_date, 'complete'))
@@ -46,7 +47,12 @@ class Sample:
                 additional_status.add(finished_status)
         return additional_status
 
-
+    @property
+    def library_type(self):
+        for process, date, process_type in self.processes:
+            if process_type == 'complete' and process in status_cfg.library_type_step_completed:
+                return status_cfg.library_type_step_completed.get(process)
+        return status_cfg.library_planned_alias.get(self.planned_library)
 
     @property
     def status(self):
@@ -62,9 +68,10 @@ class Sample:
     def started_date(self):
         self.processes.sort(key=operator.itemgetter(1), reverse=True)
         for p in reversed(self.processes):
-            process, date, type = p
-            if type == 'complete':
+            process, date, process_type = p
+            if process_type == 'complete':
                 return date
+
 
 class Container:
     def __init__(self):
@@ -76,20 +83,23 @@ class Container:
         sample_per_status = defaultdict(list)
         for sample_name in self.samples:
             sample_per_status[self.samples[sample_name].status].append(sample_name)
-        return sample_per_status
-
-    def samples_per_status(self):
-        sample_per_status = defaultdict(list)
-        for sample_name in self.samples:
-            sample_per_status[self.samples[sample_name].status].append(sample_name)
             for status in self.samples[sample_name].additional_status:
                 sample_per_status[status].append(sample_name)
         return sample_per_status
+
+    @property
+    def library_types(self):
+        return ', '.join(set([
+                            self.samples[sample_name].library_type
+                            for sample_name in self.samples
+                            if self.samples[sample_name].library_type
+                            ]))
 
     def to_json(self):
         ret = {
             'plate_id': self.name,
             'project_id': self.project_id,
+            'library_type': self.library_types
         }
         ret.update(self.samples_per_status())
         return ret
@@ -105,6 +115,7 @@ class Project(Container):
     def to_json(self):
         ret = {
             'project_id': self.name,
+            'library_type': self.library_types,
             'open_date': self.open_date,
             'researcher_name': self.researcher_name,
             'nb_quoted_samples': self.nb_quoted_samples,
@@ -158,7 +169,9 @@ def sample_status_per_project(session):
             session,
             project_name,
             workstatus='COMPLETE',
-            list_process=list(status_cfg.step_completed_to_status) + list(status_cfg.additional_step_completed)
+            list_process=list(status_cfg.step_completed_to_status) \
+                       + list(status_cfg.additional_step_completed) \
+                       + list(status_cfg.library_type_step_completed)
     ):
         (pjct_name, sample_name, process_name, process_status, date_run) = result
         all_projects[pjct_name].samples[sanitize_user_id(sample_name)].add_completed_process(process_name, date_run)
@@ -166,6 +179,10 @@ def sample_status_per_project(session):
     for result in non_QC_queues(session, project_name, list_process=status_cfg.step_queued_to_status):
         pjct_name, sample_name, process_name, queued_date = result
         all_projects[pjct_name].samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date)
+
+    for result in get_sample_info(session, project_name, udfs=['Prep Workflow']):
+        (pjct_name, sample_name, container, wellx, welly, udf_name, planned_library) = result
+        all_projects[pjct_name].samples[sanitize_user_id(sample_name)].planned_library = planned_library
 
     return [p.to_json() for p in all_projects.values()]
 
@@ -176,17 +193,20 @@ def sample_status_per_plate(session):
     project_name = match.get('project_id')
     all_plates = defaultdict(Container)
     sample_to_container = {}
-    for result in get_sample_container_placement(session, project_name):
-        (pjct_name, sample_name, container, wellx, welly) = result
+    for result in get_sample_info(session, project_name, udfs=['Prep Workflow']):
+        (pjct_name, sample_name, container, wellx, welly, udf_name, planned_library) = result
         all_plates[container].name = container
         all_plates[container].project_id = pjct_name
+        all_plates[container].samples[sanitize_user_id(sample_name)].planned_library = planned_library
         sample_to_container[sample_name] = container
 
     for result in get_samples_and_processes(
             session,
             project_name,
             workstatus='COMPLETE',
-            list_process=list(status_cfg.step_completed_to_status) + list(status_cfg.additional_step_completed)
+            list_process=list(status_cfg.step_completed_to_status) \
+                       + list(status_cfg.additional_step_completed) \
+                       + list(status_cfg.library_type_step_completed)
     ):
         (pjct_name, sample_name, process_name, process_status, date_run) = result
         container = sample_to_container.get(sample_name)
