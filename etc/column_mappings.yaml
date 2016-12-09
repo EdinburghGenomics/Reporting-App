@@ -67,6 +67,7 @@ column_def:
     sample_ids:               { data: 'sample_ids',                           title: 'Sample list',              fmt: { link: '/sample/' } }
     freemix:                  { data: 'sample_contamination.freemix',         title: 'Freemix',                  fmt: { type: 'float',  max: .03}  }
     species_found:            { data: 'species_contamination',                title: 'Species found',            fmt: { name: 'species_contamination' } }
+    species:                  { data: 'species',                              title: 'Species',                   visible: 'false'}
     useable:                  { data: 'useable',                              title: 'Useable' }
     useable_statuses:         { data: 'useable_statuses',                     title: 'Useable'}
     user_sample_id:           { data: 'user_sample_id',                       title: 'User sample ID' }
@@ -104,6 +105,7 @@ project_status:
     - project_id
     - reseacher
     - nb_quoted_samples
+    - species
     - library_type
     - nb_invoiced
     - nb_genotyped
@@ -123,6 +125,7 @@ project_status:
 plate_status:
     - project_id
     - plate_id
+    - species
     - library_type
     - nb_invoiced
     - nb_genotyped

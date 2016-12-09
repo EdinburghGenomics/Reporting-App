@@ -17,6 +17,7 @@ class Sample:
         self.queue_location = {}
         self._status_and_date = None
         self.planned_library = None
+        self.species = None
 
     def add_completed_process(self, process_name, completed_date):
         self.processes.append((process_name, completed_date, 'complete'))
@@ -95,11 +96,20 @@ class Container:
                             if self.samples[sample_name].library_type
                             ]))
 
+    @property
+    def species(self):
+        return ', '.join(set([
+                                 self.samples[sample_name].species
+                                 for sample_name in self.samples
+                                 if self.samples[sample_name].species
+                                 ]))
+
     def to_json(self):
         ret = {
             'plate_id': self.name,
             'project_id': self.project_id,
-            'library_type': self.library_types
+            'library_type': self.library_types,
+            'species': self.species
         }
         ret.update(self.samples_per_status())
         return ret
@@ -116,6 +126,7 @@ class Project(Container):
         ret = {
             'project_id': self.name,
             'library_type': self.library_types,
+            'species': self.species,
             'open_date': self.open_date,
             'researcher_name': self.researcher_name,
             'nb_quoted_samples': self.nb_quoted_samples,
@@ -180,9 +191,12 @@ def sample_status_per_project(session):
         pjct_name, sample_name, process_name, queued_date = result
         all_projects[pjct_name].samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date)
 
-    for result in get_sample_info(session, project_name, udfs=['Prep Workflow']):
-        (pjct_name, sample_name, container, wellx, welly, udf_name, planned_library) = result
-        all_projects[pjct_name].samples[sanitize_user_id(sample_name)].planned_library = planned_library
+    for result in get_sample_info(session, project_name, udfs=['Prep Workflow', 'Species']):
+        (pjct_name, sample_name, container, wellx, welly, udf_name, udf_value) = result
+        if udf_name == 'Prep Workflow':
+            all_projects[pjct_name].samples[sanitize_user_id(sample_name)].planned_library = udf_value
+        if udf_name == 'Species':
+            all_projects[pjct_name].samples[sanitize_user_id(sample_name)].species = udf_value
 
     return [p.to_json() for p in all_projects.values()]
 
@@ -193,11 +207,14 @@ def sample_status_per_plate(session):
     project_name = match.get('project_id')
     all_plates = defaultdict(Container)
     sample_to_container = {}
-    for result in get_sample_info(session, project_name, udfs=['Prep Workflow']):
-        (pjct_name, sample_name, container, wellx, welly, udf_name, planned_library) = result
+    for result in get_sample_info(session, project_name, udfs=['Prep Workflow', 'Species']):
+        (pjct_name, sample_name, container, wellx, welly, udf_name, udf_value) = result
         all_plates[container].name = container
         all_plates[container].project_id = pjct_name
-        all_plates[container].samples[sanitize_user_id(sample_name)].planned_library = planned_library
+        if udf_name == 'Prep Workflow':
+            all_plates[container].samples[sanitize_user_id(sample_name)].planned_library = udf_value
+        if udf_name == 'Species':
+            all_plates[container].samples[sanitize_user_id(sample_name)].species = udf_value
         sample_to_container[sample_name] = container
 
     for result in get_samples_and_processes(
