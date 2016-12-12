@@ -48,6 +48,7 @@ def get_sample_info(session, project_name=None, sample_name=None, only_open_proj
     q = add_filters(q, project_name=project_name, sample_name=sample_name, only_open_project=only_open_project)
     return q.all()
 
+
 def get_samples_and_processes(session, project_name=None, sample_name=None, list_process=None, workstatus=None, only_open_project=True):
     """This method runs a query that return the sample name and the processeses they went through"""
     q = session.query(t.Project.name, t.Sample.name, t.ProcessType.displayname,

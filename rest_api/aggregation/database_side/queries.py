@@ -343,7 +343,7 @@ def resolve_match(key, match_value):
 
 
 def mongotize(source):
-    """ Recursively iterates a JSON dictionary, turning RFC-1123 strings
+    """ Recursively iterates a JSON dictionary, turning date strings
     into datetime values.
     """
     def try_cast(v):

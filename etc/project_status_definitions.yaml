@@ -13,7 +13,7 @@ status_names:
     GENOTYPING: genotyped
     INVOICED: invoiced
     TRUSEQ_NANO: nano
-    TRUSEQ_PCR_FREE: PCR free
+    TRUSEQ_PCR_FREE: pcr_free
 
 
 # This section describe the order in which sample travel through the different status.

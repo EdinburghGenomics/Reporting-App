@@ -43,7 +43,9 @@ class ProjectStatusConfig(Configuration):
         super().__init__(*cfg_search_path)
 
         self.status_names = self.content.get('status_names')
+        # Replace variable names in a list
         self.status_order = [self.status_names.get(x) for x in self.content['status_order']]
+        # Replace variable names in a dict
         for section in [
             'step_completed_to_status',
             'step_queued_to_status',

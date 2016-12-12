@@ -58,6 +58,7 @@ $(document).ready(
 );
 
 function sum_row_per_column( row, data, start, end, display ) {
+    // sum up the column with a class sum into the footer
     var api = this.api();
     // Total over current page
     api.columns('.sum', { page: 'current' }).every(function () {
