@@ -61,7 +61,6 @@ function sum_row_per_column( row, data, start, end, display ) {
     var api = this.api();
     // Total over current page
     api.columns('.sum', { page: 'current' }).every(function () {
-        console.log(this);
         var sum = this
                 .cells( null, this.index(), { page: 'current'} )
                 .data()
@@ -76,7 +75,6 @@ function sum_row_per_column( row, data, start, end, display ) {
                         return Number.NaN;
                     }
                 }, 0);
-         console.log(sum);
         // Update footer
         if (isNaN(sum) ){
             $(this.footer()).html( '' );
