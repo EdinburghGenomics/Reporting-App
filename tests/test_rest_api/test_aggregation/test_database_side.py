@@ -161,7 +161,8 @@ def test_resolve_pipeline():
         {'$project': {'this': '$sample_id', 'that': '$that'}},
         {'$project': {'this': '$this', 'that': '$that', 'other': {'$add': ['$this', '$that']}}}
     ]
-    with patch('rest_api.aggregation.database_side.queries.request', new=fake_request):
+    with patch('rest_api.aggregation.database_side.queries.request', new=fake_request), \
+         patch('rest_api.aggregation.database_side.queries.app'):
         obs = database_side.queries.resolve_pipeline('samples', base_pipeline)
 
     exp = [

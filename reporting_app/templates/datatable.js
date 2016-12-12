@@ -8,9 +8,10 @@ $(document).ready(
         var searching = {{'true' if dt_config.searching|default(true) else 'false' }};
         var info = {{'true' if dt_config.info|default(true) else 'false' }};
         var default_sort_col = {{ dt_config.default_sort_col|safe }};
-
+        var fixed_header = {{'true' if dt_config.fixed_header|default(false) else 'false' }};
         var table = $('#{{dt_config.name}}').DataTable(
             {
+                'fixedHeader': fixed_header,
                 'paging': paging,
                 'searching': searching,
                 'info': info,
@@ -37,11 +38,13 @@ $(document).ready(
                             'orderable': !c.orderable || String(c.orderable).toLowerCase() == 'true',
                             'visible': !c.visible || String(c.visible).toLowerCase() == 'true',
                             'defaultContent': '',
-                            'width': c.width || '10%'
+                            'width': c.width || '10%',
+                            'className': c.class_name
                         };
                     }
                 ),
-                'order': [default_sort_col]
+                'order': [default_sort_col],
+                "footerCallback": {{ dt_config.table_foot if dt_config.table_foot else 'null'}}
             }
         );
 
@@ -54,4 +57,37 @@ $(document).ready(
     }
 );
 
+function sum_row_per_column( row, data, start, end, display ) {
+    // sum up the column with a class sum into the footer
+    var api = this.api();
+    // Total over current page
+    api.columns('.sum', { page: 'current' }).every(function () {
+        var sum = this
+                .cells( null, this.index(), { page: 'current'} )
+                .data()
+                .reduce(function (a, b) {
+                    if (b.constructor === Array){
+                        return a + b.length;
+                    }else if (!isNaN(parseFloat(b)) && isFinite(b)){
+                        return a + parseFloat(b);
+                    }else if (b === ''){
+                        return a;
+                    }else{
+                        return Number.NaN;
+                    }
+                }, 0);
+        // Update footer
+        if (isNaN(sum) ){
+            $(this.footer()).html( '' );
+        }else{
+            $(this.footer()).html( sum );
+        }
+    });
+
+}
+
+
 {% endmacro %}
+
+
+

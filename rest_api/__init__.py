@@ -80,10 +80,10 @@ def project_info():
     )
 
 
-@app.route(_lims_endpoint('project_status'))
+@app.route(_lims_endpoint('status/<status_type>'))
 @requires_auth('home')
-def lims_project_info():
+def lims_status_info(status_type):
     return lims_extract(
-        'project_status',
+        status_type,
         app
     )
