@@ -57,6 +57,7 @@ step_queued_to_status:
     Create Production CST Batch: SEQUENCING_QUEUE
     AUTOMATED - Make CST: SEQUENCING
     AUTOMATED - Make Pooled CST: SEQUENCING
+    Data Release EG 1.0: DELIVERY
 
 
 additional_step_completed:
