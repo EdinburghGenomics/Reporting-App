@@ -55,6 +55,7 @@ step_queued_to_status:
     Create PDP Pool: SEQUENCING_QUEUE
     Create Pooling CST Batch: SEQUENCING_QUEUE
     Create Production CST Batch: SEQUENCING_QUEUE
+    Create CFP Batch: SEQUENCING_QUEUE
     AUTOMATED - Make CST: SEQUENCING
     AUTOMATED - Make Pooled CST: SEQUENCING
     Data Release EG 1.0: DELIVERY
