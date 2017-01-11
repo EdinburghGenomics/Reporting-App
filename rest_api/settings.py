@@ -46,6 +46,12 @@ DOMAIN = {
         'item_title': 'analysis_driver_proc',
         'id_field': 'proc_id',
         'schema': schema['analysis_driver_procs']
+    },
+
+    'analysis_driver_stages': {
+        'url': 'analysis_driver_stages',
+        'item_title': 'analysis_driver_stage',
+        'schema': schema['analysis_driver_stages']
     }
 }
 

@@ -80,8 +80,8 @@ samples:
     expected_coverage: {        type: 'integer', required: False }
     expected_yield: {           type: 'integer', required: False }
 
-    #QC metrics
-    bam_file_reads: {           type: 'integer', required: False }  # reads initially found in the bam file, used to be 'no adaptor reads'
+    # QC metrics
+    bam_file_reads: {           type: 'integer', required: False }  # reads initially found in the bam file
     mapped_reads: {             type: 'integer', required: False }
     properly_mapped_reads: {    type: 'integer', required: False }
     duplicate_reads: {          type: 'integer', required: False }
@@ -94,43 +94,38 @@ samples:
         bases_at_coverage: {type: 'dict', schema: { bases_at_5X: {type: 'integer'}, bases_at_15X: {type: 'integer'}, bases_at_30X: {type: 'integer' } } },
         genome_size: { type: 'integer' },
         evenness: { type: 'float' }
-    }
-    }
-    #TODO: remove pc_callable
+    } }
+    # TODO: remove pc_callable
     pc_callable: {              type: 'float',   required: False }
 
-    #QC validation
+    # QC validation
     called_gender: {            type: 'string',  allowed: ['male', 'female', 'unknown'] }
     provided_gender: {          type: 'string',  allowed: ['male', 'female', 'unknown'] }
     gender_validation: {        type: 'dict',    schema: {
         hetX: { type: 'float' },
         covY: { type: 'float' },
         gender_genotype: { type: 'string',  allowed: ['male', 'female', 'unknown'] }
-    }
-    }
-    genotype_validation: {      type: 'dict',    schema: {
+    } }
+    genotype_validation: {      type: 'dict', schema: {
         matching_snps: { type: 'integer' },
         mismatching_snps: { type: 'integer' },
         no_call_seq: { type: 'integer' },
         no_call_chip: { type: 'integer' }
-    }
-    }
-    species_contamination: {    type: 'dict',    required: False, schema: {
-        percent_unmapped_focal: {type: 'float'},
-        percent_unmapped: {type: 'float'},
-        total_reads_mapped: {type: 'integer'},
-        contaminant_unique_mapped: {type: 'dict'}
-    }
-    }
-    sample_contamination: {     type: 'dict',    required: False, schema: {
-        freemix: {type: 'float'},
-        best_matching_samples: {type: 'dict'},
-        het_hom_ratio: {type: 'float'},
-        ti_tv_ratio: {type: 'float'}
-    }
-    }
+    } }
+    species_contamination: {    type: 'dict', required: False, schema: {
+        percent_unmapped_focal: { type: 'float' }
+        percent_unmapped: { type: 'float' }
+        total_reads_mapped: { type: 'integer' }
+        contaminant_unique_mapped: { type: 'dict' }
+    } }
+    sample_contamination: {     type: 'dict', required: False, schema: {
+        freemix: { type: 'float'}
+        best_matching_samples: { type: 'dict' }
+        het_hom_ratio: { type: 'float' }
+        ti_tv_ratio: { type: 'float' }
+    } }
 
-    #Events
+    # Events
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'genotype missing', 'pass', 'fail'], default: 'not reviewed' }
     review_comments: {          type: 'string',  required: False }
     review_date: {              type: 'datetime', required: False }
@@ -141,7 +136,7 @@ samples:
     delivery_date: {            type: 'datetime', required: False }
     input_fastqs_deleted: {     type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no'}
 
-    #Links
+    # Links
     run_elements: {             type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
     analysis_driver_procs: {    type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'analysis_driver_procs', field: 'proc_id', embeddable: True } } }
 
@@ -152,7 +147,15 @@ analysis_driver_procs:
     dataset_name: {             type: 'string', required: True }
     start_date: {               type: 'datetime' }
     end_date: {                 type: 'datetime' }
-    pid: {                      type: 'integer', nullable: True}
+    pid: {                      type: 'integer', nullable: True }
     status: {                   type: 'string', allowed: ['force_ready', 'processing', 'finished', 'failed', 'aborted', 'reprocess', 'deleted'] }
 
-    stages: {                   type: 'list', schema: { type: 'dict', schema: { stage_name: { type: 'string' }, date_started: { type: 'datetime' }, date_finished: { type: 'datetime' }, exit_status: { type: 'integer'} } } }
+    stages: {                   type: 'list', schema: { type: 'string', data_relation: { resource: 'analysis_driver_stages', field: '_id', embeddable: True } } }
+
+
+analysis_driver_stages:
+    analysis_driver_proc: {     type: 'string', required: True }
+    stage_name: {               type: 'string', required: True }
+    date_started: {             type: 'datetime', required: True }
+    date_finished: {            type: 'datetime' }
+    exit_status: {              type: 'integer' }
