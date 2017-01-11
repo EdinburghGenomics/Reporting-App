@@ -142,7 +142,7 @@ class Project(Container):
         finished_samples = [
                 (sample_name, self.samples[sample_name].status_date)
                 for sample_name in self.samples
-                if self.samples[sample_name].status == status_cfg.status_order[-1]
+                if self.samples[sample_name].status == status_cfg.status_names['FINISHED']
             ]
         if finished_samples and self.nb_quoted_samples and len(finished_samples) >= int(self.nb_quoted_samples):
             finished_samples.sort(key=operator.itemgetter(1))
