@@ -113,15 +113,15 @@ samples:
         no_call_chip: { type: 'integer' }
     } }
     species_contamination: {    type: 'dict', required: False, schema: {
-        percent_unmapped_focal: { type: 'float' }
-        percent_unmapped: { type: 'float' }
-        total_reads_mapped: { type: 'integer' }
+        percent_unmapped_focal: { type: 'float' },
+        percent_unmapped: { type: 'float' },
+        total_reads_mapped: { type: 'integer' },
         contaminant_unique_mapped: { type: 'dict' }
     } }
     sample_contamination: {     type: 'dict', required: False, schema: {
-        freemix: { type: 'float'}
-        best_matching_samples: { type: 'dict' }
-        het_hom_ratio: { type: 'float' }
+        freemix: { type: 'float'},
+        best_matching_samples: { type: 'dict' },
+        het_hom_ratio: { type: 'float' },
         ti_tv_ratio: { type: 'float' }
     } }
 
