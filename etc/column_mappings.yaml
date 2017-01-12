@@ -106,6 +106,7 @@ project_status:
     - project_id
     - reseacher
     - nb_quoted_samples
+    - {column_def: 'nb_samples', title: 'Sample Received', visible: 'false', class_name: 'text-center' }
     - species
     - library_type
     - nb_invoiced
@@ -127,6 +128,7 @@ project_status:
 plate_status:
     - project_id
     - plate_id
+    - {column_def: 'nb_samples', title: 'Sample Received', visible: 'false', class_name: 'text-center' }
     - species
     - library_type
     - nb_invoiced

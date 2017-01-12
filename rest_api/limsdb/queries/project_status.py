@@ -108,6 +108,7 @@ class Container:
         ret = {
             'plate_id': self.name,
             'project_id': self.project_id,
+            'nb_samples': len(self.samples),
             'library_type': self.library_types,
             'species': self.species
         }
@@ -125,6 +126,7 @@ class Project(Container):
     def to_json(self):
         ret = {
             'project_id': self.name,
+            'nb_samples': len(self.samples),
             'library_type': self.library_types,
             'species': self.species,
             'open_date': self.open_date,
