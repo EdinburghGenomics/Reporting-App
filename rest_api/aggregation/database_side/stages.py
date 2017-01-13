@@ -115,4 +115,12 @@ def merge_analysis_driver_procs(id_field, projection=None):
     for k in projection:
         group[k] = {'$first': '$' + k}
     stages.append({'$group': group})
+    stages.append(
+        lookup(
+            'analysis_driver_stages',
+            'most_recent_proc.proc_id',
+            'analysis_driver_proc',
+            'most_recent_proc.stages'
+        )
+    )
     return stages
