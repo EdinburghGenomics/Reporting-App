@@ -141,7 +141,7 @@ samples:
     delivery_date: {            type: 'datetime', required: False }
 
     input_fastqs_deleted: {     type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no'}
-    data_deleted: {             type: 'string',  required: False, allowed: ['all', 'on lustre', 'none'], default: 'none'}
+    data_deleted: {             type: 'string',  required: False, allowed: ['all', 'raw', 'processed', 'on lustre', 'none'], default: 'none'}
 
 
     #Links
