@@ -149,11 +149,11 @@ analysis_driver_procs:
     end_date: {                 type: 'datetime' }
     pid: {                      type: 'integer', nullable: True }
     status: {                   type: 'string', allowed: ['force_ready', 'processing', 'finished', 'failed', 'aborted', 'reprocess', 'deleted'] }
-
-    stages: {                   type: 'list', schema: { type: 'string', data_relation: { resource: 'analysis_driver_stages', field: '_id', embeddable: True } } }
+    stages: {                   type: 'list', schema: { type: 'string', data_relation: { resource: 'analysis_driver_stages', field: 'stage_id', embeddable: True } } }
 
 
 analysis_driver_stages:
+    stage_id: {                 type: 'string', required: True, unique: True }
     analysis_driver_proc: {     type: 'string', required: True }
     stage_name: {               type: 'string', required: True }
     date_started: {             type: 'datetime', required: True }
