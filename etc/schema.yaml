@@ -140,6 +140,7 @@ samples:
     delivered: {                type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no' }
     delivery_date: {            type: 'datetime', required: False }
     input_fastqs_deleted: {     type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no'}
+    data_deleted: {             type: 'string',  required: False, allowed: ['all', 'fastq', 'processed', 'on lustre', 'none'], default: 'none'}
 
     #Links
     run_elements: {             type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
