@@ -1,7 +1,6 @@
 from os.path import join, dirname
 from urllib.parse import quote, unquote
 import datetime
-
 import flask as fl
 import flask_login
 import auth
@@ -168,6 +167,7 @@ def report_run(run_id):
         procs=rest_api().get_documents(
             'analysis_driver_procs',
             where={'dataset_type': 'run', 'dataset_name': run_id},
+            embedded={'stages': 1},
             sort='-_created'
         )
     )
@@ -215,9 +215,9 @@ def report_project(project_id):
                 'plate_status',
                 api_url=rest_api().api_url('lims/status/plate_status', match={'project_id': project_id}),
                 paging=False,
-                searching = False,
-                info = False,
-                default_sort_col = 'plate_id'
+                searching=False,
+                info=False,
+                default_sort_col='plate_id'
             ),
             datatable_cfg(
                 'Bioinformatics report for ' + project_id,
@@ -256,6 +256,7 @@ def report_sample(sample_id):
         procs=rest_api().get_documents(
             'analysis_driver_procs',
             where={'dataset_type': 'sample', 'dataset_name': sample_id},
+            embedded={'stages': 1},
             sort='-_created'
         )
     )
