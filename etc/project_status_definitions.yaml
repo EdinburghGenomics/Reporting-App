@@ -34,21 +34,39 @@ status_order:
 # This section describe the LIMS steps that specify the exit from a status.
 # ie: if the sample finished 'Receive Sample EG 6.1' then it completed SAMPLE_SUBMISSION
 #     and will be move to the next one.
+#step_completed_to_status:
+#    Receive Sample 4.0: SAMPLE_SUBMISSION
+#    Receive Sample EG 6.1: SAMPLE_SUBMISSION
+#    Eval Project Quant: SAMPLE_QC
+#    Awaiting User Response EG 2.0: SAMPLE_QC
+#    Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
+#    Sequencing Plate Preparation EG 1.0: LIBRARY_QUEUE
+#    Create CFP Batch: LIBRARY_QUEUE
+#    Eval qPCR Quant: LIBRARY_PREP
+#    Create Pooling CST Batch: SEQUENCING_QUEUE
+#    Create Production CST Batch: SEQUENCING_QUEUE
+#    AUTOMATED - Sequence: SEQUENCING
+#    bioinformatics: BIOINFORMATICS
+#    Data Release EG 1.0: DELIVERY
+#    Finance - Invoice To Be Sent: DELIVERY
+#    Remove From Processing EG 1.0 ST: FINISHED
+
 step_completed_to_status:
-    Receive Sample 4.0: SAMPLE_SUBMISSION
-    Receive Sample EG 6.1: SAMPLE_SUBMISSION
-    Eval Project Quant: SAMPLE_QC
-    Awaiting User Response EG 2.0: SAMPLE_QC
-    Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
-    Sequencing Plate Preparation EG 1.0: LIBRARY_QUEUE
-    Eval qPCR Quant: LIBRARY_PREP
-    Create Pooling CST Batch: SEQUENCING_QUEUE
-    Create Production CST Batch: SEQUENCING_QUEUE
-    AUTOMATED - Sequence: SEQUENCING
-    bioinformatics: BIOINFORMATICS
-    Data Release EG 1.0: DELIVERY
-    Finance - Invoice To Be Sent: DELIVERY
-    Remove From Processing EG 1.0 ST: FINISHED
+    Receive Sample 4.0: SAMPLE_QC
+    Receive Sample EG 6.1: SAMPLE_QC
+    Eval Project Quant: LIBRARY_QUEUE
+    Awaiting User Response EG 2.0: LIBRARY_QUEUE
+    Sequencing Plate Preparation EG 2.0: LIBRARY_PREP
+    Sequencing Plate Preparation EG 1.0: LIBRARY_PREP
+    Create CFP Batch: LIBRARY_PREP
+    Eval qPCR Quant: SEQUENCING_QUEUE
+    Create Pooling CST Batch: SEQUENCING
+    Create Production CST Batch: SEQUENCING
+    AUTOMATED - Sequence: BIOINFORMATICS
+    bioinformatics: DELIVERY
+    Data Release EG 1.0: FINISHED
+    Finance - Invoice To Be Sent: FINISHED
+    Remove From Processing EG 1.0 ST: SAMPLE_REMOVED
 
 
 # This section describe the LIMS steps that specify that the sample is queued in a status
@@ -59,7 +77,6 @@ step_queued_to_status:
     Create PDP Pool: SEQUENCING_QUEUE
     Create Pooling CST Batch: SEQUENCING_QUEUE
     Create Production CST Batch: SEQUENCING_QUEUE
-    Create CFP Batch: SEQUENCING_QUEUE
     AUTOMATED - Make CST: SEQUENCING
     AUTOMATED - Make Pooled CST: SEQUENCING
     Data Release EG 1.0: DELIVERY

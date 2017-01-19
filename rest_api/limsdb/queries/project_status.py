@@ -10,12 +10,16 @@ from rest_api.limsdb.queries import get_samples_and_processes, non_QC_queues, ge
 from config import project_status as status_cfg
 
 
+
 class Sample:
     def __init__(self):
+        self.sample_name=None
+        self.project_name=None
         self.completed_processes = []
         self.processes = []
         self.queue_location = {}
         self._status_and_date = None
+        self._all_statuses_and_date = None
         self.planned_library = None
         self.species = None
 
@@ -25,14 +29,65 @@ class Sample:
     def add_queue_location(self, process_name, queued_date):
         self.processes.append((process_name, queued_date, 'queued'))
 
+    def _get_all_status_and_date(self):
+        '''
+        This function is woefully overcomplicated !!! but bare with me while I try to explain.
+        The goal is to extract the all the statuses this sample had and the LIMS processes that had gone
+        though during those status.
+        The relationship between process and statuses is defined by the config file project_status_definitions.yaml.
+        We start by sorting all the processes by date from the most recent to the oldest.
+
+        '''
+        if not self._all_statuses_and_date:
+            all_statuses_and_date = []
+            self.processes.sort(key=operator.itemgetter(1), reverse=True)
+            current_set_of_processes = []
+            previous_status = None
+            current_status = None
+            current_date = None
+            for process, date, process_type in self.processes:
+                status = None
+                if process_type == 'complete' and process in status_cfg.step_completed_to_status:
+                    status = status_cfg.step_completed_to_status.get(process)
+                elif process_type == 'queued' and process in status_cfg.step_queued_to_status:
+                    status = status_cfg.step_queued_to_status.get(process)
+
+                current_date = date
+                current_status = status
+                if previous_status != current_status:
+                    if previous_status:
+                        if current_set_of_processes[-1]['type'] == 'queued':
+                            processes_to_add = current_set_of_processes
+                            processes_to_keep = []
+                        else:
+                            processes_to_add = current_set_of_processes[:-1]
+                            processes_to_keep = current_set_of_processes[-1:]
+                        all_statuses_and_date.append({
+                            'name':previous_status,
+                            'date':current_date,
+                            'processes':processes_to_add
+                        })
+                        current_set_of_processes = processes_to_keep
+                    previous_status = current_status
+                current_set_of_processes.append({'name':process, 'date':date, 'type':process_type})
+            if current_set_of_processes:
+                all_statuses_and_date.append({
+                    'name': status_cfg.status_order[0],
+                    'date': current_set_of_processes[0]['date'],
+                    'processes': current_set_of_processes
+                })
+
+            #Collapse all the statuses
+            self._all_statuses_and_date = all_statuses_and_date
+        return self._all_statuses_and_date
+
     def _get_status_and_date(self):
         if not self._status_and_date:
             self.processes.sort(key=operator.itemgetter(1), reverse=True)
             self._status_and_date = status_cfg.status_order[0], datetime.now()
             for process, date, process_type in self.processes:
                 if process_type == 'complete' and process in status_cfg.step_completed_to_status:
-                    finished_status = status_cfg.step_completed_to_status.get(process)
-                    self._status_and_date = status_cfg.status_order[status_cfg.status_order.index(finished_status) + 1], date
+                    self._status_and_date = status_cfg.step_completed_to_status.get(process), date
                     break
                 elif process_type == 'queued' and process in status_cfg.step_queued_to_status:
                     self._status_and_date = status_cfg.step_queued_to_status.get(process), date
@@ -72,6 +127,18 @@ class Sample:
             process, date, process_type = p
             if process_type == 'complete':
                 return date
+
+    def all_status(self):
+        return self._get_all_status_and_date()
+
+
+    def to_json(self):
+        return {
+            'sample_id': self.sample_name,
+            'project_id': self.project_name,
+            'status': self.all_status()
+        }
+
 
 
 class Container:
@@ -238,4 +305,35 @@ def sample_status_per_plate(session):
 
     return [p.to_json() for p in all_plates.values()]
 
+def sample_status(session):
+    match = json.loads(request.args.get('match', '{}'))
+    all_samples = defaultdict(Sample)
+    project_name = match.get('project_id')
+    sample_name = match.get('sample_id')
+
+
+    for result in get_sample_info(session, project_name, sample_name, udfs=['Prep Workflow', 'Species']):
+        (pjct_name, sample_name, container, wellx, welly, udf_name, udf_value) = result
+        print(sanitize_user_id(sample_name))
+        all_samples[sanitize_user_id(sample_name)].sample_name = sample_name
+        all_samples[sanitize_user_id(sample_name)].project_name = pjct_name
+        if udf_name == 'Prep Workflow':
+            all_samples[sanitize_user_id(sample_name)].planned_library = udf_value
+        if udf_name == 'Species':
+            all_samples[sanitize_user_id(sample_name)].species = udf_value
+
+    for result in get_samples_and_processes(
+            session,
+            project_name,
+            sample_name,
+            workstatus='COMPLETE'
+    ):
+        (pjct_name, sample_name, process_name, process_status, date_run) = result
+        all_samples[sanitize_user_id(sample_name)].add_completed_process(process_name, date_run)
+
+        for result in non_QC_queues(session, project_name, sample_name):
+            pjct_name, sample_name, process_name, queued_date = result
+            all_samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date)
+
+    return [s.to_json() for s in all_samples.values()]
 
