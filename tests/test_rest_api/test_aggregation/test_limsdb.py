@@ -290,4 +290,5 @@ class SampleTest(TestCase):
 
 
     def test_all_status(self):
-        print(self.sample4.all_status())
+        from pprint import pprint
+        pprint(self.sample4.all_status())

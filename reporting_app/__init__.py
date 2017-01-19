@@ -253,11 +253,12 @@ def report_sample(sample_id):
                 info=False
             )
         ],
-        procs=rest_api().get_documents(
-            'analysis_driver_procs',
-            where={'dataset_type': 'sample', 'dataset_name': sample_id},
-            sort='-_created'
-        )
+        sample_statuses=rest_api().get_documents('lims/status/sample_status', match={'sample_id': sample_id})[0],
+        procs = rest_api().get_documents(
+        'analysis_driver_procs',
+        where={'dataset_type': 'sample', 'dataset_name': sample_id},
+        sort='-_created'
+    )
     )
 
 

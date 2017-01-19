@@ -3,6 +3,24 @@
 {% from 'datatable.html' import datatable %}
 
 {% block content %}
+<div class="list-group">
+{% for status in sample_statuses.status %}
+<a class="list-group-item collapsed" data-toggle="collapse" data-target="#{{ status.name }}-{{ loop.index0 }}" aria-expanded="false">
+    <span class="badge">{{ status.processes|length }}</span>
+    {{ status.name }} : {{ status.date }}
+    <div class="list-group" id="{{ status.name }}-{{ loop.index0 }}" style="height: 0px;">
+        {% for process in status.processes %}
+            <a href="#" class="list-group-item collapsed" aria-expanded="false">
+                {{ process.name }} : {{ process.date }}
+            </a>
+        {% endfor %}
+    </div>
+</a>
+
+{% endfor %}
+
+</div>
+
 {{ super() }}
 {{ proc_report(procs) }}
 {% endblock %}

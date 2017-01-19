@@ -83,7 +83,6 @@ function count_entities_fmt(data, fmt){
 }
 
 function coverage_15X_fmt(data, fmt){
-    console.log(data);
     if ("bases_at_coverage" in data && "bases_at_15X" in data['bases_at_coverage'] && "genome_size" in data ) {
         return data['bases_at_coverage']['bases_at_15X']/data['genome_size']*100;
     }

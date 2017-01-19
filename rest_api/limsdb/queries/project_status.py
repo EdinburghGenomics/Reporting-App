@@ -16,7 +16,7 @@ class Sample:
         self.sample_name=None
         self.project_name=None
         self.completed_processes = []
-        self.processes = []
+        self._processes = set()
         self.queue_location = {}
         self._status_and_date = None
         self._all_statuses_and_date = None
@@ -24,10 +24,14 @@ class Sample:
         self.species = None
 
     def add_completed_process(self, process_name, completed_date):
-        self.processes.append((process_name, completed_date, 'complete'))
+        self._processes.add((process_name, completed_date, 'complete'))
 
     def add_queue_location(self, process_name, queued_date):
-        self.processes.append((process_name, queued_date, 'queued'))
+        self._processes.add((process_name, queued_date, 'queued'))
+
+    @property
+    def processes(self):
+        return sorted(self._processes, key=operator.itemgetter(1), reverse=True)
 
     def _get_all_status_and_date(self):
         '''
@@ -35,16 +39,16 @@ class Sample:
         The goal is to extract the all the statuses this sample had and the LIMS processes that had gone
         though during those status.
         The relationship between process and statuses is defined by the config file project_status_definitions.yaml.
-        We start by sorting all the processes by date from the most recent to the oldest.
-
+        We start by sorting all the processes by date from the most recent to the oldest, then iterate and get the
+        status associated with each process. Processes not associated with a status will associated with the most
+        recent status encountered.
+        We associate processes when we see a status change but because we're using processes completed the process we
+        just saw should not be associated with the previous status.
         '''
         if not self._all_statuses_and_date:
-            all_statuses_and_date = []
-            self.processes.sort(key=operator.itemgetter(1), reverse=True)
+            self._all_statuses_and_date = []
             current_set_of_processes = []
             previous_status = None
-            current_status = None
-            current_date = None
             for process, date, process_type in self.processes:
                 status = None
                 if process_type == 'complete' and process in status_cfg.step_completed_to_status:
@@ -52,7 +56,6 @@ class Sample:
                 elif process_type == 'queued' and process in status_cfg.step_queued_to_status:
                     status = status_cfg.step_queued_to_status.get(process)
 
-                current_date = date
                 current_status = status
                 if previous_status != current_status:
                     if previous_status:
@@ -62,28 +65,24 @@ class Sample:
                         else:
                             processes_to_add = current_set_of_processes[:-1]
                             processes_to_keep = current_set_of_processes[-1:]
-                        all_statuses_and_date.append({
-                            'name':previous_status,
-                            'date':current_date,
+                        self._all_statuses_and_date.append({
+                            'name': previous_status,
+                            'date': date,
                             'processes':processes_to_add
                         })
                         current_set_of_processes = processes_to_keep
                     previous_status = current_status
                 current_set_of_processes.append({'name':process, 'date':date, 'type':process_type})
             if current_set_of_processes:
-                all_statuses_and_date.append({
+                self._all_statuses_and_date.append({
                     'name': status_cfg.status_order[0],
                     'date': current_set_of_processes[0]['date'],
                     'processes': current_set_of_processes
                 })
-
-            #Collapse all the statuses
-            self._all_statuses_and_date = all_statuses_and_date
         return self._all_statuses_and_date
 
     def _get_status_and_date(self):
         if not self._status_and_date:
-            self.processes.sort(key=operator.itemgetter(1), reverse=True)
             self._status_and_date = status_cfg.status_order[0], datetime.now()
             for process, date, process_type in self.processes:
                 if process_type == 'complete' and process in status_cfg.step_completed_to_status:
@@ -122,7 +121,6 @@ class Sample:
 
     @property
     def started_date(self):
-        self.processes.sort(key=operator.itemgetter(1), reverse=True)
         for p in reversed(self.processes):
             process, date, process_type = p
             if process_type == 'complete':
@@ -311,10 +309,8 @@ def sample_status(session):
     project_name = match.get('project_id')
     sample_name = match.get('sample_id')
 
-
     for result in get_sample_info(session, project_name, sample_name, udfs=['Prep Workflow', 'Species']):
         (pjct_name, sample_name, container, wellx, welly, udf_name, udf_value) = result
-        print(sanitize_user_id(sample_name))
         all_samples[sanitize_user_id(sample_name)].sample_name = sample_name
         all_samples[sanitize_user_id(sample_name)].project_name = pjct_name
         if udf_name == 'Prep Workflow':
