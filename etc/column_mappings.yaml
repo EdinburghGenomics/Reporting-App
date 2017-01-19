@@ -37,7 +37,7 @@ column_def:
     nb_bioinformatics:        { data: 'bioinformatics',                       title: 'Bioinformatics' ,          fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_delivery:              { data: 'delivery',                             title: 'Delivery' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_finished:              { data: 'finished',                             title: 'Finished' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
-    nb_exhausted:             { data: 'exhausted',                            title: 'Exhausted' ,               fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
+    nb_removed:               { data: 'removed',                              title: 'Removed' ,                 fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
     nb_genotyped:             { data: 'genotyped',                            title: 'Genotyped' ,               fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
     nb_invoiced:              { data: 'invoiced',                             title: 'Invoiced' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
     no_call_chip:             { data: 'genotype_validation.no_call_chip',     title: 'No-call (chip)' ,          visible: 'false'}
@@ -106,6 +106,7 @@ project_status:
     - project_id
     - reseacher
     - nb_quoted_samples
+    - {column_def: 'nb_samples', title: 'Sample Received', visible: 'false', class_name: 'text-center' }
     - species
     - library_type
     - nb_invoiced
@@ -113,7 +114,7 @@ project_status:
     - open_date
     - started_date
     - finished_date
-    - nb_exhausted
+    - nb_removed
     - nb_sample_submission
     - nb_sample_qc
     - nb_library_queue
@@ -127,11 +128,12 @@ project_status:
 plate_status:
     - project_id
     - plate_id
+    - {column_def: 'nb_samples', title: 'Sample Received', visible: 'false', class_name: 'text-center' }
     - species
     - library_type
     - nb_invoiced
     - nb_genotyped
-    - nb_exhausted
+    - nb_removed
     - nb_sample_submission
     - nb_sample_qc
     - nb_library_queue

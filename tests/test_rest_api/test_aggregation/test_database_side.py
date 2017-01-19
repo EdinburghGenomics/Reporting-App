@@ -119,14 +119,6 @@ class TestStages(TestAggregation):
                     'that': {'$first': '$that'},
                     'other': {'$first': '$other'}
                 }
-            },
-            {
-                '$lookup': {
-                    'from': 'analysis_driver_stages',
-                    'localField': 'most_recent_proc.proc_id',
-                    'foreignField': 'analysis_driver_proc',
-                    'as': 'most_recent_proc.stages'
-                }
             }
         ]
         obs = s.merge_analysis_driver_procs('id_field', projection=('this', 'that', 'other'))

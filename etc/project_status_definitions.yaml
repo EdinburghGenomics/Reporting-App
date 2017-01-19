@@ -1,7 +1,7 @@
 # This section describe the name of the different statuses
 # Note that to add/remove columns to the project status table the entry needs to be added to the column_mappings.yaml
 status_names:
-    SAMPLE_EXHAUSTED: exhausted
+    SAMPLE_REMOVED: removed
     SAMPLE_SUBMISSION: sample_submission
     SAMPLE_QC: sample_qc
     LIBRARY_QUEUE: library_queue
@@ -29,7 +29,7 @@ status_order:
     - BIOINFORMATICS
     - DELIVERY
     - FINISHED
-    - SAMPLE_EXHAUSTED
+    - SAMPLE_REMOVED
 
 # This section describe the LIMS steps that specify the exit from a status.
 # ie: if the sample finished 'Receive Sample EG 6.1' then it completed SAMPLE_SUBMISSION

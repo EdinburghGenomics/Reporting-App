@@ -108,6 +108,7 @@ class Container:
         ret = {
             'plate_id': self.name,
             'project_id': self.project_id,
+            'nb_samples': len(self.samples),
             'library_type': self.library_types,
             'species': self.species
         }
@@ -125,6 +126,7 @@ class Project(Container):
     def to_json(self):
         ret = {
             'project_id': self.name,
+            'nb_samples': len(self.samples),
             'library_type': self.library_types,
             'species': self.species,
             'open_date': self.open_date,
@@ -142,7 +144,7 @@ class Project(Container):
         finished_samples = [
                 (sample_name, self.samples[sample_name].status_date)
                 for sample_name in self.samples
-                if self.samples[sample_name].status == status_cfg.status_order[-1]
+                if self.samples[sample_name].status == status_cfg.status_names['FINISHED']
             ]
         if finished_samples and self.nb_quoted_samples and len(finished_samples) >= int(self.nb_quoted_samples):
             finished_samples.sort(key=operator.itemgetter(1))
