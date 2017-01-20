@@ -17,8 +17,8 @@
                 <table class="table">
                 {% for status in sample_statuses.status %}
                     {% set loopindex=loop.index0 %}
-                    <tr>
-                        <th data-toggle="collapse" data-target=".{{ status.name }}-{{ loopindex }}">
+                    <tr data-toggle="collapse" data-target=".{{ status.name }}-{{ loopindex }}">
+                        <th>
                             {{ status.name }}
                         </th>
                         <th>

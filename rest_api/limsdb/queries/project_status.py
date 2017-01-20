@@ -33,53 +33,53 @@ class Sample:
     def processes(self):
         return sorted(self._processes, key=operator.itemgetter(1), reverse=True)
 
+
     def _get_all_status_and_date(self):
         '''
-        This function is woefully overcomplicated !!! but bare with me while I try to explain.
+        This function is a bit overcomplicated !!! but bare with me while I try to explain.
         The goal is to extract the all the statuses this sample had and the LIMS processes that had gone
         though during those status.
         The relationship between process and statuses is defined by the config file project_status_definitions.yaml.
-        We start by sorting all the processes by date from the most recent to the oldest, then iterate and get the
+        We start by sorting all the processes by date from the oldest to the most recent, then iterate and get the
         status associated with each process. Processes not associated with a status will associated with the most
         recent status encountered.
-        We associate processes when we see a status change but when we're using processes completed, the process we
-        just saw should not be associated with the previous status. However for queue the process is associated
-        with the previous step
+        For completed process we associate them with the current status but the queued process get assoriated with
+        the next one.
         '''
+
+        def add_process_with_status(status_order, process_per_status, status, process):
+            if status_order and status_order[-1] == status:
+                process_per_status[-1].append(process)
+            else:
+                status_order.append(status)
+                process_per_status.append([process])
+
+
         if not self._all_statuses_and_date:
             self._all_statuses_and_date = []
-            current_set_of_processes = []
-            previous_status = None
-            for process, date, process_type, process_id in self.processes:
-                status = None
+            processes_per_status = []
+            status_order = []
+            current_status = status = status_cfg.status_order[0]
+            for process, date, process_type, process_id in sorted(self._processes, key=operator.itemgetter(1)):
+                process_dict = {'name':process, 'date':date.strftime('%b %d %Y'), 'type':process_type, 'process_id': process_id}
+                #This part find the new status
                 if process_type == 'complete' and process in status_cfg.step_completed_to_status:
                     status = status_cfg.step_completed_to_status.get(process)
                 elif process_type == 'queued' and process in status_cfg.step_queued_to_status:
                     status = status_cfg.step_queued_to_status.get(process)
 
+
+                if process_type == 'complete':
+                    add_process_with_status(status_order, processes_per_status, current_status, process_dict)
+                else:
+                    add_process_with_status(status_order, processes_per_status, status, process_dict)
                 current_status = status
-                if previous_status != current_status:
-                    if previous_status:
-                        if current_set_of_processes[-1]['type'] == 'queued':
-                            processes_to_add = current_set_of_processes
-                            processes_to_keep = []
-                        else:
-                            processes_to_add = current_set_of_processes[:-1]
-                            processes_to_keep = current_set_of_processes[-1:]
-                        self._all_statuses_and_date.append({
-                            'name': previous_status,
-                            'date': date.strftime('%b %d %Y'),
-                            'processes':processes_to_add
-                        })
-                        current_set_of_processes = processes_to_keep
-                    previous_status = current_status
-                current_set_of_processes.append({'name':process, 'date':date.strftime('%b %d %Y'),
-                                                 'type':process_type, 'process_id': process_id})
-            if current_set_of_processes:
+            for i, status in enumerate(status_order):
+
                 self._all_statuses_and_date.append({
-                    'name': status_cfg.status_order[0],
-                    'date': current_set_of_processes[0]['date'],
-                    'processes': current_set_of_processes
+                    'name': status,
+                    'date': processes_per_status[i][0]['date'],
+                    'processes': processes_per_status[i]
                 })
         return self._all_statuses_and_date
 
