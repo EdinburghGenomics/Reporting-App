@@ -127,8 +127,8 @@ sequencing_run_information = merge_analysis_driver_procs('run_id', ['run_id', 'n
 sample = merge_analysis_driver_procs(
     'sample_id',
     ['sample_id', 'number_of_lanes', 'project_id', 'sample_id', 'library_id', 'user_sample_id',
-     'bam_file_reads', 'mapped_reads', 'properly_mapped_reads', 'duplicate_reads', 'median_coverage',
-     'coverage', 'genotype_validation', 'called_gender', 'provided_gender', 'sample_contamination',
+     'species_name', 'bam_file_reads', 'mapped_reads', 'properly_mapped_reads', 'duplicate_reads', 'median_coverage','coverage',
+     'genotype_validation', 'called_gender', 'provided_gender', 'sample_contamination',
      'species_contamination', 'reviewed', 'useable', 'delivered', 'review_comments']
 ) + [
     lookup('run_elements', 'sample_id'),
@@ -138,6 +138,7 @@ sample = merge_analysis_driver_procs(
             'sample_id': '$sample_id',
             'library_id': '$library_id',
             'user_sample_id': '$user_sample_id',
+            'species_name': '$species_name',
             'bam_file_reads': '$bam_file_reads',
             'mapped_reads': '$mapped_reads',
             'properly_mapped_reads': '$properly_mapped_reads',
@@ -171,6 +172,7 @@ sample = merge_analysis_driver_procs(
             'sample_id': '$sample_id',
             'library_id': '$library_id',
             'user_sample_id': '$user_sample_id',
+            'species_name': '$species_name',
             'bam_file_reads': '$bam_file_reads',
             'mapped_reads': '$mapped_reads',
             'properly_mapped_reads': '$properly_mapped_reads',
@@ -211,6 +213,7 @@ sample = merge_analysis_driver_procs(
             'sample_id': '$sample_id',
             'library_id': '$library_id',
             'user_sample_id': '$user_sample_id',
+            'species_name': '$species_name',
             'run_ids': '$run_ids',
             'all_run_ids': '$all_run_ids',
             'run_elements': '$run_elements',
