@@ -23,11 +23,11 @@ class Sample:
         self.planned_library = None
         self.species = None
 
-    def add_completed_process(self, process_name, completed_date):
-        self._processes.add((process_name, completed_date, 'complete'))
+    def add_completed_process(self, process_name, completed_date, process_id=None):
+        self._processes.add((process_name, completed_date, 'complete', process_id))
 
-    def add_queue_location(self, process_name, queued_date):
-        self._processes.add((process_name, queued_date, 'queued'))
+    def add_queue_location(self, process_name, queued_date, queue_id=None):
+        self._processes.add((process_name, queued_date, 'queued', queue_id))
 
     @property
     def processes(self):
@@ -42,14 +42,15 @@ class Sample:
         We start by sorting all the processes by date from the most recent to the oldest, then iterate and get the
         status associated with each process. Processes not associated with a status will associated with the most
         recent status encountered.
-        We associate processes when we see a status change but because we're using processes completed the process we
-        just saw should not be associated with the previous status.
+        We associate processes when we see a status change but when we're using processes completed, the process we
+        just saw should not be associated with the previous status. However for queue the process is associated
+        with the previous step
         '''
         if not self._all_statuses_and_date:
             self._all_statuses_and_date = []
             current_set_of_processes = []
             previous_status = None
-            for process, date, process_type in self.processes:
+            for process, date, process_type, process_id in self.processes:
                 status = None
                 if process_type == 'complete' and process in status_cfg.step_completed_to_status:
                     status = status_cfg.step_completed_to_status.get(process)
@@ -67,12 +68,13 @@ class Sample:
                             processes_to_keep = current_set_of_processes[-1:]
                         self._all_statuses_and_date.append({
                             'name': previous_status,
-                            'date': date,
+                            'date': date.strftime('%b %d %Y'),
                             'processes':processes_to_add
                         })
                         current_set_of_processes = processes_to_keep
                     previous_status = current_status
-                current_set_of_processes.append({'name':process, 'date':date, 'type':process_type})
+                current_set_of_processes.append({'name':process, 'date':date.strftime('%b %d %Y'),
+                                                 'type':process_type, 'process_id': process_id})
             if current_set_of_processes:
                 self._all_statuses_and_date.append({
                     'name': status_cfg.status_order[0],
@@ -84,7 +86,7 @@ class Sample:
     def _get_status_and_date(self):
         if not self._status_and_date:
             self._status_and_date = status_cfg.status_order[0], datetime.now()
-            for process, date, process_type in self.processes:
+            for process, date, process_type, process_id in self.processes:
                 if process_type == 'complete' and process in status_cfg.step_completed_to_status:
                     self._status_and_date = status_cfg.step_completed_to_status.get(process), date
                     break
@@ -96,7 +98,7 @@ class Sample:
     @property
     def additional_status(self):
         additional_status = set()
-        for process, date, process_type in self.processes:
+        for process, date, process_type, process_id in self.processes:
             if process_type == 'complete' and process in status_cfg.additional_step_completed:
                 finished_status = status_cfg.additional_step_completed.get(process)
                 additional_status.add(finished_status)
@@ -104,7 +106,7 @@ class Sample:
 
     @property
     def library_type(self):
-        for process, date, process_type in self.processes:
+        for process, date, process_type, process_id in self.processes:
             if process_type == 'complete' and process in status_cfg.library_type_step_completed:
                 return status_cfg.library_type_step_completed.get(process)
         return status_cfg.library_planned_alias.get(self.planned_library)
@@ -122,7 +124,7 @@ class Sample:
     @property
     def started_date(self):
         for p in reversed(self.processes):
-            process, date, process_type = p
+            process, date, process_type, process_id = p
             if process_type == 'complete':
                 return date
 
@@ -251,11 +253,11 @@ def sample_status_per_project(session):
                        + list(status_cfg.additional_step_completed) \
                        + list(status_cfg.library_type_step_completed)
     ):
-        (pjct_name, sample_name, process_name, process_status, date_run) = result
+        (pjct_name, sample_name, process_name, process_status, date_run, process_id) = result
         all_projects[pjct_name].samples[sanitize_user_id(sample_name)].add_completed_process(process_name, date_run)
 
     for result in non_QC_queues(session, project_name, list_process=status_cfg.step_queued_to_status):
-        pjct_name, sample_name, process_name, queued_date = result
+        pjct_name, sample_name, process_name, queued_date, queue_id = result
         all_projects[pjct_name].samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date)
 
     for result in get_sample_info(session, project_name, udfs=['Prep Workflow', 'Species']):
@@ -292,12 +294,12 @@ def sample_status_per_plate(session):
                        + list(status_cfg.additional_step_completed) \
                        + list(status_cfg.library_type_step_completed)
     ):
-        (pjct_name, sample_name, process_name, process_status, date_run) = result
+        (pjct_name, sample_name, process_name, process_status, date_run, process_id) = result
         container = sample_to_container.get(sample_name)
         all_plates[container].samples[sanitize_user_id(sample_name)].add_completed_process(process_name, date_run)
 
     for result in non_QC_queues(session, project_name, list_process=status_cfg.step_queued_to_status):
-        pjct_name, sample_name, process_name, queued_date = result
+        pjct_name, sample_name, process_name, queued_date, queue_id = result
         container = sample_to_container.get(sample_name)
         all_plates[container].samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date)
 
@@ -324,12 +326,12 @@ def sample_status(session):
             sample_name,
             workstatus='COMPLETE'
     ):
-        (pjct_name, sample_name, process_name, process_status, date_run) = result
-        all_samples[sanitize_user_id(sample_name)].add_completed_process(process_name, date_run)
+        (pjct_name, sample_name, process_name, process_status, date_run, process_id) = result
+        all_samples[sanitize_user_id(sample_name)].add_completed_process(process_name, date_run, process_id)
 
         for result in non_QC_queues(session, project_name, sample_name):
-            pjct_name, sample_name, process_name, queued_date = result
-            all_samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date)
+            pjct_name, sample_name, process_name, queued_date, queue_id = result
+            all_samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date, queue_id)
 
     return [s.to_json() for s in all_samples.values()]
 

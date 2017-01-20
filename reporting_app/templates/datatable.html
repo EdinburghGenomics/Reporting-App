@@ -27,26 +27,32 @@
 {% macro datatable(dt_config) -%}
 {# args: title, name, cols, api_url, default_dort_col, paging, searching, info, etc #}
 
-<h3>{{ dt_config.title }}</h3>
+<h2>
+    <a data-toggle="collapse" href="#{{ dt_config.name }}-container">
+        {{ dt_config.title }}
+    </a>
+</h2>
 
 <script type="text/javascript" language="JavaScript" class="init">{{ dt_init(dt_config)|safe }}</script>
 
-<table id="{{ dt_config.name }}" class="table table-hover table-condensed table-responsive">
-    <thead>
-        <tr>
-            {% for col in dt_config.cols %}
-            <th>{{ col.title }}</th>
-            {% endfor %}
-        </tr>
-    </thead>
-    {% if dt_config.table_foot %}
-        <tfoot>
+<div id="{{ dt_config.name }}-container" class="collapse in">
+    <table id="{{ dt_config.name }}" class="table table-hover table-condensed table-responsive">
+        <thead>
             <tr>
                 {% for col in dt_config.cols %}
-                <th></th>
+                <th>{{ col.title }}</th>
                 {% endfor %}
             </tr>
-        </tfoot>
-    {% endif %}
-</table>
+        </thead>
+        {% if dt_config.table_foot %}
+            <tfoot>
+                <tr>
+                    {% for col in dt_config.cols %}
+                    <th></th>
+                    {% endfor %}
+                </tr>
+            </tfoot>
+        {% endif %}
+    </table>
+</div>
 {%- endmacro %}

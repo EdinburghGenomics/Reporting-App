@@ -44,15 +44,7 @@ def lims_extract(endpoint, app):
     data = function_mapping[endpoint](get_session())
     total_items = len(data)
     ret_dict = {}
-    page_number = int(request.args.get(app.config['QUERY_PAGE'], '0'))
-    page_size = int(request.args.get(app.config['QUERY_MAX_RESULTS'], '0'))
-    if page_number and page_size:
-        data = data[page_size * (page_number - 1): page_size * page_number]
-        req = parse_request(endpoint)
-        ret_dict[app.config['META']] = _meta_links(req, total_items),
-        ret_dict[app.config['LINKS']] = _pagination_links(endpoint, req, total_items)
-    else:
-        ret_dict[app.config['META']] = {'total': total_items}
+    ret_dict[app.config['META']] = {'total': total_items}
     ret_dict[app.config['ITEMS']] = data
     j = jsonify(ret_dict)
     return j
