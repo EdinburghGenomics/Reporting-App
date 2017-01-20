@@ -34,23 +34,6 @@ status_order:
 # This section describe the LIMS steps that specify the exit from a status.
 # ie: if the sample finished 'Receive Sample EG 6.1' then it completed SAMPLE_SUBMISSION
 #     and will be move to the next one.
-#step_completed_to_status:
-#    Receive Sample 4.0: SAMPLE_SUBMISSION
-#    Receive Sample EG 6.1: SAMPLE_SUBMISSION
-#    Eval Project Quant: SAMPLE_QC
-#    Awaiting User Response EG 2.0: SAMPLE_QC
-#    Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
-#    Sequencing Plate Preparation EG 1.0: LIBRARY_QUEUE
-#    Create CFP Batch: LIBRARY_QUEUE
-#    Eval qPCR Quant: LIBRARY_PREP
-#    Create Pooling CST Batch: SEQUENCING_QUEUE
-#    Create Production CST Batch: SEQUENCING_QUEUE
-#    AUTOMATED - Sequence: SEQUENCING
-#    bioinformatics: BIOINFORMATICS
-#    Data Release EG 1.0: DELIVERY
-#    Finance - Invoice To Be Sent: DELIVERY
-#    Remove From Processing EG 1.0 ST: FINISHED
-
 step_completed_to_status:
     Receive Sample 4.0: SAMPLE_QC
     Receive Sample EG 6.1: SAMPLE_QC
