@@ -253,7 +253,7 @@ def report_sample(sample_id):
                 info=False
             )
         ],
-        sample_statuses=rest_api().get_documents('lims/status/sample_status', match={'sample_id': sample_id})[0],
+        sample_statuses=rest_api().get_document('lims/status/sample_status', match={'sample_id': sample_id}),
         lims_url=cfg['lims_url'],
         procs=rest_api().get_documents(
             'analysis_driver_procs',
