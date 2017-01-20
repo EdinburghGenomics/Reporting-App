@@ -1,4 +1,3 @@
-import copy
 import datetime
 from flask import request, json, current_app as app
 from config import schema
@@ -81,9 +80,9 @@ demultiplexing = [
         }
     }
 ]
-sequencing_run_information = merge_analysis_driver_procs('run_id', ['run_id', 'number_of_lanes'])
 
-sequencing_run_information.extend([
+
+sequencing_run_information = merge_analysis_driver_procs('run_id', ['run_id', 'number_of_lanes']) + [
     lookup('run_elements', 'run_id'),
     {
         '$project': {
@@ -123,12 +122,12 @@ sequencing_run_information.extend([
             'most_recent_proc': '$most_recent_proc'
         }
     }
-])
+]
 
 sample = merge_analysis_driver_procs(
     'sample_id',
     ['sample_id', 'number_of_lanes', 'project_id', 'sample_id', 'library_id', 'user_sample_id',
-     'bam_file_reads', 'mapped_reads', 'properly_mapped_reads', 'duplicate_reads', 'median_coverage','coverage',
+     'species_name', 'bam_file_reads', 'mapped_reads', 'properly_mapped_reads', 'duplicate_reads', 'median_coverage','coverage',
      'genotype_validation', 'called_gender', 'provided_gender', 'sample_contamination',
      'species_contamination', 'reviewed', 'useable', 'delivered', 'review_comments']
 ) + [
@@ -139,12 +138,13 @@ sample = merge_analysis_driver_procs(
             'sample_id': '$sample_id',
             'library_id': '$library_id',
             'user_sample_id': '$user_sample_id',
+            'species_name': '$species_name',
             'bam_file_reads': '$bam_file_reads',
             'mapped_reads': '$mapped_reads',
             'properly_mapped_reads': '$properly_mapped_reads',
             'duplicate_reads': '$duplicate_reads',
             'median_coverage': '$median_coverage',
-            'coverage' : '$coverage',
+            'coverage': '$coverage',
             'genotype_validation': '$genotype_validation',
             'called_gender': '$called_gender',
             'provided_gender': '$provided_gender',
@@ -172,12 +172,13 @@ sample = merge_analysis_driver_procs(
             'sample_id': '$sample_id',
             'library_id': '$library_id',
             'user_sample_id': '$user_sample_id',
+            'species_name': '$species_name',
             'bam_file_reads': '$bam_file_reads',
             'mapped_reads': '$mapped_reads',
             'properly_mapped_reads': '$properly_mapped_reads',
             'duplicate_reads': '$duplicate_reads',
             'median_coverage': '$median_coverage',
-            'coverage' : '$coverage',
+            'coverage': '$coverage',
             'genotype_validation': '$genotype_validation',
             'called_gender': '$called_gender',
             'provided_gender': '$provided_gender',
@@ -212,6 +213,7 @@ sample = merge_analysis_driver_procs(
             'sample_id': '$sample_id',
             'library_id': '$library_id',
             'user_sample_id': '$user_sample_id',
+            'species_name': '$species_name',
             'run_ids': '$run_ids',
             'all_run_ids': '$all_run_ids',
             'run_elements': '$run_elements',
@@ -220,7 +222,7 @@ sample = merge_analysis_driver_procs(
             'properly_mapped_reads': '$properly_mapped_reads',
             'duplicate_reads': '$duplicate_reads',
             'median_coverage': '$median_coverage',
-            'coverage' : '$coverage',
+            'coverage': '$coverage',
             'genotype_match': if_else(
                 eq('$genotype_validation', None),
                 None,
@@ -300,7 +302,7 @@ project_info = [
 
 def resolve_pipeline(endpoint, base_pipeline):
     pipeline = []
-    schema_endpoint =  list(schema[endpoint])
+    schema_endpoint = list(schema[endpoint])
     schema_endpoint.append(app.config['DATE_CREATED'])
     schema_endpoint.append(app.config['LAST_UPDATED'])
     sort_col = request.args.get('sort', list(schema_endpoint)[0])
@@ -343,13 +345,11 @@ def resolve_match(key, match_value):
 
 
 def mongotize(source):
-    """ Recursively iterates a JSON dictionary, turning date strings
-    into datetime values.
-    """
+    """Recursively iterates a JSON dictionary, turning date strings into datetime values."""
     def try_cast(v):
         try:
             return datetime.datetime.strptime(v, app.config['DATE_FORMAT'])
-        except Exception as e :
+        except Exception as e:
             return v
 
     for k, v in source.items():
