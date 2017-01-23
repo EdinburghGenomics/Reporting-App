@@ -7,7 +7,9 @@
 #}
 <h2>
     <a data-toggle="collapse" href="#sample-status-container">
-    Sample History from LIMS. Status: {{ sample_statuses.status[0].name }}</a>
+    {% set last=sample_statuses.status|last %}
+    Sample History from LIMS. Status: {{ last.name }}
+    </a>
 </h2>
 
 <div id="sample-status-container" class="container collapse">

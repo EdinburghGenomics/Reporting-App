@@ -85,14 +85,23 @@ class Sample:
 
     def _get_status_and_date(self):
         if not self._status_and_date:
+            status = None
             self._status_and_date = status_cfg.status_order[0], datetime.now()
             for process, date, process_type, process_id in self.processes:
+                new_status = None
                 if process_type == 'complete' and process in status_cfg.step_completed_to_status:
-                    self._status_and_date = status_cfg.step_completed_to_status.get(process), date
-                    break
+                    new_status = status_cfg.step_completed_to_status.get(process)
                 elif process_type == 'queued' and process in status_cfg.step_queued_to_status:
-                    self._status_and_date = status_cfg.step_queued_to_status.get(process), date
+                    new_status = status_cfg.step_queued_to_status.get(process)
+
+                if not status:
+                    status = new_status
+                    self._status_and_date = (status, date)
+                elif status==new_status:
+                    self._status_and_date = (status, date)
+                else:
                     break
+
         return self._status_and_date
 
     @property

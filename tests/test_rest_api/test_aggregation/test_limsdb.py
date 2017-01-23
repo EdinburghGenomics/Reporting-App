@@ -2,7 +2,7 @@ from unittest.case import TestCase
 
 from datetime import datetime
 
-from rest_api.limsdb.queries.project_status import Sample
+from rest_api.limsdb.queries.sample_status import Sample
 from tests.test_rest_api.test_aggregation import TestAggregation, FakeRequest
 from unittest.mock import Mock, patch
 from rest_api.aggregation import database_side
