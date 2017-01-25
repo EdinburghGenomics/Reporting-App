@@ -43,8 +43,8 @@ class Sample:
         We start by sorting all the processes by date from the oldest to the most recent, then iterate and get the
         status associated with each process. Processes not associated with a status will associated with the most
         recent status encountered.
-        For completed process we associate them with the current status but the queued process get assoriated with
-        the next one.
+        For completed process we associate them with the last status seen but the queued process get assotiated with
+        the status defined by the current process.
         '''
 
         def add_process_with_status(status_order, process_per_status, status, process):
@@ -56,10 +56,11 @@ class Sample:
 
         if not self._all_statuses_and_date:
             self._all_statuses_and_date = []
-            processes_per_status = []
-            status_order = []
+            processes_per_status = []  # Contains lists of processes stored in the same order as  status in status_order
+            status_order = []  # Contains a list of status ordered chronologically.
             current_status = status = status_cfg.status_order[0]
             for process, date, process_type, process_id in sorted(self._processes, key=operator.itemgetter(1)):
+
                 process_dict = {'name':process, 'date':date.strftime('%b %d %Y'), 'type':process_type,
                                 'process_id': process_id}
                 # This part find the new status
@@ -68,13 +69,15 @@ class Sample:
                 elif process_type == 'queued' and process in status_cfg.step_queued_to_status:
                     status = status_cfg.step_queued_to_status.get(process)
 
+                # Associate the process with the last status seen
                 if process_type == 'complete':
                     add_process_with_status(status_order, processes_per_status, current_status, process_dict)
+                # Associate the process with the status defined by the current process
                 else:
                     add_process_with_status(status_order, processes_per_status, status, process_dict)
                 current_status = status
-            for i, status in enumerate(status_order):
 
+            for i, status in enumerate(status_order):
                 self._all_statuses_and_date.append({
                     'name': status,
                     'date': processes_per_status[i][0]['date'],
@@ -130,6 +133,7 @@ class Sample:
 
     @property
     def started_date(self):
+        '''Date of the first completed step'''
         for p in reversed(self.processes):
             process, date, process_type, process_id = p
             if process_type == 'complete':
