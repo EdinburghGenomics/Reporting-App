@@ -7,8 +7,7 @@
 #}
 <h2>
     <a data-toggle="collapse" href="#sample-status-container">
-    {% set last=sample_statuses.status|last %}
-    Sample History from LIMS. Status: {{ last.name }}
+    Sample History from LIMS. Status: {{ sample_statuses.current_status }}
     </a>
 </h2>
 
@@ -17,7 +16,7 @@
         <div class="panel-group" id="accordion">
             <div class="panel">
                 <table class="table">
-                {% for status in sample_statuses.status %}
+                {% for status in sample_statuses.statuses %}
                     {% set loopindex=loop.index0 %}
                     <tr data-toggle="collapse" data-target=".{{ status.name }}-{{ loopindex }}">
                         <th>

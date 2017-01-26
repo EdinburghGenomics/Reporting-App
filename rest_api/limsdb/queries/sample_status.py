@@ -10,6 +10,12 @@ from rest_api.limsdb.queries import get_samples_and_processes, non_QC_queues, ge
 from config import project_status as status_cfg
 
 
+
+def format_date(date):
+    if date:
+        return date.isoformat() + 'Z'
+    return None
+
 class Sample:
     def __init__(self):
         self.sample_name = None
@@ -145,17 +151,17 @@ class Sample:
             return self.status_date
         return None
 
-    def all_status(self):
+    def all_statuses(self):
         return self._get_all_status_and_date()
 
     def to_json(self):
         return {
             'sample_id': self.sample_name,
             'project_id': self.project_name,
-            'statuses': self.all_status(),
+            'statuses': self.all_statuses(),
             'current_status': self.status,
-            'started_date': self.started_date.isoformat() + 'Z',
-            'finished_date': self.finished_date.isoformat() + 'Z'
+            'started_date': format_date(self.started_date),
+            'finished_date': format_date(self.finished_date)
         }
 
 
@@ -206,11 +212,11 @@ class Project(Container):
             'nb_samples': len(self.samples),
             'library_type': self.library_types,
             'species': self.species,
-            'open_date': self.open_date,
+            'open_date': format_date(self.open_date),
             'researcher_name': self.researcher_name,
             'nb_quoted_samples': self.nb_quoted_samples,
-            'finished_date': self.finished_date.isoformat() + 'Z',
-            'started_date': self.started_date.isoformat() + 'Z'
+            'finished_date': format_date(self.finished_date),
+            'started_date': format_date(self.started_date)
         }
         ret.update(self.samples_per_status())
 
@@ -291,7 +297,7 @@ def sample_status_per_project(session):
     for project_info in get_project_info(session, project_name, udfs=['Number of Quoted Samples']):
         pjct_name, open_date, firstname, lastname, udf_name, nb_quoted_samples = project_info
         all_projects[pjct_name].name = pjct_name
-        all_projects[pjct_name].open_date = open_date.isoformat() + 'Z'
+        all_projects[pjct_name].open_date = open_date
         all_projects[pjct_name].researcher_name = '%s %s' % (firstname, lastname)
         all_projects[pjct_name].nb_quoted_samples = nb_quoted_samples
 
