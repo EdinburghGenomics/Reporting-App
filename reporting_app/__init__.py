@@ -253,6 +253,8 @@ def report_sample(sample_id):
                 info=False
             )
         ],
+        sample_statuses=rest_api().get_document('lims/status/sample_status', detailed=True, match={'sample_id': sample_id}),
+        lims_url=cfg['lims_url'],
         procs=rest_api().get_documents(
             'analysis_driver_procs',
             where={'dataset_type': 'sample', 'dataset_name': sample_id},
@@ -277,21 +279,16 @@ def plotting_report():
 def project_status_reports():
     # FIXME: Remove this ugly html generation when the page status becomes more stable
     from config import project_status as project_status_cfg
-    status_to_steps = {}
-    for status_idx in range(len(project_status_cfg.status_order)):
-        status = project_status_cfg.status_order[status_idx]
-        next_status = None
-        if status_idx + 1 < len(project_status_cfg.status_order):
-            next_status = project_status_cfg.status_order[status_idx+1]
-        steps = [step for step, st in project_status_cfg.step_completed_to_status.items() if st == status]
-        if steps:
-            status_to_steps[next_status] = steps
     table = '<table class="table"><th>Status</th> <th>Completed Steps</th> <th>Queued in Steps</th>'
     for status in project_status_cfg.status_order:
         table += ''.join([
             '<tr>',
             '<th>' + status + '</th>',
-            '<td>' + ', '.join(status_to_steps.get(status, [])) + '</td>',
+            '<td>' + ', '.join([
+                                    step for step, st
+                                    in project_status_cfg.step_completed_to_status.items()
+                                    if st == status
+                                ]) + '</td>',
             '<td>' + ', '.join([
                                     step for step, st
                                     in project_status_cfg.step_queued_to_status.items()

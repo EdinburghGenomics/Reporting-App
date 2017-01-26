@@ -52,7 +52,7 @@ def get_sample_info(session, project_name=None, sample_name=None, only_open_proj
 def get_samples_and_processes(session, project_name=None, sample_name=None, list_process=None, workstatus=None, only_open_project=True):
     """This method runs a query that return the sample name and the processeses they went through"""
     q = session.query(t.Project.name, t.Sample.name, t.ProcessType.displayname,
-                      t.Process.workstatus, t.Process.createddate) \
+                      t.Process.workstatus, t.Process.createddate, t.Process.processid) \
         .distinct(t.Sample.name, t.Process.processid) \
         .join(t.Sample.project) \
         .join(t.Sample.artifacts) \
@@ -69,10 +69,10 @@ def non_QC_queues(session, project_name=None, sample_name=None, list_process=Non
     This query gives all of the samples sitting in queue of a aledgedly non-qc steps
     """
     q = session.query(
-        t.Project.name, t.Sample.name, t.ProcessType.displayname, t.StageTransition.createddate
+        t.Project.name, t.Sample.name, t.ProcessType.displayname, t.StageTransition.createddate, t.ProtocolStep.stepid
     )
     q = q.distinct(
-        t.Project.name, t.Sample.name, t.ProcessType.displayname, t.StageTransition.createddate
+        t.Project.name, t.Sample.name, t.ProcessType.displayname, t.StageTransition.createddate, t.ProtocolStep.stepid
     )
     q = q.join(t.Sample.project) \
         .join(t.Sample.artifacts) \
@@ -96,5 +96,5 @@ def non_QC_queues(session, project_name=None, sample_name=None, list_process=Non
 if __name__ == "__main__":
     from rest_api.limsdb import get_session
     session = get_session()
-    res = get_sample_info(session, sample_name='X16137P001E01', udfs=['Prep Workflow'])
+    res = non_QC_queues(session, sample_name='X16098BP001B02')
     print('\n'.join([str(r) for r in res]))
