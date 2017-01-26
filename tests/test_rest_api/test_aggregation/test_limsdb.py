@@ -23,6 +23,6 @@ class SampleTest(TestCase):
         assert self.sample1.status == 'sample_qc'
 
 
-    def test_all_status(self):
-        all_status = self.sample1.all_status()
+    def test_all_statuses(self):
+        all_status = self.sample1.all_statuses()
         assert len(all_status) == 2
