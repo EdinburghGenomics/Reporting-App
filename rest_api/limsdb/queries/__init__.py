@@ -93,6 +93,21 @@ def non_QC_queues(session, project_name=None, sample_name=None, list_process=Non
     return q.all()
 
 
+def current_runs(session):
+    """
+    :param sqlalchemy.orm.Session session:
+    :return:
+    """
+    q = session.query(t.Process.daterun, t.Process.processid, t.ProcessUdfView.udfname, t.ProcessUdfView.udfvalue) \
+        .join(t.Process.type) \
+        .join(t.Process.udfs) \
+        .filter(t.ProcessType.displayname == 'AUTOMATED - Sequence') \
+        .order_by(t.Process.daterun)
+
+    results = q.all()
+    return results
+
+
 if __name__ == "__main__":
     from rest_api.limsdb import get_session
     session = get_session()
