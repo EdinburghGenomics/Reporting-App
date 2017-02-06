@@ -173,12 +173,19 @@ def report_run(run_id):
     )
 
 
-@app.route('/runs/<run_id>/<filename>')
+@app.route('/runs/')
 @flask_login.login_required
-def serve_fastqc_report(run_id, filename):
-    if '..' in filename or filename.startswith('/'):
-        fl.abort(404)
-    return fl.send_file(join(dirname(__file__), 'static', 'runs', run_id, filename))
+def current_runs():
+    return render_template(
+        'untabbed_datatables.html',
+        'Active runs',
+        table=datatable_cfg(
+            'Active runs',
+            'active_runs',
+            api_url=rest_api().api_url('lims/status/run_status')
+        ),
+        description='Showing sequencing runs from the last 7 days'
+    )
 
 
 @app.route('/projects/')
@@ -237,7 +244,7 @@ def report_sample(sample_id):
         title=sample_id + ' Sample Report',
         tables=[
             datatable_cfg(
-                'Bioinformatics report for '+sample_id,
+                'Bioinformatics report for ' + sample_id,
                 'samples',
                 rest_api().api_url('aggregate/samples', match={'sample_id': sample_id}),
                 paging=False,

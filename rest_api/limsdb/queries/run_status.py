@@ -4,23 +4,21 @@ from rest_api.limsdb import queries
 
 class Run:
     def __init__(self):
-        self.date_run = None
+        self.created_date = None
         self.udfs = {}
+        self.samples = set()
 
     def to_json(self):
-        return {
-            'date_run': self.date_run,
-            'udfs': self.udfs
-        }
+        return {'created_date': self.created_date, 'udfs': self.udfs, 'samples': list(self.samples)}
 
 
 def run_status(session):
     data = queries.current_runs(session)
-
     all_runs = defaultdict(Run)
-    for date_run, process_id, udf_name, udf_value in data:
+    for createddate, process_id, udf_name, udf_value, sample_id in data:
         run = all_runs[process_id]
-        run.date_run = date_run
+        run.created_date = createddate
         run.udfs[udf_name] = udf_value
+        run.samples.add(sample_id)
 
-    return [r.to_json() for r in all_runs.values()]
+    return sorted((r.to_json() for r in all_runs.values()), key=lambda r: r['created_date'])
