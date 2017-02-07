@@ -18,7 +18,7 @@ def find_non_marked_samples(comm):
     return comm.get_documents(
         'samples',
         quiet=True,
-        match={'data_deleted': None},
+        where={'data_deleted': None},
         all_pages=True
     )
 
@@ -34,16 +34,23 @@ def find_deleted_samples(comm):
 
 
 def update_data_deleted(comm, samples, deletion_status):
+    counter = 0
     for sample in samples:
+        if counter % 100 == 0 :
+            print('updated data deleted in %s samples'%counter)
         comm.patch_entry(
             'samples',
             {'data_deleted': deletion_status},
             'sample_id', sample.get('sample_id')
         )
+        counter += 1
 
 
 def update_most_recent_proc(comm, samples):
+    counter = 0
     for sample in samples:
+        if counter % 100 == 0:
+            print('updated most recent proc in %s samples' % counter)
         element_id = sample.get('most_recent_proc').get('proc_id')
         comm.patch_entry(
             'analysis_driver_procs',
@@ -51,6 +58,7 @@ def update_most_recent_proc(comm, samples):
             id_field='proc_id',
             element_id=element_id
         )
+        counter += 1
 
 
 if __name__ == '__main__':
@@ -63,10 +71,12 @@ if __name__ == '__main__':
     comm = rest_communication.Communicator((args.username, args.password), args.baseurl)
 
     samples = find_deleted_samples(comm)
+    print('Found %s Samples'%len(samples))
     update_data_deleted(comm, samples, deletion_status='all')
     update_most_recent_proc(comm, samples)
 
     samples = find_non_marked_samples(comm)
+    print('Found %s Samples'%len(samples))
     update_data_deleted(comm, samples, deletion_status='none')
 
 
