@@ -179,11 +179,18 @@ def current_runs():
     return render_template(
         'untabbed_datatables.html',
         'Active runs',
-        table=datatable_cfg(
-            'Active runs',
-            'active_runs',
-            api_url=rest_api().api_url('lims/status/run_status')
-        ),
+        tables=[
+            datatable_cfg(
+                'Active runs',
+                'active_runs',
+                api_url=rest_api().api_url('lims/status/run_status', status='current')
+            ),
+            datatable_cfg(
+                'Recent runs',
+                'active_runs',
+                rest_api().api_url('lims/status/run_status', status='recent')
+            )
+        ],
         description='Showing sequencing runs from the last 7 days'
     )
 

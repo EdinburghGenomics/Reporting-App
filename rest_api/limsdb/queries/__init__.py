@@ -103,16 +103,14 @@ def current_runs(session):
     threshold = now - timedelta(7)
 
     q = session.query(t.Process.createddate, t.Process.processid, t.ProcessUdfView.udfname, t.ProcessUdfView.udfvalue, t.Sample.name) \
-        .filter(or_(t.ProcessUdfView.udfname == 'Run Status', t.ProcessUdfView.udfname == 'RunID')) \
+        .filter(t.ProcessUdfView.udfname.in_(('Run Status', 'RunID'))) \
         .join(t.Process.type) \
         .join(t.Process.udfs) \
         .join(t.Process.processiotrackers) \
         .join(t.ProcessIOTracker.artifact) \
         .join(t.Artifact.samples) \
         .filter(func.date(t.Process.createddate) > func.date(threshold)) \
-        .filter(t.ProcessType.displayname == 'AUTOMATED - Sequence') \
-        .filter(or_(t.ProcessUdfView.udfname == 'Run Status', t.ProcessUdfView.udfname == 'RunID')) \
-        .order_by(t.Process.createddate)
+        .filter(t.ProcessType.displayname == 'AUTOMATED - Sequence')
 
     results = q.all()
     return results

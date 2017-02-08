@@ -79,9 +79,8 @@ column_def:
     finished_date:            { data: 'finished_date',                        title: 'Date finished',            visible: 'false', fmt: { type: 'date' } }
     started_date:             { data: 'started_date',                         title: 'Date started',             visible: 'false', fmt: { type: 'date' } }
     created_date:             { data: 'created_date',                         title: 'Date started', fmt: { type: 'date' } }
-    run_status:               { data: 'udfs.Run Status',                      title: 'Run status' }
+    run_status:               { data: 'run_status',                           title: 'Run status' }
     samples:                  { data: 'samples',                              title: 'Samples', fmt: { link: '/sample/' } }
-    udf_run_id:               { data: 'udfs.RunID',                           title: 'Run ID', fmt: { link: '/run/' } }
 
 # Datatables tables definition
 # the remaining top level entries each define a table with a list of column
@@ -240,7 +239,7 @@ sample_run_elements:
 
 
 active_runs:
-  - udf_run_id
+  - run_id
   - run_status
   - created_date
   - samples
