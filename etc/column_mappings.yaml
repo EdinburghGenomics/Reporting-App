@@ -242,4 +242,5 @@ active_runs:
   - run_id
   - run_status
   - created_date
+  - project_ids
   - samples
