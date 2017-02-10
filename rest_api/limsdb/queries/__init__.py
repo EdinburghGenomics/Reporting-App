@@ -1,4 +1,4 @@
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 import genologics_sql.tables as t
 
 
@@ -93,8 +93,65 @@ def non_QC_queues(session, project_name=None, sample_name=None, list_process=Non
     return q.all()
 
 
+def runs_info(session, time_since=None, run_ids=None, run_status=None):
+    """
+    :param sqlalchemy.orm.Session session:
+    :param datetime time_since: date cutoff for a run to be displayed
+    :param list run_ids: filter by specific run ids
+    :param list run_status: filter by specific run statuses
+    """
+    r = None
+    s = None
+    if run_ids:
+        r = session.query(t.Process.processid) \
+            .join(t.Process.type) \
+            .join(t.Process.udfs) \
+            .filter(t.ProcessUdfView.udfname == 'RunID') \
+            .filter(t.ProcessUdfView.udfvalue.in_(run_ids)) \
+            .filter(t.ProcessType.displayname == 'AUTOMATED - Sequence').subquery('r')
+
+    if run_status:
+        s = session.query(t.Process.processid) \
+            .join(t.Process.type) \
+            .join(t.Process.udfs) \
+            .filter(t.ProcessUdfView.udfname == 'Run Status') \
+            .filter(t.ProcessUdfView.udfvalue.in_(run_status)) \
+            .filter(t.ProcessType.displayname == 'AUTOMATED - Sequence').subquery('s')
+
+    q = session.query(t.Process.createddate, t.Process.processid, t.ProcessUdfView.udfname,
+                      t.ProcessUdfView.udfvalue, t.ContainerPlacement.wellyposition, t.Sample.name, t.Project.name) \
+        .join(t.Process.type) \
+        .join(t.Process.udfs) \
+        .join(t.Process.processiotrackers) \
+        .join(t.ProcessIOTracker.artifact) \
+        .join(t.Artifact.containerplacement) \
+        .join(t.ContainerPlacement.container) \
+        .join(t.Artifact.samples) \
+        .join(t.Sample.project) \
+        .filter(t.ProcessUdfView.udfname.in_(('Run Status', 'RunID', 'InstrumentID'))) \
+        .filter(t.ProcessType.displayname == 'AUTOMATED - Sequence')
+
+    if time_since:
+        q = q.filter(func.date(t.Process.createddate) > func.date(time_since))
+    if r is not None:
+        q = q.filter(t.Process.processid.in_(r))
+    if s is not None:
+        q = q.filter(t.Process.processid.in_(s))
+
+    results = q.all()
+    return results
+
+
 if __name__ == "__main__":
     from rest_api.limsdb import get_session
+    from datetime import datetime, timedelta
     session = get_session()
-    res = non_QC_queues(session, sample_name='X16098BP001B02')
+    now = datetime.now()
+    threshold = now - timedelta(7)
+
+    # res = runs_info(session, run_ids=['170117_E00328_0173_BHCKWYALXX', '170206_E00306_0218_BHCLJJALXX'])
+    res = runs_info(session, run_status=['RunStarted'])
+
+    # res = runs_info(session, time_since=threshold)
+
     print('\n'.join([str(r) for r in res]))

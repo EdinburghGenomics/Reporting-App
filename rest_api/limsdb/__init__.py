@@ -5,7 +5,7 @@ from flask import jsonify, request
 from eve.utils import parse_request
 from eve.methods.get import _pagination_links, _meta_links
 from config import rest_config as cfg
-from rest_api.limsdb.queries.sample_status import sample_status_per_project, sample_status_per_plate, sample_status
+from rest_api.limsdb.queries import sample_status, run_status
 
 _session = None
 
@@ -34,17 +34,14 @@ def get_session(echo=False):
 
 
 function_mapping = {
-    'project_status': sample_status_per_project,
-    'plate_status': sample_status_per_plate,
-    'sample_status': sample_status
+    'project_status': sample_status.sample_status_per_project,
+    'plate_status': sample_status.sample_status_per_plate,
+    'sample_status': sample_status.sample_status,
+    'run_status': run_status.run_status
 }
 
 
 def lims_extract(endpoint, app):
     data = function_mapping[endpoint](get_session())
-    total_items = len(data)
-    ret_dict = {}
-    ret_dict[app.config['META']] = {'total': total_items}
-    ret_dict[app.config['ITEMS']] = data
-    j = jsonify(ret_dict)
-    return j
+    ret_dict = {app.config['META']: {'total': len(data)}, app.config['ITEMS']: data}
+    return jsonify(ret_dict)

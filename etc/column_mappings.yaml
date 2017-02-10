@@ -78,6 +78,10 @@ column_def:
     open_date:                { data: 'open_date',                            title: 'Open Since',               fmt: { type: 'date' } }
     finished_date:            { data: 'finished_date',                        title: 'Date finished',            visible: 'false', fmt: { type: 'date' } }
     started_date:             { data: 'started_date',                         title: 'Date started',             visible: 'false', fmt: { type: 'date' } }
+    created_date:             { data: 'created_date',                         title: 'Date started', fmt: { type: 'date' } }
+    run_status:               { data: 'run_status',                           title: 'Run status' }
+    samples:                  { data: 'samples',                              title: 'Samples', fmt: { link: '/sample/' } }
+    instrument_id:            { data: 'instrument_id',                        title: 'Instrument ID' }
 
 # Datatables tables definition
 # the remaining top level entries each define a table with a list of column
@@ -106,7 +110,7 @@ project_status:
     - project_id
     - reseacher
     - nb_quoted_samples
-    - {column_def: 'nb_samples', title: 'Sample Received', visible: 'false', class_name: 'text-center' }
+    - { column_def: 'nb_samples', title: 'Sample Received', visible: 'false', class_name: 'text-center' }
     - species
     - library_type
     - nb_invoiced
@@ -128,7 +132,7 @@ project_status:
 plate_status:
     - project_id
     - plate_id
-    - {column_def: 'nb_samples', title: 'Sample Received', visible: 'false', class_name: 'text-center' }
+    - { column_def: 'nb_samples', title: 'Sample Received', visible: 'false', class_name: 'text-center' }
     - species
     - library_type
     - nb_invoiced
@@ -149,10 +153,10 @@ demultiplexing:
     - project_id
     - sample_id
     - passing_filter_reads
-    - {column_def: 'yield_in_gb',  fmt: { type: 'float' }, visible: 'false' }
-    - {column_def: 'clean_yield_in_gb',  fmt: { type: 'float' }, visible: 'true' }
-    - {column_def: 'yield_q30_in_gb',  fmt: { type: 'float'}, visible: 'false' }
-    - {column_def: 'clean_yield_q30_in_gb',  fmt: { type: 'float' }, visible: 'true' }
+    - { column_def: 'yield_in_gb',  fmt: { type: 'float' }, visible: 'false' }
+    - { column_def: 'clean_yield_in_gb',  fmt: { type: 'float' }, visible: 'true' }
+    - { column_def: 'yield_q30_in_gb',  fmt: { type: 'float'}, visible: 'false' }
+    - { column_def: 'clean_yield_q30_in_gb',  fmt: { type: 'float' }, visible: 'true' }
     - pc_q30_r1
     - pc_q30_r2
     - lane_pc_optical_dups
@@ -164,15 +168,15 @@ lane_aggregation:
     - sample_ids
     - passing_filter_reads
     - pc_pass_filter
-    - {column_def: 'yield_in_gb',  fmt: { type: 'float',  min: 120 }, visible: 'false' }
-    - {column_def: 'clean_yield_in_gb',  fmt: { type: 'float',  min: 120 }, visible: 'true' }
-    - {column_def: 'yield_q30_in_gb',  fmt: { type: 'float',  min: 95 }, visible: 'false' }
-    - {column_def: 'clean_yield_q30_in_gb',  fmt: { type: 'float',  min: 95 }, visible: 'true' }
+    - { column_def: 'yield_in_gb',  fmt: { type: 'float',  min: 120 }, visible: 'false' }
+    - { column_def: 'clean_yield_in_gb',  fmt: { type: 'float',  min: 120 }, visible: 'true' }
+    - { column_def: 'yield_q30_in_gb',  fmt: { type: 'float',  min: 95 }, visible: 'false' }
+    - { column_def: 'clean_yield_q30_in_gb',  fmt: { type: 'float',  min: 95 }, visible: 'true' }
     - pc_q30
     - pc_q30_r1
     - pc_q30_r2
     - lane_pc_optical_dups
-    - {column_def: 'cv',  visible: 'false' }
+    - { column_def: 'cv',  visible: 'false' }
     - review_statuses
     - useable_statuses
 
@@ -217,7 +221,7 @@ samples:
     - proc_status
     - reviewed
     - useable
-    - {column_def: 'delivered',  visible: 'false' }
+    - { column_def: 'delivered', visible: 'false' }
 
 
 sample_run_elements:
@@ -227,9 +231,18 @@ sample_run_elements:
     - project_id
     - sample_id
     - passing_filter_reads
-    - {column_def: 'yield_in_gb',  fmt: { type: 'float',  min: 120 } }
+    - { column_def: 'yield_in_gb', fmt: { type: 'float',  min: 120 } }
     - pc_q30_r1
     - pc_q30_r2
     - lane_pc_optical_dups
     - reviewed
     - useable
+
+
+active_runs:
+  - run_id
+  - instrument_id
+  - run_status
+  - created_date
+  - project_ids
+  - samples
