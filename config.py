@@ -38,6 +38,7 @@ class ColumnMappingConfig(Configuration):
                         # leave the definition as it is
                         pass
 
+
 class ProjectStatusConfig(Configuration):
     def __init__(self, *cfg_search_path):
         super().__init__(*cfg_search_path)
@@ -57,7 +58,6 @@ class ProjectStatusConfig(Configuration):
                 [(k, self.status_names.get(v)) for k, v in self.content[section].items()]
             )
             setattr(self, section, transformed_section)
-
 
 
 def _cfg_file(cfg_path):
