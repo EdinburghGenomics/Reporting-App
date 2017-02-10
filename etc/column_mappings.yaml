@@ -81,6 +81,7 @@ column_def:
     created_date:             { data: 'created_date',                         title: 'Date started', fmt: { type: 'date' } }
     run_status:               { data: 'run_status',                           title: 'Run status' }
     samples:                  { data: 'samples',                              title: 'Samples', fmt: { link: '/sample/' } }
+    instrument_id:            { data: 'instrument_id',                        title: 'Instrument ID' }
 
 # Datatables tables definition
 # the remaining top level entries each define a table with a list of column
@@ -240,6 +241,7 @@ sample_run_elements:
 
 active_runs:
   - run_id
+  - instrument_id
   - run_status
   - created_date
   - project_ids

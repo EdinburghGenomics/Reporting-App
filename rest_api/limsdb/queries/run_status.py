@@ -4,7 +4,6 @@ from flask import request
 from datetime import datetime, timedelta
 
 
-
 class Run:
     def __init__(self):
         self.created_date = None
@@ -18,7 +17,8 @@ class Run:
             'run_id': self.udfs['RunID'],
             'run_status': self.udfs['Run Status'],
             'samples': sorted(list(self.samples)),
-            'project_ids': sorted(list(self.projects))
+            'project_ids': sorted(list(self.projects)),
+            'instrument_id': self.udfs['InstrumentID']
         }
 
 
@@ -26,7 +26,7 @@ def run_status(session):
     # TODO: make the time threshold a parameter
     now = datetime.now()
     threshold = now - timedelta(7)
-    data = queries.runs_info(session, time_since = threshold)
+    data = queries.runs_info(session, time_since=threshold)
     all_runs = defaultdict(Run)
 
     for createddate, process_id, udf_name, udf_value, lane, sample_id, project_id in data:

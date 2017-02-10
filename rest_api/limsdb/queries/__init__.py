@@ -96,8 +96,9 @@ def non_QC_queues(session, project_name=None, sample_name=None, list_process=Non
 def runs_info(session, time_since=None, run_ids=None, run_status=None):
     """
     :param sqlalchemy.orm.Session session:
-    :param a datetime object used to filter the run returned
-    :return:
+    :param datetime time_since: date cutoff for a run to be displayed
+    :param list run_ids: filter by specific run ids
+    :param list run_status: filter by specific run statuses
     """
     r = None
     s = None
@@ -127,7 +128,7 @@ def runs_info(session, time_since=None, run_ids=None, run_status=None):
         .join(t.ContainerPlacement.container) \
         .join(t.Artifact.samples) \
         .join(t.Sample.project) \
-        .filter(t.ProcessUdfView.udfname.in_(('Run Status', 'RunID'))) \
+        .filter(t.ProcessUdfView.udfname.in_(('Run Status', 'RunID', 'InstrumentID'))) \
         .filter(t.ProcessType.displayname == 'AUTOMATED - Sequence')
 
     if time_since:
@@ -148,9 +149,9 @@ if __name__ == "__main__":
     now = datetime.now()
     threshold = now - timedelta(7)
 
-    #res = runs_info(session, run_ids=['170117_E00328_0173_BHCKWYALXX', '170206_E00306_0218_BHCLJJALXX'])
+    # res = runs_info(session, run_ids=['170117_E00328_0173_BHCKWYALXX', '170206_E00306_0218_BHCLJJALXX'])
     res = runs_info(session, run_status=['RunStarted'])
 
-    #res = runs_info(session, time_since=threshold)
+    # res = runs_info(session, time_since=threshold)
 
     print('\n'.join([str(r) for r in res]))

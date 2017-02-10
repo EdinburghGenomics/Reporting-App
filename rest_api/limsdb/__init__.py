@@ -43,9 +43,5 @@ function_mapping = {
 
 def lims_extract(endpoint, app):
     data = function_mapping[endpoint](get_session())
-    total_items = len(data)
-    ret_dict = {}
-    ret_dict[app.config['META']] = {'total': total_items}
-    ret_dict[app.config['ITEMS']] = data
-    j = jsonify(ret_dict)
-    return j
+    ret_dict = {app.config['META']: {'total': len(data)}, app.config['ITEMS']: data}
+    return jsonify(ret_dict)
