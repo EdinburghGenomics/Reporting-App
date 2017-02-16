@@ -57,6 +57,7 @@ step_completed_to_status:
 step_queued_to_status:
     Receive Sample EG 6.1: SAMPLE_SUBMISSION
     Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
+    Create CFP Batch: LIBRARY_QUEUE
     Create PDP Pool: SEQUENCING_QUEUE
     Create Pooling CST Batch: SEQUENCING_QUEUE
     Create Production CST Batch: SEQUENCING_QUEUE
