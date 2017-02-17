@@ -112,6 +112,22 @@ Lims connection. Modify this file accordingly and, in the `docker` directory, bu
 
 `docker build -t <image_name> .`
 
+Having built the image, you should then be able to run a container and query its Rest API through `egcg_core`:
+
+    $ docker run <image_name>
+    $ docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' <container_name>
+    <prints container IP address>
+    $ python
+    >>> from egcg_core.rest_communication import Communicator
+    >>> c = Communicator(('username', 'password'), 'http://<container_ip_address>:4999/api/0.1')
+    >>> c.get_documents('run_elements', where={'run_id': 'a_run'}, max_results=4)
+
+If you start up a container with no arguments as above, The Rest API will use an internal user database at
+/opt/users.sqlite, and an internal NoSQL database at the MongoDB default location of /data/db. If you wish to
+link the container to databases on your host system, you can do so with Docker volumes:
+
+    docker run -v path/to/my_user_db.sqlite:/opt/users.sqlite -v path/to/my_nosql_db:/data/db <container_name>
+
 
 ## Dependencies
 - a running MongoDB database
