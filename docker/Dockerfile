@@ -33,15 +33,11 @@ RUN git clone https://github.com/EdinburghGenomics/Reporting-App.git \
     && PATH=$PATH:/opt/postgresql-9.6.1/bin /opt/python/bin/pip install -q -r requirements.txt \
     && /opt/python/bin/pip install tornado
 
-ADD reporting.yaml /opt/reporting.yaml
-
-RUN REPORTINGCONFIG=/opt/reporting.yaml \
-    /opt/python/bin/python \
-    /opt/Reporting-App/auth.py add apiuser
+ADD reporting.yaml reporting_app.sh users.sqlite /opt/
 
 VOLUME /data/db
 
-EXPOSE 4999
+EXPOSE 80
 
-CMD /opt/database/mongodb-linux-x86_64-rhel70-3.4.1/bin/mongod --port 4998 > /opt/database/mongod.log & \
-    REPORTINGCONFIG=/opt/reporting.yaml /opt/python/bin/python /opt/Reporting-App/bin/run_app.py rest_api
+ENTRYPOINT ["/opt/reporting_app.sh"]
+CMD ["master"]

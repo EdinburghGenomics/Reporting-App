@@ -103,30 +103,36 @@ simply added to.
 
 
 ## docker
-Dockerfile and template config for building the Rest API component as a Docker image. The Dockerfile sets up
-MongoDB, Python, Reporting-App and Postgres, loads in the given config file, exposes port 4999 and runs the
-Rest API on Tornado.
-
-The image should build successfully without changing the `reporting.yaml`, but there would not be any valid
-Lims connection. Modify this file accordingly and, in the `docker` directory, build the image with:
+Dockerfile and template config for building the Rest API component as a Docker image. To build the image,
+navigate to this directory and run:
 
 `docker build -t <image_name> .`
 
-Having built the image, you should then be able to run a container and query its Rest API through `egcg_core`:
+It is possible to do this without altering `reporting.yaml`, but there would not be any valid Lims connection.
+There are two ways to fix this: you can either edit `reporting.yaml` before building, or supply a different
+config at run time using Docker volumes.
+
+Having built the image, you should now be able to run a container and query its Rest API through `egcg_core`:
 
     $ docker run <image_name>
     $ docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' <container_name>
     <prints container IP address>
     $ python
     >>> from egcg_core.rest_communication import Communicator
-    >>> c = Communicator(('username', 'password'), 'http://<container_ip_address>:4999/api/0.1')
+    >>> c = Communicator(('username', 'password'), 'http://<container_ip_address>/api/0.1')
     >>> c.get_documents('run_elements', where={'run_id': 'a_run'}, max_results=4)
 
-If you start up a container with no arguments as above, The Rest API will use an internal user database at
-/opt/users.sqlite, and an internal NoSQL database at the MongoDB default location of /data/db. If you wish to
-link the container to databases on your host system, you can do so with Docker volumes:
+By default, when an image is started up it will pull the latest version of EdinburghGenomics/Reporting-App on
+`master`. To change what version/branch/tag is checked out, you can supply a single positional argument after
+the image name.
 
-    docker run -v path/to/my_user_db.sqlite:/opt/users.sqlite -v path/to/my_nosql_db:/data/db <container_name>
+If you start up a container as above with no volumes mounted, the Rest API will use an internal user database
+at /opt/users.sqlite and an internal NoSQL database at the MongoDB default location of /data/db. You can keep
+the container completely isolated like this, or link it to databases on your host system with Docker volumes.
+
+For example, to start a container with our own databases and tag v0.9.2 of the app:
+
+    docker run -v path/to/my_user_db.sqlite:/opt/users.sqlite -v path/to/my_nosql_db:/data/db <image_name> v0.9.2
 
 
 ## Dependencies

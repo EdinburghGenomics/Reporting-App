@@ -2,11 +2,11 @@
 rest_app:
     key: 'a_test_key'
     webserver: tornado
-    port: 4999
+    port: 80
 
     db_name: 'edgen_reporting'
     db_host: 'mongodb://localhost'
-    db_port: 4998
+    db_port: 27017
 
     x_domains: []
     url_prefix: 'api'
