@@ -37,7 +37,6 @@ status_order:
 step_completed_to_status:
     Receive Sample 4.0: SAMPLE_QC
     Receive Sample EG 6.1: SAMPLE_QC
-    Eval Project Quant: LIBRARY_QUEUE
     Awaiting User Response EG 2.0: LIBRARY_QUEUE
     Sequencing Plate Preparation EG 2.0: LIBRARY_PREP
     Sequencing Plate Preparation EG 1.0: LIBRARY_PREP
