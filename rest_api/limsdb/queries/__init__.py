@@ -140,15 +140,3 @@ def runs_info(session, time_since=None, run_ids=None, run_status=None):
 
     results = q.all()
     return results
-
-
-if __name__ == "__main__":
-    from rest_api.limsdb import get_session
-    from datetime import datetime, timedelta
-    session = get_session()
-
-    res = non_QC_queues(session, sample_name='X15060P005A05')
-
-    # res = runs_info(session, time_since=threshold)
-
-    print('\n'.join([str(r) for r in res]))

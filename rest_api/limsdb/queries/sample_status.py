@@ -264,8 +264,6 @@ def _create_samples(session):
             all_samples[sanitize_user_id(sample_name)].planned_library = udf_value
         if udf_name == 'Species':
             all_samples[sanitize_user_id(sample_name)].species = udf_value
-        if udf_name == 'Species':
-            all_samples[sanitize_user_id(sample_name)].species = udf_value
 
     for result in queries.get_samples_and_processes(session,  project_id, sample_id,
                                             workstatus='COMPLETE', list_process=list_process_complete):
