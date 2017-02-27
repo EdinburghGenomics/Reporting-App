@@ -124,7 +124,7 @@ def admin_users():
     args = a.parse_args()
 
     def _add_user(username, password=None):
-        cursor.execute('INSERT INTO users VALUES (?, ?)', (username, hash_pw(username or password)))
+        cursor.execute('INSERT INTO users VALUES (?, ?)', (username, hash_pw(password or username)))
         user_db.commit()
 
     def _remove_user(username):
@@ -139,7 +139,7 @@ def admin_users():
 
     elif args.action == 'reset':
         _remove_user(args.username)
-        _add_user(args.username)
+        _add_user(args.username, args.password)
 
     print("Performed action '%s' on user '%s'" % (args.action, args.username))
 
