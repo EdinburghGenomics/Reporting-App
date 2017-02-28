@@ -1,0 +1,24 @@
+
+rest_app:
+    key: 'a_test_key'
+    webserver: tornado
+    port: 80
+
+    db_name: 'edgen_reporting'
+    db_host: 'mongodb://localhost'
+    db_port: 27017
+
+    x_domains: []
+    url_prefix: 'api'
+    api_version: '0.1'
+
+    lims_database:
+        username: a_username
+        password: a_password
+        url: a_baseurl
+        db: a_db_name
+
+
+reporting_app:  # only need this in the image for the user_db
+    key: 'a_test_key'
+    user_db: /opt/users.sqlite

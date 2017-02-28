@@ -1,5 +1,5 @@
-# Datatables column definition:
-# This entrie define specific columns used in datatables in the reporting app
+# Datatables column definitions for the reporting app
+
 column_def:
     bam_file_reads:           { data: 'bam_file_reads',                       title: 'Initial reads in bam',     fmt: { type: 'int',   min: 1500 } }
     barcode:                  { data: 'barcode',                              title: 'Barcode' }

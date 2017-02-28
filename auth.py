@@ -89,14 +89,10 @@ def check_login_token(token_hash):
         return None
 
 
-def update_user(username, field, new_value):
-    cursor.execute('UPDATE users SET %s=? WHERE id=?' % field, (new_value, username))
-    user_db.commit()
-
-
 def change_pw(username, old_pw, new_pw):
     if check_user_auth(username, old_pw):
-        update_user(username, 'pw_hash', hash_pw(new_pw))
+        cursor.execute('UPDATE users SET pw_hash=? WHERE id=?', (hash_pw(new_pw), username))
+        user_db.commit()
         return True
     return False
 
@@ -122,30 +118,30 @@ class DualAuth(TokenAuth):
 def admin_users():
     from argparse import ArgumentParser
     a = ArgumentParser()
-    for op in ('add', 'remove', 'reset'):
-        a.add_argument('--' + op, nargs='+', type=str, default=())
+    a.add_argument('action', choices=('add', 'remove', 'reset'))
+    a.add_argument('username')
+    a.add_argument('--password', nargs='?', default=None)
     args = a.parse_args()
 
-    def _add_user(username):
-        cursor.execute('INSERT INTO users VALUES (?, ?)', (username, hash_pw(username)))
+    def _add_user(username, password=None):
+        cursor.execute('INSERT INTO users VALUES (?, ?)', (username, hash_pw(password or username)))
         user_db.commit()
 
     def _remove_user(username):
         cursor.execute('DELETE FROM users WHERE id=?', (username,))
         user_db.commit()
 
-    for u in args.add:
-        _add_user(u)
-        print('Added user ' + u)
+    if args.action == 'add':
+        _add_user(args.username, args.password)
 
-    for u in args.remove:
-        _remove_user(u)
-        print('Removed user ' + u)
+    elif args.action == 'remove':
+        _remove_user(args.username)
 
-    for u in args.reset:
-        _remove_user(u)
-        _add_user(u)
-        print('Reset user ' + u)
+    elif args.action == 'reset':
+        _remove_user(args.username)
+        _add_user(args.username, args.password)
+
+    print("Performed action '%s' on user '%s'" % (args.action, args.username))
 
 
 if __name__ == '__main__':
