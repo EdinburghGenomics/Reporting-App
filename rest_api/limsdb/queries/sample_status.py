@@ -244,11 +244,13 @@ def _create_samples(session):
     sample_id = match.get('sample_id')
     detailed = bool(request.args.get('detailed', False))
     if detailed:
-        list_process = None
+        list_process_complete = None
+        list_process_queued = None
     else:
-        list_process = list(status_cfg.step_completed_to_status) \
+        list_process_complete = list(status_cfg.step_completed_to_status) \
                        + list(status_cfg.additional_step_completed) \
                        + list(status_cfg.library_type_step_completed)
+        list_process_queued = status_cfg.step_queued_to_status
 
     for result in queries.get_sample_info(session, project_id, sample_id, udfs=['Prep Workflow', 'Species']):
         (pjct_name, sample_name, container, wellx, welly, udf_name, udf_value) = result
@@ -264,11 +266,11 @@ def _create_samples(session):
             all_samples[sanitize_user_id(sample_name)].species = udf_value
 
     for result in queries.get_samples_and_processes(session,  project_id, sample_id,
-                                            workstatus='COMPLETE', list_process=list_process):
+                                            workstatus='COMPLETE', list_process=list_process_complete):
         (pjct_name, sample_name, process_name, process_status, date_run, process_id) = result
         all_samples[sanitize_user_id(sample_name)].add_completed_process(process_name, date_run, process_id)
 
-    for result in queries.non_QC_queues(session, project_id, sample_id, list_process=status_cfg.step_queued_to_status):
+    for result in queries.non_QC_queues(session, project_id, sample_id, list_process=list_process_queued):
         pjct_name, sample_name, process_name, queued_date, queue_id = result
         all_samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date, queue_id)
 

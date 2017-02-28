@@ -140,18 +140,3 @@ def runs_info(session, time_since=None, run_ids=None, run_status=None):
 
     results = q.all()
     return results
-
-
-if __name__ == "__main__":
-    from rest_api.limsdb import get_session
-    from datetime import datetime, timedelta
-    session = get_session()
-    now = datetime.now()
-    threshold = now - timedelta(7)
-
-    # res = runs_info(session, run_ids=['170117_E00328_0173_BHCKWYALXX', '170206_E00306_0218_BHCLJJALXX'])
-    res = runs_info(session, run_status=['RunStarted'])
-
-    # res = runs_info(session, time_since=threshold)
-
-    print('\n'.join([str(r) for r in res]))
