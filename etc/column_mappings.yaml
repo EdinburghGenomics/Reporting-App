@@ -38,6 +38,7 @@ column_def:
     nb_delivery:              { data: 'delivery',                             title: 'Delivery' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_finished:              { data: 'finished',                             title: 'Finished' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_removed:               { data: 'removed',                              title: 'Removed' ,                 fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
+    nb_repeat:                { data: 'repeat',                               title: 'Request repeat' ,          fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
     nb_genotyped:             { data: 'genotyped',                            title: 'Genotyped' ,               fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
     nb_invoiced:              { data: 'invoiced',                             title: 'Invoiced' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
     no_call_chip:             { data: 'genotype_validation.no_call_chip',     title: 'No-call (chip)' ,          visible: 'false'}
@@ -119,6 +120,7 @@ project_status:
     - started_date
     - finished_date
     - nb_removed
+    - nb_repeat
     - nb_sample_submission
     - nb_sample_qc
     - nb_library_queue
@@ -138,6 +140,7 @@ plate_status:
     - nb_invoiced
     - nb_genotyped
     - nb_removed
+    - nb_repeat
     - nb_sample_submission
     - nb_sample_qc
     - nb_library_queue
