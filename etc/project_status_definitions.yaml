@@ -2,6 +2,7 @@
 # Note that to add/remove columns to the project status table the entry needs to be added to the column_mappings.yaml
 status_names:
     SAMPLE_REMOVED: removed
+    SAMPLE_REPEAT: repeat
     SAMPLE_SUBMISSION: sample_submission
     SAMPLE_QC: sample_qc
     LIBRARY_QUEUE: library_queue
@@ -63,6 +64,7 @@ step_queued_to_status:
     AUTOMATED - Make CST: SEQUENCING
     AUTOMATED - Make Pooled CST: SEQUENCING
     Data Release EG 1.0: DELIVERY
+    Request Repeats EG 1.0 ST: SAMPLE_REPEAT
 
 
 additional_step_completed:
