@@ -16,7 +16,7 @@ def get_engine(echo=False):
     :returns: the SQLAlchemy engine
     """
     uri = "postgresql://{username}:{password}@{url}/{db}".format(**cfg.get('lims_database'))
-    return create_engine(uri, echo=echo)
+    return create_engine(uri, echo=echo, isolation_level="AUTOCOMMIT")
 
 
 def get_session(echo=False):
