@@ -116,7 +116,6 @@ function draw_highcharts_tat_graphs(data, field_name, time_period){
         [average, boxplot_values_outliers, count],
         ['tat', 'tat_box', 'count']
     );
-    console.log(aggregated_data);
     function compare_aggregate(a, b){
         return parseInt(a[field_name]) - parseInt(b[field_name]);
     }
@@ -346,6 +345,7 @@ function all_tat_charts(data){
         });
         return d;
     });
+
 
     check_state_and_draw(finished_data);
     ['week', 'month', 'quarter', 'st', 'en', 'mean', 'boxplot'].forEach(function(button_id) {
