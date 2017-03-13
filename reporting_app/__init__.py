@@ -188,7 +188,7 @@ def current_runs():
             datatable_cfg(
                 'Recent runs',
                 'active_runs',
-                rest_api().api_url('lims/status/run_status', status='recent')
+                api_url=rest_api().api_url('lims/status/run_status', status='recent')
             )
         ],
         description='Showing sequencing runs from the last 7 days'
@@ -236,7 +236,7 @@ def report_project(project_id):
             datatable_cfg(
                 'Bioinformatics report for ' + project_id,
                 'samples',
-                rest_api().api_url('aggregate/samples', match={'project_id': project_id})
+                api_url=rest_api().api_url('aggregate/samples', match={'project_id': project_id})
             )
         ]
     )
@@ -253,7 +253,7 @@ def report_sample(sample_id):
             datatable_cfg(
                 'Bioinformatics report for ' + sample_id,
                 'samples',
-                rest_api().api_url('aggregate/samples', match={'sample_id': sample_id}),
+                api_url=rest_api().api_url('aggregate/samples', match={'sample_id': sample_id}),
                 paging=False,
                 searching=False,
                 info=False
@@ -261,7 +261,7 @@ def report_sample(sample_id):
             datatable_cfg(
                 'Run elements generated for ' + sample_id,
                 'sample_run_elements',
-                rest_api().api_url('aggregate/run_elements', match={'sample_id': sample_id}),
+                api_url=rest_api().api_url('aggregate/run_elements', match={'sample_id': sample_id}),
                 paging=False,
                 searching=False,
                 info=False
@@ -327,4 +327,14 @@ they're queued. the steps involved are described below.''' + table + '</div>'
             fixed_header=True,
             table_foot='sum_row_per_column'
         )
+    )
+
+@app.route('/test/')
+@flask_login.login_required
+def test_page():
+    return render_template(
+        'test.html',
+        #api_url=rest_api().api_url('lims/status/sample_status', match={'project_id': 'X15060'}),
+        api_url=rest_api().api_url('lims/status/sample_status'),
+        ajax_token = get_token()
     )

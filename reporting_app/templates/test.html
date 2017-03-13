@@ -1,0 +1,90 @@
+{% extends 'reporting_base.html' %}
+{% from 'datatable.html' import datatable, dt_header %}
+
+{% block head %}
+    {{ super() }}
+    {{ dt_header() }}
+    <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css"/>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/mathjs/3.10.0/math.min.js"></script>
+    <script src="{{ url_for('static', filename='charts.js') }}"></script>
+
+    <script type="text/javascript">
+        function load_graphs(callback){
+            $('#loadingmessage').show();
+            $.ajax({
+                url: '{{ api_url|safe }}',
+                dataType: "json",
+                async: true,
+                headers: {'Authorization': '{{ ajax_token | safe}}'},
+                success: function(json) {
+                    $('#loadingmessage').hide();
+                    callback(json['data']);
+                    $('#plots_div').show();
+                }
+            });
+        }
+    </script>
+{% endblock %}
+
+{% if tables %}
+    {% for table in tables %}
+    {{ datatable(table) }}
+    {% endfor %}
+{% elif table %}
+    {{ datatable(table) }}
+{% endif %}
+
+{% block content %}
+    <div id="loadingmessage" class="panel panel-default" style="width: 15%; margin: 0 auto;">
+        <div class="panel-body" style="text-align: center;">
+            <p class="fa fa-refresh fa-spin"></p>
+        </div>
+    </div>
+    <div id="plots_div" style="display: none">
+        <div id="highchart_buttons">
+            <div class="btn-group" data-toggle="buttons">
+                <label class="btn btn-primary">
+                    <input type="radio" id="week" name="radio_button1" autocomplete="off" >Show Weeks</input>
+                </label>
+                <label class="btn btn-primary">
+                    <input type="radio" id="month" name="radio_button1" autocomplete="off">Show Months</input>
+                </label>
+                <label class="btn btn-primary active">
+                    <input type="radio" id="quarter" name="radio_button1" autocomplete="off" checked>Show Quarter</input>
+                </label>
+            </div>
+            <div class="btn-group" data-toggle="buttons">
+                <label class="btn btn-primary active">
+                    <input type="radio" id="st" name="radio_button2" autocomplete="off" checked>Order by date received</input>
+                </label>
+                <label class="btn btn-primary">
+                    <input type="radio" id="en" name="radio_button2" autocomplete="off">Order by date delivered</input>
+                </label>
+            </div>
+
+        </div>
+        <p>
+            Here's a simple Plotly plot -
+        </p>
+        <div id="plotly_cont"></div>
+        <p>
+            Here's a simple Highchart plot -
+        </p>
+
+        <div id="highchart_cont"></div>
+    </div>
+
+
+
+    <script>
+        load_graphs(all_tat_charts);
+    </script>
+
+
+{% endblock %}
