@@ -10,6 +10,7 @@ function get_function(fn_name){
 
 function create_datatable(dt_config){
     //Sets default value using Lodash.js
+    _.defaults(dt_config, {'buttons': 'defaults'});
     $(document).ready(function(){
         var table = $('#' + dt_config.name).DataTable(configure_dt(dt_config));
         if (dt_config.buttons){
