@@ -125,6 +125,8 @@ function draw_highcharts_tat_graphs(data, field_name, time_period){
         data: aggregated_data.map(function(d){return [parseInt(d[field_name]), d['count']]}),
         yAxis: 1,
         type: 'column',
+        pointPadding: 0.2,
+        color: '#CACDD1',
         tooltip: {
             pointFormatter: function(){return format_text_tat(this.x, this.y, time_period, 'samples');}
         }
@@ -135,8 +137,8 @@ function draw_highcharts_tat_graphs(data, field_name, time_period){
         data: aggregated_data.map(function(d){return [parseInt(d[field_name])].concat(d.tat_box.values) }),
         yAxis: 0,
         type: 'boxplot',
-        color: Highcharts.getOptions().colors[1],
-        pointPadding: 0.2,
+        color: '#FF4D4D',
+
         tooltip: {
             pointFormatter: function(){return format_boxplot_tat(this.x, this.options, time_period, 'weeks');}
         }
@@ -149,7 +151,7 @@ function draw_highcharts_tat_graphs(data, field_name, time_period){
         yAxis: 0,
         type: 'scatter',
         linkedTo: ':previous',
-        color: Highcharts.getOptions().colors[1],
+        color: '#FF4D4D',
         marker: {
             enabled: true,
             radius: 2,
@@ -163,8 +165,10 @@ function draw_highcharts_tat_graphs(data, field_name, time_period){
         name: 'Avg Turn around time',
         data: aggregated_data.map(function(d){return [parseInt(d[field_name]), d['tat']]}),
         yAxis: 0,
-        type: 'scatter',
+        type: 'line',
+        color: '#FF4D4D',
         marker: {
+            enable: true,
             symbol: 'square',
             fillColor: '#FF4D4D'
         },
@@ -173,8 +177,6 @@ function draw_highcharts_tat_graphs(data, field_name, time_period){
         }
     }
     series = [series1, series2, series3, series4];
-
-
 
     return Highcharts.chart('highchart_cont', {
         chart: {
@@ -221,6 +223,7 @@ function draw_plotly_tat_graphs(data, field_name, time_period){
         y: aggregated_data.map(function(d){return d['tat']}),
         text: aggregated_data.map(function(d){return format_text_tat(parseInt(d[field_name]), d['tat'], time_period, 'weeks')}),
         type: 'line',
+        marker: {color: '#FF4D4D'},
         name: 'Avg Turn around time',
         hoverinfo: 'text'
     };
@@ -232,6 +235,10 @@ function draw_plotly_tat_graphs(data, field_name, time_period){
         y0: 0,
         //text: aggregated_data.map(function(d){return tootltips_format(parseInt(d[field_name]), d['tat'], 'weeks')}),
         type: 'box',
+        marker: {
+            size: 4,
+            color: '#FF4136'
+        },
         name: 'Turn around time',
         hoverinfo: 'all'
     };
@@ -243,6 +250,7 @@ function draw_plotly_tat_graphs(data, field_name, time_period){
         y: aggregated_data.map(function(d){return d['count']}),
         text: aggregated_data.map(function(d){return format_text_tat(parseInt(d[field_name]), d['count'], time_period, 'samples')}),
         type: 'bar',
+        marker: {color: '#CACDD1'},
         name: 'Number of sample',
         hoverinfo: 'text',
         yaxis: 'y2'
