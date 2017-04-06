@@ -236,7 +236,10 @@ def report_project(project_id):
             datatable_cfg(
                 'Bioinformatics report for ' + project_id,
                 'samples',
-                rest_api().api_url('aggregate/samples', match={'project_id': project_id})
+                ajax_call='merge_two_sources',
+                api_url=rest_api().api_url('aggregate/samples', match={'project_id': project_id}),
+                api_url2=rest_api().api_url('lims/status/sample_status', match={'project_id': project_id}),
+                merge_on='sample_id'
             )
         ]
     )
@@ -253,7 +256,10 @@ def report_sample(sample_id):
             datatable_cfg(
                 'Bioinformatics report for ' + sample_id,
                 'samples',
-                rest_api().api_url('aggregate/samples', match={'sample_id': sample_id}),
+                ajax_call='merge_two_sources',
+                api_url=rest_api().api_url('aggregate/samples', match={'sample_id': sample_id}),
+                api_url2=rest_api().api_url('lims/status/sample_status', match={'sample_id': sample_id}),
+                merge_on='sample_id',
                 paging=False,
                 searching=False,
                 info=False
@@ -261,7 +267,7 @@ def report_sample(sample_id):
             datatable_cfg(
                 'Run elements generated for ' + sample_id,
                 'sample_run_elements',
-                rest_api().api_url('aggregate/run_elements', match={'sample_id': sample_id}),
+                api_url=rest_api().api_url('aggregate/run_elements', match={'sample_id': sample_id}),
                 paging=False,
                 searching=False,
                 info=False

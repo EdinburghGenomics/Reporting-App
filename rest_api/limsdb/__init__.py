@@ -15,8 +15,9 @@ def get_engine(echo=False):
     Generate a SQLAlchemy engine for PostGres with the CONF currently used
     :returns: the SQLAlchemy engine
     """
-    uri = "postgresql://{username}:{password}@{url}/{db}".format(**cfg.get('lims_database'))
-    return create_engine(uri, echo=echo, isolation_level="AUTOCOMMIT")
+    #uri = "postgresql://{username}:{password}@{url}/{db}".format(**cfg.get('lims_database'))
+    uri = "sqlite:///:memory:"
+    return create_engine(uri, echo=echo)
 
 
 def get_session(echo=False):
@@ -28,6 +29,7 @@ def get_session(echo=False):
     if _session is None:
         engine = get_engine(echo=echo)
         Base.metadata.bind = engine
+        Base.metadata.create_all(engine)
         DBSession = sessionmaker(bind=engine)
         _session = DBSession()
     return _session

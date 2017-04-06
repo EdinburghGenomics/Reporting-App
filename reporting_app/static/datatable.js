@@ -1,5 +1,5 @@
 //helper function to retrieve a function by name
-function get_function(fn_name){
+var get_function = function (fn_name){
     var fn = window[fn_name];
     if(typeof fn === 'function') {
         return fn;
@@ -7,6 +7,59 @@ function get_function(fn_name){
         return null;
     }
 }
+
+var get_lims_sample = function(json){
+    console.log(this);
+    return json.data;
+
+}
+
+// merge several arrays of object based on given property
+// see http://stackoverflow.com/questions/38053193/merge-2-json-array-objects-based-on-a-common-property
+var merge_on = function (list_of_array, key) {
+    var r = [],
+        hash = Object.create(null);
+
+    list_of_array.forEach(function (a) {
+        a.forEach(function (o) {
+            if (!hash[o[key]]) {
+                hash[o[key]] = {};
+                r.push(hash[o[key]]);
+            }
+            Object.keys(o).forEach(function (k) {
+                hash[o[key]][k] = o[k];
+            });
+        });
+    });
+    return r;
+}
+
+// send two ajax queries then merge the results based on dt_config.merge_on
+var merge_two_sources = function(dt_config){
+    return function(data, callback, settings){
+        var call1 = $.ajax({
+            url: dt_config.api_url,
+            headers: {'Authorization':  dt_config.token },
+            dataType: "json",
+            async: true,
+        });
+        var call2 = $.ajax({
+            url: dt_config.api_url2,
+            headers: {'Authorization':  dt_config.token },
+            dataType: "json",
+            async: true,
+        });
+        $.when(call1, call2).then(function (response1, response2) {
+            var result = merge_on([response1[0].data,response2[0].data], dt_config.merge_on);
+            callback({
+                recordsTotal: result.length,
+                recordsFiltered: result.length,
+                data: result
+            });
+        });
+    }
+}
+
 
 function create_datatable(dt_config){
     //Sets default value using Lodash.js
@@ -19,6 +72,7 @@ function create_datatable(dt_config){
         }
     });
 }
+
 
 // Configure the buttons for datatable
 function configure_buttons(button_config){
@@ -33,6 +87,7 @@ function configure_buttons(button_config){
     return button_config.map(function(n){return buttons_def[n]});
 }
 
+
 // Configure datatable
 function configure_dt(dt_config) {
     //Sets default value using Lodash.js
@@ -42,7 +97,17 @@ function configure_dt(dt_config) {
         'searching': true,
         'info': true,
     });
+    // configure the ajax call or retrieve the ajax callback function
+    var ajax_call = {
+        'url': dt_config.api_url,
+        'dataSrc': 'data',
+        'headers': {'Authorization': dt_config.token}
+    }
+    if (dt_config.ajax_call){
+        ajax_call = get_function(dt_config.ajax_call)(dt_config);
+    }
     return {
+        'dt_config': dt_config,
         'fixedHeader': dt_config.fixed_header,
         'paging': dt_config.paging,
         'searching': dt_config.searching,
@@ -53,11 +118,7 @@ function configure_dt(dt_config) {
         //'stateSave': true,
         'lengthMenu': [[10, 25, 50, -1], [10, 25, 50, "All"]],
         'pageLength': 25,
-        'ajax': {
-            'url': dt_config.api_url,
-            'dataSrc': 'data',
-            'headers': {'Authorization': dt_config.token}
-        },
+        'ajax': ajax_call,
         'language': {'processing': '<i class="fa fa-refresh fa-spin">'},
         'columns': dt_config.cols.map(
             function(c) {
