@@ -195,6 +195,8 @@ samples:
     - sample_id
     - user_sample_id
     - current_lims_status
+    - library_type
+    - species
     - clean_yield_in_gb
     - clean_yield_q30
     - clean_pc_q30_r1
