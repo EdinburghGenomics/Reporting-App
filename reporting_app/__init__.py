@@ -236,10 +236,16 @@ def report_project(project_id):
             datatable_cfg(
                 'Bioinformatics report for ' + project_id,
                 'samples',
-                ajax_call='merge_two_sources',
-                api_url=rest_api().api_url('aggregate/samples', match={'project_id': project_id}),
-                api_url2=rest_api().api_url('lims/status/sample_status', match={'project_id': project_id}),
-                merge_on='sample_id'
+                api_url=None,
+                ajax_call={
+                    'func_name':'merge_multi_sources',
+                    'api_urls':[
+                        rest_api().api_url('aggregate/samples', match={'project_id': project_id}),
+                        rest_api().api_url('lims/status/sample_status', match={'project_id': project_id})
+                    ],
+                    'merge_on':'sample_id'
+                },
+                fixed_header=True
             )
         ]
     )
@@ -251,15 +257,21 @@ def report_sample(sample_id):
 
     return render_template(
         'sample_report.html',
+
         title=sample_id + ' Sample Report',
         tables=[
             datatable_cfg(
                 'Bioinformatics report for ' + sample_id,
                 'samples',
-                ajax_call='merge_two_sources',
-                api_url=rest_api().api_url('aggregate/samples', match={'sample_id': sample_id}),
-                api_url2=rest_api().api_url('lims/status/sample_status', match={'sample_id': sample_id}),
-                merge_on='sample_id',
+                api_url=None,
+                ajax_call={
+                    'func_name':'merge_multi_sources',
+                    'api_urls':[
+                        rest_api().api_url('aggregate/samples', match={'sample_id': sample_id}),
+                        rest_api().api_url('lims/status/sample_status', match={'sample_id': sample_id})
+                    ],
+                    'merge_on':'sample_id'
+                },
                 paging=False,
                 searching=False,
                 info=False
@@ -275,6 +287,7 @@ def report_sample(sample_id):
         ],
         sample_statuses=rest_api().get_document('lims/status/sample_status', detailed=True, match={'sample_id': sample_id}),
         lims_url=cfg['lims_url'],
+        sample_id=sample_id,
         procs=rest_api().get_documents(
             'analysis_driver_procs',
             where={'dataset_type': 'sample', 'dataset_name': sample_id},

@@ -8,11 +8,6 @@ var get_function = function (fn_name){
     }
 }
 
-var get_lims_sample = function(json){
-    console.log(this);
-    return json.data;
-
-}
 
 // merge several arrays of object based on given property
 // see http://stackoverflow.com/questions/38053193/merge-2-json-array-objects-based-on-a-common-property
@@ -34,23 +29,30 @@ var merge_on = function (list_of_array, key) {
     return r;
 }
 
-// send two ajax queries then merge the results based on dt_config.merge_on
-var merge_two_sources = function(dt_config){
+// send multiple ajax queries then merge the results based on dt_config.merge_on
+// dt_config is expected to contain:
+// ajax_call.func_name: merge_multi_sources,
+// ajax_call.api_urls: [url1, url2, ...]
+// ajax_call.merge_on: property_name
+// token: the token used for authentication
+var merge_multi_sources = function(dt_config){
     return function(data, callback, settings){
-        var call1 = $.ajax({
-            url: dt_config.api_url,
-            headers: {'Authorization':  dt_config.token },
-            dataType: "json",
-            async: true,
+        var calls = dt_config.ajax_call.api_urls.map( function(api_url){
+            return  $.ajax({
+                url: api_url,
+                headers: {'Authorization':  dt_config.token },
+                dataType: "json",
+                async: true,
+            });
         });
-        var call2 = $.ajax({
-            url: dt_config.api_url2,
-            headers: {'Authorization':  dt_config.token },
-            dataType: "json",
-            async: true,
-        });
-        $.when(call1, call2).then(function (response1, response2) {
-            var result = merge_on([response1[0].data,response2[0].data], dt_config.merge_on);
+
+        // pass an array of deferred calls and apply with Function.prototype.apply
+        // see http://stackoverflow.com/questions/5627284/pass-in-an-array-of-deferreds-to-when
+        $.when.apply($, calls).then(function () {
+            // Use 'arguments' to get all the responses as an array-like object.
+            // then extract the data field
+            data_array = _.map(arguments, function(response){return response[0].data});
+            var result = merge_on(data_array, dt_config.ajax_call.merge_on);
             callback({
                 recordsTotal: result.length,
                 recordsFiltered: result.length,
@@ -75,7 +77,7 @@ function create_datatable(dt_config){
 
 
 // Configure the buttons for datatable
-function configure_buttons(button_config){
+var configure_buttons = function(button_config){
     buttons_def = {
         'colvis': {extend: 'colvis', text: '<i class="fa fa-filter"></i>',     titleAttr: 'Filter Columns'},
         'copy': {extend: 'copy',   text: '<i class="fa fa-files-o"></i>',    titleAttr: 'Copy', exportOptions: {'columns': ':visible'} },
@@ -89,7 +91,7 @@ function configure_buttons(button_config){
 
 
 // Configure datatable
-function configure_dt(dt_config) {
+var configure_dt = function(dt_config) {
     //Sets default value using Lodash.js
     _.defaults(dt_config, {
         'fixed_header': false,
@@ -104,7 +106,8 @@ function configure_dt(dt_config) {
         'headers': {'Authorization': dt_config.token}
     }
     if (dt_config.ajax_call){
-        ajax_call = get_function(dt_config.ajax_call)(dt_config);
+        // retrieve the function generating the ajax calls by name and call it with the config
+        ajax_call = get_function(dt_config.ajax_call.func_name)(dt_config);
     }
     return {
         'dt_config': dt_config,
@@ -143,7 +146,7 @@ function configure_dt(dt_config) {
 }
 
 // Helper function that sums the value of a column
-function sum_row_per_column( row, data, start, end, display ) {
+var sum_row_per_column = function( row, data, start, end, display ) {
     // sum up the column with a class sum into the footer
     var api = this.api();
     // Total over current page

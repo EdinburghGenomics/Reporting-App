@@ -40,6 +40,7 @@ function string_formatter(data, fmt){
             formatted_link = data;
         }
         if (data instanceof Array && data.length > 1 || data != formatted_link) {
+            data.sort();
             formatted_data = '<div class="dropdown"><div class="dropbtn">' + formatted_link + '</div><div class="dropdown-content">';
             for (var i=0, tot=data.length; i < tot; i++){
                 formatted_data = formatted_data.concat('<a href=' + fmt['link'] + data[i] + '>' + data[i] + '</a>');

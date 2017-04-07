@@ -226,6 +226,8 @@ samples:
     - reviewed
     - useable
     - { column_def: 'delivered', visible: 'false' }
+    - started_date
+    - finished_date
 
 
 sample_run_elements:
