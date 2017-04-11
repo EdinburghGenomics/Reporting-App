@@ -45,7 +45,7 @@
     <div id="timeline_{{ proc.proc_id }}"></div>
 
     <script type="text/javascript">
-        stage_timeline("timeline_{{ proc.proc_id }}", {{ proc|safe }});
+        stage_timeline("timeline_{{ proc.proc_id }}", {{ proc|tojson }});
     </script>
     <br/>
 {%- endmacro %}
@@ -54,8 +54,8 @@
 {% macro proc_report(procs) -%}
 {# procs (list[dict]) - analysis_driver_procs from the Rest API. #}
 
-<h2>Analysis Driver processes</h2>
-<div id="analysis_driver_proc_tabs" class="tab-content">
+<h2><a data-toggle="collapse" data-target="#analysis_driver_proc_tabs">Analysis Driver processes</a></h2>
+<div id="analysis_driver_proc_tabs" class="tab-content collapse in">
     <p>Number of times processed: {{ procs|length }}</p>
     {% if procs %}
         <ul class="nav nav-tabs" id="analysis_driver_proc_ul">
