@@ -236,7 +236,6 @@ def report_project(project_id):
             datatable_cfg(
                 'Bioinformatics report for ' + project_id,
                 'samples',
-                api_url=None,
                 ajax_call={
                     'func_name':'merge_multi_sources',
                     'api_urls':[
