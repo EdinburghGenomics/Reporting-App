@@ -1,3 +1,368 @@
+//get any percentile from an array
+function getPercentile(data, percentile) {
+    data.sort(numSort);
+    var index = (percentile / 100) * data.length;
+    var result;
+    if (Math.floor(index) == index) {
+        result = (data[(index - 1)] + data[index]) / 2;
+    } else {
+        result = data[Math.floor(index)];
+    }
+    return result;
+}
+
+//because .sort() doesn't sort numbers correctly
+function numSort(a, b) {
+  return a - b;
+}
+
+function aggregate(list_object, toGroup, toAggregate, fn, output_field, val0) {
+    /*
+    use lodash.js to group, and aggregate the data
+    list_object: list of object to aggregate
+    toGroup: field used to group the object
+    toAggregate: field or list of field to aggregate and report after grouping
+    fn: function or list of function to calculate the aggregate
+    output_field: field or list of field to name the aggregated fields default to toAggregate
+    val0: value of list of value used as default for each field.
+    */
+    if (output_field === undefined){output_field=toAggregate;}
+    return _.chain(list_object)
+            .groupBy(toGroup)
+            .map(function(g, key) {
+                ret = {}
+                // Because the key has been used as an object property, it has been cast to a string.
+                ret[toGroup]= key;
+                if (Array.isArray(toAggregate)){
+                    for (var i=0; i < toAggregate.length; i++) {
+                        ret[output_field[i]] = fn[i](g, toAggregate[i]) || val0[i] || 0;
+                    }
+                }else{
+                    ret[output_field] = fn(g, toAggregate) || val0 || 0;
+                }
+                return ret;
+            })
+            .value();
+    }
+
+/*Functions for aggregation in the underscore pipeline*/
+var sum = function (objects, key) { return _.reduce(objects, function (sum, n) { return sum + n[key] }, 0) }
+var average = function (objects, key) {return sum(objects, key) / objects.length }
+var count = function (objects, key) {return objects.length }
+var extract = function (objects, key) { return objects.map( function(d){ return d[key];  }); }
+var quantile_box_plot = function (objects, key) {
+    return math.quantileSeq(objects.map(function(d){return d[key]}), [0.05, .25, .5, .75, 0.95]);
+}
+var boxplot_values_outliers = function(objects, key) {
+    var data = extract(objects, key);
+    var boxData = {},
+        min = Math.min.apply(Math, data),
+        max = Math.max.apply(Math, data),
+        q1 = getPercentile(data, 25),
+        median = getPercentile(data, 50),
+        q3 = getPercentile(data, 75),
+        iqr = q3 - q1,
+        lowerFence = q1 - (iqr * 1.5),
+        upperFence = q3 + (iqr * 1.5),
+        outliers = [];
+        in_dist_data = [];
+
+    for (var i = 0; i < data.length; i++) {
+        if (data[i] < lowerFence || data[i] > upperFence) {
+            outliers.push(data[i]);
+        }else{
+            in_dist_data.push(data[i])
+        }
+    }
+    boxData.values = [Math.min.apply(Math, in_dist_data), q1, median, q3, Math.max.apply(Math, in_dist_data)];
+    boxData.outliers = outliers;
+    return boxData;
+}
+
+/*Functions for formating tooltip text from a data point*/
+function format_time_period(time_period, x) {
+    if (time_period=='week'){return 'Week ' + moment(x).format("w YYYY");}
+    if (time_period=='month'){return moment(x).format("MMM YYYY");}
+    if (time_period=='quarter'){return 'Q' + moment(x).format("Q YYYY");}
+    return ""
+}
+
+function format_y_suffix(y, suffix){return y.toFixed(0) + ' ' + suffix}
+function format_y_boxplot(options, suffix){
+    res = [
+       'low:' + options.low.toFixed(0) + ' ' + suffix,
+       '25pc:' + options.q1.toFixed(0) + ' ' + suffix,
+       'Median:' + options.median.toFixed(0) + ' ' + suffix,
+       '75pc:' + options.q3.toFixed(0) + ' ' + suffix,
+       'high:' + options.high.toFixed(0) + ' ' + suffix
+    ]
+    return res.join('<br>');
+}
+function format_text_tat(x, y, time_period, suffix){
+    return format_time_period(time_period, x) + ": " + format_y_suffix(y, suffix);
+}
+
+function format_boxplot_tat( x, options, time_period, suffix) {
+    return "<b>" + format_time_period(time_period, x) + "<\b>" + ": <br>" + format_y_boxplot(options, suffix);
+}
+
+
+function draw_highcharts_tat_graphs(data, field_name, time_period){
+
+    aggregated_data = aggregate(
+        data,
+        field_name,
+        ['tat', 'tat', ''],
+        [average, boxplot_values_outliers, count],
+        ['tat', 'tat_box', 'count']
+    );
+    function compare_aggregate(a, b){
+        return parseInt(a[field_name]) - parseInt(b[field_name]);
+    }
+    aggregated_data = aggregated_data.sort(compare_aggregate);
+    series1 = {
+        name: 'Number of sample',
+        data: aggregated_data.map(function(d){return [parseInt(d[field_name]), d['count']]}),
+        yAxis: 1,
+        type: 'column',
+        pointPadding: 0.2,
+        color: '#CACDD1',
+        tooltip: {
+            pointFormatter: function(){return format_text_tat(this.x, this.y, time_period, 'samples');}
+        }
+    }
+
+    series2 = {
+        name: 'Turn around time',
+        data: aggregated_data.map(function(d){return [parseInt(d[field_name])].concat(d.tat_box.values) }),
+        yAxis: 0,
+        type: 'boxplot',
+        color: '#FF4D4D',
+
+        tooltip: {
+            pointFormatter: function(){return format_boxplot_tat(this.x, this.options, time_period, 'weeks');}
+        }
+    }
+    outliers = aggregated_data.map(function(d){return d.tat_box.outliers.map(function(o){return [parseInt(d[field_name]), o]}); });
+    outliers = [].concat.apply([], outliers);
+    series3 = {
+        name: 'Turn around time',
+        data: outliers,
+        yAxis: 0,
+        type: 'scatter',
+        linkedTo: ':previous',
+        color: '#FF4D4D',
+        marker: {
+            enabled: true,
+            radius: 2,
+            lineWidth: 1
+        },
+        tooltip: {
+            pointFormatter: function(){return format_text_tat(this.x, this.y, time_period, 'weeks');}
+        }
+    }
+    series4 = {
+        name: 'Avg Turn around time',
+        data: aggregated_data.map(function(d){return [parseInt(d[field_name]), d['tat']]}),
+        yAxis: 0,
+        type: 'line',
+        color: '#FF4D4D',
+        marker: {
+            enable: true,
+            symbol: 'square',
+            fillColor: '#FF4D4D'
+        },
+        tooltip: {
+            pointFormatter: function(){return format_text_tat(this.x, this.y, time_period, 'weeks');}
+        }
+    }
+    series = [series1, series2, series3, series4];
+
+    return Highcharts.chart('highchart_cont', {
+        chart: {
+            zoomType: 'x'
+        },
+        title: {
+            text: 'Turnaround time per ' + time_period,
+        },
+        xAxis: {
+            type: 'datetime',
+            title: {
+                text: 'Date'
+            }
+        },
+        yAxis: [
+            {
+                title: {
+                    text: 'Turnaround time (weeks)'
+                }
+            },
+            { // Secondary yAxis
+                title: {
+                    text: 'Number of sample',
+                },
+                 opposite: true
+            }
+        ],
+        series: series,
+        credits: false
+    });
+}
+
+
+function draw_plotly_tat_graphs(data, field_name, time_period){
+
+    function compare_aggregate(a, b){
+        return parseInt(a[field_name]) - parseInt(b[field_name]);
+    }
+
+    aggregated_data = aggregate(data, field_name, 'tat', average);
+    aggregated_data = aggregated_data.sort(compare_aggregate);
+    var trace1 = {
+        x: aggregated_data.map(function(d){return parseInt(d[field_name])}),
+        y: aggregated_data.map(function(d){return d['tat']}),
+        text: aggregated_data.map(function(d){return format_text_tat(parseInt(d[field_name]), d['tat'], time_period, 'weeks')}),
+        type: 'line',
+        marker: {color: '#FF4D4D'},
+        name: 'Avg Turn around time',
+        hoverinfo: 'text'
+    };
+
+    sorted_data = data.sort(compare_aggregate);
+    var trace2 = {
+        x: sorted_data.map(function(d){return parseInt(d[field_name])}),
+        y: sorted_data.map(function(d){return d['tat']}),
+        y0: 0,
+        //text: aggregated_data.map(function(d){return tootltips_format(parseInt(d[field_name]), d['tat'], 'weeks')}),
+        type: 'box',
+        marker: {
+            size: 4,
+            color: '#FF4136'
+        },
+        name: 'Turn around time',
+        hoverinfo: 'all'
+    };
+
+    aggregated_data = aggregate(data, field_name, 'count', count);
+    aggregated_data = aggregated_data.sort(compare_aggregate);
+    var trace3 = {
+        x: aggregated_data.map(function(d){return parseInt(d[field_name])}),
+        y: aggregated_data.map(function(d){return d['count']}),
+        text: aggregated_data.map(function(d){return format_text_tat(parseInt(d[field_name]), d['count'], time_period, 'samples')}),
+        type: 'bar',
+        marker: {color: '#CACDD1'},
+        name: 'Number of sample',
+        hoverinfo: 'text',
+        yaxis: 'y2'
+    };
+
+    var data = [ trace1, trace2, trace3 ];
+
+    var selectorOptions = {
+        buttons: [{
+            step: 'month',
+            stepmode: 'backward',
+            count: 1,
+            label: '1m'
+        }, {
+            step: 'month',
+            stepmode: 'backward',
+            count: 6,
+            label: '6m'
+        }, {
+            step: 'year',
+            stepmode: 'todate',
+            count: 1,
+            label: 'YTD'
+        }, {
+            step: 'year',
+            stepmode: 'backward',
+            count: 1,
+            label: '1y'
+        }, {
+            step: 'all',
+        }],
+    };
+
+    var layout = {
+        xaxis: {
+            type: 'date',
+            title: 'Date',
+            rangeselector: selectorOptions,
+            rangeslider: {visible: false}
+        },
+        yaxis: {
+            title: 'Turnaround time (weeks)',
+            overlaying: 'y2',
+            fixedrange: true,
+        },
+        yaxis2: {
+            title: 'Number of sample',
+            side: 'right',
+            fixedrange: true
+        },
+        title:'Turnaround time per ' + time_period,
+
+    };
+
+    Plotly.purge('plotly_cont');
+    return Plotly.plot('plotly_cont', data, layout);
+}
+
+// Return the id of the checked radio button base on the button name
+function get_radio_value(radio_name){
+    var options = document.getElementsByName(radio_name);
+    for (var i = 0; i < options.length; i++) {
+        if (options[i].checked) {
+            return options[i].id;
+        }
+    }
+}
+
+
+function check_state_and_draw(filtered_data){
+    var field_name = get_radio_value("radio_button2") + get_radio_value("radio_button1");
+    draw_plotly_tat_graphs(filtered_data, field_name, get_radio_value("radio_button1"));
+    draw_highcharts_tat_graphs(filtered_data, field_name, get_radio_value("radio_button1") );
+}
+
+function all_tat_charts(data){
+    // Prepare the data for display
+    var finished_data = data.filter(function (d){
+        return d.current_status === 'finished';
+    }).map(function (d) {
+        st_date = moment(d['started_date']);
+        fi_date = moment(d['finished_date']);
+        d['tat'] = moment.duration(fi_date.diff(st_date)).asWeeks();
+        ['week', 'month', 'quarter'].forEach(function(time_period) {
+            d['st'+time_period] = moment(d['started_date']).startOf(time_period).valueOf();
+            d['en'+time_period] = moment(d['finished_date']).startOf(time_period).valueOf();
+
+        });
+        return d;
+    });
+    var unfinished_data = data.filter(function (d){
+        return d.current_status != 'finished' && d.current_status != 'removed';
+    }).map(function (d) {
+        st_date = moment(d['started_date']);
+        d['tat'] = moment.duration(moment().diff(st_date)).asWeeks();
+        ['week', 'month', 'quarter'].forEach(function(time_period) {
+            d['st'+time_period] = moment(d['started_date']).startOf(time_period).valueOf();
+            d['en'+time_period] = moment().startOf(time_period).valueOf();
+
+        });
+        return d;
+    });
+
+
+    check_state_and_draw(finished_data);
+    ['week', 'month', 'quarter', 'st', 'en', 'mean', 'boxplot'].forEach(function(button_id) {
+        $(document).on('change', 'input:radio[id="' + button_id + '"]', function (event) {
+            check_state_and_draw(finished_data);
+        });
+    });
+}
+
 
 
 function aggregate_on_date(data, time_period, fields){
