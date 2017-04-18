@@ -1,6 +1,12 @@
 Changelog for Reporting-App
 ===========================
 
+0.14 (unreleased)
+-----------------
+
+- Nothing changed yet.
+
+
 0.13 (2017-04-18)
 -----------------
  - Add repeat status in sample/plate/project status
