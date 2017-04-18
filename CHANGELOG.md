@@ -1,8 +1,8 @@
 Changelog for Reporting-App
 ===========================
 
-0.13.1 (unreleased)
------------------
+0.13.1 (2017-04-18)
+-------------------
 
 - Fix sample page
 
