@@ -5,7 +5,8 @@ Changelog for Reporting-App
 ------
  - Add Repeat status in sample/plate/project status
  - Enable merging of multiple rest API queries in datatables: Use this to get the Lims status int bioinformatics report
- 
+ - Stage timeline has bee refactored and now show exit status
+  
 0.12
 -----
  - Add abbility to create a Docker image of the reporting with sensible default 
