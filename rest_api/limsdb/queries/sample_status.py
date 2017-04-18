@@ -155,7 +155,9 @@ class Sample:
             'statuses': self.all_statuses(),
             'current_status': self.status,
             'started_date': format_date(self.started_date),
-            'finished_date': format_date(self.finished_date)
+            'finished_date': format_date(self.finished_date),
+            'library_type': self.library_type,
+            'species': self.species
         }
 
 

@@ -11,5 +11,5 @@
 {% block content %}
 {{ super() }}
 {{ proc_report(procs) }}
-{{ sample_status(sample_statuses, lims_url) }}
+{{ sample_status(sample_id, sample_statuses, lims_url) }}
 {% endblock %}

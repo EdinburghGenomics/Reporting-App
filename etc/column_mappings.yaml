@@ -83,7 +83,7 @@ column_def:
     run_status:               { data: 'run_status',                           title: 'Run status' }
     samples:                  { data: 'samples',                              title: 'Samples', fmt: { link: '/sample/' } }
     instrument_id:            { data: 'instrument_id',                        title: 'Instrument ID' }
-
+    current_lims_status:      { data: 'current_status',                       title: 'Lims Status' }
 # Datatables tables definition
 # the remaining top level entries each define a table with a list of column
 # each column can be customised by entering a dict with a key called 'column_def' instead of the columns name
@@ -194,6 +194,9 @@ unexpected_barcodes:
 samples:
     - sample_id
     - user_sample_id
+    - current_lims_status
+    - library_type
+    - species
     - clean_yield_in_gb
     - clean_yield_q30
     - clean_pc_q30_r1
@@ -225,6 +228,8 @@ samples:
     - reviewed
     - useable
     - { column_def: 'delivered', visible: 'false' }
+    - started_date
+    - finished_date
 
 
 sample_run_elements:

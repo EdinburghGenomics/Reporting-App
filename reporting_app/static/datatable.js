@@ -1,5 +1,5 @@
 //helper function to retrieve a function by name
-function get_function(fn_name){
+var get_function = function (fn_name){
     var fn = window[fn_name];
     if(typeof fn === 'function') {
         return fn;
@@ -7,6 +7,61 @@ function get_function(fn_name){
         return null;
     }
 }
+
+
+// merge several arrays of object based on given property
+// see http://stackoverflow.com/questions/38053193/merge-2-json-array-objects-based-on-a-common-property
+var merge_on = function (list_of_array, key) {
+    var r = [],
+        hash = Object.create(null);
+
+    list_of_array.forEach(function (a) {
+        a.forEach(function (o) {
+            if (!hash[o[key]]) {
+                hash[o[key]] = {};
+                r.push(hash[o[key]]);
+            }
+            Object.keys(o).forEach(function (k) {
+                hash[o[key]][k] = o[k];
+            });
+        });
+    });
+    return r;
+}
+
+// send multiple ajax queries then merge the results based on dt_config.merge_on
+// dt_config is expected to contain:
+// ajax_call.func_name: merge_multi_sources,
+// ajax_call.api_urls: [url1, url2, ...]
+// ajax_call.merge_on: property_name
+// token: the token used for authentication
+var merge_multi_sources = function(dt_config){
+    return function(data, callback, settings){
+        var calls = dt_config.ajax_call.api_urls.map( function(api_url){
+            return  $.ajax({
+                url: api_url,
+                headers: {'Authorization':  dt_config.token },
+                dataType: "json",
+                async: true,
+            });
+        });
+
+        // pass an array of deferred calls and apply with Function.prototype.apply
+        // see http://stackoverflow.com/questions/5627284/pass-in-an-array-of-deferreds-to-when
+        $.when.apply($, calls).then(function () {
+            // Use 'arguments' to get all the responses as an array-like object.
+            // then extract the data field
+            data_array = _.map(arguments, function(response){return response[0].data});
+            var result = merge_on(data_array, dt_config.ajax_call.merge_on);
+            callback({
+                recordsTotal: result.length,
+                recordsFiltered: result.length,
+                data: result
+            });
+        });
+    }
+}
+
 
 function create_datatable(dt_config){
     //Sets default value using Lodash.js
@@ -20,8 +75,9 @@ function create_datatable(dt_config){
     });
 }
 
+
 // Configure the buttons for datatable
-function configure_buttons(button_config){
+var configure_buttons = function(button_config){
     buttons_def = {
         'colvis': {extend: 'colvis', text: '<i class="fa fa-filter"></i>',     titleAttr: 'Filter Columns'},
         'copy': {extend: 'copy',   text: '<i class="fa fa-files-o"></i>',    titleAttr: 'Copy', exportOptions: {'columns': ':visible'} },
@@ -33,8 +89,9 @@ function configure_buttons(button_config){
     return button_config.map(function(n){return buttons_def[n]});
 }
 
+
 // Configure datatable
-function configure_dt(dt_config) {
+var configure_dt = function(dt_config) {
     //Sets default value using Lodash.js
     _.defaults(dt_config, {
         'fixed_header': false,
@@ -42,7 +99,18 @@ function configure_dt(dt_config) {
         'searching': true,
         'info': true,
     });
+    // configure the ajax call or retrieve the ajax callback function
+    var ajax_call = {
+        'url': dt_config.api_url,
+        'dataSrc': 'data',
+        'headers': {'Authorization': dt_config.token}
+    }
+    if (dt_config.ajax_call){
+        // retrieve the function generating the ajax calls by name and call it with the config
+        ajax_call = get_function(dt_config.ajax_call.func_name)(dt_config);
+    }
     return {
+        'dt_config': dt_config,
         'fixedHeader': dt_config.fixed_header,
         'paging': dt_config.paging,
         'searching': dt_config.searching,
@@ -53,11 +121,7 @@ function configure_dt(dt_config) {
         //'stateSave': true,
         'lengthMenu': [[10, 25, 50, -1], [10, 25, 50, "All"]],
         'pageLength': 25,
-        'ajax': {
-            'url': dt_config.api_url,
-            'dataSrc': 'data',
-            'headers': {'Authorization': dt_config.token}
-        },
+        'ajax': ajax_call,
         'language': {'processing': '<i class="fa fa-refresh fa-spin">'},
         'columns': dt_config.cols.map(
             function(c) {
@@ -82,7 +146,7 @@ function configure_dt(dt_config) {
 }
 
 // Helper function that sums the value of a column
-function sum_row_per_column( row, data, start, end, display ) {
+var sum_row_per_column = function( row, data, start, end, display ) {
     // sum up the column with a class sum into the footer
     var api = this.api();
     // Total over current page

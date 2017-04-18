@@ -1,6 +1,7 @@
 
-{% macro sample_status(sample_statuses, lims_url) -%}
+{% macro sample_status(sample_id, sample_statuses, lims_url) -%}
 {# args:
+    sample_id (string)
     sample_statuses (dict) - contains information about the sample
     sample_statuses.status (list) - list of status with date and inner processes from the LIMSDB REST API.
     lims_url (string) - the url to the LIMS to create links
@@ -10,8 +11,12 @@
     Sample History from LIMS. Status: {{ sample_statuses.current_status }}
     </a>
 </h2>
-
 <div id="sample-status-container" class="container collapse">
+    <div class="col-md-8">
+        <a href="{{ lims_url }}/clarity/search?scope=Sample&query={{ sample_id }}" target="_blank">
+            View sample in LIMS
+        </a>
+    </div>
     <div class="col-md-2 col-md-offset-5"></div>
         <div class="panel-group" id="accordion">
             <div class="panel">
