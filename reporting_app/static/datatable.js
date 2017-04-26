@@ -140,7 +140,7 @@ var configure_dt = function(dt_config) {
             }
         ),
         'order': [dt_config.default_sort_col],
-        "footerCallback": get_function(dt_config.table_foot)
+        'footerCallback': get_function(dt_config.table_foot)
     }
 
 }
@@ -174,6 +174,3 @@ var sum_row_per_column = function( row, data, start, end, display ) {
     });
 
 }
-
-
-
