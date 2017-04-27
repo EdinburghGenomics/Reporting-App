@@ -7,7 +7,9 @@ def _format_order(col_name, cols):
     return [[c['data'] for c in cols].index(col_name.lstrip('-')), direction]
 
 
-def datatable_cfg(title, cols, api_url, default_sort_col=None, **kwargs):
+def datatable_cfg(title, cols, api_url=None, ajax_call=None, default_sort_col=None, **kwargs):
+    if not api_url and not ajax_call:
+        raise ValueError('Either api_url or ajax_call must be provided')
     if default_sort_col is None:
         default_sort_col = [0, 'desc']
     else:
@@ -18,6 +20,7 @@ def datatable_cfg(title, cols, api_url, default_sort_col=None, **kwargs):
         'name': snake_case(title),
         'cols': col_mappings[cols],
         'api_url': api_url,
+        'ajax_call': ajax_call,
         'default_sort_col': default_sort_col,
         'token': get_token()
     }

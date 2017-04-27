@@ -30,6 +30,7 @@ status_order:
     - BIOINFORMATICS
     - DELIVERY
     - FINISHED
+    - SAMPLE_REPEAT
     - SAMPLE_REMOVED
 
 # This section describe the LIMS steps that specify the exit from a status.
@@ -39,8 +40,8 @@ step_completed_to_status:
     Receive Sample 4.0: SAMPLE_QC
     Receive Sample EG 6.1: SAMPLE_QC
     Awaiting User Response EG 2.0: LIBRARY_QUEUE
-    Sequencing Plate Preparation EG 2.0: LIBRARY_PREP
-    Sequencing Plate Preparation EG 1.0: LIBRARY_PREP
+    Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
+    Sequencing Plate Preparation EG 1.0: LIBRARY_QUEUE
     Create CFP Batch: LIBRARY_PREP
     Eval qPCR Quant: SEQUENCING_QUEUE
     Create Pooling CST Batch: SEQUENCING
@@ -58,11 +59,13 @@ step_queued_to_status:
     Receive Sample EG 6.1: SAMPLE_SUBMISSION
     Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
     Create CFP Batch: LIBRARY_QUEUE
+    Eval Project Quant: LIBRARY_QUEUE
     Create PDP Pool: SEQUENCING_QUEUE
     Create Pooling CST Batch: SEQUENCING_QUEUE
     Create Production CST Batch: SEQUENCING_QUEUE
     AUTOMATED - Make CST: SEQUENCING
     AUTOMATED - Make Pooled CST: SEQUENCING
+    AUTOMATED - Sequence: SEQUENCING
     Data Release EG 1.0: DELIVERY
     Request Repeats EG 1.0 ST: SAMPLE_REPEAT
 

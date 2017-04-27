@@ -1,7 +1,12 @@
 {% extends 'untabbed_datatables.html' %}
-{% from 'proc_report.html' import proc_report %}
 {% from 'sample_status_report.html' import sample_status %}
 {% from 'datatable.html' import datatable %}
+{% from 'proc_report.html' import proc_report, proc_header %}
+
+{% block head %}
+{{ proc_header() }}
+{{ super() }}
+{% endblock %}
 
 {% block content %}
 {{ super() }}

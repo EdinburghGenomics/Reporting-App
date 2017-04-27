@@ -236,12 +236,12 @@ def report_project(project_id):
             datatable_cfg(
                 'Bioinformatics report for ' + project_id,
                 'samples',
-                api_url=None,
                 ajax_call={
                     'func_name': 'merge_multi_sources',
                     'api_urls': [
                         rest_api().api_url('aggregate/samples', match={'project_id': project_id}),
-                        rest_api().api_url('lims/status/sample_status', match={'project_id': project_id})
+                        rest_api().api_url('lims/status/sample_status', match={'project_id': project_id}),
+                        rest_api().api_url('lims/samples', match={'project_id': project_id})
                     ],
                     'merge_on': 'sample_id'
                 },
@@ -268,7 +268,8 @@ def report_sample(sample_id):
                     'func_name':'merge_multi_sources',
                     'api_urls':[
                         rest_api().api_url('aggregate/samples', match={'sample_id': sample_id}),
-                        rest_api().api_url('lims/status/sample_status', match={'sample_id': sample_id})
+                        rest_api().api_url('lims/status/sample_status', match={'sample_id': sample_id}),
+                        rest_api().api_url('lims/samples', match={'sample_id': sample_id})
                     ],
                     'merge_on':'sample_id'
                 },

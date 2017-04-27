@@ -16,7 +16,7 @@ class Run:
             'created_date': self.created_date,
             'run_id': self.udfs['RunID'],
             'run_status': self.udfs['Run Status'],
-            'samples': sorted(list(self.samples)),
+            'sample_ids': sorted(list(self.samples)),
             'project_ids': sorted(list(self.projects)),
             'instrument_id': self.udfs['InstrumentID']
         }
