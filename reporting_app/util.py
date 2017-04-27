@@ -32,6 +32,7 @@ def tab_set_cfg(title, tables):
         'tables': tables
     }
 
+
 def get_token():
     return 'Token ' + auth.User.get_login_token()
 

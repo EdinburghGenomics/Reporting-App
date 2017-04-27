@@ -41,7 +41,7 @@ var merge_multi_sources = function(dt_config){
             return  $.ajax({
                 url: api_url,
                 headers: {'Authorization':  dt_config.token },
-                dataType: "json",
+                dataType: 'json',
                 async: true,
             });
         });
