@@ -47,6 +47,7 @@ column_def:
     provided_gender:          { data: 'provided_gender',                      title: 'Provided Gender',          visible: 'false' }
     gender_match:             { data: 'gender_match',                         title: 'Gender' }
     passing_filter_reads:     { data: 'passing_filter_reads',                 title: 'Passing-filter reads',     fmt: { type: 'int',    min: 1500 } }
+    pc_adapter:               { data: 'pc_adapter',                           title: '% Adapter',                fmt: { type: 'percentage', max: 5 } }
     pc_callable:              { data: 'pc_callable',                          title: '% callable',               visible: 'false' ,   fmt: { type: 'percentage', min: 70 } }
     pc_duplicate_reads:       { data: 'pc_duplicate_reads',                   title: '% duplicate reads',        fmt: { type: 'percentage', max: 20 } }
     pc_mapped_reads:          { data: 'pc_mapped_reads',                      title: '% mapped reads',           fmt: { type: 'percentage', min: 70 } }
@@ -72,7 +73,7 @@ column_def:
     species:                  { data: 'species',                              title: 'Species',                   visible: 'false'}
     useable:                  { data: 'useable',                              title: 'Useable' }
     useable_statuses:         { data: 'useable_statuses',                     title: 'Useable'}
-    user_sample_id:           { data: 'user_sample_id',                       title: 'User sample ID' }
+    user_sample_id:           { data: 'User Sample Name',                     title: 'User sample ID' }
     yield_in_gb:              { data: 'yield_in_gb',                          title: 'Yield (Gb)',               fmt: { type: 'float',  min: 120 } }
     yield_q30_in_gb:          { data: 'yield_q30_in_gb',                      title: 'Yield Q30(Gb)',            fmt: { type: 'float',  min: 95 } }
     reseacher:                { data: 'researcher_name',                      title: 'Researcher',               visible: 'false' }
@@ -81,9 +82,14 @@ column_def:
     started_date:             { data: 'started_date',                         title: 'Date started',             visible: 'false', fmt: { type: 'date' } }
     created_date:             { data: 'created_date',                         title: 'Date started', fmt: { type: 'date' } }
     run_status:               { data: 'run_status',                           title: 'Run status' }
-    samples:                  { data: 'samples',                              title: 'Samples', fmt: { link: '/sample/' } }
     instrument_id:            { data: 'instrument_id',                        title: 'Instrument ID' }
     current_lims_status:      { data: 'current_status',                       title: 'Lims Status' }
+    expected_yield:           { data: 'Required Yield (Gb)',                  title: 'Expected Yield (Gb)',      visible: 'false', fmt: { type: 'float' } }
+    expected_yield_q30:       { data: 'Yield for Quoted Coverage (Gb)',       title: 'Expected Yield Q30 (Gb)',  visible: 'false', fmt: { type: 'float' } }
+    tissue_type:              { data: 'Sample Type',                          title: 'Tissue type',              visible: 'false'}
+    tumor_sample:             { data: 'Is Tumor Sample',                      title: 'Is Tumor Sample',          visible: 'false'}
+
+
 # Datatables tables definition
 # the remaining top level entries each define a table with a list of column
 # each column can be customised by entering a dict with a key called 'column_def' instead of the columns name
@@ -95,6 +101,7 @@ runs:
     - pc_q30
     - clean_yield_in_gb
     - clean_yield_q30_in_gb
+    - pc_adapter
     - proc_status
     - review_statuses
     - useable_statuses
@@ -163,6 +170,7 @@ demultiplexing:
     - pc_q30_r1
     - pc_q30_r2
     - lane_pc_optical_dups
+    - pc_adapter
     - reviewed
     - useable
 
@@ -179,6 +187,7 @@ lane_aggregation:
     - pc_q30_r1
     - pc_q30_r2
     - lane_pc_optical_dups
+    - pc_adapter
     - { column_def: 'cv',  visible: 'false' }
     - review_statuses
     - useable_statuses
@@ -197,11 +206,15 @@ samples:
     - current_lims_status
     - library_type
     - species
-    - clean_yield_in_gb
-    - clean_yield_q30
-    - clean_pc_q30_r1
-    - clean_pc_q30_r2
-    - clean_pc_q30
+    - { column_def: 'clean_yield_in_gb', title: 'Yield (Gb)' }
+    - { column_def: 'clean_yield_q30', title: 'Yield Q30 (Gb)' }
+    - expected_yield
+    - expected_yield_q30
+    - tissue_type
+    - tumor_sample
+    - { column_def: 'clean_pc_q30_r1',  title: '% Q30 R1'}
+    - { column_def: 'clean_pc_q30_r2',  title: '% Q30 R2'}
+    - { column_def: 'clean_pc_q30',  title: '% Q30'}
     - run_ids
     - bam_file_reads
     - mapped_reads
@@ -243,6 +256,7 @@ sample_run_elements:
     - pc_q30_r1
     - pc_q30_r2
     - lane_pc_optical_dups
+    - pc_adapter
     - reviewed
     - useable
 
@@ -253,4 +267,4 @@ active_runs:
   - run_status
   - created_date
   - project_ids
-  - samples
+  - sample_ids

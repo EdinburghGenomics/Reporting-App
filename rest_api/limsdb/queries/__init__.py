@@ -43,7 +43,10 @@ def get_sample_info(session, project_name=None, sample_name=None, only_open_proj
         .outerjoin(t.Sample.udfs)
     if udfs:
         q = q.distinct(t.Sample.name, t.SampleUdfView.udfname)
-        q = q.filter(or_(t.SampleUdfView.udfname.in_(udfs), t.SampleUdfView.udfname == None))
+        if udfs == 'all':
+            q = q.filter(t.SampleUdfView.udfvalue != None)
+        else:
+            q = q.filter(or_(t.SampleUdfView.udfname.in_(udfs), t.SampleUdfView.udfname == None))
     q = q.filter(t.Artifact.isoriginal)
     q = add_filters(q, project_name=project_name, sample_name=sample_name, only_open_project=only_open_project)
     return q.all()
