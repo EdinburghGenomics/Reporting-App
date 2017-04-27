@@ -1,18 +1,12 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from tests import Helper
 from config import reporting_app_config as cfg, col_mappings
 from reporting_app import util
 
 
-class FakeUser:
-    login_token = 'an_api_token'
-
-
-class FakeRequest:
-    cookies = {'remember_token': 'a_token'}
-
-
 class TestReportingApp(Helper):
+    fake_request = Mock(cookies={'remember_token': 'a_token'})
+
     def test_format_order(self):
         cols = (
             {'data': 'this', 'title': 'This'},
@@ -24,7 +18,7 @@ class TestReportingApp(Helper):
         assert util._format_order('-other', cols) == [2, 'desc']
 
     def test_datatable_cfg(self):
-        with patch('auth.request', new=FakeRequest):
+        with patch('auth.request', new=self.fake_request):
             obs = util.datatable_cfg(
                 'A Datatable',
                 'demultiplexing',
@@ -36,14 +30,14 @@ class TestReportingApp(Helper):
             'name': 'a_datatable',
             'cols': col_mappings['demultiplexing'],
             'api_url': cfg['rest_api'] + '/test_endpoint',
+            'ajax_call': None,
             'default_sort_col': [2, 'desc'],
             'token': 'Token ' + 'a_token'
         }
         assert obs == exp
 
     def test_tab_set_cfg(self):
-
-        with patch('auth.request', new=FakeRequest):
+        with patch('auth.request', new=self.fake_request):
             dt_cfg = util.datatable_cfg('Test', 'demultiplexing', cfg['rest_api'])
         obs = util.tab_set_cfg('A Tab Set', [dt_cfg])
         exp = {
