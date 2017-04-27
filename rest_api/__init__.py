@@ -89,3 +89,11 @@ def lims_status_info(status_type):
         status_type,
         app
     )
+
+@app.route(_lims_endpoint('samples'))
+@requires_auth('home')
+def lims_sample_info():
+    return lims_extract(
+        'sample_info',
+        app
+    )
