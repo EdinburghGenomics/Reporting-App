@@ -32,8 +32,7 @@ class TestReportingApp(Helper):
             'api_url': cfg['rest_api'] + '/test_endpoint',
             'ajax_call': None,
             'default_sort_col': [2, 'desc'],
-            'token': 'Token ' + 'a_token',
-            'ajax_call': None
+            'token': 'Token ' + 'a_token'
         }
         assert obs == exp
 
