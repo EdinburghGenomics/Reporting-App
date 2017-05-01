@@ -1,59 +1,68 @@
 
-QUnit.test('datatable', function(assert) {
+QUnit.test('merge_on', function(assert) {
+    var datasrc1 = [{sample_id: 'sample_1', x: 1}, {sample_id: 'sample_2', x: 2}];
+    var datasrc2 = [{sample_id: 'sample_2', y: 3}, {sample_id: 'sample_1', y: 4}];  // order within the data should not matter...
+    var datasrc3 = [{sample_id: 'sample_1', x: 5}];  // should override x in datasrc1 as it's merged last
 
-    assert.equal(
+    assert.deepEqual(
         merge_on(
-            [
-                [{sample_id: 'sample_1', thing: 1}, {sample_id: 'sample_2', thing: 2}, {sample_id: 'sample_3', thing: 3}],
-                [{sample_id: 'sample_3', thang: 2}, {sample_id: 'sample_1', thang: 3}, {sample_id: 'sample_2', thang: 4}]
-            ],
+            [datasrc1, datasrc2, datasrc3],
             'sample_id'
-        ).toString(),
+        ),
         [
-            {sample_id: 'sample_1', thing: 1, thang: 3},
-            {sample_id: 'sample_2', thing: 2, thang: 4},
-            {sample_id: 'sample_3', thing: 3, thang: 2}
-        ].toString()
+            {sample_id: 'sample_1', x: 5, y: 4},
+            {sample_id: 'sample_2', x: 2, y: 3}
+        ]
     );
+});
 
-    var ajax = $.ajax;
 
-    $.ajax = function(config) {
+QUnit.test('merge_multi_sources', function(assert) {
+    // patching ajax
+    var original_ajax = $.ajax;
+    var fake_ajax = function(config) {
         var data;
         if (config.url == 'an_api_url') {
             data = [
-                {sample_id: 'a_sample', some_data: 'this'},
-                {sample_id: 'another_sample', some_data: 'that'}
+                {sample_id: 'sample_1', x: 1},
+                {sample_id: 'sample_2', x: 2}
             ]
         } else if (config.url == 'another_api_url') {
             data = [
-                {sample_id: 'another_sample', some_other_data: 'other'},
-                {sample_id: 'a_sample', some_other_data: 'another'}
+                {sample_id: 'sample_2', y: 3},
+                {sample_id: 'sample_1', y: 4}
             ]
         }
         return [{data: data}];
     };
+    $.ajax = fake_ajax;
+    // patching complete
+
+    var observed_data;
+    var callback = function(x) {
+        observed_data = x.data;  // capture the results of merge_multi_sources
+    }
 
     var dt_config = {ajax_call: {api_urls: ['an_api_url', 'another_api_url'], merge_on: 'sample_id'}}
-    var observed_data;
-    var callback = function(config) {
-        observed_data = config.data;
-    }
     merge_multi_sources(dt_config)('some_data', callback, 'some_settings')
-    assert.equal(
-        observed_data.toString(),
+
+    assert.deepEqual(
+        observed_data,
         [
-            {sample_id: 'a_sample', some_data: 'this', some_other_data: 'another'},
-            {sample_id: 'another_sample', some_data: 'that', some_other_data: 'other'}
-        ].toString()
-    );
-    $.ajax = ajax;
-
-    assert.equal(
-        configure_buttons(['colvis']).toString(),
-        [{extend: 'colvis', text: '<i class="fa fa-filter"></i>', titleAttr: 'Filter Columns'}].toString()
+            {sample_id: 'sample_1', x: 1, y: 4},
+            {sample_id: 'sample_2', x: 2, y: 3}
+        ]
     );
 
-    // TODO: test sum_row_per_column
-
+    $.ajax = original_ajax;  // end patch
 });
+
+
+QUnit.test('configure_buttons', function(assert) {
+    assert.deepEqual(
+        configure_buttons(['colvis']),
+        [{extend: 'colvis', text: '<i class="fa fa-filter"></i>', titleAttr: 'Filter Columns'}]
+    );
+});
+
+// TODO: test sum_row_per_column

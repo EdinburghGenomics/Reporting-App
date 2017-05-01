@@ -1,5 +1,5 @@
 
-QUnit.test('column formatter', function(assert) {
+QUnit.test('string_formatter', function(assert) {
     assert.equal(
         string_formatter(13.37, {'type': 'percentage'}),
         '<div class="dt_cell">13.4%</div>'
