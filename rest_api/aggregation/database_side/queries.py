@@ -26,7 +26,9 @@ run_elements_group_by_lane = [
             'clean_q30_bases_r2': {'$sum': '$clean_q30_bases_r2'},
             'lane_pc_optical_dups': {'$first': '$lane_pc_optical_dups'},
             'stdev_pf': {'$stdDevPop': '$passing_filter_reads'},
-            'avg_pf': {'$avg': '$passing_filter_reads'}
+            'avg_pf': {'$avg': '$passing_filter_reads'},
+            'adaptor_bases_removed_r1' : {'$sum': '$adaptor_bases_removed_r1'},
+            'adaptor_bases_removed_r2' : {'$sum': '$adaptor_bases_removed_r2'},
         }
     },
     {
@@ -42,6 +44,10 @@ run_elements_group_by_lane = [
             'clean_yield_q30_in_gb': divide(add('$clean_q30_bases_r1', '$clean_q30_bases_r2'), 1000000000),
             'pc_q30': percentage(
                 {'$add': ['$q30_bases_r1', '$q30_bases_r2']},
+                {'$add': ['$bases_r1', '$bases_r2']}
+            ),
+            'pc_adapter': percentage(
+                {'$add': ['$adaptor_bases_removed_r1', '$adaptor_bases_removed_r2']},
                 {'$add': ['$bases_r1', '$bases_r2']}
             ),
             'pc_q30_r1': percentage('$q30_bases_r1', '$bases_r1'),
@@ -72,6 +78,7 @@ demultiplexing = [
             'pc_q30_r1': percentage('$q30_bases_r1', '$bases_r1'),
             'pc_q30_r2': percentage('$q30_bases_r2', '$bases_r2'),
             'pc_q30': percentage(add('$q30_bases_r1', '$q30_bases_r2'), add('$bases_r1', '$bases_r2')),
+            'pc_adapter': percentage(add('$adaptor_bases_removed_r1', '$adaptor_bases_removed_r2'), add('$bases_r1', '$bases_r2')),
             'lane_pc_optical_dups': '$lane_pc_optical_dups',
             'yield_in_gb': divide(add('$bases_r1', '$bases_r2'), 1000000000),
             'clean_yield_in_gb': divide(add('$clean_bases_r1', '$clean_bases_r2'), 1000000000),
@@ -98,6 +105,8 @@ sequencing_run_information = merge_analysis_driver_procs('run_id', ['run_id', 'n
             'clean_bases_r2': {'$sum': '$run_elements.clean_bases_r2'},
             'clean_q30_bases_r1': {'$sum': '$run_elements.clean_q30_bases_r1'},
             'clean_q30_bases_r2': {'$sum': '$run_elements.clean_q30_bases_r2'},
+            'adaptor_bases_removed_r1' : {'$sum': '$run_elements.adaptor_bases_removed_r1'},
+            'adaptor_bases_removed_r2' : {'$sum': '$run_elements.adaptor_bases_removed_r2'},
 
             'reviewed': '$run_elements.reviewed',
             'useable': '$run_elements.useable',
@@ -111,6 +120,7 @@ sequencing_run_information = merge_analysis_driver_procs('run_id', ['run_id', 'n
             'pc_q30_r1': percentage('$q30_bases_r1', '$bases_r1'),
             'pc_q30_r2': percentage('$q30_bases_r2', '$bases_r2'),
             'pc_q30': percentage(add('$q30_bases_r1', '$q30_bases_r2'), add('$bases_r1', '$bases_r2')),
+            'pc_adapter': percentage(add('$adaptor_bases_removed_r1', '$adaptor_bases_removed_r2'), add('$bases_r1', '$bases_r2')),
             'project_ids': '$projects',
             'yield_in_gb': divide(add('$bases_r1', '$bases_r2'), 1000000000),
             'yield_q30_in_gb': divide(add('$q30_bases_r1', '$q30_bases_r2'), 1000000000),
@@ -219,7 +229,7 @@ sample = merge_analysis_driver_procs(
             'library_id': '$library_id',
             'user_sample_id': '$user_sample_id',
             'species_name': '$species_name',
-            'expected_yield': '$expected_yield',
+            'expected_yield_q30': divide('$expected_yield', 1000000000),
             'expected_coverage': '$expected_coverage',
             'run_ids': '$run_ids',
             'all_run_ids': '$all_run_ids',
