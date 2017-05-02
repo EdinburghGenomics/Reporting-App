@@ -100,7 +100,10 @@ class Sample:
                     new_status = status_cfg.step_queued_to_status.get(process)
 
                 if not status:
-                    status = new_status
+                    if new_status:
+                        status = new_status
+                    else:
+                        status, tmp = self._status_and_date
                     self._status_and_date = (status, date)
                 elif status == new_status:
                     self._status_and_date = (status, date)
