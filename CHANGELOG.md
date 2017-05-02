@@ -1,6 +1,12 @@
 Changelog for Reporting-App
 ===========================
 
+0.14 (unreleased)
+-----------------
+
+- Nothing changed yet.
+
+
 0.13.2 (2017-05-02)
 -------------------
 
