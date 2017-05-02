@@ -3,6 +3,9 @@ from urllib.parse import quote, unquote
 import datetime
 import flask as fl
 import flask_login
+import os
+from flask.helpers import send_from_directory
+
 import auth
 from reporting_app.util import datatable_cfg, tab_set_cfg, get_token
 from config import reporting_app_config as cfg
@@ -348,3 +351,12 @@ they're queued. the steps involved are described below.''' + table + '</div>'
             table_foot='sum_row_per_column'
         )
     )
+
+
+@app.route('/fastqc/<run_id>/<path>')
+def send_fastq_html(run_id, path):
+    print(cfg.content)
+    return send_from_directory(os.path.join(cfg['fastqc'], run_id), path)
+
+if __name__ == "__main__":
+    app.run()
