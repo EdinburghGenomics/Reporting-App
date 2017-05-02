@@ -1,8 +1,8 @@
 Changelog for Reporting-App
 ===========================
 
-0.13.2 (unreleased)
------------------
+0.13.2 (2017-05-02)
+-------------------
 
 - Add new lims end point showing sample information from udfs
 - Add multiple columns in sample report
