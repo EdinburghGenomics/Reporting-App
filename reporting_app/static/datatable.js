@@ -41,7 +41,7 @@ var merge_multi_sources = function(dt_config){
             return  $.ajax({
                 url: api_url,
                 headers: {'Authorization':  dt_config.token },
-                dataType: "json",
+                dataType: 'json',
                 async: true,
             });
         });
@@ -51,7 +51,7 @@ var merge_multi_sources = function(dt_config){
         $.when.apply($, calls).then(function () {
             // Use 'arguments' to get all the responses as an array-like object.
             // then extract the data field
-            data_array = _.map(arguments, function(response){return response[0].data});
+            var data_array = _.map(arguments, function(response){return response[0].data});
             var result = merge_on(data_array, dt_config.ajax_call.merge_on);
             callback({
                 recordsTotal: result.length,
@@ -78,7 +78,7 @@ function create_datatable(dt_config){
 
 // Configure the buttons for datatable
 var configure_buttons = function(button_config){
-    buttons_def = {
+    var buttons_def = {
         'colvis': {extend: 'colvis', text: '<i class="fa fa-filter"></i>',     titleAttr: 'Filter Columns'},
         'copy': {extend: 'copy',   text: '<i class="fa fa-files-o"></i>',    titleAttr: 'Copy', exportOptions: {'columns': ':visible'} },
         'pdf': {extend: 'pdf',    text: '<i class="fa fa-file-pdf-o"></i>', titleAttr: 'PDF', orientation: 'landscape', exportOptions: {'columns': ':visible'}}
@@ -140,7 +140,7 @@ var configure_dt = function(dt_config) {
             }
         ),
         'order': [dt_config.default_sort_col],
-        "footerCallback": get_function(dt_config.table_foot)
+        'footerCallback': get_function(dt_config.table_foot)
     }
 
 }
@@ -174,6 +174,3 @@ var sum_row_per_column = function( row, data, start, end, display ) {
     });
 
 }
-
-
-
