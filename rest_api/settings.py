@@ -77,6 +77,14 @@ CACHE_EXPIRES = 20
 
 DATE_FORMAT = '%d_%m_%Y_%H:%M:%S'
 
+# disable default behaviour
+RETURN_MEDIA_AS_BASE64_STRING = False
+
+# return media as URL instead
+RETURN_MEDIA_AS_URL = True
+
+# set up the desired media endpoint
+MEDIA_ENDPOINT = 'media'
 
 if cfg.get('url_prefix') and cfg.get('api_version'):
     URL_PREFIX = cfg['url_prefix']
