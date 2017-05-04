@@ -97,7 +97,15 @@ def pipeline_report(pipeline_type, view_type):
     endpoint = endpoints[pipeline_type]
     ajax_call = None
     if view_type == 'all':
-        query = rest_api().api_url(endpoint)
+        query = None
+        ajax_call = {
+            'func_name': 'merge_multi_sources',
+            'api_urls': [
+                rest_api().api_url(endpoint),
+                rest_api().api_url('lims/status/run_status'),
+            ],
+            'merge_on': 'run_id'
+        }
     elif view_type == 'recent':
         query = None
         month_ago = datetime.datetime.now() - datetime.timedelta(days=30)
