@@ -41,7 +41,7 @@ def _create_samples(session):
     return all_samples.values()
 
 
-def sample_info(session):
+def sample_info(session, app):
     """This function queries the lims database for sample information and return json representation"""
     samples = _create_samples(session)
     return [s.to_json() for s in samples]

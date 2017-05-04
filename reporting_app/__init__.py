@@ -95,12 +95,20 @@ def pipeline_report(pipeline_type, view_type):
     }
     endpoints = {'samples': 'aggregate/samples', 'runs': 'aggregate/all_runs'}
     endpoint = endpoints[pipeline_type]
-
+    ajax_call = None
     if view_type == 'all':
         query = rest_api().api_url(endpoint)
     elif view_type == 'recent':
+        query = None
         month_ago = datetime.datetime.now() - datetime.timedelta(days=30)
-        query = rest_api().api_url(endpoint, match={"_created":{"$gte":month_ago.strftime(settings.DATE_FORMAT)}})
+        ajax_call = {
+            'func_name': 'merge_multi_sources',
+            'api_urls': [
+                rest_api().api_url(endpoint, match={"_created": {"$gte": month_ago.strftime(settings.DATE_FORMAT)}}),
+                rest_api().api_url('lims/status/run_status', createddate=month_ago.strftime(settings.DATE_FORMAT)),
+            ],
+            'merge_on': 'run_id'
+        }
     elif view_type in statuses:
         query = rest_api().api_url(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
     else:
@@ -112,7 +120,12 @@ def pipeline_report(pipeline_type, view_type):
     return render_template(
         'untabbed_datatables.html',
         title,
-        table=datatable_cfg(title, pipeline_type, query)
+        table=datatable_cfg(
+            title=title,
+            cols=pipeline_type,
+            api_url=query,
+            ajax_call=ajax_call
+        )
     )
 
 
@@ -176,6 +189,7 @@ def report_run(run_id):
 @app.route('/runs/')
 @flask_login.login_required
 def current_runs():
+    week_ago = datetime.datetime.now() - datetime.timedelta(days=7)
     return render_template(
         'untabbed_datatables.html',
         'Active runs',
@@ -183,12 +197,12 @@ def current_runs():
             datatable_cfg(
                 'Active runs',
                 'active_runs',
-                api_url=rest_api().api_url('lims/status/run_status', status='current')
+                api_url=rest_api().api_url('lims/status/run_status', status='current', createddate=week_ago.strftime(settings.DATE_FORMAT))
             ),
             datatable_cfg(
                 'Recent runs',
-                'active_runs',
-                rest_api().api_url('lims/status/run_status', status='recent')
+                'sample_id',
+                rest_api().api_url('lims/status/run_status', status='recent', createddate=week_ago.strftime(settings.DATE_FORMAT))
             )
         ],
         description='Showing sequencing runs from the last 7 days'

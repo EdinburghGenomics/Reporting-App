@@ -95,6 +95,8 @@ column_def:
 # each column can be customised by entering a dict with a key called 'column_def' instead of the columns name
 runs:
     - run_id
+    - instrument_id
+    - run_status
     - project_ids
     - pc_q30_r1
     - pc_q30_r2

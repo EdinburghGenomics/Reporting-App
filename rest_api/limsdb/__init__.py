@@ -43,6 +43,6 @@ function_mapping = {
 
 
 def lims_extract(endpoint, app):
-    data = function_mapping[endpoint](get_session())
+    data = function_mapping[endpoint](get_session(), app)
     ret_dict = {app.config['META']: {'total': len(data)}, app.config['ITEMS']: data}
     return jsonify(ret_dict)

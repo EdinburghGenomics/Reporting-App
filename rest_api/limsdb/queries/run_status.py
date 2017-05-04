@@ -22,11 +22,13 @@ class Run:
         }
 
 
-def run_status(session):
-    # TODO: make the time threshold a parameter
-    now = datetime.now()
-    threshold = now - timedelta(7)
-    data = queries.runs_info(session, time_since=threshold)
+def run_status(session, app):
+    created_date = request.args.get('createddate', None)
+    if created_date:
+        time_since = datetime.strptime(created_date, app.config['DATE_FORMAT'])
+    else:
+        time_since = None
+    data = queries.runs_info(session, time_since=time_since)
     all_runs = defaultdict(Run)
 
     for createddate, process_id, udf_name, udf_value, lane, sample_id, project_id in data:
