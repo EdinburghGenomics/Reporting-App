@@ -7,6 +7,14 @@ Changelog for Reporting-App
 - Nothing changed yet.
 
 
+0.13.2 (2017-05-02)
+-------------------
+
+- Add new lims end point showing sample information from udfs
+- Add multiple columns in sample report
+- Fix FluidX samples status 
+
+
 0.13.1 (2017-04-18)
 -------------------
 
