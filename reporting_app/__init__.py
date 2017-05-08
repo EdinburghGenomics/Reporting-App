@@ -84,54 +84,40 @@ def change_password():
     return render_template('login.html', 'Login', message='Bad request.')
 
 
-@app.route('/pipelines/<pipeline_type>/<view_type>')
+@app.route('/runs/<view_type>')
 @flask_login.login_required
-def pipeline_report(pipeline_type, view_type):
-    statuses = {
-        'queued': ('reprocess', 'force_ready'),
-        'processing': ('processing',),
-        'finished': ('finished', 'failed'),
-        'archived': ('deleted', 'aborted')
-    }
-    endpoints = {'samples': 'aggregate/samples', 'runs': 'aggregate/all_runs'}
-    endpoint = endpoints[pipeline_type]
-    ajax_call = None
+def runs_report(view_type):
     if view_type == 'all':
-        query = None
         ajax_call = {
             'func_name': 'merge_multi_sources',
             'api_urls': [
-                rest_api().api_url(endpoint),
+                rest_api().api_url('aggregate/all_runs'),
                 rest_api().api_url('lims/status/run_status'),
             ],
             'merge_on': 'run_id'
         }
     elif view_type == 'recent':
-        query = None
         month_ago = datetime.datetime.now() - datetime.timedelta(days=30)
         ajax_call = {
             'func_name': 'merge_multi_sources',
             'api_urls': [
-                rest_api().api_url(endpoint, match={"_created": {"$gte": month_ago.strftime(settings.DATE_FORMAT)}}),
+                rest_api().api_url('aggregate/all_runs', match={"_created": {"$gte": month_ago.strftime(settings.DATE_FORMAT)}}),
                 rest_api().api_url('lims/status/run_status', createddate=month_ago.strftime(settings.DATE_FORMAT)),
             ],
             'merge_on': 'run_id'
         }
-    elif view_type in statuses:
-        query = rest_api().api_url(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
     else:
         fl.abort(404)
         return None
 
-    title = util.capitalise(view_type) + ' ' + pipeline_type
+    title = util.capitalise(view_type) + ' runs'
 
     return render_template(
         'untabbed_datatables.html',
         title,
         table=datatable_cfg(
             title=title,
-            cols=pipeline_type,
-            api_url=query,
+            cols='runs',
             ajax_call=ajax_call
         )
     )
@@ -194,7 +180,7 @@ def report_run(run_id):
     )
 
 
-@app.route('/runs/')
+@app.route('/runs/recentlims')
 @flask_login.login_required
 def current_runs():
     week_ago = datetime.datetime.now() - datetime.timedelta(days=7)
