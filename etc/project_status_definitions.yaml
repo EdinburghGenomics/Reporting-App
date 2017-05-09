@@ -50,7 +50,6 @@ step_completed_to_status:
     AUTOMATED - Sequence: BIOINFORMATICS
     bioinformatics: DELIVERY
     Data Release EG 1.0: FINISHED
-    Finance - Invoice To Be Sent: FINISHED
     Remove From Processing EG 1.0 ST: SAMPLE_REMOVED
 
 
