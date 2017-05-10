@@ -217,6 +217,47 @@ def project_reports():
     )
 
 
+@app.route('/samples/<view_type>')
+@flask_login.login_required
+def report_samples(view_type):
+    if view_type == 'all':
+        ajax_call = {
+            'func_name': 'merge_multi_sources_keep_first',
+            'api_urls': [
+                rest_api().api_url('aggregate/samples'),
+                rest_api().api_url('lims/status/sample_status'),
+                rest_api().api_url('lims/samples')
+            ],
+            'merge_on': 'sample_id'
+        }
+        title = 'All samples'
+    elif view_type == 'toreview':
+        month_ago = datetime.datetime.now() - datetime.timedelta(days=30)
+        ajax_call = {
+            'func_name': 'merge_multi_sources_keep_first',
+            'api_urls': [
+                rest_api().api_url('aggregate/samples', match={"useable": 'not%20marked', 'proc_status': 'finished'}),
+                rest_api().api_url('lims/status/sample_status'),
+                rest_api().api_url('lims/samples')
+            ],
+            'merge_on': 'sample_id'
+        }
+        title = 'Samples to review'
+    else:
+        fl.abort(404)
+        return None
+
+    return render_template(
+        'untabbed_datatables.html',
+        title,
+        table=datatable_cfg(
+            title=title,
+            cols='samples',
+            ajax_call=ajax_call
+        )
+    )
+
+
 @app.route('/projects/<project_id>')
 @flask_login.login_required
 def report_project(project_id):
