@@ -279,13 +279,13 @@ def _create_samples(session):
     return all_samples.values()
 
 
-def sample_status(session, app):
+def sample_status(session):
     """This function queries the lims database for sample information and return json representation"""
     samples = _create_samples(session)
     return [s.to_json() for s in samples]
 
 
-def sample_status_per_project(session, app):
+def sample_status_per_project(session):
     """This function queries the lims database for sample information and aggregate at the project name level"""
     samples = _create_samples(session)
     match = json.loads(request.args.get('match', '{}'))
@@ -304,7 +304,7 @@ def sample_status_per_project(session, app):
     return [p.to_json() for p in all_projects.values()]
 
 
-def sample_status_per_plate(session, app):
+def sample_status_per_plate(session):
     """This function queries the lims database for sample information and aggregate at the plate name level"""
     samples = _create_samples(session)
     all_plates = defaultdict(Container)

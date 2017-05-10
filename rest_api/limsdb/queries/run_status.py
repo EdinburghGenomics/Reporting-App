@@ -1,7 +1,7 @@
 from collections import defaultdict
 from rest_api.limsdb import queries
-from flask import request
-from datetime import datetime, timedelta
+from flask import request, current_app
+from datetime import datetime
 
 
 class Run:
@@ -22,10 +22,10 @@ class Run:
         }
 
 
-def run_status(session, app):
+def run_status(session):
     created_date = request.args.get('createddate', None)
     if created_date:
-        time_since = datetime.strptime(created_date, app.config['DATE_FORMAT'])
+        time_since = datetime.strptime(created_date, current_app.config['DATE_FORMAT'])
     else:
         time_since = None
     data = queries.runs_info(session, time_since=time_since)
