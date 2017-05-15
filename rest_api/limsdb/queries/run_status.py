@@ -1,7 +1,7 @@
 from collections import defaultdict
+
+from rest_api.common import retrieve_args
 from rest_api.limsdb import queries
-from flask import request, current_app
-from datetime import datetime
 
 
 class Run:
@@ -23,11 +23,9 @@ class Run:
 
 
 def run_status(session):
-    created_date = request.args.get('createddate', None)
-    if created_date:
-        time_since = datetime.strptime(created_date, current_app.config['DATE_FORMAT'])
-    else:
-        time_since = None
+    kwargs = retrieve_args()
+    time_since = kwargs.get('createddate', None)
+    status = kwargs.get('status', None)
     data = queries.runs_info(session, time_since=time_since)
     all_runs = defaultdict(Run)
 
@@ -38,7 +36,6 @@ def run_status(session):
         run.samples.add(sample_id)
         run.projects.add(project_id)
 
-    status = request.args.get('status', None)
     filterer = lambda r: True
     if status == 'current':
         filterer = lambda r: r.udfs['Run Status'] == 'RunStarted'

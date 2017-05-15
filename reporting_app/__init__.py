@@ -232,13 +232,13 @@ def report_samples(view_type):
         }
         title = 'All samples'
     elif view_type == 'toreview':
-        month_ago = datetime.datetime.now() - datetime.timedelta(days=30)
+        three_month_ago = datetime.datetime.now() - datetime.timedelta(days=912)
         ajax_call = {
             'func_name': 'merge_multi_sources_keep_first',
             'api_urls': [
                 rest_api().api_url('aggregate/samples', match={"useable": 'not%20marked', 'proc_status': 'finished'}),
-                rest_api().api_url('lims/status/sample_status'),
-                rest_api().api_url('lims/samples')
+                rest_api().api_url('lims/status/sample_status', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)}),
+                rest_api().api_url('lims/samples', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)})
             ],
             'merge_on': 'sample_id'
         }
