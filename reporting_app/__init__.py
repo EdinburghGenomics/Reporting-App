@@ -232,7 +232,7 @@ def report_samples(view_type):
         }
         title = 'All samples'
     elif view_type == 'toreview':
-        three_month_ago = datetime.datetime.now() - datetime.timedelta(days=912)
+        three_month_ago = datetime.datetime.now() - datetime.timedelta(days=91)
         ajax_call = {
             'func_name': 'merge_multi_sources_keep_first',
             'api_urls': [
