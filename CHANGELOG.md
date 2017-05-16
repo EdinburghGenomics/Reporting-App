@@ -1,10 +1,10 @@
 Changelog for Reporting-App
 ===========================
 
-0.15 (unreleased)
------------------
+0.14.1 (2017-05-16)
+-------------------
 
-- Nothing changed yet.
+- Fix queries to sample info and sample status with no match statement.
 
 
 0.14 (2017-05-16)
