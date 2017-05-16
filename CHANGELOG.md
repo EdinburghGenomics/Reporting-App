@@ -1,10 +1,11 @@
 Changelog for Reporting-App
 ===========================
 
-0.14 (unreleased)
+0.14 (2017-05-16)
 -----------------
 
-- Nothing changed yet.
+- Add unitest to javascript code through Qunit
+- Reorganise the Samples and Runs pages to remove the one nobody was using
 
 
 0.13.2 (2017-05-02)
