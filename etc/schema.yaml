@@ -47,7 +47,7 @@ run_elements:
     fastqc_report_r1: {         type: 'string',  required: False }
     fastqc_report_r2: {         type: 'string',  required: False }
 
-    tile_filtered: {            type: 'string',  required: False }
+    tiles_filtered: {           type: 'string',  required: False }
     trim_r1: {                  type: 'integer', required: False }
     trim_r2: {                  type: 'integer', required: False }
 
