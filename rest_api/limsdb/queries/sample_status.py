@@ -4,6 +4,7 @@ from collections import defaultdict
 from flask import request, json
 from egcg_core.clarity import sanitize_user_id
 from config import project_status as status_cfg
+from rest_api.common import convert_date, retrieve_args
 from rest_api.limsdb import queries
 
 
@@ -238,12 +239,12 @@ class Project(Container):
         return None
 
 
-def _create_samples(session):
+def _create_samples(session, match):
     """This function queries the lims database for sample information and create Sample objects"""
-    match = json.loads(request.args.get('match', '{}'))
     all_samples = defaultdict(Sample)
     project_id = match.get('project_id')
     sample_id = match.get('sample_id')
+    sample_time_since = match.get('createddate')
     detailed = bool(request.args.get('detailed', False))
     if detailed:
         list_process_complete = None
@@ -254,7 +255,8 @@ def _create_samples(session):
                        + list(status_cfg.library_type_step_completed)
         list_process_queued = status_cfg.step_queued_to_status
 
-    for result in queries.get_sample_info(session, project_id, sample_id, udfs=['Prep Workflow', 'Species']):
+    for result in queries.get_sample_info(session, project_id, sample_id, time_since=sample_time_since,
+                                          udfs=['Prep Workflow', 'Species']):
         (pjct_name, sample_name, container, wellx, welly, udf_name, udf_value) = result
         s = all_samples[sanitize_user_id(sample_name)]
         s.sample_name = sanitize_user_id(sample_name)
@@ -268,11 +270,12 @@ def _create_samples(session):
             all_samples[sanitize_user_id(sample_name)].species = udf_value
 
     for result in queries.get_samples_and_processes(session,  project_id, sample_id,
-                                            workstatus='COMPLETE', list_process=list_process_complete):
+                                                    workstatus='COMPLETE', list_process=list_process_complete,
+                                                    time_since=sample_time_since):
         (pjct_name, sample_name, process_name, process_status, date_run, process_id) = result
         all_samples[sanitize_user_id(sample_name)].add_completed_process(process_name, date_run, process_id)
 
-    for result in queries.non_QC_queues(session, project_id, sample_id, list_process=list_process_queued):
+    for result in queries.non_QC_queues(session, project_id, sample_id, list_process=list_process_queued, time_since=sample_time_since):
         pjct_name, sample_name, process_name, queued_date, queue_id = result
         all_samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date, queue_id)
 
@@ -281,14 +284,18 @@ def _create_samples(session):
 
 def sample_status(session):
     """This function queries the lims database for sample information and return json representation"""
-    samples = _create_samples(session)
+    kwargs = retrieve_args()
+    match = kwargs.get('match', '{}')
+
+    samples = _create_samples(session, match)
     return [s.to_json() for s in samples]
 
 
 def sample_status_per_project(session):
     """This function queries the lims database for sample information and aggregate at the project name level"""
-    samples = _create_samples(session)
-    match = json.loads(request.args.get('match', '{}'))
+    kwargs = retrieve_args()
+    match = kwargs.get('match', '{}')
+    samples = _create_samples(session, match)
     project_name = match.get('project_id')
     all_projects = defaultdict(Project)
     for project_info in queries.get_project_info(session, project_name, udfs=['Number of Quoted Samples']):
@@ -306,7 +313,9 @@ def sample_status_per_project(session):
 
 def sample_status_per_plate(session):
     """This function queries the lims database for sample information and aggregate at the plate name level"""
-    samples = _create_samples(session)
+    kwargs = retrieve_args()
+    match = kwargs.get('match', '{}')
+    samples = _create_samples(session, match)
     all_plates = defaultdict(Container)
     for sample in samples:
         all_plates[sample.plate_name].samples.append(sample)

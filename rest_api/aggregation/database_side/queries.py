@@ -1,6 +1,7 @@
 import datetime
 from flask import request, json, current_app as app
 from config import schema
+from rest_api.common import convert_date
 from .stages import *
 
 
@@ -333,7 +334,7 @@ def resolve_pipeline(endpoint, base_pipeline):
 
     for k in schema_endpoint:
         if k in match:
-            pipeline.append({'$match': mongotize(resolve_match(k, match.pop(k)))})
+            pipeline.append({'$match': convert_date(resolve_match(k, match.pop(k)))})
         if not sorting_done and k == sort_col.lstrip('-'):
             pipeline.append(orderer)
             sorting_done = True
@@ -343,7 +344,7 @@ def resolve_pipeline(endpoint, base_pipeline):
 
         for k in stage.get('$project', {}):
             if k in [col.lstrip('$') for col in match]:
-                pipeline.append({'$match': mongotize(resolve_match(k, match.pop(k)))})
+                pipeline.append({'$match': convert_date(resolve_match(k, match.pop(k)))})
             if not sorting_done and k == sort_col.lstrip('-'):
                 pipeline.append(orderer)
                 sorting_done = True
@@ -359,26 +360,3 @@ def resolve_match(key, match_value):
         return match_value
     else:
         return {key: match_value}
-
-
-def mongotize(source):
-    """Recursively iterates a JSON dictionary, turning date strings into datetime values."""
-    def try_cast(v):
-        try:
-            return datetime.datetime.strptime(v, app.config['DATE_FORMAT'])
-        except Exception as e:
-            return v
-
-    for k, v in source.items():
-        if isinstance(v, dict):
-            mongotize(v)
-        elif isinstance(v, list):
-            for i, v1 in enumerate(v):
-                if isinstance(v1, dict):
-                    source[k][i] = mongotize(v1)
-                else:
-                    source[k][i] = try_cast(v1)
-        elif isinstance(v, str):
-            source[k] = try_cast(v)
-
-    return source

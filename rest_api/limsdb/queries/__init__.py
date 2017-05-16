@@ -13,6 +13,8 @@ def add_filters(q, **kwargs):
         q = q.filter(t.Project.closedate == None)
     if kwargs.get('workstatus'):
         q = q.filter(t.Process.workstatus == kwargs.get('workstatus'))
+    if kwargs.get('time_since'):
+        q = q.filter(func.date(t.Sample.datereceived) > func.date(kwargs.get('time_since')))
     return q
 
 
@@ -30,7 +32,7 @@ def get_project_info(session, project_name=None, only_open_project=True, udfs=No
     return q.all()
 
 
-def get_sample_info(session, project_name=None, sample_name=None, only_open_project=True, udfs=None):
+def get_sample_info(session, project_name=None, sample_name=None, only_open_project=True, time_since=None, udfs=None):
     """This method runs a query that return samples, its associated original container and some specified UDFs"""
     q = session.query(t.Project.name, t.Sample.name, t.Container.name,
                       t.ContainerPlacement.wellxposition, t.ContainerPlacement.wellyposition,
@@ -48,11 +50,13 @@ def get_sample_info(session, project_name=None, sample_name=None, only_open_proj
         else:
             q = q.filter(or_(t.SampleUdfView.udfname.in_(udfs), t.SampleUdfView.udfname == None))
     q = q.filter(t.Artifact.isoriginal)
-    q = add_filters(q, project_name=project_name, sample_name=sample_name, only_open_project=only_open_project)
+    q = add_filters(q, project_name=project_name, sample_name=sample_name, only_open_project=only_open_project,
+                    time_since=time_since)
     return q.all()
 
 
-def get_samples_and_processes(session, project_name=None, sample_name=None, list_process=None, workstatus=None, only_open_project=True):
+def get_samples_and_processes(session, project_name=None, sample_name=None, list_process=None, workstatus=None,
+                              time_since=None, only_open_project=True):
     """This method runs a query that return the sample name and the processeses they went through"""
     q = session.query(t.Project.name, t.Sample.name, t.ProcessType.displayname,
                       t.Process.workstatus, t.Process.createddate, t.Process.processid) \
@@ -63,11 +67,11 @@ def get_samples_and_processes(session, project_name=None, sample_name=None, list
         .join(t.ProcessIOTracker.process) \
         .join(t.Process.type)
     q = add_filters(q, project_name=project_name, sample_name=sample_name, list_process=list_process,
-                    workstatus=workstatus, only_open_project=only_open_project)
+                    workstatus=workstatus, only_open_project=only_open_project, time_since=time_since)
     return q.all()
 
 
-def non_QC_queues(session, project_name=None, sample_name=None, list_process=None, only_open_project=True):
+def non_QC_queues(session, project_name=None, sample_name=None, list_process=None, time_since=None, only_open_project=True):
     """
     This query gives all of the samples sitting in queue of a aledgedly non-qc steps
     """
@@ -88,7 +92,7 @@ def non_QC_queues(session, project_name=None, sample_name=None, list_process=Non
         .join(t.WorkflowSection.labworkflow)
     q = q.order_by(t.Project.name, t.Sample.name, t.ProcessType.displayname)
     q = add_filters(q, project_name=project_name, sample_name=sample_name, list_process=list_process,
-                    only_open_project=only_open_project)
+                    only_open_project=only_open_project, time_since=time_since)
     # StageTransition.workflowrunid is positive when the transition is not
     # complete and negative when the transition is completed
     q = q.filter(t.StageTransition.workflowrunid > 0)
@@ -99,7 +103,7 @@ def non_QC_queues(session, project_name=None, sample_name=None, list_process=Non
 def runs_info(session, time_since=None, run_ids=None, run_status=None):
     """
     :param sqlalchemy.orm.Session session:
-    :param datetime time_since: date cutoff for a run to be displayed
+    :param datetime time_since: date cutoff for a run to be retrieved
     :param list run_ids: filter by specific run ids
     :param list run_status: filter by specific run statuses
     """
@@ -143,3 +147,15 @@ def runs_info(session, time_since=None, run_ids=None, run_status=None):
 
     results = q.all()
     return results
+
+if __name__ == "__main__":
+    import datetime
+    from rest_api.limsdb import get_session
+    session = get_session()
+    time_since = datetime.datetime.now() - datetime.timedelta(days=200)
+    print(time_since)
+    res = get_sample_info(session, time_since=time_since)
+    samples = set([r[1] for r in res])
+    #print('\n'.join(sorted(samples)))
+    print(len(samples))
+
