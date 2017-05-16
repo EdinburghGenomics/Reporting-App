@@ -285,7 +285,7 @@ def _create_samples(session, match):
 def sample_status(session):
     """This function queries the lims database for sample information and return json representation"""
     kwargs = retrieve_args()
-    match = kwargs.get('match', '{}')
+    match = kwargs.get('match', {})
 
     samples = _create_samples(session, match)
     return [s.to_json() for s in samples]
@@ -294,7 +294,7 @@ def sample_status(session):
 def sample_status_per_project(session):
     """This function queries the lims database for sample information and aggregate at the project name level"""
     kwargs = retrieve_args()
-    match = kwargs.get('match', '{}')
+    match = kwargs.get('match', {})
     samples = _create_samples(session, match)
     project_name = match.get('project_id')
     all_projects = defaultdict(Project)
@@ -314,7 +314,7 @@ def sample_status_per_project(session):
 def sample_status_per_plate(session):
     """This function queries the lims database for sample information and aggregate at the plate name level"""
     kwargs = retrieve_args()
-    match = kwargs.get('match', '{}')
+    match = kwargs.get('match', {})
     samples = _create_samples(session, match)
     all_plates = defaultdict(Container)
     for sample in samples:
