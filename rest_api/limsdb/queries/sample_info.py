@@ -27,7 +27,7 @@ class Sample:
 def _create_samples(session):
     """This function queries the lims database for sample information and create Sample objects"""
     kwargs = retrieve_args()
-    match = kwargs.get('match', '{}')
+    match = kwargs.get('match', {})
     all_samples = defaultdict(Sample)
     project_id = match.get('project_id')
     sample_id = match.get('sample_id')
