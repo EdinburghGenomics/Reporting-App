@@ -195,7 +195,7 @@ def current_runs():
             ),
             datatable_cfg(
                 'Recent runs',
-                'sample_id',
+                'active_runs',
                 rest_api().api_url('lims/status/run_status', status='recent', createddate=week_ago.strftime(settings.DATE_FORMAT))
             )
         ],

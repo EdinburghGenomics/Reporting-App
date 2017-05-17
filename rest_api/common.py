@@ -14,7 +14,6 @@ def retrieve_args():
             d[key]=request.args.getlist(key)
         if key in ['match', 'where']:
             d[key] = json.loads(d[key])
-    print(d)
     return convert_date(d)
 
 
@@ -24,7 +23,6 @@ def convert_date(source):
         try:
             return datetime.datetime.strptime(v, app.config['DATE_FORMAT'])
         except ValueError as e:
-            print(v, ' did not match ', app.config['DATE_FORMAT'])
             return v
     if isinstance(source, list):
         for i, v in enumerate(source):
