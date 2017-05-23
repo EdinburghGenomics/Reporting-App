@@ -337,7 +337,8 @@ def report_sample(sample_id):
                 api_url=rest_api().api_url('aggregate/run_elements', match={'sample_id': sample_id}),
                 paging=False,
                 searching=False,
-                info=False
+                info=False,
+                create_row='color_filter'
             )
         ],
         sample_statuses=rest_api().get_document('lims/status/sample_status', detailed=True, match={'sample_id': sample_id}),
