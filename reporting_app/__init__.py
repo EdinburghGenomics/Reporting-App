@@ -118,7 +118,9 @@ def runs_report(view_type):
         table=datatable_cfg(
             title=title,
             cols='runs',
-            ajax_call=ajax_call
+            ajax_call=ajax_call,
+            create_row='color_filter',
+            fixed_header=True
         )
     )
 
@@ -138,7 +140,8 @@ def report_run(run_id):
             default_sort_col='lane_number',
             paging=False,
             searching=False,
-            info=False
+            info=False,
+            create_row='color_filter'
         ),
         tab_sets=[
             tab_set_cfg(
@@ -150,7 +153,8 @@ def report_run(run_id):
                         api_url=rest_api().api_url('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
                         paging=False,
                         searching=False,
-                        info=False
+                        info=False,
+                        create_row='color_filter'
                     )
                     for lane in lanes
                 ]
@@ -165,7 +169,8 @@ def report_run(run_id):
                         default_sort_col='passing_filter_reads',
                         paging=False,
                         searching=False,
-                        info=False
+                        info=False,
+                        create_row='color_filter'
                     )
                     for lane in lanes
                 ]

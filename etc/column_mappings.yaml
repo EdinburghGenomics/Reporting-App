@@ -3,7 +3,7 @@
 column_def:
     bam_file_reads:           { data: 'bam_file_reads',                       title: 'Initial reads in bam',     fmt: { type: 'int',   min: 1500 } }
     barcode:                  { data: 'barcode',                              title: 'Barcode' }
-    clean_pc_q30:             { data: 'clean_pc_q30',                         title: '% Q30 - cleaned',          fmt: { type: 'percentage', min: 75 } }
+    clean_pc_q30:             { data: 'clean_pc_q30',                         title: '% Q30 - cleaned',          fmt: { type: 'percentage', min: 75 }, visible: 'false'  }
     clean_pc_q30_r1:          { data: 'clean_pc_q30_r1',                      title: '% Q30 R1 - cleaned',       fmt: { type: 'percentage', min: 75 }, visible: 'false' }
     clean_pc_q30_r2:          { data: 'clean_pc_q30_r2',                      title: '% Q30 R2 - cleaned',       fmt: { type: 'percentage', min: 75 }, visible: 'false' }
     clean_yield_in_gb:        { data: 'clean_yield_in_gb',                    title: 'Yield (Gb - cleaned)',     fmt: { type: 'float' } }
@@ -88,7 +88,9 @@ column_def:
     expected_yield_q30:       { data: 'Yield for Quoted Coverage (Gb)',       title: 'Expected Yield Q30 (Gb)',  fmt: { type: 'float' },               visible: 'false' }
     tissue_type:              { data: 'Sample Type',                          title: 'Tissue type',                                                    visible: 'false'}
     tumor_sample:             { data: 'Is Tumor Sample',                      title: 'Is Tumor Sample',                                                visible: 'false'}
-
+    trim_r1:                  { data: 'trim_r1',                              title: 'Read 1 Max length',                                              visible: 'false'}
+    trim_r2:                  { data: 'trim_r2',                              title: 'Read 2 Max length',                                              visible: 'false'}
+    tiles_filtered:           { data: 'tiles_filtered',                       title: 'Tile removed',                                                   visible: 'false'}
 
 # Datatables tables definition
 # the remaining top level entries each define a table with a list of column
@@ -101,6 +103,9 @@ runs:
     - pc_q30_r1
     - pc_q30_r2
     - pc_q30
+    - clean_pc_q30_r1
+    - clean_pc_q30_r2
+    - clean_pc_q30
     - clean_yield_in_gb
     - clean_yield_q30_in_gb
     - pc_adapter
@@ -172,8 +177,12 @@ demultiplexing:
     - { column_def: 'clean_yield_in_gb',  fmt: { type: 'float' }, visible: 'true' }
     - { column_def: 'yield_q30_in_gb',  fmt: { type: 'float'}, visible: 'false' }
     - { column_def: 'clean_yield_q30_in_gb',  fmt: { type: 'float' }, visible: 'true' }
+    - pc_q30
     - pc_q30_r1
     - pc_q30_r2
+    - clean_pc_q30
+    - clean_pc_q30_r1
+    - clean_pc_q30_r2
     - lane_pc_optical_dups
     - pc_adapter
     - reviewed
@@ -189,9 +198,15 @@ lane_aggregation:
     - { column_def: 'clean_yield_in_gb',  fmt: { type: 'float',  min: 120 }, visible: 'true' }
     - { column_def: 'yield_q30_in_gb',  fmt: { type: 'float',  min: 95 }, visible: 'false' }
     - { column_def: 'clean_yield_q30_in_gb',  fmt: { type: 'float',  min: 95 }, visible: 'true' }
+    - trim_r1
+    - trim_r2
+    - tiles_filtered
     - pc_q30
     - pc_q30_r1
     - pc_q30_r2
+    - clean_pc_q30
+    - clean_pc_q30_r1
+    - clean_pc_q30_r2
     - lane_pc_optical_dups
     - pc_adapter
     - { column_def: 'cv',  visible: 'false' }
@@ -219,7 +234,7 @@ samples:
     - tumor_sample
     - { column_def: 'clean_pc_q30_r1',  title: '% Q30 R1'}
     - { column_def: 'clean_pc_q30_r2',  title: '% Q30 R2'}
-    - { column_def: 'clean_pc_q30',  title: '% Q30'}
+    - { column_def: 'clean_pc_q30',  title: '% Q30', visible: true}
     - run_ids
     - bam_file_reads
     - mapped_reads

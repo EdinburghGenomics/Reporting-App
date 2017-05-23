@@ -92,6 +92,18 @@ var merge_multi_sources_keep_first = function(dt_config){
     return _merge_multi_sources(dt_config, merge_on_keep_first);
 }
 
+var test_exist = function(variable){
+    if ( variable instanceof Array ) {
+        return variable.length > 0;
+    }
+    return variable !== undefined;
+}
+
+var color_filter = function( row, data, dataIndex ) {
+    if ( test_exist(data["trim_r1"]) || test_exist(data["trim_r2"]) || test_exist(data["tiles_filtered"]) ) {
+          $(row).addClass('data-filtering');
+    }
+}
 
 function create_datatable(dt_config){
     //Sets default value using Lodash.js
@@ -170,9 +182,9 @@ var configure_dt = function(dt_config) {
             }
         ),
         'order': [dt_config.default_sort_col],
-        'footerCallback': get_function(dt_config.table_foot)
+        'footerCallback': get_function(dt_config.table_foot),
+        "createdRow": get_function(dt_config.create_row)
     }
-
 }
 
 // Helper function that sums the value of a column
