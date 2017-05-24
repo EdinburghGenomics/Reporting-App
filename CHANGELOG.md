@@ -1,10 +1,10 @@
 Changelog for Reporting-App
 ===========================
 
-0.15 (unreleased)
------------------
+0.14.2 (2017-05-24)
+-------------------
 
-- Nothing changed yet.
+- Add Cleanned yield/%Q30 in many pages along with colouring of row that described filtered runs  
 
 
 0.14.1 (2017-05-16)
