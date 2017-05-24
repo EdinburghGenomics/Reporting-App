@@ -73,6 +73,16 @@ QUnit.test('merge_multi_sources', function(assert) {
     $.ajax = original_ajax;  // end patch
 });
 
+QUnit.test('test_exist', function(assert) {
+    var t;
+    assert.notOk(test_exist(t));
+    assert.notOk(test_exist(null));
+    assert.notOk(test_exist(''));
+    assert.notOk(test_exist([]));
+    assert.ok(test_exist('1, 2, 3'));
+    assert.ok(test_exist(['1', '2', '3']));
+});
+
 
 QUnit.test('configure_buttons', function(assert) {
     assert.deepEqual(

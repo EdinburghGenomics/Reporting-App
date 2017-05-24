@@ -96,7 +96,7 @@ var test_exist = function(variable){
     if ( variable instanceof Array ) {
         return variable.length > 0;
     }
-    return variable !== undefined;
+    return variable !== undefined && variable !== null && variable;
 }
 
 var color_filter = function( row, data, dataIndex ) {

@@ -272,7 +272,7 @@ sample_run_elements:
     - project_id
     - sample_id
     - passing_filter_reads
-    - { column_def: 'yield_in_gb',  }
+    - yield_in_gb
     - clean_yield_in_gb
     - pc_q30_r1
     - pc_q30_r2
