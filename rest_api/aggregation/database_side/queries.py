@@ -30,6 +30,9 @@ run_elements_group_by_lane = [
             'avg_pf': {'$avg': '$passing_filter_reads'},
             'adaptor_bases_removed_r1' : {'$sum': '$adaptor_bases_removed_r1'},
             'adaptor_bases_removed_r2' : {'$sum': '$adaptor_bases_removed_r2'},
+            'tiles_filtered': {'$addToSet': '$tiles_filtered'},
+            'trim_r1': {'$addToSet': '$trim_r1'},
+            'trim_r2': {'$addToSet': '$trim_r2'}
         }
     },
     {
@@ -47,18 +50,27 @@ run_elements_group_by_lane = [
                 {'$add': ['$q30_bases_r1', '$q30_bases_r2']},
                 {'$add': ['$bases_r1', '$bases_r2']}
             ),
+            'clean_pc_q30': percentage(
+                {'$add': ['$clean_q30_bases_r1', '$clean_q30_bases_r2']},
+                {'$add': ['$clean_bases_r1', '$clean_bases_r2']}
+            ),
             'pc_adapter': percentage(
                 {'$add': ['$adaptor_bases_removed_r1', '$adaptor_bases_removed_r2']},
                 {'$add': ['$bases_r1', '$bases_r2']}
             ),
             'pc_q30_r1': percentage('$q30_bases_r1', '$bases_r1'),
             'pc_q30_r2': percentage('$q30_bases_r2', '$bases_r2'),
+            'clean_pc_q30_r1': percentage('$clean_q30_bases_r1', '$clean_bases_r1'),
+            'clean_pc_q30_r2': percentage('$clean_q30_bases_r2', '$clean_bases_r2'),
             'stdev_pf': '$stdev_pf',
             'avg_pf': '$avg_pf',
             'cv': divide('$stdev_pf', '$avg_pf'),
             'lane_pc_optical_dups': '$lane_pc_optical_dups',
             'useable_statuses': '$useable_statuses',
-            'review_statuses': '$review_statuses'
+            'review_statuses': '$review_statuses',
+            'tiles_filtered': '$tiles_filtered',
+            'trim_r1': '$trim_r1',
+            'trim_r2': '$trim_r2'
         }
     }
 ]
@@ -75,10 +87,19 @@ demultiplexing = [
             'passing_filter_reads': '$passing_filter_reads',
             'reviewed': '$reviewed',
             'useable': '$useable',
+            'tiles_filtered': '$tiles_filtered',
+            'trim_r1': '$trim_r1',
+            'trim_r2': '$trim_r2',
             'pc_pass_filter': percentage('$passing_filter_reads', '$total_reads'),
             'pc_q30_r1': percentage('$q30_bases_r1', '$bases_r1'),
             'pc_q30_r2': percentage('$q30_bases_r2', '$bases_r2'),
             'pc_q30': percentage(add('$q30_bases_r1', '$q30_bases_r2'), add('$bases_r1', '$bases_r2')),
+            'clean_pc_q30_r1': percentage('$clean_q30_bases_r1', '$clean_bases_r1'),
+            'clean_pc_q30_r2': percentage('$clean_q30_bases_r2', '$clean_bases_r2'),
+            'clean_pc_q30': percentage(
+                add('$clean_q30_bases_r1', '$clean_q30_bases_r2'),
+                add('$clean_bases_r1', '$clean_bases_r2'),
+            ),
             'pc_adapter': percentage(add('$adaptor_bases_removed_r1', '$adaptor_bases_removed_r2'), add('$bases_r1', '$bases_r2')),
             'lane_pc_optical_dups': '$lane_pc_optical_dups',
             'yield_in_gb': divide(add('$bases_r1', '$bases_r2'), 1000000000),
@@ -112,7 +133,10 @@ sequencing_run_information = merge_analysis_driver_procs('run_id', ['run_id', 'n
             'reviewed': '$run_elements.reviewed',
             'useable': '$run_elements.useable',
             'proc_status': '$most_recent_proc.status',
-            'most_recent_proc': '$most_recent_proc'
+            'most_recent_proc': '$most_recent_proc',
+            'tiles_filtered': '$run_elements.tiles_filtered',
+            'trim_r1': '$run_elements.trim_r1',
+            'trim_r2': '$run_elements.trim_r2'
         }
     },
     {
@@ -122,6 +146,12 @@ sequencing_run_information = merge_analysis_driver_procs('run_id', ['run_id', 'n
             'pc_q30_r2': percentage('$q30_bases_r2', '$bases_r2'),
             'pc_q30': percentage(add('$q30_bases_r1', '$q30_bases_r2'), add('$bases_r1', '$bases_r2')),
             'pc_adapter': percentage(add('$adaptor_bases_removed_r1', '$adaptor_bases_removed_r2'), add('$bases_r1', '$bases_r2')),
+            'clean_pc_q30_r1': percentage('$clean_q30_bases_r1', '$clean_bases_r1'),
+            'clean_pc_q30_r2': percentage('$clean_q30_bases_r2', '$clean_bases_r2'),
+            'clean_pc_q30': percentage(
+                add('$clean_q30_bases_r1', '$clean_q30_bases_r2'),
+                add('$clean_bases_r1', '$clean_bases_r2'),
+            ),
             'project_ids': '$projects',
             'yield_in_gb': divide(add('$bases_r1', '$bases_r2'), 1000000000),
             'yield_q30_in_gb': divide(add('$q30_bases_r1', '$q30_bases_r2'), 1000000000),
@@ -130,7 +160,10 @@ sequencing_run_information = merge_analysis_driver_procs('run_id', ['run_id', 'n
             'review_statuses': '$reviewed',
             'useable_statuses': '$useable',
             'proc_status': '$proc_status',
-            'most_recent_proc': '$most_recent_proc'
+            'most_recent_proc': '$most_recent_proc',
+            'tiles_filtered': '$tiles_filtered',
+            'trim_r1': '$trim_r1',
+            'trim_r2': '$trim_r2'
         }
     }
 ]
