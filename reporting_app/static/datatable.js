@@ -94,6 +94,7 @@ var merge_multi_sources_keep_first = function(dt_config){
 
 var test_exist = function(variable){
     if ( variable instanceof Array ) {
+        variable = variable.filter(function(n){ return n != null });
         return variable.length > 0;
     }
     return variable !== undefined && variable !== null && variable;

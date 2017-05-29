@@ -253,7 +253,10 @@ sample = merge_analysis_driver_procs(
             'clean_reads': {'$sum': '$run_elements.clean_reads'},
             'run_ids': '$run_elements.run_id',
             'all_run_ids': '$run_elements.run_id',
-            'run_elements': '$run_elements.run_element_id'
+            'run_elements': '$run_elements.run_element_id',
+            'tiles_filtered': '$run_elements.tiles_filtered',
+            'trim_r1': '$run_elements.trim_r1',
+            'trim_r2': '$run_elements.trim_r2'
         }
     },
     {
@@ -312,7 +315,10 @@ sample = merge_analysis_driver_procs(
             'clean_yield_q30': divide(add('$clean_q30_bases_r1', '$clean_q30_bases_r2'), 1000000000),
             'pc_mapped_reads': percentage('$mapped_reads', '$bam_file_reads'),
             'pc_properly_mapped_reads': percentage('$properly_mapped_reads', '$bam_file_reads'),
-            'pc_duplicate_reads': percentage('$duplicate_reads', '$bam_file_reads')
+            'pc_duplicate_reads': percentage('$duplicate_reads', '$bam_file_reads'),
+            'tiles_filtered': '$tiles_filtered',
+            'trim_r1': '$trim_r1',
+            'trim_r2': '$trim_r2'
         }
     }
 ]

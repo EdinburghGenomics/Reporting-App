@@ -79,6 +79,7 @@ QUnit.test('test_exist', function(assert) {
     assert.notOk(test_exist(null));
     assert.notOk(test_exist(''));
     assert.notOk(test_exist([]));
+    assert.notOk(test_exist([null]));
     assert.ok(test_exist('1, 2, 3'));
     assert.ok(test_exist(['1', '2', '3']));
 });
