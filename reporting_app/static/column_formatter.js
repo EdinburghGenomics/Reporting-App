@@ -30,8 +30,9 @@ function string_formatter(data, fmt){
         formatted_data = Humanize.formatNumber(formatted_data, 2);
     } else if (fmt['type'] == 'date') {
         formatted_data = moment(new Date(formatted_data)).format('YYYY-MM-DD');
+    } else if (fmt['type'] == 'datetime') {
+        formatted_data = moment(new Date(formatted_data)).format('YYYY-MM-DD HH:MM:ss');
     }
-
     if (fmt['link']) {
         if (fmt['link_format_function']){
             formatted_link = function_map[fmt['link_format_function']](data, fmt);
