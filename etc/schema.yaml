@@ -157,7 +157,7 @@ analysis_driver_procs:
     pid: {                      type: 'integer', nullable: True }
     status: {                   type: 'string', allowed: ['force_ready', 'processing', 'finished', 'failed', 'aborted', 'reprocess', 'deleted', 'resume'] }
     stages: {                   type: 'list', schema: { type: 'string', data_relation: { resource: 'analysis_driver_stages', field: 'stage_id', embeddable: True } } }
-    source: {                   type: 'list',  required: False, schema: { type: 'string' } }
+    data_source: {              type: 'list',  required: False, schema: { type: 'string' } }
 
 analysis_driver_stages:
     stage_id: {                 type: 'string', required: True, unique: True }
