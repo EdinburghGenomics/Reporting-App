@@ -1,10 +1,29 @@
 Changelog for Reporting-App
 ===========================
 
-0.14 (unreleased)
+0.15 (unreleased)
 -----------------
 
 - Nothing changed yet.
+
+
+0.14.2 (2017-05-24)
+-------------------
+
+- Add Cleanned yield/%Q30 in many pages along with colouring of row that described filtered runs  
+
+
+0.14.1 (2017-05-16)
+-------------------
+
+- Fix queries to sample info and sample status with no match statement.
+
+
+0.14 (2017-05-16)
+-----------------
+
+- Add unitest to javascript code through Qunit
+- Reorganise the Samples and Runs pages to remove the one nobody was using
 
 
 0.13.2 (2017-05-02)

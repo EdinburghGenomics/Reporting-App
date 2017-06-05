@@ -1,7 +1,7 @@
 from collections import defaultdict
+
+from rest_api.common import retrieve_args
 from rest_api.limsdb import queries
-from flask import request
-from datetime import datetime, timedelta
 
 
 class Run:
@@ -23,10 +23,10 @@ class Run:
 
 
 def run_status(session):
-    # TODO: make the time threshold a parameter
-    now = datetime.now()
-    threshold = now - timedelta(7)
-    data = queries.runs_info(session, time_since=threshold)
+    kwargs = retrieve_args()
+    time_since = kwargs.get('createddate', None)
+    status = kwargs.get('status', None)
+    data = queries.runs_info(session, time_since=time_since)
     all_runs = defaultdict(Run)
 
     for createddate, process_id, udf_name, udf_value, lane, sample_id, project_id in data:
@@ -36,7 +36,6 @@ def run_status(session):
         run.samples.add(sample_id)
         run.projects.add(project_id)
 
-    status = request.args.get('status', None)
     filterer = lambda r: True
     if status == 'current':
         filterer = lambda r: r.udfs['Run Status'] == 'RunStarted'

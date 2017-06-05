@@ -16,6 +16,22 @@ QUnit.test('merge_on', function(assert) {
     );
 });
 
+QUnit.test('merge_on_keep_first', function(assert) {
+    var datasrc1 = [{sample_id: 'sample_1', x: 1}, {sample_id: 'sample_2', x: 2}];
+    var datasrc2 = [{sample_id: 'sample_3', y: 1}, {sample_id: 'sample_1', y: 4}];  // sample_3 should be ignored
+    var datasrc3 = [{sample_id: 'sample_1', x: 5}, {sample_id: 'sample_2', y: 3}];
+
+    assert.deepEqual(
+        merge_on_keep_first(
+            [datasrc1, datasrc2, datasrc3],
+            'sample_id'
+        ),
+        [
+            {sample_id: 'sample_1', x: 5, y: 4},
+            {sample_id: 'sample_2', x: 2, y: 3}
+        ]
+    );
+});
 
 QUnit.test('merge_multi_sources', function(assert) {
     // patching ajax
@@ -55,6 +71,17 @@ QUnit.test('merge_multi_sources', function(assert) {
     );
 
     $.ajax = original_ajax;  // end patch
+});
+
+QUnit.test('test_exist', function(assert) {
+    var t;
+    assert.notOk(test_exist(t));
+    assert.notOk(test_exist(null));
+    assert.notOk(test_exist(''));
+    assert.notOk(test_exist([]));
+    assert.notOk(test_exist([null]));
+    assert.ok(test_exist('1, 2, 3'));
+    assert.ok(test_exist(['1', '2', '3']));
 });
 
 

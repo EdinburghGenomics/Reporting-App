@@ -47,6 +47,10 @@ run_elements:
     fastqc_report_r1: {         type: 'media',  required: False }
     fastqc_report_r2: {         type: 'media',  required: False }
 
+    tiles_filtered: {           type: 'string',  required: False, nullable: True }
+    trim_r1: {                  type: 'integer', required: False, nullable: True }
+    trim_r2: {                  type: 'integer', required: False, nullable: True }
+
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'], default: 'not reviewed' }
     review_comments: {          type: 'string',  required: False }
     review_date: {              type: 'datetime', required: False }
@@ -134,6 +138,8 @@ samples:
     useable_date: {             type: 'datetime', required: False }
     delivered: {                type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no' }
     delivery_date: {            type: 'datetime', required: False }
+    files_delivered: {          type: 'list', required: False, 'schema': { 'type': 'dict', 'schema': { 'file_path': { 'type': 'string' }, 'md5': { 'type': 'string' } } } }
+    files_downloaded: {         type: 'list', required: False, 'schema': { 'type': 'dict', 'schema': { 'file_path': { 'type': 'string' }, 'user': { 'type': 'string' }, 'date': { type: 'datetime' } } } }
     input_fastqs_deleted: {     type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no'}
     data_deleted: {             type: 'string',  required: False, allowed: ['all', 'fastq', 'processed', 'on lustre', 'none'], default: 'none'}
 
@@ -151,7 +157,7 @@ analysis_driver_procs:
     pid: {                      type: 'integer', nullable: True }
     status: {                   type: 'string', allowed: ['force_ready', 'processing', 'finished', 'failed', 'aborted', 'reprocess', 'deleted', 'resume'] }
     stages: {                   type: 'list', schema: { type: 'string', data_relation: { resource: 'analysis_driver_stages', field: 'stage_id', embeddable: True } } }
-
+    data_source: {              type: 'list',  required: False, schema: { type: 'string' } }
 
 analysis_driver_stages:
     stage_id: {                 type: 'string', required: True, unique: True }

@@ -29,13 +29,35 @@ var merge_on = function (list_of_array, key) {
     return r;
 }
 
+// merge several arrays of object based on given property but only keep object present in the first array
+// the other ones can add properties but no new objects
+var merge_on_keep_first = function (list_of_array, key) {
+    var r = [],
+        hash = Object.create(null);
+
+    list_of_array[0].forEach(function (o) {
+        hash[o[key]] = {};
+        r.push(hash[o[key]]);
+    });
+    list_of_array.forEach(function (a) {
+        a.forEach(function (o) {
+            if (hash[o[key]]) {
+                Object.keys(o).forEach(function (k) {
+                    hash[o[key]][k] = o[k];
+                });
+            }
+        });
+    });
+    return r;
+}
+
 // send multiple ajax queries then merge the results based on dt_config.merge_on
 // dt_config is expected to contain:
 // ajax_call.func_name: merge_multi_sources,
 // ajax_call.api_urls: [url1, url2, ...]
 // ajax_call.merge_on: property_name
 // token: the token used for authentication
-var merge_multi_sources = function(dt_config){
+var _merge_multi_sources = function(dt_config, merge_func){
     return function(data, callback, settings){
         var calls = dt_config.ajax_call.api_urls.map( function(api_url){
             return  $.ajax({
@@ -52,7 +74,7 @@ var merge_multi_sources = function(dt_config){
             // Use 'arguments' to get all the responses as an array-like object.
             // then extract the data field
             var data_array = _.map(arguments, function(response){return response[0].data});
-            var result = merge_on(data_array, dt_config.ajax_call.merge_on);
+            var result = merge_func(data_array, dt_config.ajax_call.merge_on);
             callback({
                 recordsTotal: result.length,
                 recordsFiltered: result.length,
@@ -62,6 +84,27 @@ var merge_multi_sources = function(dt_config){
     }
 }
 
+var merge_multi_sources = function(dt_config){
+    return _merge_multi_sources(dt_config, merge_on);
+}
+
+var merge_multi_sources_keep_first = function(dt_config){
+    return _merge_multi_sources(dt_config, merge_on_keep_first);
+}
+
+var test_exist = function(variable){
+    if ( variable instanceof Array ) {
+        variable = variable.filter(function(n){ return n != null });
+        return variable.length > 0;
+    }
+    return variable !== undefined && variable !== null && variable;
+}
+
+var color_filter = function( row, data, dataIndex ) {
+    if ( test_exist(data["trim_r1"]) || test_exist(data["trim_r2"]) || test_exist(data["tiles_filtered"]) ) {
+          $(row).addClass('data-filtering');
+    }
+}
 
 function create_datatable(dt_config){
     //Sets default value using Lodash.js
@@ -140,9 +183,9 @@ var configure_dt = function(dt_config) {
             }
         ),
         'order': [dt_config.default_sort_col],
-        'footerCallback': get_function(dt_config.table_foot)
+        'footerCallback': get_function(dt_config.table_foot),
+        "createdRow": get_function(dt_config.create_row)
     }
-
 }
 
 // Helper function that sums the value of a column

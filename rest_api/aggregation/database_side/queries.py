@@ -1,6 +1,7 @@
 import datetime
 from flask import request, json, current_app as app
 from config import schema
+from rest_api.common import convert_date
 from .stages import *
 
 
@@ -29,6 +30,9 @@ run_elements_group_by_lane = [
             'avg_pf': {'$avg': '$passing_filter_reads'},
             'adaptor_bases_removed_r1' : {'$sum': '$adaptor_bases_removed_r1'},
             'adaptor_bases_removed_r2' : {'$sum': '$adaptor_bases_removed_r2'},
+            'tiles_filtered': {'$addToSet': '$tiles_filtered'},
+            'trim_r1': {'$addToSet': '$trim_r1'},
+            'trim_r2': {'$addToSet': '$trim_r2'}
         }
     },
     {
@@ -46,18 +50,27 @@ run_elements_group_by_lane = [
                 {'$add': ['$q30_bases_r1', '$q30_bases_r2']},
                 {'$add': ['$bases_r1', '$bases_r2']}
             ),
+            'clean_pc_q30': percentage(
+                {'$add': ['$clean_q30_bases_r1', '$clean_q30_bases_r2']},
+                {'$add': ['$clean_bases_r1', '$clean_bases_r2']}
+            ),
             'pc_adapter': percentage(
                 {'$add': ['$adaptor_bases_removed_r1', '$adaptor_bases_removed_r2']},
                 {'$add': ['$bases_r1', '$bases_r2']}
             ),
             'pc_q30_r1': percentage('$q30_bases_r1', '$bases_r1'),
             'pc_q30_r2': percentage('$q30_bases_r2', '$bases_r2'),
+            'clean_pc_q30_r1': percentage('$clean_q30_bases_r1', '$clean_bases_r1'),
+            'clean_pc_q30_r2': percentage('$clean_q30_bases_r2', '$clean_bases_r2'),
             'stdev_pf': '$stdev_pf',
             'avg_pf': '$avg_pf',
             'cv': divide('$stdev_pf', '$avg_pf'),
             'lane_pc_optical_dups': '$lane_pc_optical_dups',
             'useable_statuses': '$useable_statuses',
-            'review_statuses': '$review_statuses'
+            'review_statuses': '$review_statuses',
+            'tiles_filtered': '$tiles_filtered',
+            'trim_r1': '$trim_r1',
+            'trim_r2': '$trim_r2'
         }
     }
 ]
@@ -75,10 +88,19 @@ demultiplexing = [
             'passing_filter_reads': '$passing_filter_reads',
             'reviewed': '$reviewed',
             'useable': '$useable',
+            'tiles_filtered': '$tiles_filtered',
+            'trim_r1': '$trim_r1',
+            'trim_r2': '$trim_r2',
             'pc_pass_filter': percentage('$passing_filter_reads', '$total_reads'),
             'pc_q30_r1': percentage('$q30_bases_r1', '$bases_r1'),
             'pc_q30_r2': percentage('$q30_bases_r2', '$bases_r2'),
             'pc_q30': percentage(add('$q30_bases_r1', '$q30_bases_r2'), add('$bases_r1', '$bases_r2')),
+            'clean_pc_q30_r1': percentage('$clean_q30_bases_r1', '$clean_bases_r1'),
+            'clean_pc_q30_r2': percentage('$clean_q30_bases_r2', '$clean_bases_r2'),
+            'clean_pc_q30': percentage(
+                add('$clean_q30_bases_r1', '$clean_q30_bases_r2'),
+                add('$clean_bases_r1', '$clean_bases_r2'),
+            ),
             'pc_adapter': percentage(add('$adaptor_bases_removed_r1', '$adaptor_bases_removed_r2'), add('$bases_r1', '$bases_r2')),
             'lane_pc_optical_dups': '$lane_pc_optical_dups',
             'yield_in_gb': divide(add('$bases_r1', '$bases_r2'), 1000000000),
@@ -112,7 +134,10 @@ sequencing_run_information = merge_analysis_driver_procs('run_id', ['run_id', 'n
             'reviewed': '$run_elements.reviewed',
             'useable': '$run_elements.useable',
             'proc_status': '$most_recent_proc.status',
-            'most_recent_proc': '$most_recent_proc'
+            'most_recent_proc': '$most_recent_proc',
+            'tiles_filtered': '$run_elements.tiles_filtered',
+            'trim_r1': '$run_elements.trim_r1',
+            'trim_r2': '$run_elements.trim_r2'
         }
     },
     {
@@ -122,6 +147,12 @@ sequencing_run_information = merge_analysis_driver_procs('run_id', ['run_id', 'n
             'pc_q30_r2': percentage('$q30_bases_r2', '$bases_r2'),
             'pc_q30': percentage(add('$q30_bases_r1', '$q30_bases_r2'), add('$bases_r1', '$bases_r2')),
             'pc_adapter': percentage(add('$adaptor_bases_removed_r1', '$adaptor_bases_removed_r2'), add('$bases_r1', '$bases_r2')),
+            'clean_pc_q30_r1': percentage('$clean_q30_bases_r1', '$clean_bases_r1'),
+            'clean_pc_q30_r2': percentage('$clean_q30_bases_r2', '$clean_bases_r2'),
+            'clean_pc_q30': percentage(
+                add('$clean_q30_bases_r1', '$clean_q30_bases_r2'),
+                add('$clean_bases_r1', '$clean_bases_r2'),
+            ),
             'project_ids': '$projects',
             'yield_in_gb': divide(add('$bases_r1', '$bases_r2'), 1000000000),
             'yield_q30_in_gb': divide(add('$q30_bases_r1', '$q30_bases_r2'), 1000000000),
@@ -130,7 +161,10 @@ sequencing_run_information = merge_analysis_driver_procs('run_id', ['run_id', 'n
             'review_statuses': '$reviewed',
             'useable_statuses': '$useable',
             'proc_status': '$proc_status',
-            'most_recent_proc': '$most_recent_proc'
+            'most_recent_proc': '$most_recent_proc',
+            'tiles_filtered': '$tiles_filtered',
+            'trim_r1': '$trim_r1',
+            'trim_r2': '$trim_r2'
         }
     }
 ]
@@ -220,7 +254,10 @@ sample = merge_analysis_driver_procs(
             'clean_reads': {'$sum': '$run_elements.clean_reads'},
             'run_ids': '$run_elements.run_id',
             'all_run_ids': '$run_elements.run_id',
-            'run_elements': '$run_elements.run_element_id'
+            'run_elements': '$run_elements.run_element_id',
+            'tiles_filtered': '$run_elements.tiles_filtered',
+            'trim_r1': '$run_elements.trim_r1',
+            'trim_r2': '$run_elements.trim_r2'
         }
     },
     {
@@ -279,7 +316,10 @@ sample = merge_analysis_driver_procs(
             'clean_yield_q30': divide(add('$clean_q30_bases_r1', '$clean_q30_bases_r2'), 1000000000),
             'pc_mapped_reads': percentage('$mapped_reads', '$bam_file_reads'),
             'pc_properly_mapped_reads': percentage('$properly_mapped_reads', '$bam_file_reads'),
-            'pc_duplicate_reads': percentage('$duplicate_reads', '$bam_file_reads')
+            'pc_duplicate_reads': percentage('$duplicate_reads', '$bam_file_reads'),
+            'tiles_filtered': '$tiles_filtered',
+            'trim_r1': '$trim_r1',
+            'trim_r2': '$trim_r2'
         }
     }
 ]
@@ -334,7 +374,7 @@ def resolve_pipeline(endpoint, base_pipeline):
 
     for k in schema_endpoint:
         if k in match:
-            pipeline.append({'$match': mongotize(resolve_match(k, match.pop(k)))})
+            pipeline.append({'$match': convert_date(resolve_match(k, match.pop(k)))})
         if not sorting_done and k == sort_col.lstrip('-'):
             pipeline.append(orderer)
             sorting_done = True
@@ -344,7 +384,7 @@ def resolve_pipeline(endpoint, base_pipeline):
 
         for k in stage.get('$project', {}):
             if k in [col.lstrip('$') for col in match]:
-                pipeline.append({'$match': mongotize(resolve_match(k, match.pop(k)))})
+                pipeline.append({'$match': convert_date(resolve_match(k, match.pop(k)))})
             if not sorting_done and k == sort_col.lstrip('-'):
                 pipeline.append(orderer)
                 sorting_done = True
@@ -360,26 +400,3 @@ def resolve_match(key, match_value):
         return match_value
     else:
         return {key: match_value}
-
-
-def mongotize(source):
-    """Recursively iterates a JSON dictionary, turning date strings into datetime values."""
-    def try_cast(v):
-        try:
-            return datetime.datetime.strptime(v, app.config['DATE_FORMAT'])
-        except Exception as e:
-            return v
-
-    for k, v in source.items():
-        if isinstance(v, dict):
-            mongotize(v)
-        elif isinstance(v, list):
-            for i, v1 in enumerate(v):
-                if isinstance(v1, dict):
-                    source[k][i] = mongotize(v1)
-                else:
-                    source[k][i] = try_cast(v1)
-        elif isinstance(v, str):
-            source[k] = try_cast(v)
-
-    return source

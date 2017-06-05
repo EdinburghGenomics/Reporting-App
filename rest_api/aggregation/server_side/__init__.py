@@ -52,7 +52,11 @@ def _order_json(input_json, sortquery=None):
 
 
 def _aggregate_data(input_json, aggregate_func, sortquery=None, trim_run_elements=False):
-    for element in input_json['data']:
+    if 'data' in input_json:
+        elements = input_json['data']
+    else:
+        elements = input_json
+    for element in elements:
         element.update(aggregate_func(element))
         if trim_run_elements:
             del element['run_elements']

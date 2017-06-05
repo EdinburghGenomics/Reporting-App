@@ -86,35 +86,44 @@ def change_password():
     return render_template('login.html', 'Login', message='Bad request.')
 
 
-@app.route('/pipelines/<pipeline_type>/<view_type>')
+@app.route('/runs/<view_type>')
 @flask_login.login_required
-def pipeline_report(pipeline_type, view_type):
-    statuses = {
-        'queued': ('reprocess', 'force_ready'),
-        'processing': ('processing',),
-        'finished': ('finished', 'failed'),
-        'archived': ('deleted', 'aborted')
-    }
-    endpoints = {'samples': 'aggregate/samples', 'runs': 'aggregate/all_runs'}
-    endpoint = endpoints[pipeline_type]
-
+def runs_report(view_type):
     if view_type == 'all':
-        query = rest_api().api_url(endpoint)
+        ajax_call = {
+            'func_name': 'merge_multi_sources',
+            'api_urls': [
+                rest_api().api_url('aggregate/all_runs'),
+                rest_api().api_url('lims/status/run_status'),
+            ],
+            'merge_on': 'run_id'
+        }
     elif view_type == 'recent':
         month_ago = datetime.datetime.now() - datetime.timedelta(days=30)
-        query = rest_api().api_url(endpoint, match={"_created":{"$gte":month_ago.strftime(settings.DATE_FORMAT)}})
-    elif view_type in statuses:
-        query = rest_api().api_url(endpoint, match={'$or': [{'proc_status': s} for s in statuses[view_type]]})
+        ajax_call = {
+            'func_name': 'merge_multi_sources',
+            'api_urls': [
+                rest_api().api_url('aggregate/all_runs', match={"_created": {"$gte": month_ago.strftime(settings.DATE_FORMAT)}}),
+                rest_api().api_url('lims/status/run_status', createddate=month_ago.strftime(settings.DATE_FORMAT)),
+            ],
+            'merge_on': 'run_id'
+        }
     else:
         fl.abort(404)
         return None
 
-    title = util.capitalise(view_type) + ' ' + pipeline_type
+    title = util.capitalise(view_type) + ' runs'
 
     return render_template(
         'untabbed_datatables.html',
         title,
-        table=datatable_cfg(title, pipeline_type, query)
+        table=datatable_cfg(
+            title=title,
+            cols='runs',
+            ajax_call=ajax_call,
+            create_row='color_filter',
+            fixed_header=True
+        )
     )
 
 
@@ -133,7 +142,8 @@ def report_run(run_id):
             default_sort_col='lane_number',
             paging=False,
             searching=False,
-            info=False
+            info=False,
+            create_row='color_filter'
         ),
         tab_sets=[
             tab_set_cfg(
@@ -145,7 +155,8 @@ def report_run(run_id):
                         api_url=rest_api().api_url('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
                         paging=False,
                         searching=False,
-                        info=False
+                        info=False,
+                        create_row='color_filter'
                     )
                     for lane in lanes
                 ]
@@ -160,7 +171,8 @@ def report_run(run_id):
                         default_sort_col='passing_filter_reads',
                         paging=False,
                         searching=False,
-                        info=False
+                        info=False,
+                        create_row='color_filter'
                     )
                     for lane in lanes
                 ]
@@ -175,9 +187,10 @@ def report_run(run_id):
     )
 
 
-@app.route('/runs/')
+@app.route('/runs/recentlims')
 @flask_login.login_required
 def current_runs():
+    week_ago = datetime.datetime.now() - datetime.timedelta(days=7)
     return render_template(
         'untabbed_datatables.html',
         'Active runs',
@@ -185,12 +198,12 @@ def current_runs():
             datatable_cfg(
                 'Active runs',
                 'active_runs',
-                api_url=rest_api().api_url('lims/status/run_status', status='current')
+                api_url=rest_api().api_url('lims/status/run_status', status='current', createddate=week_ago.strftime(settings.DATE_FORMAT))
             ),
             datatable_cfg(
                 'Recent runs',
                 'active_runs',
-                rest_api().api_url('lims/status/run_status', status='recent')
+                rest_api().api_url('lims/status/run_status', status='recent', createddate=week_ago.strftime(settings.DATE_FORMAT))
             )
         ],
         description='Showing sequencing runs from the last 7 days'
@@ -207,6 +220,47 @@ def project_reports():
             'Project list',
             'projects',
             api_url=rest_api().api_url('aggregate/projects')
+        )
+    )
+
+
+@app.route('/samples/<view_type>')
+@flask_login.login_required
+def report_samples(view_type):
+    if view_type == 'all':
+        ajax_call = {
+            'func_name': 'merge_multi_sources_keep_first',
+            'api_urls': [
+                rest_api().api_url('aggregate/samples'),
+                rest_api().api_url('lims/status/sample_status'),
+                rest_api().api_url('lims/samples')
+            ],
+            'merge_on': 'sample_id'
+        }
+        title = 'All samples'
+    elif view_type == 'toreview':
+        three_month_ago = datetime.datetime.now() - datetime.timedelta(days=91)
+        ajax_call = {
+            'func_name': 'merge_multi_sources_keep_first',
+            'api_urls': [
+                rest_api().api_url('aggregate/samples', match={"useable": 'not%20marked', 'proc_status': 'finished'}),
+                rest_api().api_url('lims/status/sample_status', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)}),
+                rest_api().api_url('lims/samples', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)})
+            ],
+            'merge_on': 'sample_id'
+        }
+        title = 'Samples to review'
+    else:
+        fl.abort(404)
+        return None
+
+    return render_template(
+        'untabbed_datatables.html',
+        title,
+        table=datatable_cfg(
+            title=title,
+            cols='samples',
+            ajax_call=ajax_call
         )
     )
 
@@ -285,7 +339,8 @@ def report_sample(sample_id):
                 api_url=rest_api().api_url('aggregate/run_elements', match={'sample_id': sample_id}),
                 paging=False,
                 searching=False,
-                info=False
+                info=False,
+                create_row='color_filter'
             )
         ],
         sample_statuses=rest_api().get_document('lims/status/sample_status', detailed=True, match={'sample_id': sample_id}),
