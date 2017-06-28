@@ -70,10 +70,11 @@ column_def:
     sample_ids:               { data: 'sample_ids',                           title: 'Sample list',              fmt: { link: '/sample/' } }
     freemix:                  { data: 'sample_contamination.freemix',         title: 'Freemix',                  fmt: { type: 'float',  max: .03}  }
     species_found:            { data: 'species_contamination',                title: 'Species found',            fmt: { name: 'species_contamination' } }
-    species:                  { data: 'species',                              title: 'Species',                                                         visible: 'false'}
+    species:                  { data: 'species',                              title: 'Species',                                                        visible: 'false'}
     useable:                  { data: 'useable',                              title: 'Useable' }
     useable_statuses:         { data: 'useable_statuses',                     title: 'Useable'}
     user_sample_id:           { data: 'User Sample Name',                     title: 'User sample ID' }
+    2D_barcode:               { data: '2D Barcode',                           title: 'FluidX barcode',                                                 visible: 'false' }
     yield_in_gb:              { data: 'yield_in_gb',                          title: 'Yield (Gb)',               fmt: { type: 'float',  min: 120 } }
     yield_q30_in_gb:          { data: 'yield_q30_in_gb',                      title: 'Yield Q30(Gb)',            fmt: { type: 'float',  min: 95 } }
     reseacher:                { data: 'researcher_name',                      title: 'Researcher',                                                     visible: 'false' }
@@ -223,6 +224,7 @@ unexpected_barcodes:
 samples:
     - sample_id
     - user_sample_id
+    - 2D_barcode
     - current_lims_status
     - library_type
     - species
