@@ -1,16 +1,19 @@
 Changelog for Reporting-App
 ===========================
 
-0.15 (unreleased)
------------------
+0.14.3 (2017-06-28)
+-------------------
 
-- Nothing changed yet.
+- Added 2D barcode field to sample view
+- Made tiles_filtered, trim_r1 and trim_r2 nullable
+- Added files_delivered and files_downloaded to sample schema
+- Added data_source to analysis_driver_proc schema
 
 
 0.14.2 (2017-05-24)
 -------------------
 
-- Add Cleanned yield/%Q30 in many pages along with colouring of row that described filtered runs  
+- Add Cleaned yield/%Q30 in many pages along with colouring of row that described filtered runs
 
 
 0.14.1 (2017-05-16)
