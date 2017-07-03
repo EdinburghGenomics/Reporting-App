@@ -2,6 +2,10 @@ from sqlalchemy import or_, func
 import genologics_sql.tables as t
 from sqlalchemy.orm.util import aliased
 
+def format_date(date):
+    if date:
+        return date.isoformat()
+    return None
 
 def add_filters(q, **kwargs):
     if kwargs.get('project_name'):
@@ -202,20 +206,4 @@ def runs_cst(session, time_since=None, run_ids=None, run_status=None):
         q = q.filter(t.Process.processid.in_(s))
 
     results = q.all()
-
-    results = q.all()
     return results
-
-
-
-if __name__ == "__main__":
-    import datetime
-    from rest_api.limsdb import get_session
-    session = get_session()
-    res = runs_cst(session, run_ids=['170523_E00375_0249_BHHVL3ALXX'])
-
-    # res = artifact_parent(session, artifact_id='502198')
-
-    for r in res:
-        print(r)
-

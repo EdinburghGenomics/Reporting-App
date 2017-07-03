@@ -2,6 +2,7 @@ from collections import defaultdict
 
 from rest_api.common import retrieve_args
 from rest_api.limsdb import queries
+from rest_api.limsdb.queries import format_date
 
 
 class Run:
@@ -14,8 +15,8 @@ class Run:
 
     def to_json(self):
         return {
-            'created_date': self.created_date,
-            'cst_date': self.cst_date,
+            'created_date': format_date(self.created_date),
+            'cst_date': format_date(self.cst_date),
             'run_id': self.udfs['RunID'],
             'run_status': self.udfs['Run Status'],
             'sample_ids': sorted(list(self.samples)),

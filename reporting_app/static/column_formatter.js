@@ -31,7 +31,7 @@ function string_formatter(data, fmt){
     } else if (fmt['type'] == 'date') {
         formatted_data = moment(new Date(formatted_data)).format('YYYY-MM-DD');
     } else if (fmt['type'] == 'datetime') {
-        formatted_data = moment(new Date(formatted_data)).format('YYYY-MM-DD HH:MM:ss');
+        formatted_data = moment(new Date(formatted_data)).format('YYYY-MM-DD HH:mm:ss');
     }
     if (fmt['link']) {
         if (fmt['link_format_function']){
