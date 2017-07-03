@@ -47,6 +47,7 @@ function string_formatter(data, fmt){
         else{
             formatted_link = data;
         }
+        // Multiple entries in the data or tooltip --> create drop down
         if (data instanceof Array && data.length > 1 || fmt['tooltip']) {
             data.sort();
             formatted_data = '<div class="dropdown"><div class="dropbtn">' + formatted_link + '</div><div class="dropdown-content">';

@@ -45,4 +45,26 @@ QUnit.test('string_formatter', function(assert) {
         '<div class="dt_cell"><div style="color:red">4</div></div>'
     );
 
+    // Multiple entries in the data always create drop down
+    assert.equal(
+        string_formatter(['s1','s2'], {link_format_function: 'count_entities', link: '/sample/', tooltip: 'true'}),
+        '<div class="dt_cell"><div class="dropdown"><div class="dropbtn">2</div><div class="dropdown-content"><a href=/sample/s1>s1</a><a href=/sample/s2>s2</a></div></div></div>'
+    );
+
+    assert.equal(
+        string_formatter(['s1','s2'], {link_format_function: 'count_entities', link: '/sample/'}),
+        '<div class="dt_cell"><div class="dropdown"><div class="dropbtn">2</div><div class="dropdown-content"><a href=/sample/s1>s1</a><a href=/sample/s2>s2</a></div></div></div>'
+    );
+
+    // Single entry in the data create drop down if tooltip is true
+    assert.equal(
+        string_formatter(['s1'], {link_format_function: 'count_entities', link: '/sample/', tooltip: 'true'}),
+        '<div class="dt_cell"><div class="dropdown"><div class="dropbtn">1</div><div class="dropdown-content"><a href=/sample/s1>s1</a></div></div></div>'
+    );
+
+    assert.equal(
+        string_formatter(['s1'], {link_format_function: 'count_entities', link: '/sample/'}),
+        '<div class="dt_cell"><a href=/sample/s1>1</a></div>'
+    );
+
 });
