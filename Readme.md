@@ -2,6 +2,7 @@
 [![travis](https://img.shields.io/travis/EdinburghGenomics/Reporting-App/master.svg)](https://travis-ci.org/EdinburghGenomics/Reporting-App)
 [![landscape](https://landscape.io/github/EdinburghGenomics/Reporting-App/master/landscape.svg)](https://landscape.io/github/EdinburghGenomics/Reporting-App)
 [![GitHub issues](https://img.shields.io/github/issues/EdinburghGenomics/Reporting-App.svg)](https://github.com/EdinburghGenomics/Reporting-App/issues)
+[![Coverage Status](https://coveralls.io/repos/github/EdinburghGenomics/Reporting-App/badge.svg)](https://coveralls.io/github/EdinburghGenomics/Reporting-App)
 
 (Note: this project uses EGCG-Core, which is available [here](https://github.com/EdinburghGenomics/EGCG-Core.git).)
 
