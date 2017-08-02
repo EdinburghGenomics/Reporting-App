@@ -120,7 +120,9 @@ def runs_report(view_type):
             cols='runs',
             ajax_call=ajax_call,
             create_row='color_filter',
-            fixed_header=True
+            fixed_header=True,
+            select={'style':'os', 'blurable': True},
+            buttons=['colvis', 'copy', 'pdf', 'runreview']
         )
     )
 

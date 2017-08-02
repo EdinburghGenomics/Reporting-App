@@ -105,6 +105,13 @@ var color_filter = function( row, data, dataIndex ) {
           $(row).addClass('data-filtering');
     }
 }
+var start_run_review = function () {
+    console.log(this);
+    var rows = this.rows( { selected: true } );
+    var data = console.log(rows.data());
+    run_ids = _.map(data, _.property('run_id'));
+    console.log(run_ids);
+}
 
 function create_datatable(dt_config){
     //Sets default value using Lodash.js
@@ -122,9 +129,10 @@ function create_datatable(dt_config){
 // Configure the buttons for datatable
 var configure_buttons = function(button_config){
     var buttons_def = {
-        'colvis': {extend: 'colvis', text: '<i class="fa fa-filter"></i>',     titleAttr: 'Filter Columns'},
-        'copy': {extend: 'copy',   text: '<i class="fa fa-files-o"></i>',    titleAttr: 'Copy', exportOptions: {'columns': ':visible'} },
-        'pdf': {extend: 'pdf',    text: '<i class="fa fa-file-pdf-o"></i>', titleAttr: 'PDF', orientation: 'landscape', exportOptions: {'columns': ':visible'}}
+        'colvis': {extend: 'colvis', text: '<i class="fa fa-filter"></i>', titleAttr: 'Filter Columns'},
+        'copy': {extend: 'copy', text: '<i class="fa fa-files-o"></i>', titleAttr: 'Copy', exportOptions: {'columns': ':visible'} },
+        'pdf': {extend: 'pdf', text: '<i class="fa fa-file-pdf-o"></i>', titleAttr: 'PDF', orientation: 'landscape', exportOptions: {'columns': ':visible'} },
+        'runreview': {extend: 'selected', text: '<i class="fa fa-yelp"></i>', titleAttr: 'Start run review', action: start_run_review}
     }
     if (button_config === 'defaults'){
         button_config = ['colvis', 'copy', 'pdf']
@@ -141,6 +149,7 @@ var configure_dt = function(dt_config) {
         'paging': true,
         'searching': true,
         'info': true,
+        'select': false
     });
     // configure the ajax call or retrieve the ajax callback function
     var ajax_call = {
@@ -164,6 +173,7 @@ var configure_dt = function(dt_config) {
         //'stateSave': true,
         'lengthMenu': [[10, 25, 50, -1], [10, 25, 50, "All"]],
         'pageLength': 25,
+        'select': dt_config.select,
         'ajax': ajax_call,
         'language': {'processing': '<i class="fa fa-refresh fa-spin">'},
         'columns': dt_config.cols.map(

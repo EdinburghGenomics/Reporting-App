@@ -33,6 +33,9 @@ def _lims_endpoint(route):
     return _create_url_with('lims', route)
 
 
+def _action_endpoint(route):
+    return _create_url_with('actions', route)
+
 @app.route(_aggregate_endpoint('run_elements_by_lane'))
 @requires_auth('home')
 def aggregate_by_lane():
@@ -97,3 +100,10 @@ def lims_sample_info():
         'sample_info',
         app
     )
+
+@app.route(_action_endpoint('run_review'), methods=['POST'])
+@requires_auth('home')
+def run_review():
+    request.args
+    pass
+
