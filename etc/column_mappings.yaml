@@ -82,6 +82,7 @@ column_def:
     finished_date:            { data: 'finished_date',                        title: 'Date finished',            fmt: { type: 'date' },                visible: 'false' }
     started_date:             { data: 'started_date',                         title: 'Date started',             fmt: { type: 'date' },                visible: 'false' }
     created_date:             { data: 'created_date',                         title: 'Date started',             fmt: { type: 'date' } }
+    cst_date:                 { data: 'cst_date',                             title: 'Date CST',                 fmt: { type: 'datetime' },            visible: 'false' }
     run_status:               { data: 'run_status',                           title: 'Lims status' }
     instrument_id:            { data: 'instrument_id',                        title: 'Instrument ID' }
     current_lims_status:      { data: 'current_status',                       title: 'Lims Status' }
@@ -100,6 +101,7 @@ runs:
     - run_id
     - instrument_id
     - run_status
+    - cst_date
     - project_ids
     - pc_q30_r1
     - pc_q30_r2
@@ -293,5 +295,6 @@ active_runs:
   - instrument_id
   - run_status
   - created_date
+  - cst_date
   - project_ids
   - sample_ids

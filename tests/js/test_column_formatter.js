@@ -26,6 +26,21 @@ QUnit.test('string_formatter', function(assert) {
     );
 
     assert.equal(
+        string_formatter('2017-04-20T15:09:56.013000Z', {'type': 'date'}),
+        '<div class="dt_cell">2017-04-20</div>'
+    );
+
+    assert.equal(
+        string_formatter('Thu, 20 Apr 2017 15:09:56', {'type': 'datetime'}),
+        '<div class="dt_cell">2017-04-20 15:09:56</div>'
+    );
+
+    assert.equal(
+        string_formatter('2017-04-20T15:09:56.013000', {'type': 'datetime'}),
+        '<div class="dt_cell">2017-04-20 15:09:56</div>'
+    );
+
+    assert.equal(
         string_formatter(1, {'min': 1, 'max': 3}),
         '<div class="dt_cell">1</div>'
     );
