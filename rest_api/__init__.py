@@ -2,8 +2,11 @@ from os.path import join, abspath, dirname
 import eve
 from eve.auth import requires_auth
 import flask_cors
+from werkzeug.exceptions import abort
+
 import auth
 from config import rest_config as cfg
+from rest_api.actions import perform_action
 from rest_api.limsdb import lims_extract
 from rest_api.aggregation import server_side
 from rest_api.aggregation.database_side import aggregate, queries
@@ -93,6 +96,7 @@ def lims_status_info(status_type):
         app
     )
 
+
 @app.route(_lims_endpoint('samples'))
 @requires_auth('home')
 def lims_sample_info():
@@ -101,9 +105,11 @@ def lims_sample_info():
         app
     )
 
-@app.route(_action_endpoint('run_review'), methods=['POST'])
-@requires_auth('home')
-def run_review():
-    request.args
-    pass
 
+@app.route(_action_endpoint('review/<review_type>'), methods=['POST'])
+@requires_auth('home')
+def review(review_type):
+    if review_type in ['run']:
+        return perform_action('review_'+review_type, app)
+    else:
+        abort(404)

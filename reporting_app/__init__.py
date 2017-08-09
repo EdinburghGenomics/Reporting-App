@@ -15,6 +15,13 @@ login_manager.init_app(app)
 version = open(join(dirname(dirname(__file__)), 'version.txt')).read()
 
 
+def construct_url(endpoint, **query_args):
+    url = rest_api().api_url(endpoint)
+    if query_args:
+        url += '?' + '&'.join(['%s=%s' % (k, v) for k, v in query_args.items()])
+    return url.replace('\'', '"')
+
+
 def rest_api():
     return flask_login.current_user.comm
 
@@ -62,7 +69,12 @@ def login():
         flask_login.login_user(u, remember=True)
         app.logger.info("Logged in user '%s'", username)
         return fl.redirect(unquote(redirect))
-    return render_template('login.html', 'Login', message='Bad login.')
+    return render_template(
+        'login.html',
+        'Login',
+        message='Bad login.',
+        redirect=redirect
+    )
 
 
 @app.route('/logout')
@@ -91,26 +103,32 @@ def runs_report(view_type):
         ajax_call = {
             'func_name': 'merge_multi_sources',
             'api_urls': [
-                rest_api().api_url('aggregate/all_runs'),
-                rest_api().api_url('lims/status/run_status'),
+                construct_url('aggregate/all_runs'),
+                construct_url('lims/status/run_status'),
             ],
             'merge_on': 'run_id'
         }
-    elif view_type == 'recent':
-        month_ago = datetime.datetime.now() - datetime.timedelta(days=30)
+    elif view_type in ['recent', 'current_year', 'year_to_date']:
+        if view_type == 'recent':
+            time_ago = datetime.datetime.now() - datetime.timedelta(days=30)
+        elif view_type == 'year_to_date':
+            time_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+        elif view_type == 'current_year':
+            y = datetime.datetime.now().year
+            time_ago = datetime.datetime(year=y, month=1, day=1)
+            view_type = str(y)
         ajax_call = {
             'func_name': 'merge_multi_sources',
             'api_urls': [
-                rest_api().api_url('aggregate/all_runs', match={"_created": {"$gte": month_ago.strftime(settings.DATE_FORMAT)}}),
-                rest_api().api_url('lims/status/run_status', createddate=month_ago.strftime(settings.DATE_FORMAT)),
+                construct_url('aggregate/all_runs', match={"_created": {"$gte": time_ago.strftime(settings.DATE_FORMAT)}}),
+                construct_url('lims/status/run_status', createddate=time_ago.strftime(settings.DATE_FORMAT)),
             ],
             'merge_on': 'run_id'
         }
     else:
         fl.abort(404)
         return None
-
-    title = util.capitalise(view_type) + ' runs'
+    title = util.capitalise(view_type).replace('_', ' ') + ' runs'
 
     return render_template(
         'untabbed_datatables.html',
@@ -122,8 +140,11 @@ def runs_report(view_type):
             create_row='color_filter',
             fixed_header=True,
             select={'style':'os', 'blurable': True},
+            run_review_url=construct_url('actions/review/run'),
+            run_review_field='sample_ids',
             buttons=['colvis', 'copy', 'pdf', 'runreview']
-        )
+        ),
+        review=True
     )
 
 
@@ -135,15 +156,20 @@ def report_run(run_id):
     return render_template(
         'run_report.html',
         title=run_id + ' Run Report',
+        review=True,
         lane_aggregation=datatable_cfg(
             title='Aggregation per lane',
             cols='lane_aggregation',
-            api_url=rest_api().api_url('aggregate/run_elements_by_lane', match={'run_id': run_id}),
+            api_url=construct_url('aggregate/run_elements_by_lane', match={'run_id': run_id}),
             default_sort_col='lane_number',
             paging=False,
             searching=False,
             info=False,
-            create_row='color_filter'
+            create_row='color_filter',
+            select = {'style': 'os', 'blurable': True},
+            run_review_url = construct_url('actions/review/run'),
+            run_review_field = 'sample_ids',
+            buttons = ['colvis', 'copy', 'pdf', 'runreview']
         ),
         tab_sets=[
             tab_set_cfg(
@@ -152,11 +178,15 @@ def report_run(run_id):
                     datatable_cfg(
                         title='Demultiplexing lane ' + str(lane),
                         cols='demultiplexing',
-                        api_url=rest_api().api_url('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
+                        api_url=construct_url('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
                         paging=False,
                         searching=False,
                         info=False,
-                        create_row='color_filter'
+                        create_row='color_filter',
+                        select = {'style': 'os', 'blurable': True},
+                        run_review_url = construct_url('actions/review/run'),
+                        run_review_field = 'sample_id',
+                        buttons = ['colvis', 'copy', 'pdf', 'runreview']
                     )
                     for lane in lanes
                 ]
@@ -167,7 +197,7 @@ def report_run(run_id):
                     datatable_cfg(
                         title='Unexpected barcodes lane ' + str(lane),
                         cols='unexpected_barcodes',
-                        api_url=rest_api().api_url('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
+                        api_url=construct_url('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
                         default_sort_col='passing_filter_reads',
                         paging=False,
                         searching=False,
@@ -186,30 +216,6 @@ def report_run(run_id):
         )
     )
 
-
-@app.route('/runs/recentlims')
-@flask_login.login_required
-def current_runs():
-    week_ago = datetime.datetime.now() - datetime.timedelta(days=7)
-    return render_template(
-        'untabbed_datatables.html',
-        'Active runs',
-        tables=[
-            datatable_cfg(
-                'Active runs',
-                'active_runs',
-                api_url=rest_api().api_url('lims/status/run_status', status='current', createddate=week_ago.strftime(settings.DATE_FORMAT))
-            ),
-            datatable_cfg(
-                'Recent runs',
-                'active_runs',
-                rest_api().api_url('lims/status/run_status', status='recent', createddate=week_ago.strftime(settings.DATE_FORMAT))
-            )
-        ],
-        description='Showing sequencing runs from the last 7 days'
-    )
-
-
 @app.route('/projects/')
 @flask_login.login_required
 def project_reports():
@@ -219,7 +225,7 @@ def project_reports():
         table=datatable_cfg(
             'Project list',
             'projects',
-            api_url=rest_api().api_url('aggregate/projects')
+            api_url=construct_url('aggregate/projects')
         )
     )
 
@@ -231,9 +237,9 @@ def report_samples(view_type):
         ajax_call = {
             'func_name': 'merge_multi_sources_keep_first',
             'api_urls': [
-                rest_api().api_url('aggregate/samples'),
-                rest_api().api_url('lims/status/sample_status'),
-                rest_api().api_url('lims/samples')
+                construct_url('aggregate/samples'),
+                construct_url('lims/status/sample_status'),
+                construct_url('lims/samples')
             ],
             'merge_on': 'sample_id'
         }
@@ -243,9 +249,9 @@ def report_samples(view_type):
         ajax_call = {
             'func_name': 'merge_multi_sources_keep_first',
             'api_urls': [
-                rest_api().api_url('aggregate/samples', match={"useable": 'not%20marked', 'proc_status': 'finished'}),
-                rest_api().api_url('lims/status/sample_status', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)}),
-                rest_api().api_url('lims/samples', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)})
+                construct_url('aggregate/samples', match={"useable": 'not%20marked', 'proc_status': 'finished'}),
+                construct_url('lims/status/sample_status', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)}),
+                construct_url('lims/samples', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)})
             ],
             'merge_on': 'sample_id'
         }
@@ -275,7 +281,7 @@ def report_project(project_id):
             datatable_cfg(
                 'Project Status for ' + project_id,
                 'project_status',
-                api_url=rest_api().api_url('lims/status/project_status', match={'project_id': project_id}),
+                api_url=construct_url('lims/status/project_status', match={'project_id': project_id}),
                 paging=False,
                 searching=False,
                 info=False
@@ -283,7 +289,7 @@ def report_project(project_id):
             datatable_cfg(
                 'Plate Status for ' + project_id,
                 'plate_status',
-                api_url=rest_api().api_url('lims/status/plate_status', match={'project_id': project_id}),
+                api_url=construct_url('lims/status/plate_status', match={'project_id': project_id}),
                 paging=False,
                 searching=False,
                 info=False,
@@ -295,9 +301,9 @@ def report_project(project_id):
                 ajax_call={
                     'func_name': 'merge_multi_sources',
                     'api_urls': [
-                        rest_api().api_url('aggregate/samples', match={'project_id': project_id}),
-                        rest_api().api_url('lims/status/sample_status', match={'project_id': project_id}),
-                        rest_api().api_url('lims/samples', match={'project_id': project_id})
+                        construct_url('aggregate/samples', match={'project_id': project_id}),
+                        construct_url('lims/status/sample_status', match={'project_id': project_id}),
+                        construct_url('lims/samples', match={'project_id': project_id})
                     ],
                     'merge_on': 'sample_id'
                 },
@@ -323,9 +329,9 @@ def report_sample(sample_id):
                 ajax_call={
                     'func_name': 'merge_multi_sources',
                     'api_urls': [
-                        rest_api().api_url('aggregate/samples', match={'sample_id': sample_id}),
-                        rest_api().api_url('lims/status/sample_status', match={'sample_id': sample_id}),
-                        rest_api().api_url('lims/samples', match={'sample_id': sample_id})
+                        construct_url('aggregate/samples', match={'sample_id': sample_id}),
+                        construct_url('lims/status/sample_status', match={'sample_id': sample_id}),
+                        construct_url('lims/samples', match={'sample_id': sample_id})
                     ],
                     'merge_on': 'sample_id'
                 },
@@ -336,7 +342,7 @@ def report_sample(sample_id):
             datatable_cfg(
                 'Run elements generated for ' + sample_id,
                 'sample_run_elements',
-                api_url=rest_api().api_url('aggregate/run_elements', match={'sample_id': sample_id}),
+                api_url=construct_url('aggregate/run_elements', match={'sample_id': sample_id}),
                 paging=False,
                 searching=False,
                 info=False,
@@ -360,7 +366,7 @@ def report_sample(sample_id):
 def plotting_report():
     return render_template(
         'charts.html',
-        api_url=rest_api().api_url('aggregate/run_elements', paginate=False),
+        api_url=construct_url('aggregate/run_elements', paginate=False),
         ajax_token=get_token()
     )
 
@@ -400,7 +406,7 @@ they're queued. the steps involved are described below.''' + table + '</div>'
         table=datatable_cfg(
             'Project Status',
             'project_status',
-            api_url=rest_api().api_url('lims/status/project_status'),
+            api_url=construct_url('lims/status/project_status'),
             fixed_header=True,
             table_foot='sum_row_per_column'
         )

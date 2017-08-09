@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'popup.html' import review_modal %}
 
 {% block body %}
 <div class="navbar navbar-inverse navbar-static-top" role="navigation">
@@ -19,11 +20,10 @@
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">Runs<b class="caret"></b></a>
                     <ul class="dropdown-menu">
-                        <li class="dropdown-header">Lims</li>
-                        <li><a href="/runs/recentlims">Active runs</a></li>
-                        <li class="dropdown-header">QC</li>
-                        <li><a href="/runs/all">All</a></li>
                         <li><a href="/runs/recent">Recent</a></li>
+                        <li><a href="/runs/current_year">Current year</a></li>
+                        <li><a href="/runs/year_to_date">Year to date</a></li>
+                        <li><a href="/runs/all">All</a></li>
                     </ul>
                 </li>
                 <li class="dropdown">
@@ -56,12 +56,15 @@
 </div>
 
 {{ super() }}
-
-<footer class="footer">
-    <div class="container">
-        <p class="text-muted">
-            Edinburgh Genomics Reporting App version <a href="https://github.com/EdinburghGenomics/Reporting-App/tree/v{{ version }}">{{ version }}</a>
-        </p>
+    {% if review %}
+        {{ review_modal() }}
+    {% endif %}
     </div>
-</footer>
+    <footer class="footer">
+        <div class="container">
+            <p class="text-muted">
+                Edinburgh Genomics Reporting App version <a href="https://github.com/EdinburghGenomics/Reporting-App/tree/v{{ version }}">{{ version }}</a>
+            </p>
+        </div>
+    </footer>
 {% endblock %}

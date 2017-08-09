@@ -24,3 +24,5 @@ class TestAction(TestBase):
     def test_run_review(self, mocked_get_samples, mocked_queue_artifacts, mocked_stage, mocked_connection):
         with current_app.test_request_context(method='POST', query_string='samples=["sample1"]&username="user"&password="pass"'):
             run_review()
+
+

@@ -105,12 +105,67 @@ var color_filter = function( row, data, dataIndex ) {
           $(row).addClass('data-filtering');
     }
 }
-var start_run_review = function () {
-    console.log(this);
-    var rows = this.rows( { selected: true } );
-    var data = console.log(rows.data());
-    run_ids = _.map(data, _.property('run_id'));
-    console.log(run_ids);
+
+var get_run_review = function (dt_config){
+    return function (e, dt, node, config ) {
+        var data = dt.rows( { selected: true } ).data();
+        // Retrieve the name of all the samples involved using lodash
+        values = _.chain(data)
+                  .map(_.property(dt_config.run_review_field))
+                  .flatten()
+                  .filter(function(o) { return o != "Undetermined"; })
+                  .uniq()
+                  .sortBy()
+                  .value();
+        // Grab and store the content of the modal to replace it when it will be closed
+        var modalContentClone = $("#reviewModal").clone()
+        $("#reviewModal").on('hidden.bs.modal', function (e) {
+            $("#reviewModal").replaceWith(modalContentClone);
+        });
+
+        $('#modalform').submit(function (event) {
+            // Show the spinning arrow
+            $('#loadingoverlay').show();
+            // Prevent default submit action
+            event.preventDefault();
+            var usr_input = document.getElementById('usr');
+            var pwd_input = document.getElementById('pwd');
+            $.ajax({
+                url: dt_config.run_review_url,
+                type: 'POST',
+                dataType: "json",
+                data: {
+                    'username':usr_input.value,
+                    'password':pwd_input.value,
+                    'samples': JSON.stringify(values)
+                },
+                async: true,
+                headers: {'Authorization': dt_config.token},
+                success: function(json) {
+                    // on success write the link to the message div and change it to a success alert
+                    var link = $("<a />", {href : json.data.url, text:json.data.url});
+                    $('#modalmessagediv').empty();
+                    $('#modalmessagediv').removeClass('alert-danger')
+                    $('#modalmessagediv').addClass('alert-success')
+                    $('#modalmessagediv').append(link);
+                    $('#modalmessagediv').show();
+                    $('#modalsubmit').prop('disabled', true);
+                    $('#loadingoverlay').hide();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    // on error get the error message from the json response and display it in the alert
+                    $('#modalmessagediv').empty();
+                    $('#modalmessagediv')[0].textContent = jqXHR.responseJSON._error.message;
+                    $('#modalmessagediv').addClass('alert-danger')
+                    $('#modalmessagediv').show();
+                    $('#loadingoverlay').hide();
+                }
+            });
+            return false;
+        });
+        $('#modaltext')[0].innerHTML = "You're about to review the usability of run elements from "+ values.length + " samples:<br>" + values.join('<br>');
+        $('#reviewModal').modal('show')
+    }
 }
 
 function create_datatable(dt_config){
@@ -119,25 +174,25 @@ function create_datatable(dt_config){
     $(document).ready(function(){
         var table = $('#' + dt_config.name).DataTable(configure_dt(dt_config));
         if (dt_config.buttons){
-            new $.fn.dataTable.Buttons(table, {'buttons': configure_buttons(dt_config.buttons)});
+            new $.fn.dataTable.Buttons(table, {'buttons': configure_buttons(dt_config)});
             table.buttons().container().prependTo(table.table().container());
         }
     });
 }
 
-
 // Configure the buttons for datatable
-var configure_buttons = function(button_config){
+var configure_buttons = function(dt_config){
+
     var buttons_def = {
         'colvis': {extend: 'colvis', text: '<i class="fa fa-filter"></i>', titleAttr: 'Filter Columns'},
         'copy': {extend: 'copy', text: '<i class="fa fa-files-o"></i>', titleAttr: 'Copy', exportOptions: {'columns': ':visible'} },
         'pdf': {extend: 'pdf', text: '<i class="fa fa-file-pdf-o"></i>', titleAttr: 'PDF', orientation: 'landscape', exportOptions: {'columns': ':visible'} },
-        'runreview': {extend: 'selected', text: '<i class="fa fa-yelp"></i>', titleAttr: 'Start run review', action: start_run_review}
+        'runreview': {extend: 'selected', text: '<i class="fa fa-yelp"></i>', titleAttr: 'Start run review', action: get_run_review(dt_config)}
     }
-    if (button_config === 'defaults'){
-        button_config = ['colvis', 'copy', 'pdf']
+    if (dt_config.buttons === 'defaults'){
+        dt_config.buttons = ['colvis', 'copy', 'pdf']
     }
-    return button_config.map(function(n){return buttons_def[n]});
+    return dt_config.buttons.map(function(n){return buttons_def[n]});
 }
 
 
