@@ -140,7 +140,7 @@ def runs_report(view_type):
             create_row='color_filter',
             fixed_header=True,
             select={'style':'os', 'blurable': True},
-            run_review_url=construct_url('actions/review/run'),
+            run_review_url=construct_url('actions'),
             run_review_field='sample_ids',
             buttons=['colvis', 'copy', 'pdf', 'runreview']
         ),

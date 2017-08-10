@@ -6,7 +6,7 @@ from werkzeug.exceptions import abort
 
 import auth
 from config import rest_config as cfg
-from rest_api.actions import perform_action
+from rest_api import actions
 from rest_api.limsdb import lims_extract
 from rest_api.aggregation import server_side
 from rest_api.aggregation.database_side import aggregate, queries
@@ -20,7 +20,8 @@ app.on_post_GET_run_elements += server_side.run_element_basic_aggregation
 app.on_post_GET_lanes += server_side.aggregate_embedded_run_elements
 app.on_post_GET_runs += server_side.aggregate_embedded_run_elements_into_run
 app.on_post_GET_projects += server_side.aggregate_embedded_sample_elements_into_project
-
+app.on_pre_POST_actions += actions.start_action
+app.on_post_POST_actions += actions.add_to_action
 
 def _create_url_with(base, route):
     if app.config.get('URL_PREFIX') and app.config.get('API_VERSION'):
@@ -106,10 +107,10 @@ def lims_sample_info():
     )
 
 
-@app.route(_action_endpoint('review/<review_type>'), methods=['POST'])
-@requires_auth('home')
-def review(review_type):
-    if review_type in ['run']:
-        return perform_action('review_'+review_type, app)
-    else:
-        abort(404)
+# @app.route(_action_endpoint('review/<review_type>'), methods=['POST'])
+# @requires_auth('home')
+# def review(review_type):
+#     if review_type in ['run']:
+#         return perform_action('review_'+review_type, app)
+#     else:
+#         abort(404)

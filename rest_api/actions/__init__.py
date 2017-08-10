@@ -1,14 +1,28 @@
+import datetime
+from flask import jsonify, json
+from werkzeug.datastructures import ImmutableMultiDict
+from werkzeug.exceptions import abort
 
-from flask import jsonify
+from rest_api import settings
 from rest_api.actions.reviews import start_run_review
+from rest_api.aggregation.database_side import db
 
 
 function_mapping = {
-    'review_run': start_run_review
+    'run_review': start_run_review
 }
 
+def start_action(request):
+    if request.form.get('action_type') in function_mapping:
+        results = function_mapping[request.form.get('action_type')](request)
+    else:
+        abort(422, 'Unknown action type %s' % request.form.get('action_type'))
+    results['action_type'] = request.form.get('action_type')
+    request.form = ImmutableMultiDict(results)
 
-def perform_action(endpoint, app):
-    data = function_mapping[endpoint]()
-    ret_dict = {app.config['META']: {'total': len(data)}, app.config['ITEMS']: data}
-    return jsonify(ret_dict)
+def add_to_action(request, response):
+    '''Add the content of the post request in the response
+    so the data create by the action is available to the client'''
+    input_json = json.loads(response.data.decode('utf-8'))
+    input_json['data'] = request.form.to_dict()
+    response.data = json.dumps(input_json, indent=4).encode()

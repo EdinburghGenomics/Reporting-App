@@ -1,12 +1,13 @@
 import json
 
-from flask import request
+import datetime
 
 from egcg_core import clarity
 from pyclarity_lims.entities import Queue, Step
 from requests.exceptions import HTTPError
 from werkzeug.exceptions import abort
 
+from rest_api import settings
 from rest_api.aggregation.database_side import db
 from config import rest_config as cfg
 
@@ -15,7 +16,7 @@ lims_stage_name = 'Sequencer Output Review EG 1.0 ST'
 fill_run_element_program_name = ''
 
 
-def start_run_review():
+def start_run_review(request):
     # Get the information from the form's data
     sample_to_review = json.loads(request.form.get('samples'))
     username = request.form.get('username')
@@ -34,8 +35,11 @@ def start_run_review():
         abort(401, 'Authentication in the LIMS failed')
         return False
 
-    # Retrieve the samples from the LIMS
-    samples = clarity.get_list_of_samples(sample_names=list(sample_to_review))
+    try:
+        # Retrieve the samples from the LIMS
+        samples = clarity.get_list_of_samples(sample_names=list(sample_to_review))
+    except HTTPError:
+        samples = []
     if len(samples) != len(sample_to_review):
         abort(409, 'Some of the sample to review were not found in the LIMS. %s samples requested %s samples found' % (
         len(sample_to_review), len(samples)))
@@ -78,7 +82,13 @@ def start_run_review():
 
     # build the returned json
     ret_json = {
-        'url': cfg['clarity']['baseuri'] + '/clarity/work-details/' + s.id.split('-')[1],
-        'samples': sample_to_review
+        'action_id': 'lims' + s.id,
+        'started_by': username,
+        'date_started': datetime.datetime.now().strftime(settings.DATE_FORMAT),
+        'action_info':{
+            'lims_step_name': lims_stage_name,
+            'lims_url': cfg['clarity']['baseuri'] + '/clarity/work-details/' + s.id.split('-')[1],
+            'samples': sample_to_review
+        }
     }
     return ret_json
