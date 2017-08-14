@@ -39,6 +39,10 @@
             inactive
             {% endif %}
         </div>
+        {% if proc.pipeline_used %}
+        <div>Pipeline used: {{ proc.pipeline_used.name }}</div>
+        <div>Toolset used: {{ proc.pipeline_used.toolset_type }} {{ proc.pipeline_used.toolset_version }}</div>
+        {% endif %}
     </div>
     <br/>
 
