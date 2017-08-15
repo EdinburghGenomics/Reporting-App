@@ -82,7 +82,7 @@ def start_run_review(request):
 
     # build the returned json
     ret_json = {
-        'action_id': 'lims' + s.id,
+        'action_id': 'lims_' + s.id,
         'started_by': username,
         'date_started': datetime.datetime.now().strftime(settings.DATE_FORMAT),
         'action_info':{

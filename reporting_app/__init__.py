@@ -167,7 +167,7 @@ def report_run(run_id):
             info=False,
             create_row='color_filter',
             select = {'style': 'os', 'blurable': True},
-            run_review_url = construct_url('actions/review/run'),
+            run_review_url = construct_url('actions'),
             run_review_field = 'sample_ids',
             buttons = ['colvis', 'copy', 'pdf', 'runreview']
         ),
@@ -184,7 +184,7 @@ def report_run(run_id):
                         info=False,
                         create_row='color_filter',
                         select = {'style': 'os', 'blurable': True},
-                        run_review_url = construct_url('actions/review/run'),
+                        run_review_url = construct_url('actions'),
                         run_review_field = 'sample_id',
                         buttons = ['colvis', 'copy', 'pdf', 'runreview']
                     )
