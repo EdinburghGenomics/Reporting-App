@@ -87,7 +87,7 @@ QUnit.test('test_exist', function(assert) {
 
 QUnit.test('configure_buttons', function(assert) {
     assert.deepEqual(
-        configure_buttons(['colvis']),
+        configure_buttons({'buttons':['colvis']}),
         [{extend: 'colvis', text: '<i class="fa fa-filter"></i>', titleAttr: 'Filter Columns'}]
     );
 });
