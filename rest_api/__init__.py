@@ -105,12 +105,3 @@ def lims_sample_info():
         'sample_info',
         app
     )
-
-
-# @app.route(_action_endpoint('review/<review_type>'), methods=['POST'])
-# @requires_auth('home')
-# def review(review_type):
-#     if review_type in ['run']:
-#         return perform_action('review_'+review_type, app)
-#     else:
-#         abort(404)
