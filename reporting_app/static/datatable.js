@@ -144,7 +144,7 @@ var get_run_review = function (dt_config){
                 headers: {'Authorization': dt_config.token},
                 success: function(json) {
                     // on success write the link to the message div and change it to a success alert
-                    var link = $("<a />", {href : json.data.url, text:json.data.action_info.lims_url});
+                    var link = $("<a />", {href : json.data.action_info.lims_url, text:json.data.action_info.lims_url});
                     $('#modalmessagediv').empty();
                     $('#modalmessagediv').removeClass('alert-danger')
                     $('#modalmessagediv').addClass('alert-success')

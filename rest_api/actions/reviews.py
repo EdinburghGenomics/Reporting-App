@@ -32,7 +32,7 @@ def start_run_review(request):
         lims = clarity.connection(new=True, username=username, password=password, **cfg.get('clarity'))
         lims.get(lims.get_uri())
     except HTTPError:
-        abort(401, 'Authentication in the LIMS failed')
+        abort(401, 'Authentication in the LIMS (%s) failed' % cfg.get('clarity',{}).get('baseuri'))
         return False
 
     try:
