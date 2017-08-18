@@ -1,0 +1,47 @@
+
+run:
+    yield_in_gb:
+        name: Yield
+        value: 110
+        comparison: '>'
+    pc_q30:
+        name: PC Q30
+        value: 75
+        comparison: '>'
+    lane_pc_optical_dups:
+        name: PC Dup
+        value: 25
+        comparison: '<'
+
+
+sample:
+    default:
+        clean_yield_in_gb:
+            # value: populated in automatic_review.sample_config
+            comparison: '>'
+        clean_yield_q30:
+            # value: populated in automatic_review.sample_config
+            comparison: '>'
+        pc_mapped_reads:
+            value: 90
+            comparison: '>'
+        median_coverage:
+            # value: populated in automatic_review.sample_config
+            comparison: '>'
+        pc_duplicate_reads:
+            value: 35
+            comparison: '<'
+
+    'Homo sapiens':
+        genotype_validation.mismatching_snps:
+            value: 5
+            comparison: '<'
+        genotype_validation.no_call_seq:
+            value: 10
+            comparison: '<'
+        provided_gender:
+            # auto review will check that provided_gender is 'unknown' or whatever value 'called_gender' is
+            value:
+                key: 'called_gender'
+                fallback: 'unknown'
+            comparison: 'agreeswith'

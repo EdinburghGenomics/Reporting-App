@@ -58,7 +58,7 @@ DOMAIN = {
     'actions': {
         'url': 'actions',
         'item_title': 'action'
-        'id_field' 'stage_id',
+        'id_field' 'action_id',
         'schema': schema['actions'],
     }
 }

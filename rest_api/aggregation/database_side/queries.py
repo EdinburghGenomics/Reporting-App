@@ -362,13 +362,14 @@ project_info = [
 ]
 
 
-def resolve_pipeline(endpoint, base_pipeline):
+def resolve_pipeline(endpoint, base_pipeline, request_args):
     pipeline = []
     schema_endpoint = list(schema[endpoint])
     schema_endpoint.append(app.config['DATE_CREATED'])
     schema_endpoint.append(app.config['LAST_UPDATED'])
-    sort_col = request.args.get('sort', list(schema_endpoint)[0])
-    match = json.loads(request.args.get('match', '{}'))
+    sort_col = request_args.get('sort', list(schema_endpoint)[0])
+    print(request_args.get('match', '{}'))
+    match = json.loads(request_args.get('match', '{}'))
     or_match = match.pop('$or', None)  # TODO: make complex matches generic
     if or_match:
         multi_match_col = list(or_match[0])[0]  # get one of the field names in the or statement

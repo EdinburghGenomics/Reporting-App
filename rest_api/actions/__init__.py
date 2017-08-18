@@ -2,11 +2,12 @@ from flask import json
 from werkzeug.datastructures import ImmutableMultiDict
 from werkzeug.exceptions import abort
 
-from rest_api.actions.reviews import start_run_review
+from rest_api.actions.reviews import start_run_review, automatic_run_review
 
 
 function_mapping = {
-    'run_review': start_run_review
+    'run_review': start_run_review,
+    'automatic_run_review': automatic_run_review
 }
 
 

@@ -2,12 +2,15 @@ import json
 
 import datetime
 
+import flask
+from flask import current_app
 from egcg_core import clarity
 from pyclarity_lims.entities import Queue, Step
 from requests.exceptions import HTTPError
 from werkzeug.exceptions import abort
 
 from rest_api import settings
+from rest_api.actions.automatic_review import RunReviewer
 from rest_api.aggregation.database_side import db
 from config import rest_config as cfg
 
@@ -94,3 +97,29 @@ def start_run_review(request):
         }
     }
     return ret_json
+
+
+
+
+def automatic_run_review(request):
+    start_time = datetime.datetime.now().strftime(settings.DATE_FORMAT)
+    run_id = request.form.get('run_id')
+    if hasattr(request.authorization, 'username'):
+        username = request.authorization.username
+    else:
+        username = ''
+
+    try:
+        r = RunReviewer(run_id)
+        r.push_review()
+        return {
+            'action_id': run_id + start_time,
+            'date_started': start_time,
+            'started_by': username,
+            'date_finished': datetime.datetime.now().strftime(settings.DATE_FORMAT),
+            'action_info': {
+                'run_id': run_id
+            }
+        }
+    except ValueError as e:
+        abort(409, str(e))
