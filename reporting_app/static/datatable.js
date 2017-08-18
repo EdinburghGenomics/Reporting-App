@@ -101,50 +101,73 @@ var test_exist = function(variable){
 }
 
 var color_filter = function( row, data, dataIndex ) {
-    if ( test_exist(data["trim_r1"]) || test_exist(data["trim_r2"]) || test_exist(data["tiles_filtered"]) ) {
+    if (test_exist(data['trim_r1']) || test_exist(data['trim_r2']) || test_exist(data['tiles_filtered'])) {
           $(row).addClass('data-filtering');
     }
 }
 
-var get_run_review = function (dt_config){
+
+var lims_run_review = function(dt_config) {
+    return _lims_review(
+        dt_config,
+        'run_review',
+        'About to review the usability of run elements from <%= n_entities %> samples:'
+    )
+}
+
+
+var lims_sample_review = function(dt_config) {
+    return _lims_review(
+        dt_config,
+        'sample_review',
+        'About to review the usability of <%= n_entities %> samples:'
+    )
+}
+
+
+var _lims_review = function(dt_config, action_type, message_template) {
     return function (e, dt, node, config ) {
-        var data = dt.rows( { selected: true } ).data();
+        var selected_rows = dt.rows({selected: true}).data();
+
         // Retrieve the name of all the samples involved using lodash
-        values = _.chain(data)
-                  .map(_.property(dt_config.run_review_field))
-                  .flatten()
-                  .filter(function(o) { return o != "Undetermined"; })
-                  .uniq()
-                  .sortBy()
-                  .value();
+        var values = _.chain(selected_rows)
+                      .map(_.property(dt_config.review_entity_field))
+                      .flatten()
+                      .filter(function(o) { return o != 'Undetermined'; })
+                      .uniq()
+                      .sortBy()
+                      .value();
+
         // Grab and store the content of the modal to replace it when it will be closed
-        var modalContentClone = $("#reviewModal").clone()
-        $("#reviewModal").on('hidden.bs.modal', function (e) {
-            $("#reviewModal").replaceWith(modalContentClone);
+        var modalContentClone = $('#reviewModal').clone()
+        $('#reviewModal').on('hidden.bs.modal', function (e) {
+            $('#reviewModal').replaceWith(modalContentClone);
         });
 
         $('#modalform').submit(function (event) {
             // Show the spinning arrow
             $('#loadingoverlay').show();
+
             // Prevent default submit action
             event.preventDefault();
             var usr_input = document.getElementById('usr');
             var pwd_input = document.getElementById('pwd');
+
             $.ajax({
-                url: dt_config.run_review_url,
+                url: dt_config.review_url,
                 type: 'POST',
-                dataType: "json",
+                dataType: 'json',
                 data: {
-                    'username':usr_input.value,
-                    'password':pwd_input.value,
-                    'samples': JSON.stringify(values),
-                    'action_type': 'run_review'
+                    'username': usr_input.value,
+                    'password': pwd_input.value,
+                    'review_entities': JSON.stringify(values),
+                    'action_type': action_type
                 },
                 async: true,
                 headers: {'Authorization': dt_config.token},
                 success: function(json) {
                     // on success write the link to the message div and change it to a success alert
-                    var link = $("<a />", {href : json.data.action_info.lims_url, text:json.data.action_info.lims_url});
+                    var link = $('<a />', {href : json.data.action_info.lims_url, text:json.data.action_info.lims_url});
                     $('#modalmessagediv').empty();
                     $('#modalmessagediv').removeClass('alert-danger')
                     $('#modalmessagediv').addClass('alert-success')
@@ -164,7 +187,7 @@ var get_run_review = function (dt_config){
             });
             return false;
         });
-        $('#modaltext')[0].innerHTML = "You're about to review the usability of run elements from "+ values.length + " samples:<br>" + values.join('<br>');
+        $('#modaltext')[0].innerHTML = _.template(message_template)({'n_entities': values.length}) + '<br>' + values.join('<br>');
         $('#reviewModal').modal('show')
     }
 }
@@ -186,9 +209,10 @@ var configure_buttons = function(dt_config){
 
     var buttons_def = {
         'colvis': {extend: 'colvis', text: '<i class="fa fa-filter"></i>', titleAttr: 'Filter Columns'},
-        'copy': {extend: 'copy', text: '<i class="fa fa-files-o"></i>', titleAttr: 'Copy', exportOptions: {'columns': ':visible'} },
-        'pdf': {extend: 'pdf', text: '<i class="fa fa-file-pdf-o"></i>', titleAttr: 'PDF', orientation: 'landscape', exportOptions: {'columns': ':visible'} },
-        'runreview': {extend: 'selected', text: '<i class="fa fa-yelp"></i>', titleAttr: 'Start run review', action: get_run_review(dt_config)}
+        'copy': {extend: 'copy', text: '<i class="fa fa-files-o"></i>', titleAttr: 'Copy', exportOptions: {'columns': ':visible'}},
+        'pdf': {extend: 'pdf', text: '<i class="fa fa-file-pdf-o"></i>', titleAttr: 'PDF', orientation: 'landscape', exportOptions: {'columns': ':visible'}},
+        'runreview': {extend: 'selected', text: '<i class="fa fa-yelp"></i>', titleAttr: 'Start run review', action: lims_run_review(dt_config)},
+        'samplereview': {extend: 'selected', text: '<i class="fa fa-flask"></i>', titleAttr: 'Start sample review', action: lims_sample_review(dt_config)}
     }
     if (dt_config.buttons === 'defaults'){
         dt_config.buttons = ['colvis', 'copy', 'pdf']
@@ -227,7 +251,7 @@ var configure_dt = function(dt_config) {
         'serverSide': false,
         'autoWidth': false,
         //'stateSave': true,
-        'lengthMenu': [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        'lengthMenu': [[10, 25, 50, -1], [10, 25, 50, 'All']],
         'pageLength': 25,
         'select': dt_config.select,
         'ajax': ajax_call,
@@ -250,7 +274,7 @@ var configure_dt = function(dt_config) {
         ),
         'order': [dt_config.default_sort_col],
         'footerCallback': get_function(dt_config.table_foot),
-        "createdRow": get_function(dt_config.create_row)
+        'createdRow': get_function(dt_config.create_row)
     }
 }
 
@@ -276,7 +300,7 @@ var sum_row_per_column = function( row, data, start, end, display ) {
                 }, 0);
         // Update footer
         if (isNaN(sum) ){
-            $(this.footer()).html( '' );
+            $(this.footer()).html('');
         }else{
             $(this.footer()).html( sum );
         }
