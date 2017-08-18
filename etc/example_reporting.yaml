@@ -46,3 +46,6 @@ rest_app:
         password: 'pw'
         url: 'dbhost'
         db: 'dbname'
+
+    clarity:
+        baseuri: http://clarity.com
