@@ -37,7 +37,6 @@ def start_run_review(request):
         lims.get(lims.get_uri())
     except HTTPError:
         abort(401, 'Authentication in the LIMS (%s) failed' % cfg.get('clarity', {}).get('baseuri'))
-        return False
 
     try:
         # Retrieve the samples from the LIMS
