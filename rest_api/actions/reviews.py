@@ -10,7 +10,7 @@ from requests.exceptions import HTTPError
 from werkzeug.exceptions import abort
 
 from rest_api import settings
-from rest_api.actions.automatic_review import RunReviewer
+from rest_api.actions.automatic_review import RunReviewer, SampleReviewer
 from rest_api.aggregation.database_side import db
 from config import rest_config as cfg
 
@@ -99,26 +99,32 @@ def start_run_review(request):
     return ret_json
 
 
+def automatic_sample_review(request):
+    return automatic_review(request, 'sample_id', SampleReviewer)
 
 
 def automatic_run_review(request):
+    return automatic_review(request, 'run_id', RunReviewer)
+
+
+def automatic_review(request, id_name, reviewer_class):
     start_time = datetime.datetime.now().strftime(settings.DATE_FORMAT)
-    run_id = request.form.get('run_id')
+    id_value = request.form.get(id_name)
     if hasattr(request.authorization, 'username'):
         username = request.authorization.username
     else:
         username = ''
 
     try:
-        r = RunReviewer(run_id)
+        r = reviewer_class(id_value)
         r.push_review()
         return {
-            'action_id': run_id + start_time,
+            'action_id': id_value + start_time,
             'date_started': start_time,
             'started_by': username,
             'date_finished': datetime.datetime.now().strftime(settings.DATE_FORMAT),
             'action_info': {
-                'run_id': run_id
+                id_name: id_value
             }
         }
     except ValueError as e:

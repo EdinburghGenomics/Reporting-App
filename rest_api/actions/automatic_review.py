@@ -131,5 +131,71 @@ class RunReviewer:
             reviewer.push_review()
 
 
+class SampleReviewer(Reviewer):
+    coverage_values = {30: (40, 30), 95: (120, 30), 120: (160, 40), 190: (240, 60), 270: (360, 90)}
+
+    def __init__(self, sample_id):
+        self.sample_id = sample_id
+        self.reviewable_data = _aggregate(
+            'samples',
+            queries.sample,
+            request_args={'sample_id': sample_id}
+        )
+        if self.reviewable_data:
+            self.reviewable_data = self.reviewable_data[0]
+        self.sample_genotype = self.reviewable_data.get('genotype_validation')
+        self.species = self.reviewable_data.get('species_name')
 
 
+    @cached_property
+    def cfg(self):
+        cfg = review_thresholds['sample'].get(self.species, {}).copy()
+        cfg.update(review_thresholds['sample']['default'])
+
+        if self.sample_genotype is None:
+            self.debug('No genotype validation to review for %s', self.sample_id)
+            cfg.pop('genotype_validation.mismatching_snps', None)
+            cfg.pop('genotype_validation.no_call_seq', None)
+
+        yieldq30 = self.reviewable_data.get(
+            'expected_yield_q30'
+        )
+
+        if not yieldq30:
+            self.warning('No yield for quoted coverage found for sample %s', self.sample_id)
+            return None
+
+        expected_yield, coverage = self.coverage_values[yieldq30]
+        cfg['clean_yield_q30']['value'] = yieldq30
+        cfg['clean_yield_in_gb']['value'] = expected_yield
+        cfg['median_coverage']['value'] = coverage
+        return cfg
+
+    @cached_property
+    def _summary(self):
+        failing_metrics = self.get_failing_metrics()
+
+        if failing_metrics:
+            r = 'fail'
+        elif self.species == 'Homo sapiens' and self.sample_genotype is None:
+            r = 'genotype missing'
+        else:
+            r = 'pass'
+
+        report = {'reviewed': r}
+        if failing_metrics:
+            report[ELEMENT_REVIEW_COMMENTS] = 'failed due to ' + ', '.join(failing_metrics)
+
+        return report
+
+    def report(self):
+        s = '%s: %s' % (self.sample_id, self._summary)
+        self.info(s)
+        return s
+
+    def push_review(self):
+        patch_internal(
+            'samples',
+            payload=self._summary,
+            sample_id=self.sample_id
+        )
