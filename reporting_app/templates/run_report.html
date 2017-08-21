@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-{{ datatable(lane_aggregation) }}
+{{ datatable(lane_aggregation, True) }}
 {{ super() }}
 {{ proc_report(procs) }}
 {% endblock %}
