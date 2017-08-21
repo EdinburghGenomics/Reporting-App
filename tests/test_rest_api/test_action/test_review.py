@@ -55,7 +55,7 @@ class TestRunReview(TestBase):
         self.patch_queue_empty = patch.object(Queue, 'artifacts', new_callable=PropertyMock(return_value=[]))
         self.patch_queue_sample = patch.object(Queue, 'artifacts', new_callable=PropertyMock(return_value=[create_artifact('sample1')]))
         self.patch_list_of_samples = patch('egcg_core.clarity.get_list_of_samples', side_effect=SideEffectWithMemory(fake_get_list_samples))
-        self.patch_step_create = patch.object(Step, 'create', return_value=Mock(spec=Step, id='24-1234', program_names=['prog1']))
+        self.patch_step_create = patch.object(Step, 'create', return_value=Mock(spec=Step, id='24-1234', program_names=['Upload metrics and assess samples']))
         self.patch_count_re1 = patch('rest_api.actions.reviews.count_run_element', return_value=1)
 
     def tearDown(self):
@@ -84,6 +84,7 @@ class TestRunReview(TestBase):
                 protocol_step=mocked_stage.return_value.step
             )
             assert mocked_queue_artifacts == []
+            mocked_step_create.return_value.trigger_program.assert_called_once_with('Upload metrics and assess samples')
 
     def test_run_review2(self):
 
@@ -107,7 +108,7 @@ class TestRunReview(TestBase):
                 replicates=[1],
                 protocol_step=mocked_stage.return_value.step
             )
-            mocked_queue_artifacts
+            mocked_step_create.return_value.trigger_program.assert_called_once_with('Upload metrics and assess samples')
 
 
 
