@@ -98,8 +98,8 @@ QUnit.test('get_run_review', function(assert) {
     modaltext.setAttribute("id", "modaltext");
     var reviewModal = document.createElement("div");
     reviewModal.setAttribute("id", "reviewModal");
-    reviewModal.append(modaltext);
-    $('body').append(reviewModal);
+    reviewModal.appendChild(modaltext);
+    document.body.appendChild(reviewModal);
 
     f = get_run_review(dt_config)(e, dt, node, config);
     assert.equal(modaltext.textContent, "You're about to review the usability of run elements from 2 samples:sample1sample2")
