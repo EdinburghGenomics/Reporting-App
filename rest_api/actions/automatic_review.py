@@ -168,7 +168,7 @@ class SampleReviewer(Reviewer):
         expected_yield, coverage = self.coverage_values[yieldq30]
         cfg['clean_yield_q30']['value'] = yieldq30
         cfg['clean_yield_in_gb']['value'] = expected_yield
-        cfg['median_coverage']['value'] = coverage
+        cfg['mean_coverage']['value'] = coverage
         return cfg
 
     @cached_property
