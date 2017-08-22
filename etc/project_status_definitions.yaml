@@ -50,6 +50,7 @@ step_completed_to_status:
     AUTOMATED - Sequence: BIOINFORMATICS
     bioinformatics: DELIVERY
     Data Release EG 1.0: FINISHED
+    Finish Processing EG 1.0 ST: FINISHED
     Remove From Processing EG 1.0 ST: SAMPLE_REMOVED
 
 
@@ -69,6 +70,7 @@ step_queued_to_status:
     AUTOMATED - Sequence: SEQUENCING
     Data Release EG 1.0: DELIVERY
     Request Repeats EG 1.0 ST: SAMPLE_REPEAT
+    Finish Processing EG 1.0 ST: FINISHED
 
 
 additional_step_completed:
