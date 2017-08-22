@@ -368,7 +368,6 @@ def resolve_pipeline(endpoint, base_pipeline, request_args):
     schema_endpoint.append(app.config['DATE_CREATED'])
     schema_endpoint.append(app.config['LAST_UPDATED'])
     sort_col = request_args.get('sort', list(schema_endpoint)[0])
-    print(request_args.get('match', '{}'))
     match = json.loads(request_args.get('match', '{}'))
     or_match = match.pop('$or', None)  # TODO: make complex matches generic
     if or_match:

@@ -3,7 +3,7 @@ import os
 import datetime
 import yaml
 from cached_property import cached_property
-from egcg_core.constants import ELEMENT_REVIEW_COMMENTS, ELEMENT_REVIEW_DATE
+from egcg_core.constants import ELEMENT_REVIEW_COMMENTS, ELEMENT_REVIEW_DATE, ELEMENT_REVIEWED
 from eve.methods.patch import patch_internal
 from eve.methods.get import get
 
@@ -17,15 +17,16 @@ review_thresholds = yaml.safe_load(open(cfg_path, 'r'))
 class Reviewer():
     reviewable_data = None
 
+    @cached_property
+    def current_time(self):
+        return datetime.datetime.now().strftime(settings.DATE_FORMAT)
+
     @property
     def cfg(self):
         raise NotImplementedError
 
     @cached_property
     def _summary(self):
-        raise NotImplementedError
-
-    def report(self):
         raise NotImplementedError
 
     @staticmethod
@@ -64,6 +65,22 @@ class Reviewer():
 
         return sorted(k for k, v in passfails.items() if v == 'fail')
 
+    @property
+    def _summary(self):
+        failing_metrics = self.get_failing_metrics()
+        if failing_metrics:
+            return {
+                ELEMENT_REVIEWED: 'fail',
+                ELEMENT_REVIEW_COMMENTS: 'failed due to ' + ', '.join(
+                    [self.cfg.get(f, {}).get('name', f) for f in failing_metrics]),
+                ELEMENT_REVIEW_DATE: self.current_time,
+            }
+        else:
+            return {
+                ELEMENT_REVIEWED: 'pass',
+                ELEMENT_REVIEW_DATE: self.current_time,
+            }
+
 
 class LaneReviewer(Reviewer):
     def __init__(self, aggregated_lane):
@@ -74,22 +91,6 @@ class LaneReviewer(Reviewer):
     @property
     def cfg(self):
         return review_thresholds['run']
-
-    @cached_property
-    def _summary(self):
-        failing_metrics = self.get_failing_metrics()
-        if failing_metrics:
-            return {
-                'reviewed': 'fail',
-                ELEMENT_REVIEW_COMMENTS: 'failed due to ' + ', '.join([self.cfg[f].get('name', f) for f in failing_metrics]),
-                ELEMENT_REVIEW_DATE: datetime.datetime.now().strftime(settings.DATE_FORMAT),
-            }
-        else:
-            return {'reviewed': 'pass'}
-
-    def report(self):
-        s = '%s %s: %s' % (self.run_id, self.lane_number, self._summary)
-        return s
 
     def push_review(self):
         docs = get('run_elements', run_id=self.run_id, lane=self.lane_number)
@@ -118,9 +119,6 @@ class RunReviewer:
         if not lanes:
             raise ValueError('No data found for run id %s.' % run_id)
         self.lane_reviewers = [LaneReviewer(lane) for lane in lanes]
-
-    def report(self):
-        return '\n'.join(r.report() for r in self.lane_reviewers)
 
     @cached_property
     def _summary(self):
@@ -153,7 +151,6 @@ class SampleReviewer(Reviewer):
         cfg.update(review_thresholds['sample']['default'])
 
         if self.sample_genotype is None:
-            self.debug('No genotype validation to review for %s', self.sample_id)
             cfg.pop('genotype_validation.mismatching_snps', None)
             cfg.pop('genotype_validation.no_call_seq', None)
 
@@ -161,37 +158,20 @@ class SampleReviewer(Reviewer):
             'expected_yield_q30'
         )
 
-        if not yieldq30:
-            self.warning('No yield for quoted coverage found for sample %s', self.sample_id)
-            return None
-
         expected_yield, coverage = self.coverage_values[yieldq30]
         cfg['clean_yield_q30']['value'] = yieldq30
         cfg['clean_yield_in_gb']['value'] = expected_yield
         cfg['mean_coverage']['value'] = coverage
         return cfg
 
-    @cached_property
+    @property
     def _summary(self):
-        failing_metrics = self.get_failing_metrics()
+        summary = super()._summary
+        if self.species == 'Homo sapiens' and self.sample_genotype is None:
+            summary[ELEMENT_REVIEWED] = 'genotype missing'
+            summary[ELEMENT_REVIEW_COMMENTS] = 'failed due to missing genotype'
+        return summary
 
-        if failing_metrics:
-            r = 'fail'
-        elif self.species == 'Homo sapiens' and self.sample_genotype is None:
-            r = 'genotype missing'
-        else:
-            r = 'pass'
-
-        report = {'reviewed': r}
-        if failing_metrics:
-            report[ELEMENT_REVIEW_COMMENTS] = 'failed due to ' + ', '.join(failing_metrics)
-
-        return report
-
-    def report(self):
-        s = '%s: %s' % (self.sample_id, self._summary)
-        self.info(s)
-        return s
 
     def push_review(self):
         patch_internal(
