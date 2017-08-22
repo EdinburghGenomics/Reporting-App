@@ -49,7 +49,7 @@
 }
 
 .vis-item .vis-item-overflow:hover {
-  overflow: visible;
+    overflow: visible;
 }
 
 .footer {
@@ -58,5 +58,27 @@
 }
 
 .data-filtering {
-  background-color: #fcf8e3;
+    background-color: #fcf8e3;
+}
+
+.overlay {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 10;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.processing {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200px;
+    margin-left: -100px;
+    margin-top: -26px;
+    text-align: center;
+    padding: 1em 0;
 }

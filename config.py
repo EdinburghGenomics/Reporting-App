@@ -9,8 +9,8 @@ class SplitConfiguration(Configuration):
         self.app_type = app_type
         super().__init__(*cfg_search_path)
 
-    def load_config_file(self, cfg_file):
-        super().load_config_file(cfg_file)
+    def load_config_file(self, *search_path, env_var=None):
+        super().load_config_file(*search_path, env_var=env_var)
         if self.content:
             self.content = self.content[self.app_type]
 

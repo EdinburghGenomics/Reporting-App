@@ -1,0 +1,54 @@
+{% macro review_modal() -%}
+<!-- Modal -->
+<div id="reviewModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <form id="modalform" class="modal-content form-horizontal" action="">
+            <div id="loadingoverlay" class="overlay">
+                <div id="loadingmessage" class="processing panel panel-default">
+                    <p class="fa fa-refresh fa-spin"></p>
+                </div>
+            </div>
+        <!-- Modal content-->
+            <div class="modal-body container-fluid">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="panel panel-default">
+                            <div id="modaltext" class="panel-body"></div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <img src="{{ url_for('static', filename='img/clarity.png') }}" style="width:72px;height:72px;">
+                        </div>
+                        <div class="col-sm-9">
+                            <div class="row">
+                                <div class="form-group">
+                                    <label class="control-label col-sm-4" for="usr">Username:</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" id="usr" placeholder="lims username">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group">
+                                    <label class="control-label col-sm-4" for="pwd">Password:</label>
+                                    <div class="col-sm-8">
+                                        <input type="password" class="form-control" id="pwd", placeholder="lims password">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div id="modalmessagediv" class="col alert" role="alert"></div>
+                    </div>
+               </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modalsubmit" type="submit" class="btn btn-primary">Confirm</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </form>
+    </div>
+</div>
+{%- endmacro %}
