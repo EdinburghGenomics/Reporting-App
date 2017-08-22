@@ -73,6 +73,7 @@ projects:
     project_id: {               type: 'string',  required: True,  unique: True }
     samples: {                  type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'samples', field: 'sample_id', embeddable: False } } }
     analysis_driver_procs: {    type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'analysis_driver_procs', field: 'proc_id', embeddable: True } } }
+    sample_pipeline: {          type: 'dict',    schema: { name: { type: 'string' }, toolset_type: { type: 'string' }, toolset_version: { type: 'integer' } } }
 
 samples:
     library_id: {               type: 'string',  required: False }
@@ -152,6 +153,7 @@ analysis_driver_procs:
     proc_id: {                  type: 'string', required: True, unique: True }
     dataset_type: {             type: 'string', allowed: ['run', 'sample', 'project'], required: True }
     dataset_name: {             type: 'string', required: True }
+    pipeline_used: {            type: 'dict', schema: { name: { type: 'string' }, toolset_type: { type: 'string' }, toolset_version: { type: 'integer' } } }
     start_date: {               type: 'datetime' }
     end_date: {                 type: 'datetime' }
     pid: {                      type: 'integer', nullable: True }

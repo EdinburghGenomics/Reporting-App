@@ -6,12 +6,7 @@ from egcg_core.clarity import sanitize_user_id
 from config import project_status as status_cfg
 from rest_api.common import convert_date, retrieve_args
 from rest_api.limsdb import queries
-
-
-def format_date(date):
-    if date:
-        return date.isoformat() + 'Z'
-    return None
+from rest_api.limsdb.queries import format_date
 
 
 class Sample:

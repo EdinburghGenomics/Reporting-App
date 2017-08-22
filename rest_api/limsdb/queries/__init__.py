@@ -1,6 +1,11 @@
 from sqlalchemy import or_, func
 import genologics_sql.tables as t
+from sqlalchemy.orm.util import aliased
 
+def format_date(date):
+    if date:
+        return date.isoformat()
+    return None
 
 def add_filters(q, **kwargs):
     if kwargs.get('project_name'):
@@ -148,14 +153,57 @@ def runs_info(session, time_since=None, run_ids=None, run_status=None):
     results = q.all()
     return results
 
-if __name__ == "__main__":
-    import datetime
-    from rest_api.limsdb import get_session
-    session = get_session()
-    time_since = datetime.datetime.now() - datetime.timedelta(days=200)
-    print(time_since)
-    res = get_sample_info(session, time_since=time_since)
-    samples = set([r[1] for r in res])
-    #print('\n'.join(sorted(samples)))
-    print(len(samples))
+def runs_cst(session, time_since=None, run_ids=None, run_status=None):
+    """
+    :param sqlalchemy.orm.Session session:
+    :param datetime time_since: date cutoff for a run to be retrieved
+    :param list run_ids: filter by specific run ids
+    :param list run_status: filter by specific run statuses
+    """
+    r = None
+    s = None
+    if run_ids:
+        r = session.query(t.Process.processid) \
+            .join(t.Process.type) \
+            .join(t.Process.udfs) \
+            .filter(t.ProcessUdfView.udfname == 'RunID') \
+            .filter(t.ProcessUdfView.udfvalue.in_(run_ids)) \
+            .filter(t.ProcessType.displayname == 'AUTOMATED - Sequence').subquery('r')
 
+    if run_status:
+        s = session.query(t.Process.processid) \
+            .join(t.Process.type) \
+            .join(t.Process.udfs) \
+            .filter(t.ProcessUdfView.udfname == 'Run Status') \
+            .filter(t.ProcessUdfView.udfvalue.in_(run_status)) \
+            .filter(t.ProcessType.displayname == 'AUTOMATED - Sequence').subquery('s')
+
+    parent_process_io_tracker = aliased(t.ProcessIOTracker)
+
+    gparent_output_mapping = aliased(t.OutputMapping)
+    gparent_process_io_tracker = aliased(t.ProcessIOTracker)
+    gparent_process = aliased(t.Process)
+    gparent_process_type = aliased(t.ProcessType)
+
+    q = session.query(t.Process.processid, gparent_process.processid, gparent_process.daterun) \
+        .distinct(gparent_process.processid) \
+        .join(t.Process.type) \
+        .join(t.Process.processiotrackers) \
+        .join(t.ProcessIOTracker.artifact) \
+        .join(t.OutputMapping,            t.OutputMapping.outputartifactid == t.Artifact.artifactid) \
+        .join(parent_process_io_tracker,  t.OutputMapping.trackerid == parent_process_io_tracker.trackerid) \
+        .join(gparent_output_mapping,     gparent_output_mapping.outputartifactid == parent_process_io_tracker.inputartifactid) \
+        .join(gparent_process_io_tracker, gparent_output_mapping.trackerid == gparent_process_io_tracker.trackerid) \
+        .join(gparent_process, gparent_process.processid == gparent_process_io_tracker.processid) \
+        .join(gparent_process_type,       gparent_process.typeid == gparent_process_type.typeid) \
+        .filter(t.ProcessType.displayname == 'AUTOMATED - Sequence')
+
+    if time_since:
+        q = q.filter(func.date(t.Process.createddate) > func.date(time_since))
+    if r is not None:
+        q = q.filter(t.Process.processid.in_(r))
+    if s is not None:
+        q = q.filter(t.Process.processid.in_(s))
+
+    results = q.all()
+    return results

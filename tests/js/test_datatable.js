@@ -84,6 +84,27 @@ QUnit.test('test_exist', function(assert) {
     assert.ok(test_exist(['1', '2', '3']));
 });
 
+QUnit.test('get_run_review', function(assert) {
+    // Mock a datatable config
+    var dt_config = {run_review_field: 'sample_ids'};
+    var e, node, config;
+    // Mock a datatables object
+    var dt = {rows: function() { return { data: function() { return [
+        { 'sample_ids': ['sample1', 'sample2']}
+    ]}}}}
+
+    // Mock html elements that will interact with the function
+    var modaltext = document.createElement("div");
+    modaltext.setAttribute("id", "modaltext");
+    var reviewModal = document.createElement("div");
+    reviewModal.setAttribute("id", "reviewModal");
+    reviewModal.appendChild(modaltext);
+    document.body.appendChild(reviewModal);
+
+    f = get_run_review(dt_config)(e, dt, node, config);
+    assert.equal(modaltext.textContent, "You're about to review the usability of run elements from 2 samples:sample1sample2")
+
+});
 
 QUnit.test('configure_buttons', function(assert) {
     assert.deepEqual(

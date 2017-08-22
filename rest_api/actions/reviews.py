@@ -16,7 +16,7 @@ from config import rest_config as cfg
 
 lims_workflow_name = 'PostSeqLab EG 1.0 WF'
 lims_stage_name = 'Sequencer Output Review EG 1.0 ST'
-fill_run_element_program_name = ''
+fill_run_element_program_name = 'Upload metrics and assess samples'
 
 
 def count_run_element(sample_id):
