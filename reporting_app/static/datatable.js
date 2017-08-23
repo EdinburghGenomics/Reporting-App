@@ -290,19 +290,19 @@ var sum_row_per_column = function( row, data, start, end, display ) {
                 .reduce(function (a, b) {
                     if (b.constructor === Array){
                         return a + b.length;
-                    }else if (!isNaN(parseFloat(b)) && isFinite(b)){
+                    } else if (!isNaN(parseFloat(b)) && isFinite(b)){
                         return a + parseFloat(b);
-                    }else if (b === ''){
+                    } else if (b === ''){
                         return a;
-                    }else{
+                    } else {
                         return Number.NaN;
                     }
                 }, 0);
         // Update footer
-        if (isNaN(sum) ){
+        if (isNaN(sum)){
             $(this.footer()).html('');
-        }else{
-            $(this.footer()).html( sum );
+        } else {
+            $(this.footer()).html(sum);
         }
     });
 
