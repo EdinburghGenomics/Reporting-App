@@ -91,11 +91,11 @@ function coverage_fmt(data, fmt, bases_at_X){
 }
 
 function coverage_15X_fmt(data, fmt){
-    coverage_fmt(data, fmt, 'bases_at_15X')
+    return coverage_fmt(data, fmt, 'bases_at_15X')
 }
 
 function coverage_5X_fmt(data, fmt){
-    coverage_fmt(data, fmt, 'bases_at_5X')
+    return coverage_fmt(data, fmt, 'bases_at_5X')
 }
 
 
