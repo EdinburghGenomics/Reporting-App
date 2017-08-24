@@ -3,6 +3,8 @@ from urllib.parse import quote, unquote
 import datetime
 import flask as fl
 import flask_login
+import base64
+
 import auth
 from reporting_app.util import datatable_cfg, tab_set_cfg, get_token
 from config import reporting_app_config as cfg
@@ -411,3 +413,22 @@ they're queued. the steps involved are described below.''' + table + '</div>'
             table_foot='sum_row_per_column'
         )
     )
+
+
+@app.route('/fastqc/<run_element_id>_<read>')
+def send_fastq_html(run_element_id, read):
+    if read == 'R1':
+        report_key = 'fastqc_report_r1'
+    elif read == 'R2':
+        report_key = 'fastqc_report_r2'
+    else:
+        fl.abort(404)
+
+    doc = rest_api().get_document('run_elements', where={'run_element_id':run_element_id}, projection={report_key:1})
+    if doc and report_key in doc:
+        return base64.b64decode(doc.get(report_key).get('file'))
+    else:
+        fl.abort(404)
+
+if __name__ == "__main__":
+    app.run()

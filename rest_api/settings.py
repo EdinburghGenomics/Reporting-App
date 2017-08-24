@@ -19,7 +19,10 @@ DOMAIN = {
         'url': 'run_elements',
         'item_title': 'element',
         'id_field': 'run_element_id',
-        'schema': schema['run_elements']
+        'schema': schema['run_elements'],
+        'datasource': {
+            'projection': {'fastqc_report_r1': 0, 'fastqc_report_r2': 0}
+        }
     },
 
     'unexpected_barcodes': {
@@ -79,11 +82,12 @@ X_HEADERS = ['Authorization']
 RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
 ITEM_METHODS = ['GET', 'PUT', 'PATCH', 'DELETE']
 
+EXTENDED_MEDIA_INFO = ['content_type', 'name', 'length']
+
 CACHE_CONTROL = 'max-age=20'
 CACHE_EXPIRES = 20
 
 DATE_FORMAT = '%d_%m_%Y_%H:%M:%S'
-
 
 if cfg.get('url_prefix') and cfg.get('api_version'):
     URL_PREFIX = cfg['url_prefix']

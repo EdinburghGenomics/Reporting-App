@@ -17,6 +17,14 @@ function render_data(data, type, row, meta, fmt) {
 }
 
 
+function format_link(data, fmt, formatted_link){
+    if (fmt['postlink']){
+        return '<a href=' + fmt['link'] + data + fmt['postlink'] + '>' + formatted_link + '</a>'
+    }else{
+        return '<a href=' + fmt['link'] + data + '>' + formatted_link + '</a>'
+    }
+}
+
 function string_formatter(data, fmt){
     var formatted_data = data;
 
@@ -40,19 +48,20 @@ function string_formatter(data, fmt){
         else{
             formatted_link = data;
         }
-        if (data instanceof Array && data.length > 1 || data != formatted_link) {
+        // Multiple entries in the data or tooltip --> create drop down
+        if (data instanceof Array && data.length > 1 || fmt['tooltip']) {
             data.sort();
             formatted_data = '<div class="dropdown"><div class="dropbtn">' + formatted_link + '</div><div class="dropdown-content">';
             for (var i=0, tot=data.length; i < tot; i++){
-                formatted_data = formatted_data.concat('<a href=' + fmt['link'] + data[i] + '>' + data[i] + '</a>');
+                formatted_data = formatted_data.concat(format_link(data[i], fmt, data[i]));
             }
             formatted_data = formatted_data.concat('</div></div>')
         }
         else if (data instanceof Array && data.length == 1){
-            formatted_data = '<a href=' + fmt['link'] + data[0] + '>' + data[0] + '</a>';
+            formatted_data = format_link(data[0], fmt, formatted_link);
         }
         else {
-            formatted_data = '<a href=' + fmt['link'] + data + '>' + data + '</a>';
+            formatted_data = format_link(data, fmt, formatted_link);
         }
     }
     if (fmt['min'] && data < fmt['min']) {
@@ -90,8 +99,13 @@ function coverage_15X_fmt(data, fmt){
     }
 }
 
+function fastqc_report_fmt(data, fmt){
+    return 'link';
+}
+
 var function_map = {
     'species_contamination': species_contamination_fmt,
     'count_entities': count_entities_fmt,
-    'coverage_15X': coverage_15X_fmt
+    'fastqc_report': fastqc_report_fmt,
+    'coverage_15X': coverage_15X_fmt,
 };
