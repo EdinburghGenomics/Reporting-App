@@ -1,7 +1,7 @@
-import datetime
 from flask import request, json, current_app as app
 from config import schema
 from rest_api.common import convert_date
+from rest_api.settings import DATE_FORMAT
 from .stages import *
 
 
@@ -88,10 +88,10 @@ demultiplexing = [
             'passing_filter_reads': '$passing_filter_reads',
             'reviewed': '$reviewed',
             'review_comments': '$review_comments',
-            'review_date': '$review_date',
+            'review_date': { '$dateToString': { 'format': DATE_FORMAT, 'date': '$review_date'} },
             'useable': '$useable',
             'useable_comments': '$useable_comments',
-            'useable_date': '$useable_date',
+            'useable_date': { '$dateToString': { 'format': DATE_FORMAT, 'date': '$useable_date'} },
             'tiles_filtered': '$tiles_filtered',
             'trim_r1': '$trim_r1',
             'trim_r2': '$trim_r2',
