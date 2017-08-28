@@ -1,10 +1,10 @@
 import operator
 from datetime import datetime
 from collections import defaultdict
-from flask import request, json
+from flask import request
 from egcg_core.clarity import sanitize_user_id
 from config import project_status as status_cfg
-from rest_api.common import convert_date, retrieve_args
+from rest_api.common import retrieve_args
 from rest_api.limsdb import queries
 
 
@@ -65,7 +65,7 @@ class Sample:
             current_status = status = status_cfg.status_order[0]
             for process, date, process_type, process_id in sorted(self._processes, key=operator.itemgetter(1)):
 
-                process_dict = {'name':process, 'date':date.strftime('%b %d %Y'), 'type':process_type,
+                process_dict = {'name': process, 'date': date.strftime('%b %d %Y'), 'type': process_type,
                                 'process_id': process_id}
                 # This part find the new status
                 if process_type == 'complete' and process in status_cfg.step_completed_to_status:

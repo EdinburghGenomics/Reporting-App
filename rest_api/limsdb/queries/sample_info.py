@@ -1,5 +1,4 @@
 from collections import defaultdict
-from flask import request, json
 from egcg_core.clarity import sanitize_user_id
 
 from rest_api.common import retrieve_args
@@ -32,7 +31,6 @@ def _create_samples(session):
     project_id = match.get('project_id')
     sample_id = match.get('sample_id')
     time_since = match.get('createddate')
-    print(time_since)
 
     for result in queries.get_sample_info(session, project_id, sample_id, time_since=time_since, udfs='all'):
         (pjct_name, sample_name, container, wellx, welly, udf_name, udf_value) = result

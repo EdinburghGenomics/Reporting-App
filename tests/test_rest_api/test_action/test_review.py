@@ -50,7 +50,7 @@ def fake_get_list_samples(sample_names):
 
 class TestReviewInitiator(TestBase):
     initiator_cls = reviews.ReviewInitiator
-    init_request = Mock(form={'samples': '["sample_1"]', 'username': 'user', 'password': 'pass'})
+    init_request = Mock(form={'review_entities': '["sample_1"]', 'username': 'user', 'password': 'pass'})
     expected_replicates = None
 
     def setUp(self):

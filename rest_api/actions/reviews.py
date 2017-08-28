@@ -16,7 +16,7 @@ class ReviewInitiator:
     lims_step_name = None
 
     def __init__(self, request):
-        self.sample_ids_to_review = json.loads(request.form.get('samples'))
+        self.sample_ids_to_review = json.loads(request.form.get('review_entities'))
         self.username = request.form.get('username')
         self.password = request.form.get('password')
         self._lims = None
@@ -57,7 +57,7 @@ class ReviewInitiator:
         return self._stage
 
     def artifact_replicates(self, artifacts):
-        return None
+        return 1
 
     @staticmethod
     def now():
