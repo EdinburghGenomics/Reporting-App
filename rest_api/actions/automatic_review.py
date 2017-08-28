@@ -25,10 +25,6 @@ class Reviewer():
     def cfg(self):
         raise NotImplementedError
 
-    @cached_property
-    def _summary(self):
-        raise NotImplementedError
-
     @staticmethod
     def _query(content, parts, ret_default=None):
         top_level = content.copy()
@@ -122,7 +118,7 @@ class RunReviewer:
 
     @cached_property
     def _summary(self):
-        return [r.report() for r in self.lane_reviewers]
+        return [r._summary for r in self.lane_reviewers]
 
     def push_review(self):
         for reviewer in self.lane_reviewers:
