@@ -54,6 +54,8 @@ class ReviewInitiator:
     def stage(self):
         if self._stage is None:
             self._stage = clarity.get_workflow_stage(workflow_name=self.lims_workflow_name, stage_name=self.lims_step_name)
+            if not self._stage:
+                abort(404, 'Could not find LIMS step %s for workflow %s' % (self.lims_workflow_name, self.lims_step_name))
         return self._stage
 
     def artifact_replicates(self, artifacts):
