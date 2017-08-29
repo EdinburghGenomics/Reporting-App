@@ -1,6 +1,7 @@
 from flask import json
 from werkzeug.datastructures import ImmutableMultiDict
 from werkzeug.exceptions import abort
+from rest_api.actions.reviews import RunReviewInitiator, SampleReviewInitiator
 
 from rest_api.actions.reviews import start_run_review, automatic_run_review, automatic_sample_review
 
@@ -10,12 +11,17 @@ function_mapping = {
     'automatic_sample_review': automatic_sample_review
 }
 
-
+initiators = {
+    'run_review': RunReviewInitiator,
+    'sample_review': SampleReviewInitiator
+}
 def start_action(request):
-    if request.form.get('action_type') in function_mapping:
-        results = function_mapping[request.form.get('action_type')](request)
-    else:
+    action_type = request.form.get('action_type')
+    if action_type not in initiators:
         abort(422, 'Unknown action type %s' % request.form.get('action_type'))
+
+    initiator = initiators[request.form.get('action_type')](request)
+    results = initiator.start_review()
     results['action_type'] = request.form.get('action_type')
     request.form = ImmutableMultiDict(results)
 

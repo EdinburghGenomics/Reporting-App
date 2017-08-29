@@ -120,7 +120,7 @@ def runs_report(view_type):
         ajax_call = {
             'func_name': 'merge_multi_sources',
             'api_urls': [
-                construct_url('aggregate/all_runs', match={"_created": {"$gte": time_ago.strftime(settings.DATE_FORMAT)}}),
+                construct_url('aggregate/all_runs', match={'_created': {'$gte': time_ago.strftime(settings.DATE_FORMAT)}}),
                 construct_url('lims/status/run_status', createddate=time_ago.strftime(settings.DATE_FORMAT)),
             ],
             'merge_on': 'run_id'
@@ -139,9 +139,9 @@ def runs_report(view_type):
             ajax_call=ajax_call,
             create_row='color_filter',
             fixed_header=True,
-            select={'style':'os', 'blurable': True},
-            run_review_url=construct_url('actions'),
-            run_review_field='sample_ids',
+            select={'style': 'os', 'blurable': True},
+            review_url=construct_url('actions'),
+            review_entity_field='sample_ids',
             buttons=['colvis', 'copy', 'pdf', 'runreview']
         ),
         review=True
@@ -166,10 +166,10 @@ def report_run(run_id):
             searching=False,
             info=False,
             create_row='color_filter',
-            select = {'style': 'os', 'blurable': True},
-            run_review_url = construct_url('actions'),
-            run_review_field = 'sample_ids',
-            buttons = ['colvis', 'copy', 'pdf', 'runreview']
+            select={'style': 'os', 'blurable': True},
+            review_url=construct_url('actions'),
+            review_entity_field='sample_ids',
+            buttons=['colvis', 'copy', 'pdf', 'runreview']
         ),
         tab_sets=[
             tab_set_cfg(
@@ -183,10 +183,10 @@ def report_run(run_id):
                         searching=False,
                         info=False,
                         create_row='color_filter',
-                        select = {'style': 'os', 'blurable': True},
-                        run_review_url = construct_url('actions'),
-                        run_review_field = 'sample_id',
-                        buttons = ['colvis', 'copy', 'pdf', 'runreview']
+                        select={'style': 'os', 'blurable': True},
+                        review_url=construct_url('actions'),
+                        review_entity_field='sample_id',
+                        buttons=['colvis', 'copy', 'pdf', 'runreview']
                     )
                     for lane in lanes
                 ]
@@ -215,6 +215,7 @@ def report_run(run_id):
             sort='-_created'
         )
     )
+
 
 @app.route('/projects/')
 @flask_login.login_required
@@ -249,7 +250,7 @@ def report_samples(view_type):
         ajax_call = {
             'func_name': 'merge_multi_sources_keep_first',
             'api_urls': [
-                construct_url('aggregate/samples', match={"useable": 'not%20marked', 'proc_status': 'finished'}),
+                construct_url('aggregate/samples', match={'useable': 'not%20marked', 'proc_status': 'finished'}),
                 construct_url('lims/status/sample_status', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)}),
                 construct_url('lims/samples', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)})
             ],
@@ -263,10 +264,15 @@ def report_samples(view_type):
     return render_template(
         'untabbed_datatables.html',
         title,
+        review=True,
         table=datatable_cfg(
             title=title,
             cols='samples',
-            ajax_call=ajax_call
+            ajax_call=ajax_call,
+            select={'style': 'os', 'blurable': True},
+            review_url=construct_url('actions'),
+            review_entity_field='sample_id',
+            buttons=['colvis', 'copy', 'pdf', 'samplereview']
         )
     )
 
@@ -277,6 +283,7 @@ def report_project(project_id):
     return render_template(
         'untabbed_datatables.html',
         project_id + ' Project Report',
+        review=True,
         tables=[
             datatable_cfg(
                 'Project Status for ' + project_id,
@@ -307,7 +314,11 @@ def report_project(project_id):
                     ],
                     'merge_on': 'sample_id'
                 },
-                fixed_header=True
+                fixed_header=True,
+                select={'style': 'os', 'blurable': True},
+                review_url=construct_url('actions'),
+                review_entity_field='sample_id',
+                buttons=['colvis', 'copy', 'pdf', 'samplereview']
             )
         ]
     )
@@ -316,11 +327,10 @@ def report_project(project_id):
 @app.route('/sample/<sample_id>')
 @flask_login.login_required
 def report_sample(sample_id):
-
     return render_template(
         'sample_report.html',
-
-        title=sample_id + ' Sample Report',
+        sample_id + ' Sample Report',
+        review=True,
         tables=[
             datatable_cfg(
                 'Bioinformatics report for ' + sample_id,
@@ -337,7 +347,11 @@ def report_sample(sample_id):
                 },
                 paging=False,
                 searching=False,
-                info=False
+                info=False,
+                select={'style': 'os', 'blurable': True},
+                review_url=construct_url('actions'),
+                review_entity_field='sample_id',
+                buttons=['colvis', 'copy', 'pdf', 'samplereview']
             ),
             datatable_cfg(
                 'Run elements generated for ' + sample_id,

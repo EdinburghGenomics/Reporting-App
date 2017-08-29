@@ -2,8 +2,6 @@ from os.path import join, abspath, dirname
 import eve
 from eve.auth import requires_auth
 import flask_cors
-from werkzeug.exceptions import abort
-
 import auth
 from config import rest_config as cfg
 from rest_api import actions
@@ -23,6 +21,7 @@ app.on_post_GET_projects += server_side.aggregate_embedded_sample_elements_into_
 app.on_pre_POST_actions += actions.start_action
 app.on_post_POST_actions += actions.add_to_action
 
+
 def _create_url_with(base, route):
     if app.config.get('URL_PREFIX') and app.config.get('API_VERSION'):
         return '/%s/%s/%s/%s' % (app.config['URL_PREFIX'], app.config['API_VERSION'], base, route)
@@ -37,9 +36,6 @@ def _aggregate_endpoint(route):
 def _lims_endpoint(route):
     return _create_url_with('lims', route)
 
-
-def _action_endpoint(route):
-    return _create_url_with('actions', route)
 
 @app.route(_aggregate_endpoint('run_elements_by_lane'))
 @requires_auth('home')

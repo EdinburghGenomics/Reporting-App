@@ -66,8 +66,6 @@ class TestServerSide(TestAggregation):
         if incomplete:
             filename += '_incomplete'
         filename += '.json'
-        print()
-        print(filename)
         self._compare_jsons(
             json.loads(server_side._aggregate_data(json.load(self._json_test_file('pre', filename)), aggregate, trim_run_elements=trim_run_elements)),
             json.load(self._json_test_file('post', filename))
