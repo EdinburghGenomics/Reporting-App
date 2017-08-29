@@ -137,10 +137,11 @@ samples:
     useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ], default: 'not marked' }
     useable_comments: {         type: 'multilinestring',  required: False }
     useable_date: {             type: 'datetime', required: False }
+    useable_reviewer: {         type: 'string', required: False }
     delivered: {                type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no' }
     delivery_date: {            type: 'datetime', required: False }
-    files_delivered: {          type: 'list', required: False, 'schema': { 'type': 'dict', 'schema': { 'file_path': { 'type': 'string' }, 'md5': { 'type': 'string' } } } }
-    files_downloaded: {         type: 'list', required: False, 'schema': { 'type': 'dict', 'schema': { 'file_path': { 'type': 'string' }, 'user': { 'type': 'string' }, 'date': { type: 'datetime' } } } }
+    files_delivered: {          type: 'list', required: False, 'schema': { 'type': 'dict', 'schema': { 'file_path': { 'type': 'string' }, 'md5': { 'type': 'string' }, 'size': { 'type': 'integer' } } } }
+    files_downloaded: {         type: 'list', required: False, 'schema': { 'type': 'dict', 'schema': { 'file_path': { 'type': 'string' }, 'user': { 'type': 'string' }, 'date': { type: 'datetime' }, 'size': { 'type': 'integer' } } } }
     input_fastqs_deleted: {     type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no'}
     data_deleted: {             type: 'string',  required: False, allowed: ['all', 'fastq', 'processed', 'on lustre', 'none'], default: 'none'}
 
