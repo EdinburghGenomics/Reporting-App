@@ -106,30 +106,94 @@ var color_filter = function( row, data, dataIndex ) {
     }
 }
 
+var get_run_review = function (dt_config){
+    return function (e, dt, node, config ) {
+        var data = dt.rows( { selected: true } ).data();
+        // Retrieve the name of all the samples involved using lodash
+        values = _.chain(data)
+                  .map(_.property(dt_config.run_review_field))
+                  .flatten()
+                  .filter(function(o) { return o != "Undetermined"; })
+                  .uniq()
+                  .sortBy()
+                  .value();
+        // Grab and store the content of the modal to replace it when it will be closed
+        var modalContentClone = $("#reviewModal").clone()
+        $("#reviewModal").on('hidden.bs.modal', function (e) {
+            $("#reviewModal").replaceWith(modalContentClone);
+        });
+
+        $('#modalform').submit(function (event) {
+            // Show the spinning arrow
+            $('#loadingoverlay').show();
+            // Prevent default submit action
+            event.preventDefault();
+            var usr_input = document.getElementById('usr');
+            var pwd_input = document.getElementById('pwd');
+            $.ajax({
+                url: dt_config.run_review_url,
+                type: 'POST',
+                dataType: "json",
+                data: {
+                    'username':usr_input.value,
+                    'password':pwd_input.value,
+                    'samples': JSON.stringify(values),
+                    'action_type': 'run_review'
+                },
+                async: true,
+                headers: {'Authorization': dt_config.token},
+                success: function(json) {
+                    // on success write the link to the message div and change it to a success alert
+                    var link = $("<a />", {href : json.data.action_info.lims_url, text:json.data.action_info.lims_url});
+                    $('#modalmessagediv').empty();
+                    $('#modalmessagediv').removeClass('alert-danger')
+                    $('#modalmessagediv').addClass('alert-success')
+                    $('#modalmessagediv').append(link);
+                    $('#modalmessagediv').show();
+                    $('#modalsubmit').prop('disabled', true);
+                    $('#loadingoverlay').hide();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    // on error get the error message from the json response and display it in the alert
+                    $('#modalmessagediv').empty();
+                    $('#modalmessagediv')[0].textContent = jqXHR.responseJSON._error.message;
+                    $('#modalmessagediv').addClass('alert-danger')
+                    $('#modalmessagediv').show();
+                    $('#loadingoverlay').hide();
+                }
+            });
+            return false;
+        });
+        $('#modaltext')[0].innerHTML = "You're about to review the usability of run elements from "+ values.length + " samples:<br>" + values.join('<br>');
+        $('#reviewModal').modal('show')
+    }
+}
+
 function create_datatable(dt_config){
     //Sets default value using Lodash.js
     _.defaults(dt_config, {'buttons': 'defaults'});
     $(document).ready(function(){
         var table = $('#' + dt_config.name).DataTable(configure_dt(dt_config));
         if (dt_config.buttons){
-            new $.fn.dataTable.Buttons(table, {'buttons': configure_buttons(dt_config.buttons)});
+            new $.fn.dataTable.Buttons(table, {'buttons': configure_buttons(dt_config)});
             table.buttons().container().prependTo(table.table().container());
         }
     });
 }
 
-
 // Configure the buttons for datatable
-var configure_buttons = function(button_config){
+var configure_buttons = function(dt_config){
+
     var buttons_def = {
-        'colvis': {extend: 'colvis', text: '<i class="fa fa-filter"></i>',     titleAttr: 'Filter Columns'},
-        'copy': {extend: 'copy',   text: '<i class="fa fa-files-o"></i>',    titleAttr: 'Copy', exportOptions: {'columns': ':visible'} },
-        'pdf': {extend: 'pdf',    text: '<i class="fa fa-file-pdf-o"></i>', titleAttr: 'PDF', orientation: 'landscape', exportOptions: {'columns': ':visible'}}
+        'colvis': {extend: 'colvis', text: '<i class="fa fa-filter"></i>', titleAttr: 'Filter Columns'},
+        'copy': {extend: 'copy', text: '<i class="fa fa-files-o"></i>', titleAttr: 'Copy', exportOptions: {'columns': ':visible'} },
+        'pdf': {extend: 'pdf', text: '<i class="fa fa-file-pdf-o"></i>', titleAttr: 'PDF', orientation: 'landscape', exportOptions: {'columns': ':visible'} },
+        'runreview': {extend: 'selected', text: '<i class="fa fa-yelp"></i>', titleAttr: 'Start run review', action: get_run_review(dt_config)}
     }
-    if (button_config === 'defaults'){
-        button_config = ['colvis', 'copy', 'pdf']
+    if (dt_config.buttons === 'defaults'){
+        dt_config.buttons = ['colvis', 'copy', 'pdf']
     }
-    return button_config.map(function(n){return buttons_def[n]});
+    return dt_config.buttons.map(function(n){return buttons_def[n]});
 }
 
 
@@ -141,6 +205,7 @@ var configure_dt = function(dt_config) {
         'paging': true,
         'searching': true,
         'info': true,
+        'select': false
     });
     // configure the ajax call or retrieve the ajax callback function
     var ajax_call = {
@@ -164,6 +229,7 @@ var configure_dt = function(dt_config) {
         //'stateSave': true,
         'lengthMenu': [[10, 25, 50, -1], [10, 25, 50, "All"]],
         'pageLength': 25,
+        'select': dt_config.select,
         'ajax': ajax_call,
         'language': {'processing': '<i class="fa fa-refresh fa-spin">'},
         'columns': dt_config.cols.map(

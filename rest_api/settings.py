@@ -53,6 +53,13 @@ DOMAIN = {
         'item_title': 'analysis_driver_stage',
         'id_field': 'stage_id',
         'schema': schema['analysis_driver_stages']
+    },
+
+    'actions': {
+        'url': 'actions',
+        'item_title': 'action'
+        'id_field' 'stage_id',
+        'schema': schema['actions'],
     }
 }
 
