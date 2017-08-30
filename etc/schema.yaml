@@ -56,7 +56,8 @@ run_elements:
     review_date: {              type: 'datetime', required: False }
     useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ], default: 'not marked' }
     useable_comments: {         type: 'multilinestring',  required: False }
-    useable_date: {              type: 'datetime', required: False }
+    useable_date: {             type: 'datetime', required: False }
+    useable_reviewer: {         type: 'string', required: False }
 
 
 unexpected_barcodes:
