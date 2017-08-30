@@ -56,6 +56,7 @@ class TestReviewInitiator(TestBase):
     def setUp(self):
         self.initiator = self.initiator_cls(self.init_request)
         self.fake_lims = MagicMock(spec=Lims, cache={})
+        self.fake_stage = Mock(spec=Stage, step=Mock())
 
     def tearDown(self):
         global _cache_samples
@@ -68,7 +69,7 @@ class TestReviewInitiator(TestBase):
         mocked_connection.assert_called_once_with(
             new=True, password='pass', username='user', baseuri='http://clarity.com'
         )
-        self.initiator._lims = None
+        del self.initiator.__dict__['lims']
 
         mocked_connection.side_effect = HTTPError('Something broke!')
         with self.assertRaises(Unauthorized) as e:
@@ -88,40 +89,40 @@ class TestReviewInitiator(TestBase):
         assert e.exception.description == 'Some of the samples to review were not found in the LIMS. 1 samples requested 0 samples found'
 
     def _test_start_review(self, queue_artifacts):
-        self.initiator._lims = self.fake_lims
-        self.initiator._stage = Mock(spec=Stage, step=Mock())
+        with patch.object(self.initiator_cls, 'lims', new_callable=PropertyMock(return_value=self.fake_lims)), \
+             patch.object(self.initiator_cls, 'stage', new_callable=PropertyMock(return_value=self.fake_stage)):
 
-        p_artifacts = patch.object(Queue, 'artifacts', new_callable=PropertyMock(return_value=queue_artifacts))
-        p_datetime = patch.object(self.initiator_cls, 'now', return_value='some time')
-        p_samples = patch.object(self.initiator_cls, 'samples_to_review', new=[create_sample('sample_1')])
-        p_step = patch.object(Step, 'create', return_value=Mock(spec=Step, id='24-1234', program_names=['Upload metrics and assess samples']))
-        p_replicates = patch.object(self.initiator_cls, 'artifact_replicates', return_value=self.expected_replicates)
-        with p_artifacts, p_datetime, p_samples, p_step as mocked_step_create, p_replicates as mocked_replicates:
-            obs = self.initiator.perform_action()
-            assert obs == {
-                'action_id': 'lims_24-1234',
-                'started_by': 'user',
-                'date_started': 'some time',
-                'action_info': {
-                    'lims_step_name': self.initiator.lims_step_name,
-                    'lims_url': 'http://clarity.com/clarity/work-details/1234',
-                    'samples': ['sample_1']
+            p_artifacts = patch.object(Queue, 'artifacts', new_callable=PropertyMock(return_value=queue_artifacts))
+            p_datetime = patch.object(self.initiator_cls, 'now', return_value='some time')
+            p_samples = patch.object(self.initiator_cls, 'samples_to_review', new=[create_sample('sample_1')])
+            p_step = patch.object(Step, 'create', return_value=Mock(spec=Step, id='24-1234', program_names=['Upload metrics and assess samples']))
+            p_replicates = patch.object(self.initiator_cls, 'artifact_replicates', return_value=self.expected_replicates)
+            with p_artifacts, p_datetime, p_samples, p_step as mocked_step_create, p_replicates as mocked_replicates:
+                obs = self.initiator.perform_action()
+                assert obs == {
+                    'action_id': 'lims_24-1234',
+                    'started_by': 'user',
+                    'date_started': 'some time',
+                    'action_info': {
+                        'lims_step_name': self.initiator.lims_step_name,
+                        'lims_url': 'http://clarity.com/clarity/work-details/1234',
+                        'samples': ['sample_1']
+                    }
                 }
-            }
 
-            mocked_step_create.assert_called_once_with(
-                self.fake_lims,
-                inputs=[self.initiator.samples_to_review[0].artifact],
-                replicates=self.expected_replicates,
-                protocol_step=self.initiator.stage.step
-            )
-            mocked_step_create.return_value.trigger_program.assert_called_once_with('Upload metrics and assess samples')
-            mocked_replicates.assert_called_with([create_artifact('sample_1')])
+                mocked_step_create.assert_called_once_with(
+                    self.fake_lims,
+                    inputs=[self.initiator.samples_to_review[0].artifact],
+                    replicates=self.expected_replicates,
+                    protocol_step=self.initiator.stage.step
+                )
+                mocked_step_create.return_value.trigger_program.assert_called_once_with('Upload metrics and assess samples')
+                mocked_replicates.assert_called_with([create_artifact('sample_1')])
 
     def test_start_review_queue_empty(self):
         self._test_start_review([])
         self.fake_lims.route_artifacts.assert_called_with(
-            artifact_list=[create_artifact('sample_1')], stage_uri=self.initiator.stage.uri
+            artifact_list=[create_artifact('sample_1')], stage_uri=self.fake_stage.uri
         )
 
     def test_start_review_queue_not_empty(self):

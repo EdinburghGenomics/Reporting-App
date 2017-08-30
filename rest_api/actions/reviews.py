@@ -11,6 +11,7 @@ from werkzeug.exceptions import abort
 from rest_api.aggregation.database_side import db
 from config import rest_config as cfg
 
+
 class Action(object):
 
     def __init__(self, request):
