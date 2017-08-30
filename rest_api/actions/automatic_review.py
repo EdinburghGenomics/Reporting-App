@@ -10,6 +10,7 @@ from eve.methods.patch import patch_internal
 from eve.methods.get import get
 from werkzeug.exceptions import abort
 
+from config import rest_config
 from rest_api import settings
 from rest_api.actions.reviews import Action
 from rest_api.aggregation.database_side import _aggregate, queries
@@ -143,20 +144,19 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
         self.sample_id = self.request.form.get('sample_id')
 
     @cached_property
-    def lims(self):
-        return connection(new=True)
-
-    @cached_property
     def lims_sample(self):
-        self.lims
-        return get_sample(self.sample_id)
+        connection(new=True, **rest_config.get('clarity'))
+        s = get_sample(self.sample_id)
+        if not s:
+            abort(404, 'Sample %s cannot be found in the Lims' % self.sample_id)
+        return s
 
     @cached_property
     def reviewable_data(self):
         data = _aggregate(
             'samples',
             queries.sample,
-            request_args={'sample_id': self.sample_id}
+            request_args={'match': '{"sample_id": "%s"}' % self.sample_id}
         )
         if data:
             return data[0]
@@ -171,6 +171,12 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
     def species(self):
         return self.reviewable_data.get('species_name')
 
+    def find_value(self, db_key, lims_key):
+        value = self.reviewable_data.get(db_key)
+        if not value:
+            value = self.lims_sample.udf.get(lims_key)
+        return value
+
     @cached_property
     def cfg(self):
         cfg = review_thresholds['sample'].get(self.species, {}).copy()
@@ -180,12 +186,12 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
             cfg.pop('genotype_validation.mismatching_snps', None)
             cfg.pop('genotype_validation.no_call_seq', None)
 
-        yieldq30 = self.reviewable_data.get('expected_yield_q30', self.lims_sample.udf['Yield for Quoted Coverage (Gb)'])
+        yieldq30 = self.find_value('expected_yield_q30', 'Yield for Quoted Coverage (Gb)')
         if not yieldq30:
             abort(404, 'Sample %s does not have a expected yield Q30' % self.sample_id)
 
-        expected_yield = self.lims_sample.udf['Required Yield (Gb)']
-        coverage = self.lims_sample.udf['Coverage (X)']
+        coverage = self.find_value('expected_coverage', 'Coverage (X)')
+        expected_yield = self.lims_sample.udf.get('Required Yield (Gb)')
 
         tmp_expected_yield, tmp_coverage = self.coverage_values[yieldq30]
         if not expected_yield:

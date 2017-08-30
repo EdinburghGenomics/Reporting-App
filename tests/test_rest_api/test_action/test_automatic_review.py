@@ -135,7 +135,7 @@ class TestSampleReviewer(TestBase):
             self.reviewer.reviewable_data
             patch_aggregate.assert_called_once_with('samples',
                                                     queries.sample,
-                                                    request_args={'sample_id': 'sample1'})
+                                                    request_args={'match':'{"sample_id": "sample1"}'})
 
     def test_failing_metrics(self):
         with patch(ppath + '_aggregate', return_value=(passing_sample,)), self.patch_lims_samples:
