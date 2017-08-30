@@ -97,7 +97,7 @@ class TestReviewInitiator(TestBase):
         p_step = patch.object(Step, 'create', return_value=Mock(spec=Step, id='24-1234', program_names=['Upload metrics and assess samples']))
         p_replicates = patch.object(self.initiator_cls, 'artifact_replicates', return_value=self.expected_replicates)
         with p_artifacts, p_datetime, p_samples, p_step as mocked_step_create, p_replicates as mocked_replicates:
-            obs = self.initiator.start_review()
+            obs = self.initiator.perform_action()
             assert obs == {
                 'action_id': 'lims_24-1234',
                 'started_by': 'user',

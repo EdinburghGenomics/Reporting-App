@@ -71,21 +71,21 @@ non_human_sample = {
 
 class TestLaneReviewer(TestBase):
     def setUp(self):
-        self.passing_reviewer = ar.LaneReviewer(passing_lane)
-        self.failing_reviewer_1 = ar.LaneReviewer(failing_lanes[0])
-        self.failing_reviewer_2 = ar.LaneReviewer(failing_lanes[1])
+        self.passing_reviewer = ar.AutomaticLaneReviewer(passing_lane)
+        self.failing_reviewer_1 = ar.AutomaticLaneReviewer(failing_lanes[0])
+        self.failing_reviewer_2 = ar.AutomaticLaneReviewer(failing_lanes[1])
 
     def test_failing_metrics(self):
         assert self.passing_reviewer.get_failing_metrics() == []
         assert self.failing_reviewer_1.get_failing_metrics() == ['lane_pc_optical_dups', 'yield_in_gb']
         assert self.failing_reviewer_2.get_failing_metrics() == ['pc_q30', 'yield_in_gb']
 
-    @patch(ppath + 'LaneReviewer.get_failing_metrics', return_value=[])
+    @patch(ppath + 'AutomaticLaneReviewer.get_failing_metrics', return_value=[])
     def test_summary_pass(self, mocked_get_failing_metrics):
         assert self.passing_reviewer._summary['reviewed'] == 'pass'
         assert 'review_date' in self.passing_reviewer._summary
 
-    @patch(ppath + 'LaneReviewer.get_failing_metrics', return_value=['some', 'failing', 'metrics'])
+    @patch(ppath + 'AutomaticLaneReviewer.get_failing_metrics', return_value=['some', 'failing', 'metrics'])
     def test_summary_fail(self, mocked_get_failing_metrics):
         assert self.passing_reviewer._summary['reviewed'] == 'fail'
         assert 'review_date' in self.passing_reviewer._summary
@@ -113,56 +113,54 @@ class TestLaneReviewer(TestBase):
 
 class TestSampleReviewer(TestBase):
 
-    def test_create(self):
+    def setUp(self):
+        self.init_request = Mock(form={'sample_id': 'sample1'})
+        self.reviewer = ar.AutomaticSampleReviewer(self.init_request)
+        self.reviewer1 = ar.AutomaticSampleReviewer(self.init_request)
+
+    def test_reviewable_data(self):
         with patch(ppath + '_aggregate', return_value=(passing_sample,)) as patch_aggregate:
-            passing_reviewer = ar.SampleReviewer('sample1')
+            self.reviewer.reviewable_data
             patch_aggregate.assert_called_once_with('samples',
                                                     queries.sample,
                                                     request_args={'sample_id': 'sample1'})
 
-
     def test_failing_metrics(self):
         with patch(ppath + '_aggregate', return_value=(passing_sample,)):
-            passing_reviewer = ar.SampleReviewer('sample1')
-            assert passing_reviewer.get_failing_metrics() == []
+            assert self.reviewer.get_failing_metrics() == []
 
         with patch(ppath + '_aggregate', return_value=(failing_sample,)):
-            failing_reviewer = ar.SampleReviewer('sample1')
-            assert failing_reviewer.get_failing_metrics() == ['clean_yield_in_gb', 'clean_yield_q30']
+            assert self.reviewer1.get_failing_metrics() == ['clean_yield_in_gb', 'clean_yield_q30']
 
     def test_cfg(self):
         with patch(ppath + '_aggregate', return_value=(sample_no_genotype,)):
-            no_genotype_reviewer = ar.SampleReviewer('sample1')
-            assert 'genotype_validation.no_call_seq' not in no_genotype_reviewer.cfg
-            assert 'genotype_validation.mismatching_snps' not in no_genotype_reviewer.cfg
-            assert no_genotype_reviewer.cfg['clean_yield_in_gb']['value'] == 120
-            assert no_genotype_reviewer.cfg['mean_coverage']['value'] == 30
+            assert 'genotype_validation.no_call_seq' not in self.reviewer.cfg
+            assert 'genotype_validation.mismatching_snps' not in self.reviewer.cfg
+            assert self.reviewer.cfg['clean_yield_in_gb']['value'] == 120
+            assert self.reviewer.cfg['mean_coverage']['value'] == 30
 
         with patch(ppath + '_aggregate', return_value=(passing_sample,)):
-            passing_reviewer = ar.SampleReviewer('sample1')
-            assert 'genotype_validation.no_call_seq' in passing_reviewer.cfg
-            assert 'genotype_validation.mismatching_snps' in passing_reviewer.cfg
-            assert passing_reviewer.cfg['clean_yield_in_gb']['value'] == 120
-            assert passing_reviewer.cfg['mean_coverage']['value'] == 30
+            assert 'genotype_validation.no_call_seq' in self.reviewer1.cfg
+            assert 'genotype_validation.mismatching_snps' in self.reviewer1.cfg
+            assert self.reviewer1.cfg['clean_yield_in_gb']['value'] == 120
+            assert self.reviewer1.cfg['mean_coverage']['value'] == 30
 
     def test_summary(self):
         with patch(ppath + '_aggregate', return_value=(failing_sample,)):
-            failing_reviewer = ar.SampleReviewer('sample1')
-            assert failing_reviewer._summary == {
+            assert self.reviewer._summary == {
                 'reviewed': 'fail',
                 'review_comments': 'failed due to Yield, Yield Q30',
-                'review_date': failing_reviewer.current_time
+                'review_date': self.reviewer.current_time
             }
 
     @patch(ppath + 'patch_internal')
     def test_push_review(self, mocked_patch):
         with patch(ppath + '_aggregate', return_value=(passing_sample,)):
-            passing_reviewer = ar.SampleReviewer('sample1')
-            passing_reviewer.push_review()
+            self.reviewer.push_review()
 
             mocked_patch.assert_called_with(
                 'samples',
-                payload={'reviewed': 'pass', 'review_date': passing_reviewer.current_time},
+                payload={'reviewed': 'pass', 'review_date': self.reviewer.current_time},
                 sample_id='sample1'
             )
 

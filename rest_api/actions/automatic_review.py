@@ -6,15 +6,17 @@ from cached_property import cached_property
 from egcg_core.constants import ELEMENT_REVIEW_COMMENTS, ELEMENT_REVIEW_DATE, ELEMENT_REVIEWED
 from eve.methods.patch import patch_internal
 from eve.methods.get import get
+from werkzeug.exceptions import abort
 
 from rest_api import settings
+from rest_api.actions.reviews import Action
 from rest_api.aggregation.database_side import _aggregate, queries
 
 cfg_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'etc', 'review_thresholds.yaml')
 review_thresholds = yaml.safe_load(open(cfg_path, 'r'))
 
 
-class Reviewer():
+class AutomaticReviewer():
     reviewable_data = None
 
     @cached_property
@@ -78,7 +80,7 @@ class Reviewer():
             }
 
 
-class LaneReviewer(Reviewer):
+class AutomaticLaneReviewer(AutomaticReviewer):
     def __init__(self, aggregated_lane):
         self.reviewable_data = aggregated_lane
         self.run_id = aggregated_lane['run_id']
@@ -108,38 +110,55 @@ class LaneReviewer(Reviewer):
                 )
 
 
-class RunReviewer:
-    def __init__(self, run_id):
-        self.run_id = run_id
-        lanes = _aggregate('run_elements', queries.run_elements_group_by_lane, request_args={'match':'{"run_id": "%s"}' % run_id})
+class AutomaticRunReviewer(Action):
+
+    def __init__(self, request):
+        super().__init__(request)
+        self.run_id = self.request.form.get('run_id')
+
+        lanes = _aggregate('run_elements', queries.run_elements_group_by_lane, request_args={'match':'{"run_id": "%s"}' % self.run_id})
         if not lanes:
-            raise ValueError('No data found for run id %s.' % run_id)
-        self.lane_reviewers = [LaneReviewer(lane) for lane in lanes]
+            abort(404, 'No data found for run id %s.' % self.run_id)
+        self.lane_reviewers = [AutomaticLaneReviewer(lane) for lane in lanes]
 
-    @cached_property
-    def _summary(self):
-        return [r._summary for r in self.lane_reviewers]
-
-    def push_review(self):
+    def _perform_action(self):
         for reviewer in self.lane_reviewers:
             reviewer.push_review()
+        return {
+            'action_id': self.run_id + self.date_started,
+            'date_finished': self.now(),
+            'action_info': {
+                'run_id': self.run_id
+            }
+        }
 
 
-class SampleReviewer(Reviewer):
+class AutomaticSampleReviewer(Action, AutomaticReviewer):
     coverage_values = {30: (40, 30), 95: (120, 30), 120: (160, 40), 190: (240, 60), 270: (360, 90)}
 
-    def __init__(self, sample_id):
-        self.sample_id = sample_id
-        self.reviewable_data = _aggregate(
+    def __init__(self, request):
+        Action.__init__(self, request)
+        self.sample_id = self.request.form.get('sample_id')
+
+    @cached_property
+    def reviewable_data(self):
+        data = _aggregate(
             'samples',
             queries.sample,
-            request_args={'sample_id': sample_id}
+            request_args={'sample_id': self.sample_id}
         )
-        if self.reviewable_data:
-            self.reviewable_data = self.reviewable_data[0]
-        self.sample_genotype = self.reviewable_data.get('genotype_validation')
-        self.species = self.reviewable_data.get('species_name')
+        if data:
+            return data[0]
+        else:
+            (404, 'No data found for run id %s.' % self.sample_id)
 
+    @property
+    def sample_genotype(self):
+        return self.reviewable_data.get('genotype_validation')
+
+    @property
+    def species(self):
+        return self.reviewable_data.get('species_name')
 
     @cached_property
     def cfg(self):
@@ -168,10 +187,19 @@ class SampleReviewer(Reviewer):
             summary[ELEMENT_REVIEW_COMMENTS] = 'failed due to missing genotype'
         return summary
 
-
     def push_review(self):
         patch_internal(
             'samples',
             payload=self._summary,
             sample_id=self.sample_id
         )
+
+    def _perform_action(self):
+        self.push_review()
+        return {
+            'action_id': self.sample_id + self.date_started,
+            'date_finished': self.now(),
+            'action_info': {
+                'sample_id': self.sample_id
+            }
+        }
