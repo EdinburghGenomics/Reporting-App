@@ -1,6 +1,7 @@
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, PropertyMock
 
 from rest_api.actions import automatic_review as ar
+from rest_api.actions.automatic_review import AutomaticSampleReviewer
 from rest_api.aggregation.database_side import queries
 from tests.test_rest_api import TestBase
 
@@ -115,38 +116,50 @@ class TestSampleReviewer(TestBase):
 
     def setUp(self):
         self.init_request = Mock(form={'sample_id': 'sample1'})
+        self.fake_sample = Mock(udf={
+            'Yield for Quoted Coverage (Gb)': 95,
+            'Required Yield (Gb)':120,
+            'Coverage (X)':30
+        })
+        self.patch_lims_samples = patch.object(
+            AutomaticSampleReviewer,
+            'lims_sample',
+            new_callable=PropertyMock(return_value=self.fake_sample)
+        )
         self.reviewer = ar.AutomaticSampleReviewer(self.init_request)
         self.reviewer1 = ar.AutomaticSampleReviewer(self.init_request)
 
     def test_reviewable_data(self):
-        with patch(ppath + '_aggregate', return_value=(passing_sample,)) as patch_aggregate:
+        with patch(ppath + '_aggregate', return_value=(passing_sample,)) as patch_aggregate, \
+             self.patch_lims_samples:
             self.reviewer.reviewable_data
             patch_aggregate.assert_called_once_with('samples',
                                                     queries.sample,
                                                     request_args={'sample_id': 'sample1'})
 
     def test_failing_metrics(self):
-        with patch(ppath + '_aggregate', return_value=(passing_sample,)):
+        with patch(ppath + '_aggregate', return_value=(passing_sample,)), self.patch_lims_samples:
             assert self.reviewer.get_failing_metrics() == []
 
-        with patch(ppath + '_aggregate', return_value=(failing_sample,)):
+        with patch(ppath + '_aggregate', return_value=(failing_sample,)), self.patch_lims_samples:
             assert self.reviewer1.get_failing_metrics() == ['clean_yield_in_gb', 'clean_yield_q30']
 
     def test_cfg(self):
-        with patch(ppath + '_aggregate', return_value=(sample_no_genotype,)):
+        with patch(ppath + '_aggregate', return_value=(sample_no_genotype,)), self.patch_lims_samples:
+
             assert 'genotype_validation.no_call_seq' not in self.reviewer.cfg
             assert 'genotype_validation.mismatching_snps' not in self.reviewer.cfg
             assert self.reviewer.cfg['clean_yield_in_gb']['value'] == 120
             assert self.reviewer.cfg['mean_coverage']['value'] == 30
 
-        with patch(ppath + '_aggregate', return_value=(passing_sample,)):
+        with patch(ppath + '_aggregate', return_value=(passing_sample,)), self.patch_lims_samples:
             assert 'genotype_validation.no_call_seq' in self.reviewer1.cfg
             assert 'genotype_validation.mismatching_snps' in self.reviewer1.cfg
             assert self.reviewer1.cfg['clean_yield_in_gb']['value'] == 120
             assert self.reviewer1.cfg['mean_coverage']['value'] == 30
 
     def test_summary(self):
-        with patch(ppath + '_aggregate', return_value=(failing_sample,)):
+        with patch(ppath + '_aggregate', return_value=(failing_sample,)), self.patch_lims_samples:
             assert self.reviewer._summary == {
                 'reviewed': 'fail',
                 'review_comments': 'failed due to Yield, Yield Q30',
@@ -155,7 +168,7 @@ class TestSampleReviewer(TestBase):
 
     @patch(ppath + 'patch_internal')
     def test_push_review(self, mocked_patch):
-        with patch(ppath + '_aggregate', return_value=(passing_sample,)):
+        with patch(ppath + '_aggregate', return_value=(passing_sample,)), self.patch_lims_samples:
             self.reviewer.push_review()
 
             mocked_patch.assert_called_with(

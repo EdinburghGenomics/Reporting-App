@@ -1,15 +1,15 @@
-import json
 import datetime
+import json
 
 from cached_property import cached_property
 from egcg_core import clarity
 from pyclarity_lims.entities import Queue, Step
-from pymongo import settings
 from requests.exceptions import HTTPError
 from werkzeug.exceptions import abort
 
-from rest_api.aggregation.database_side import db
 from config import rest_config as cfg
+from rest_api import settings
+from rest_api.aggregation.database_side import db
 
 
 class Action(object):

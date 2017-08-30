@@ -9,8 +9,8 @@ from rest_api.actions.reviews import RunReviewInitiator, SampleReviewInitiator
 action_map = {
     'run_review': RunReviewInitiator,
     'sample_review': SampleReviewInitiator,
-    'automatic_run_review': AutomaticSampleReviewer,
-    'automatic_sample_review': AutomaticRunReviewer
+    'automatic_run_review': AutomaticRunReviewer,
+    'automatic_sample_review': AutomaticSampleReviewer
 }
 
 

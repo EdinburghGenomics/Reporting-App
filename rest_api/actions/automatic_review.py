@@ -1,8 +1,10 @@
 import os
 
 import datetime
+
 import yaml
 from cached_property import cached_property
+from egcg_core.clarity import connection, get_sample
 from egcg_core.constants import ELEMENT_REVIEW_COMMENTS, ELEMENT_REVIEW_DATE, ELEMENT_REVIEWED
 from eve.methods.patch import patch_internal
 from eve.methods.get import get
@@ -141,6 +143,15 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
         self.sample_id = self.request.form.get('sample_id')
 
     @cached_property
+    def lims(self):
+        return connection(new=True)
+
+    @cached_property
+    def lims_sample(self):
+        self.lims
+        return get_sample(self.sample_id)
+
+    @cached_property
     def reviewable_data(self):
         data = _aggregate(
             'samples',
@@ -169,11 +180,23 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
             cfg.pop('genotype_validation.mismatching_snps', None)
             cfg.pop('genotype_validation.no_call_seq', None)
 
-        yieldq30 = self.reviewable_data.get(
-            'expected_yield_q30'
-        )
+        yieldq30 = self.reviewable_data.get('expected_yield_q30', self.lims_sample.udf['Yield for Quoted Coverage (Gb)'])
+        if not yieldq30:
+            abort(404, 'Sample %s does not have a expected yield Q30' % self.sample_id)
 
-        expected_yield, coverage = self.coverage_values[yieldq30]
+        expected_yield = self.lims_sample.udf['Required Yield (Gb)']
+        coverage = self.lims_sample.udf['Coverage (X)']
+
+        tmp_expected_yield, tmp_coverage = self.coverage_values[yieldq30]
+        if not expected_yield:
+            expected_yield = tmp_expected_yield
+        if not coverage:
+            coverage = tmp_coverage
+        if not expected_yield:
+            abort(404, 'Sample %s does not have a expected yield' % self.sample_id)
+        if not coverage:
+            abort(404, 'Sample %s does not have a target coverage' % self.sample_id)
+
         cfg['clean_yield_q30']['value'] = yieldq30
         cfg['clean_yield_in_gb']['value'] = expected_yield
         cfg['mean_coverage']['value'] = coverage
