@@ -56,15 +56,15 @@
 </div>
 
 {{ super() }}
-    {% if review %}
-        {{ review_modal() }}
-    {% endif %}
+{% if review %}
+    {{ review_modal() }}
+{% endif %}
+<footer class="footer">
+    <div class="container">
+        <p class="text-muted">
+            Edinburgh Genomics Reporting App version <a href="https://github.com/EdinburghGenomics/Reporting-App/tree/v{{ version }}">{{ version }}</a>
+        </p>
     </div>
-    <footer class="footer">
-        <div class="container">
-            <p class="text-muted">
-                Edinburgh Genomics Reporting App version <a href="https://github.com/EdinburghGenomics/Reporting-App/tree/v{{ version }}">{{ version }}</a>
-            </p>
-        </div>
-    </footer>
+</footer>
+
 {% endblock %}
