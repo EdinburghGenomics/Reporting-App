@@ -29,6 +29,7 @@ def _create_url_with(base, route):
 
 
 def _aggregate_endpoint(route):
+
     return _create_url_with('aggregate', route)
 
 

@@ -1,37 +1,63 @@
-import json
 import datetime
+import json
+
+from cached_property import cached_property
 from egcg_core import clarity
 from pyclarity_lims.entities import Queue, Step
 from requests.exceptions import HTTPError
 from werkzeug.exceptions import abort
 
+from config import rest_config as cfg
 from rest_api import settings
 from rest_api.aggregation.database_side import db
-from config import rest_config as cfg
 
 
-class ReviewInitiator:
+class Action(object):
+
+    def __init__(self, request):
+        self.request = request
+
+    @staticmethod
+    def now():
+        return datetime.datetime.now().strftime(settings.DATE_FORMAT)
+
+
+    @cached_property
+    def date_started(self):
+        return self.now()
+
+    def _perform_action(self):
+        raise NotImplementedError
+
+    def perform_action(self):
+        action_dict = {}
+        action_dict['date_started'] = self.date_started
+        if hasattr(self.request.authorization, 'username'):
+            action_dict['started_by'] = self.request.authorization.username
+
+        action_dict.update(self._perform_action())
+        return action_dict
+
+
+class ReviewInitiator(Action):
     lims_workflow_name = 'PostSeqLab EG 1.0 WF'
     populate_artifacts_epp_name = 'Upload metrics and assess samples'
     lims_step_name = None
 
     def __init__(self, request):
+        super().__init__(request)
         self.sample_ids_to_review = json.loads(request.form.get('review_entities'))
         self.username = request.form.get('username')
         self.password = request.form.get('password')
-        self._lims = None
-        self._stage = None
-        self._artifacts_to_review = None
 
-    @property
+    @cached_property
     def lims(self):
-        if self._lims is None:
-            try:
-                self._lims = clarity.connection(new=True, username=self.username, password=self.password, **cfg.get('clarity'))
-                self._lims.get(self._lims.get_uri())
-            except HTTPError:
-                abort(401, 'Authentication in the LIMS (%s) failed' % cfg.get('clarity', {}).get('baseuri'))
-        return self._lims
+        try:
+            lims = clarity.connection(new=True, username=self.username, password=self.password, **cfg.get('clarity'))
+            lims.get(lims.get_uri())
+        except HTTPError:
+            abort(401, 'Authentication in the LIMS (%s) failed' % cfg.get('clarity', {}).get('baseuri'))
+        return lims
 
     @property
     def samples_to_review(self):
@@ -50,22 +76,17 @@ class ReviewInitiator:
             )
         return samples_to_review
 
-    @property
+    @cached_property
     def stage(self):
-        if self._stage is None:
-            self._stage = clarity.get_workflow_stage(workflow_name=self.lims_workflow_name, stage_name=self.lims_step_name)
-            if not self._stage:
-                abort(404, 'Could not find LIMS step %s for workflow %s' % (self.lims_workflow_name, self.lims_step_name))
-        return self._stage
+        stage = clarity.get_workflow_stage(workflow_name=self.lims_workflow_name, stage_name=self.lims_step_name)
+        if not stage:
+            abort(404, 'Could not find LIMS step %s for workflow %s' % (self.lims_workflow_name, self.lims_step_name))
+        return stage
 
     def artifact_replicates(self, artifacts):
         return 1
 
-    @staticmethod
-    def now():
-        return datetime.datetime.now().strftime(settings.DATE_FORMAT)
-
-    def start_review(self):
+    def _perform_action(self):
         queue = Queue(self.lims, id=self.stage.step.id)
         samples_queued = set()
         artifacts_to_review = []
@@ -111,7 +132,6 @@ class ReviewInitiator:
         return {
             'action_id': 'lims_' + s.id,
             'started_by': self.username,
-            'date_started': self.now(),
             'action_info': {
                 'lims_step_name': self.lims_step_name,
                 'lims_url': cfg['clarity']['baseuri'] + '/clarity/work-details/' + s.id.split('-')[1],
@@ -129,6 +149,7 @@ class RunReviewInitiator(ReviewInitiator):
         for sample_id in self.sample_ids_to_review:
             run_element_counts[sample_id] = db['run_elements'].count({'sample_id': sample_id})
 
+        # Guarantee the order of the count is the same as the artifacts
         return [run_element_counts.get(a.samples[0].name) for a in artifacts]
 
 

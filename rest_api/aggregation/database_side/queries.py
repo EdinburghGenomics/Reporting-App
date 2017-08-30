@@ -1,7 +1,7 @@
-import datetime
 from flask import request, json, current_app as app
 from config import schema
 from rest_api.common import convert_date
+from rest_api.settings import DATE_FORMAT
 from .stages import *
 
 
@@ -88,10 +88,10 @@ demultiplexing = [
             'passing_filter_reads': '$passing_filter_reads',
             'reviewed': '$reviewed',
             'review_comments': '$review_comments',
-            'review_date': '$review_date',
+            'review_date': { '$dateToString': { 'format': DATE_FORMAT, 'date': '$review_date'} },
             'useable': '$useable',
             'useable_comments': '$useable_comments',
-            'useable_date': '$useable_date',
+            'useable_date': { '$dateToString': { 'format': DATE_FORMAT, 'date': '$useable_date'} },
             'tiles_filtered': '$tiles_filtered',
             'trim_r1': '$trim_r1',
             'trim_r2': '$trim_r2',
@@ -362,13 +362,13 @@ project_info = [
 ]
 
 
-def resolve_pipeline(endpoint, base_pipeline):
+def resolve_pipeline(endpoint, base_pipeline, request_args):
     pipeline = []
     schema_endpoint = list(schema[endpoint])
     schema_endpoint.append(app.config['DATE_CREATED'])
     schema_endpoint.append(app.config['LAST_UPDATED'])
-    sort_col = request.args.get('sort', list(schema_endpoint)[0])
-    match = json.loads(request.args.get('match', '{}'))
+    sort_col = request_args.get('sort', list(schema_endpoint)[0])
+    match = json.loads(request_args.get('match', '{}'))
     or_match = match.pop('$or', None)  # TODO: make complex matches generic
     if or_match:
         multi_match_col = list(or_match[0])[0]  # get one of the field names in the or statement
