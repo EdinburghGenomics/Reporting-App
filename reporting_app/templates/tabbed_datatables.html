@@ -20,7 +20,7 @@
 
         <div id="{{ tab_set.tables[0].name }}_tab" class="tab-pane fade in active">{{ datatable(tab_set.tables[0], False) }}</div>
         {% for table in tab_set.tables[1:] %}
-            <div id="{{ table.name }}_tab" class="tab-pane fade">{{ datatable(table) }}</div>
+            <div id="{{ table.name }}_tab" class="tab-pane fade">{{ datatable(table, False) }}</div>
         {% endfor %}
     {% endif %}
 </div>

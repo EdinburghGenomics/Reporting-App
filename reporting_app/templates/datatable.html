@@ -28,6 +28,7 @@
 
 {% macro datatable(dt_config, set_title) -%}
 {# args: dt_config containing title, name, cols, api_url, default_dort_col, paging, searching, info, etc #}
+{% set set_title = set_title|default(True) %}
 
 {% if set_title %}
     <h2>
