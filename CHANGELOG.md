@@ -4,7 +4,20 @@ Changelog for Reporting-App
 0.15 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- New action endpoint: POST query to start an action: 
+  - Automatic Run/Sample review: apply metrics base review and set the results directly in the DB. 
+  - Initiate Run/Sample review in LIMS: start a LIMS step and send back the LIMS url.
+- Add cst date to the run status LIMS end point and show it in the run
+- New schema entries:
+   - project: 
+     - add sample_pipeline to store pipeline use for a project
+   - samples: 
+     - useable_comments: fix type
+     - add useable_reviewer, pipeline_used
+     - add size to files_delivered and files_downloaded
+   - run_elements:
+     - fix type useable_comments and add useable_reviewer
+   - actions: store actions being performed from the REST API
 
 
 0.14.3 (2017-06-28)
