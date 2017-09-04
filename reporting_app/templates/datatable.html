@@ -26,14 +26,17 @@
 {%- endmacro %}
 
 
-{% macro datatable(dt_config) -%}
-{# args: title, name, cols, api_url, default_dort_col, paging, searching, info, etc #}
+{% macro datatable(dt_config, set_title) -%}
+{# args: dt_config containing title, name, cols, api_url, default_dort_col, paging, searching, info, etc #}
+{% set set_title = set_title|default(True) %}
 
-<h2>
-    <a data-toggle="collapse" href="#{{ dt_config.name }}-container">
-        {{ dt_config.title }}
-    </a>
-</h2>
+{% if set_title %}
+    <h2>
+        <a data-toggle="collapse" href="#{{ dt_config.name }}-container">
+            {{ dt_config.title }}
+        </a>
+    </h2>
+{% endif %}
 
 <script type="text/javascript" language="JavaScript">create_datatable({{ dt_config|tojson|safe }})</script>
 

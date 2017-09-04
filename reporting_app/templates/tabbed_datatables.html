@@ -4,9 +4,12 @@
 {% block content %}
 
 {% for tab_set in tab_sets %}
-
-<div id="{{ tab_set.name }}_tabs" class="tab-content">
-    <h2>{{ tab_set.title }}</h2>
+<h2>
+    <a data-toggle="collapse" href="#{{ tab_set.name }}_tabs">
+        {{ tab_set.title }}
+    </a>
+</h2>
+<div id="{{ tab_set.name }}_tabs" class="tab-content collapse in">
     {% if tab_set.tables %}
         <ul class="nav nav-tabs" id="{{ tab_set.name }}_ul">
             <li class="nav active"><a data-target="#{{ tab_set.tables[0].name }}_tab" data-toggle="tab">{{ tab_set.tables[0].title }}</a></li>
@@ -15,9 +18,9 @@
             {% endfor %}
         </ul>
 
-        <div id="{{ tab_set.tables[0].name }}_tab" class="tab-pane fade in active">{{ datatable(tab_set.tables[0]) }}</div>
+        <div id="{{ tab_set.tables[0].name }}_tab" class="tab-pane fade in active">{{ datatable(tab_set.tables[0], False) }}</div>
         {% for table in tab_set.tables[1:] %}
-            <div id="{{ table.name }}_tab" class="tab-pane fade">{{ datatable(table) }}</div>
+            <div id="{{ table.name }}_tab" class="tab-pane fade">{{ datatable(table, False) }}</div>
         {% endfor %}
     {% endif %}
 </div>
