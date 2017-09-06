@@ -1,23 +1,32 @@
 Changelog for Reporting-App
 ===========================
 
-0.15 (unreleased)
+0.15 (2017-09-06)
 -----------------
 
-- New action endpoint: POST query to start an action: 
-  - Automatic Run/Sample review: apply metrics base review and set the results directly in the DB. 
-  - Initiate Run/Sample review in LIMS: start a LIMS step and send back the LIMS url.
-- Add cst date to the run status LIMS end point and show it in the run
+- Added initiation of LIMS-based run/sample review
+    - modal popup to initiate review of selected rows of a datatable
+    - sends a POST entry to new `actions` endpoint
+      - starts a LIMS step and sends back the step url
+- Automatic run/sample review
+    - as from EGCG-Project-Management
+    - applies metric-based review and pushes results directly back to the database 
+- Removed `/runs/recentlims` page
+- Added cst_date to `/lims/status/run_status`
+- Added `Finish Processing` to project status
+- Fixed setup in Docker image entrypoint
+- Added recent, current_year and year_to_date run views
+- New datatable columns: `coverage_5X`, `cst_date`, `mean_coverage` (pointing to coverage.mean)
 - New schema entries:
-   - project: 
-     - add sample_pipeline to store pipeline use for a project
-   - samples: 
-     - useable_comments: fix type
-     - add useable_reviewer, pipeline_used
-     - add size to files_delivered and files_downloaded
-   - run_elements:
-     - fix type useable_comments and add useable_reviewer
-   - actions: store actions being performed from the REST API
+    - run_elements: `useable_reviewer`
+    - projects: `sample_pipeline` (stores which pipeline version to use for a sample in a project)
+    - samples: `useable_reviewer`, `files_delivered.size`, `files_downloaded.size`
+    - analysis_driver_procs: `pipeline_used` (stores the pipeline version run on a dataset)
+    - `actions` endpoint
+    - records actions performed on the REST API
+- Schema fixes:
+    - fixed data type of `useable_comments`
+- Added EGCG-Core and PyClarity-Lims as requirements
 
 
 0.14.3 (2017-06-28)
