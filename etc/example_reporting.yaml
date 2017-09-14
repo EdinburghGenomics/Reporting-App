@@ -49,3 +49,5 @@ rest_app:
 
     clarity:
         baseuri: http://clarity.com
+        username: user
+        password: pass

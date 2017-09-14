@@ -53,7 +53,8 @@ class ReviewInitiator(Action):
     @cached_property
     def lims(self):
         try:
-            lims = clarity.connection(new=True, username=self.username, password=self.password, **cfg.get('clarity'))
+            lims = clarity.connection(new=True, username=self.username, password=self.password,
+                                      baseuri=cfg.query('clarity', 'baseuri', ret_default=''))
             lims.get(lims.get_uri())
         except HTTPError:
             abort(401, 'Authentication in the LIMS (%s) failed' % cfg.get('clarity', {}).get('baseuri'))
