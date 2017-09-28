@@ -179,13 +179,22 @@ class Container:
     def species(self):
         return ', '.join(set(sample.species for sample in self.samples if sample.species))
 
+    @property
+    def started_date(self):
+        if self.samples:
+            started_dates = sorted(sample.started_date for sample in self.samples if sample.started_date)
+            if started_dates:
+                return started_dates[0]
+        return None
+
     def to_json(self):
         ret = {
             'plate_id': self.name,
             'project_id': self.project_id,
             'nb_samples': len(self.samples),
             'library_type': self.library_types,
-            'species': self.species
+            'species': self.species,
+            'started_date': format_date(self.started_date)
         }
         ret.update(self.samples_per_status())
         return ret
@@ -225,13 +234,6 @@ class Project(Container):
             return finished_dates[-1]
         return None
 
-    @property
-    def started_date(self):
-        if self.samples:
-            started_dates = sorted(sample.started_date for sample in self.samples if sample.started_date)
-            if started_dates:
-                return started_dates[0]
-        return None
 
 
 def _create_samples(session, match):

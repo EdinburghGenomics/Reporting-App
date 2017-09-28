@@ -159,6 +159,7 @@ plate_status:
     - species
     - library_type
     - nb_invoiced
+    - started_date
     - nb_genotyped
     - nb_removed
     - nb_repeat
