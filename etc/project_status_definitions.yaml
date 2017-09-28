@@ -51,6 +51,7 @@ step_completed_to_status:
     bioinformatics: DELIVERY
     Data Release EG 1.0: FINISHED
     Finish Processing EG 1.0 ST: FINISHED
+    Request Repeats EG 1.0 ST: SAMPLE_REMOVED
     Remove From Processing EG 1.0 ST: SAMPLE_REMOVED
 
 
