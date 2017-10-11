@@ -1,7 +1,7 @@
 # Datatables column definitions for the reporting app
 
 column_def:
-    bam_file_reads:           { data: 'bam_file_reads',                       title: 'Initial reads in bam',     fmt: { type: 'int',   min: 1500 } }
+    bam_file_reads:           { data: 'bam_file_reads',                       title: 'Initial reads in bam',     fmt: { type: 'int' } }
     barcode:                  { data: 'barcode',                              title: 'Barcode' }
     clean_pc_q30:             { data: 'clean_pc_q30',                         title: '% Q30 - cleaned',          fmt: { type: 'percentage', min: 75 }, visible: 'false'  }
     clean_pc_q30_r1:          { data: 'clean_pc_q30_r1',                      title: '% Q30 R1 - cleaned',       fmt: { type: 'percentage', min: 75 }, visible: 'false' }
@@ -12,13 +12,13 @@ column_def:
     _created:                 { data: '_created',                             title: 'Created' }
     cv:                       { data: 'cv',                                   title: 'Coefficient of variance',  fmt: { type: 'float' } }
     delivered:                { data: 'delivered',                            title: 'Delivered'}
-    duplicate_reads:          { data: 'duplicate_reads',                      title: '# duplicate reads',        fmt: { type: 'int',   min: 1500 },    visible: 'false',         }
+    duplicate_reads:          { data: 'duplicate_reads',                      title: '# duplicate reads',        fmt: { type: 'int' },    visible: 'false',         }
     lane_pc_optical_dups:     { data: 'lane_pc_optical_dups',                 title: 'Estimated dupl rate',      fmt: { type: 'float', max: 20 } }
     lane_number:              { data: 'lane_number',                          title: 'Lane' }
     library_id:               { data: 'library_id',                           title: 'Library ID' }
     library_type:             { data: 'library_type',                         title: 'Library',                                                        visible: 'false' }
     genotype_match:           { data: 'genotype_match',                       title: 'Genotype'   }
-    mapped_reads:             { data: 'mapped_reads',                         title: '# mapped reads',           fmt: { type: 'int',   min: 1500 },    visible: 'false',  }
+    mapped_reads:             { data: 'mapped_reads',                         title: '# mapped reads',           fmt: { type: 'int' },    visible: 'false',  }
     matching_snps:            { data: 'genotype_validation.matching_snps',    title: 'Matching snps' ,                                                 visible: 'false'}
     median_coverage:          { data: 'median_coverage',                      title: 'Median coverage',          fmt: { type: 'float', min: 30 } }
     mean_coverage:            { data: 'coverage.mean',                        title: 'Mean coverage',            fmt: { type: 'float', min: 30 } }
@@ -48,22 +48,22 @@ column_def:
     called_gender:            { data: 'called_gender',                        title: 'Called Gender' ,                                                 visible: 'false'}
     provided_gender:          { data: 'provided_gender',                      title: 'Provided Gender',                                                visible: 'false' }
     gender_match:             { data: 'gender_match',                         title: 'Gender' }
-    passing_filter_reads:     { data: 'passing_filter_reads',                 title: 'Passing-filter reads',     fmt: { type: 'int',    min: 1500 } }
+    passing_filter_reads:     { data: 'passing_filter_reads',                 title: 'Passing-filter reads',     fmt: { type: 'int' } }
     pc_adapter:               { data: 'pc_adapter',                           title: '% Adapter',                fmt: { type: 'percentage', max: 5 } }
     pc_callable:              { data: 'pc_callable',                          title: '% callable',               fmt: { type: 'percentage', min: 70 }, visible: 'false' }
-    pc_duplicate_reads:       { data: 'pc_duplicate_reads',                   title: '% duplicate reads',        fmt: { type: 'percentage', max: 20 } }
-    pc_mapped_reads:          { data: 'pc_mapped_reads',                      title: '% mapped reads',           fmt: { type: 'percentage', min: 70 } }
+    pc_duplicate_reads:       { data: 'pc_duplicate_reads',                   title: '% duplicate reads',        fmt: { type: 'percentage', max: 35 } }
+    pc_mapped_reads:          { data: 'pc_mapped_reads',                      title: '% mapped reads',           fmt: { type: 'percentage', min: 90 } }
     pc_pass_filter:           { data: 'pc_pass_filter',                       title: '% Pass filter',            fmt: { type: 'percentage' } }
-    pc_properly_mapped_reads: { data: 'pc_properly_mapped_reads',             title: '% properly mapped reads',  fmt: { type: 'percentage', min: 70 }, visible: 'false' }
+    pc_properly_mapped_reads: { data: 'pc_properly_mapped_reads',             title: '% properly mapped reads',  fmt: { type: 'percentage' }, visible: 'false' }
     pc_q30:                   { data: 'pc_q30',                               title: '%Q30',                     fmt: { type: 'percentage',  min: 75 } }
     pc_q30_r1:                { data: 'pc_q30_r1',                            title: '%Q30 R1',                  fmt: { type: 'percentage',  min: 75 } }
     pc_q30_r2:                { data: 'pc_q30_r2',                            title: '%Q30 R2',                  fmt: { type: 'percentage',  min: 75 } }
-    pc_reads_in_lane:         { data: 'pc_reads_in_lane',                     title: '% Reads in lane',          fmt: { type: 'percentage', min: 70   } }
+    pc_reads_in_lane:         { data: 'pc_reads_in_lane',                     title: '% Reads in lane',          fmt: { type: 'percentage'} }
     proc_status:              { data: 'proc_status',                          title: 'Processing Status' }
     project_id:               { data: 'project_id',                           title: 'Project ID',               fmt: { link: '/projects/' }  }
     project_ids:              { data: 'project_ids',                          title: 'Projects',                 fmt: { link: '/projects/' } }
     plate_id:                 { data: 'plate_id',                             title: 'Plate' }
-    properly_mapped_reads:    { data: 'properly_mapped_reads',                title: '# properly mapped reads',  fmt: { type: 'int',   min: 1500 },    visible: 'false'}
+    properly_mapped_reads:    { data: 'properly_mapped_reads',                title: '# properly mapped reads',  fmt: { type: 'int' },    visible: 'false'}
     reviewed:                 { data: 'reviewed',                             title: 'Review status' }
     review_statuses:          { data: 'review_statuses',                      title: 'Review' }
     run_id:                   { data: 'run_id',                               title: 'Run ID',                   fmt: { link: '/run/' } }

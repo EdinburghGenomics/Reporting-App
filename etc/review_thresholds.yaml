@@ -2,7 +2,7 @@
 run:
     yield_in_gb:
         name: Yield
-        value: 110
+        value: 120
         comparison: '>'
     pc_q30:
         name: PC Q30
