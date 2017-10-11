@@ -22,6 +22,9 @@ class Sample:
         self._all_statuses_and_date = None
         self.planned_library = None
         self.species = None
+        self.coverage = None
+        self.req_yield = None
+
 
     def add_completed_process(self, process_name, completed_date, process_id=None):
         self._processes.add((process_name, completed_date, 'complete', process_id))
@@ -153,7 +156,9 @@ class Sample:
             'started_date': format_date(self.started_date),
             'finished_date': format_date(self.finished_date),
             'library_type': self.library_type,
-            'species': self.species
+            'species': self.species,
+            'coverage': self.coverage,
+            'req_yield': self.req_yield
         }
 
 
@@ -171,13 +176,32 @@ class Container:
                 sample_per_status[status].append(sample.sample_name)
         return sample_per_status
 
+    def _aggregate_sample_attr(self, sample_attr):
+        l = []
+        for sample in self.samples:
+            if hasattr(sample, sample_attr):
+                d = getattr(sample, sample_attr)
+                if d:
+                    l.append(str(d))
+                else:
+                    l.append('-')
+        return ', '.join(set(l))
+
     @property
     def library_types(self):
-        return ', '.join(set(sample.library_type for sample in self.samples if sample.library_type))
+        return self._aggregate_sample_attr('library_type')
 
     @property
     def species(self):
-        return ', '.join(set(sample.species for sample in self.samples if sample.species))
+        return self._aggregate_sample_attr('species')
+
+    @property
+    def coverage(self):
+        return self._aggregate_sample_attr('coverage')
+
+    @property
+    def req_yield(self):
+        return self._aggregate_sample_attr('req_yield')
 
     @property
     def started_date(self):
@@ -194,6 +218,8 @@ class Container:
             'nb_samples': len(self.samples),
             'library_type': self.library_types,
             'species': self.species,
+            'coverage': self.coverage,
+            'req_yield': self.req_yield,
             'started_date': format_date(self.started_date)
         }
         ret.update(self.samples_per_status())
@@ -213,6 +239,8 @@ class Project(Container):
             'nb_samples': len(self.samples),
             'library_type': self.library_types,
             'species': self.species,
+            'coverage': self.coverage,
+            'req_yield': self.req_yield,
             'open_date': format_date(self.open_date),
             'researcher_name': self.researcher_name,
             'nb_quoted_samples': self.nb_quoted_samples,
@@ -253,7 +281,7 @@ def _create_samples(session, match):
         list_process_queued = status_cfg.step_queued_to_status
 
     for result in queries.get_sample_info(session, project_id, sample_id, time_since=sample_time_since,
-                                          udfs=['Prep Workflow', 'Species']):
+                                          udfs=['Prep Workflow', 'Species', 'Coverage (X)', 'Required Yield (Gb)']):
         (pjct_name, sample_name, container, wellx, welly, udf_name, udf_value) = result
         s = all_samples[sanitize_user_id(sample_name)]
         s.sample_name = sanitize_user_id(sample_name)
@@ -265,6 +293,10 @@ def _create_samples(session, match):
             all_samples[sanitize_user_id(sample_name)].planned_library = udf_value
         if udf_name == 'Species':
             all_samples[sanitize_user_id(sample_name)].species = udf_value
+        if udf_name == 'Coverage (X)':
+            all_samples[sanitize_user_id(sample_name)].coverage = udf_value
+        if udf_name == 'Required Yield (Gb)':
+            all_samples[sanitize_user_id(sample_name)].req_yield = udf_value
 
     for result in queries.get_samples_and_processes(session,  project_id, sample_id,
                                                     workstatus='COMPLETE', list_process=list_process_complete,

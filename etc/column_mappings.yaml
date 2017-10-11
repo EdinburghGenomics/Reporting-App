@@ -25,6 +25,7 @@ column_def:
     coverage_5X:              { data: 'coverage',                             title: '% covered 5X',             fmt: { name: 'coverage_5X', type: 'percentage', min: 85 }, visible: 'false' }
     coverage_15X:             { data: 'coverage',                             title: '% covered 15X',            fmt: { name: 'coverage_15X', type: 'percentage', min: 85 } }
     evenness:                 { data: 'coverage.evenness',                    title: '% Evenness',               fmt: { type: 'ratio_percentage', min: .8 } }
+    expected_coverage:        { data: 'coverage',                             title: 'Coverage (X)',             visible: 'false',   class_name: 'text-center sum'}
     mismatching_snps:         { data: 'genotype_validation.mismatching_snps', title: 'Mismatching snps' ,                                              visible: 'false'}
     nb_quoted_samples:        { data: 'nb_quoted_samples',                    title: 'Quoted Samples' ,          class_name: 'text-center sum' }
     nb_samples_delivered:     { data: 'nb_samples_delivered',                 title: 'Samples Delivered' }
@@ -88,7 +89,7 @@ column_def:
     run_status:               { data: 'run_status',                           title: 'Lims status' }
     instrument_id:            { data: 'instrument_id',                        title: 'Instrument ID' }
     current_lims_status:      { data: 'current_status',                       title: 'Lims Status' }
-    expected_yield:           { data: 'Required Yield (Gb)',                  title: 'Expected Yield (Gb)',      fmt: { type: 'float' },               visible: 'false'  }
+    expected_yield:           { data: 'Required Yield (Gb)',                  title: 'Expected Yield (Gb)',      visible: 'false'  }
     expected_yield_q30:       { data: 'Yield for Quoted Coverage (Gb)',       title: 'Expected Yield Q30 (Gb)',  fmt: { type: 'float' },               visible: 'false' }
     tissue_type:              { data: 'Sample Type',                          title: 'Tissue type',                                                    visible: 'false'}
     tumor_sample:             { data: 'Is Tumor Sample',                      title: 'Is Tumor Sample',                                                visible: 'false'}
@@ -132,6 +133,8 @@ project_status:
     - reseacher
     - nb_quoted_samples
     - { column_def: 'nb_samples', title: 'Sample Received', visible: 'false', class_name: 'text-center' }
+    - { column_def: 'expected_yield', data: 'req_yield', class_name: 'text-center' }
+    - expected_coverage
     - species
     - library_type
     - nb_invoiced
@@ -235,7 +238,7 @@ samples:
     - species
     - { column_def: 'clean_yield_in_gb', title: 'Yield (Gb)' }
     - { column_def: 'clean_yield_q30', title: 'Yield Q30 (Gb)' }
-    - expected_yield
+    - { column_def: 'expected_yield', fmt: { type: 'float' } }
     - expected_yield_q30
     - tissue_type
     - tumor_sample
