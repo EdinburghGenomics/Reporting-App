@@ -24,10 +24,6 @@ sample:
             name: Yield Q30
             # value: populated in automatic_review.sample_config
             comparison: '>'
-        pc_mapped_reads:
-            name: Mapping rate
-            value: 90
-            comparison: '>'
         mean_coverage:
             # value: populated in automatic_review.sample_config
             comparison: '>'
@@ -45,10 +41,3 @@ sample:
             name: Genotyping quality
             value: 10
             comparison: '<'
-        provided_gender:
-            name: 'Gender'
-            # auto review will check that provided_gender is 'unknown' or whatever value 'called_gender' is
-            value:
-                key: 'called_gender'
-                fallback: 'unknown'
-            comparison: 'agreeswith'
