@@ -1,4 +1,16 @@
 # Datatables column definitions for the reporting app
+# Each column definition has a key and a dict with the following options:
+#  - data: the field in the javascript object where the data is found (support dot notation)
+#  - title: header of that column in the datatable
+#  - visible: specify if the column will be visible by default (default is true if not set)
+#  - class_name: space separated list of css class for the column
+#  - fmt: reference and paramters to the cell formatter (see column_formatter.js for detail)
+#      * type: formatter type (int, float, percentage, ratio_percentage, date, datetime)
+#      * min: minimum bellow which the value is highlighted
+#      * max: maximum bellow which the value is highlighted
+#      * link: relative link formatted as baseurl/<link>/data
+#      * link_format_function: javascript function name formatting the link's text
+#      * name: javascript function name that will modify the data before the formating
 
 column_def:
     bam_file_reads:           { data: 'bam_file_reads',                       title: 'Initial reads in bam',     fmt: { type: 'int' } }
@@ -20,8 +32,8 @@ column_def:
     genotype_match:           { data: 'genotype_match',                       title: 'Genotype'   }
     mapped_reads:             { data: 'mapped_reads',                         title: '# mapped reads',           fmt: { type: 'int' },    visible: 'false',  }
     matching_snps:            { data: 'genotype_validation.matching_snps',    title: 'Matching snps' ,                                                 visible: 'false'}
-    median_coverage:          { data: 'median_coverage',                      title: 'Median coverage',          fmt: { type: 'float', min: 30 } }
-    mean_coverage:            { data: 'coverage.mean',                        title: 'Mean coverage',            fmt: { type: 'float', min: 30 } }
+    median_coverage:          { data: 'median_coverage',                      title: 'Median coverage',          fmt: { type: 'float', min: {field: 'Coverage (X)', default: 30} } }
+    mean_coverage:            { data: 'coverage.mean',                        title: 'Mean coverage',            fmt: { type: 'float', min: {field: 'Coverage (X)', default: 30} } }
     coverage_5X:              { data: 'coverage',                             title: '% covered 5X',             fmt: { name: 'coverage_5X', type: 'percentage', min: 85 }, visible: 'false' }
     coverage_15X:             { data: 'coverage',                             title: '% covered 15X',            fmt: { name: 'coverage_15X', type: 'percentage', min: 85 } }
     evenness:                 { data: 'coverage.evenness',                    title: '% Evenness',               fmt: { type: 'ratio_percentage', min: .8 } }

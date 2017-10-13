@@ -13,11 +13,11 @@ function render_data(data, type, row, meta, fmt) {
     if (fmt['name']) {
         data = function_map[fmt['name']](data, fmt)
     }
-    return string_formatter(data, fmt)
+    return string_formatter(data, fmt, row)
 }
 
 
-function string_formatter(data, fmt){
+function string_formatter(data, fmt, row){
     var formatted_data = data;
 
     if (fmt['type'] == 'percentage') {
@@ -55,7 +55,15 @@ function string_formatter(data, fmt){
             formatted_data = '<a href=' + fmt['link'] + data + '>' + data + '</a>';
         }
     }
+    if (fmt['min']){
+        fmt['min'] = resolve_min_max_value(row, fmt['min'])
+    }
+    if (fmt['max']){
+        fmt['max'] = resolve_min_max_value(row, fmt['max'])
+    }
     if (fmt['min'] && data < fmt['min']) {
+        formatted_data = '<div style="color:red">' + formatted_data + '</div>';
+    } else if (fmt['max'] && !isNaN(fmt['max']) && data > fmt['max']) {
         formatted_data = '<div style="color:red">' + formatted_data + '</div>';
     } else if (fmt['max'] && data > fmt['max']) {
         formatted_data = '<div style="color:red">' + formatted_data + '</div>';
@@ -65,6 +73,24 @@ function string_formatter(data, fmt){
     return formatted_data;
 }
 
+
+function resolve_min_max_value(row, value){
+    // find the value in row or return the original value;
+    if (typeof value === 'object'){
+        // object should be {field: "field_name", default: default_value}
+        if (value['field'] in row){
+            return row[value['field']];
+        } else {
+            return value['default'];
+        }
+    }
+    else if (value in row){
+        // If the value is in the row then it is field name
+        return row[value];
+    }
+    // Otherwise it is just a value
+    return value;
+}
 
 function merge_column(data, row){
     return data + '-' + row[1]
