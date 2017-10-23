@@ -14,7 +14,7 @@ db = cli[cfg['db_name']]
 def _aggregate(endpoint, base_pipeline, request_args, post_processing=None):
     collection = db[endpoint]
     pipeline = queries.resolve_pipeline(endpoint, base_pipeline, request_args)
-    data = list(collection.aggregate(pipeline))
+    data = list(collection.aggregate(pipeline, allowDiskUse=True))
     if post_processing:
         for p in post_processing:
             data = p(data)
