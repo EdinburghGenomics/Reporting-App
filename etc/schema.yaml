@@ -51,6 +51,40 @@ run_elements:
     trim_r1: {                  type: 'integer', required: False, nullable: True }
     trim_r2: {                  type: 'integer', required: False, nullable: True }
 
+    mapping_metrics: {          type: 'dict',    required: False, schema: {
+        bam_file_reads: { type: 'integer' },
+        mapped_reads: { type: 'integer' },
+        duplicate_reads: { type: 'integer' },
+        properly_mapped_reads: { type: 'integer' },
+        picard_dup_reads: { type: 'integer' },
+        picard_opt_dup_reads: { type: 'integer' },
+        picard_est_lib_size: { type: 'integer' },
+        mean_insert_size: { type: 'float' },
+        std_dev_insert_size: { type: 'float' },
+        median_insert_size: { type: 'integer' },
+        median_abs_dev_insert_size: { type: 'integer' }
+    } }
+
+    coverage: {                 type: 'dict',    required: False, schema: {
+        median: {type: 'float'},
+        mean: {type: 'float'},
+        std_dev: {type: 'float'},
+        coverage_percentiles: {type: 'dict', schema: {
+            percentile_5: { type: 'integer' },
+            percentile_25: { type: 'integer' },
+            percentile_50: { type: 'integer' },
+            percentile_75: { type: 'integer' },
+            percentile_95: { type: 'integer'}
+        } },
+        bases_at_coverage: {type: 'dict', schema: {
+            bases_at_5X: {type: 'integer'},
+            bases_at_15X: {type: 'integer'},
+            bases_at_30X: {type: 'integer' }
+        } },
+        genome_size: { type: 'integer' },
+        evenness: { type: 'float' }
+    } }
+
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'], default: 'not reviewed' }
     review_comments: {          type: 'string',  required: False }
     review_date: {              type: 'datetime', required: False }
@@ -62,7 +96,6 @@ run_elements:
 
 unexpected_barcodes:
     run_element_id: {           type: 'string',  required: True,  unique: True }
-
     run_id: {                   type: 'string',  required: True }
     lane: {                     type: 'integer', required: True }
     barcode: {                  type: 'string',  required: True }
@@ -75,6 +108,7 @@ projects:
     samples: {                  type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'samples', field: 'sample_id', embeddable: False } } }
     analysis_driver_procs: {    type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'analysis_driver_procs', field: 'proc_id', embeddable: True } } }
     sample_pipeline: {          type: 'dict',    schema: { name: { type: 'string' }, toolset_type: { type: 'string' }, toolset_version: { type: 'integer' } } }
+
 
 samples:
     library_id: {               type: 'string',  required: False }
