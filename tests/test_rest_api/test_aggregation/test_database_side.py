@@ -32,7 +32,7 @@ class FakeCollection:
     def __init__(self, data):
         self.data = data
 
-    def aggregate(self, pipeline):
+    def aggregate(self, pipeline, **kwargs):
         return self.data
 
 
