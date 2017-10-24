@@ -10,7 +10,7 @@ run:
         comparison: '>'
     lane_pc_optical_dups:
         name: Est. Dup. rate
-        value: 25
+        value: 20
         comparison: '<'
 
 
