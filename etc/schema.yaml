@@ -125,15 +125,32 @@ samples:
     mapped_reads: {             type: 'integer', required: False }
     properly_mapped_reads: {    type: 'integer', required: False }
     duplicate_reads: {          type: 'integer', required: False }
+    picard_dup_reads: {         type: 'integer' }
+    picard_opt_dup_reads: {     type: 'integer' }
+    picard_est_lib_size: {      type: 'integer' }
+    mean_insert_size: {         type: 'float' }
+    std_dev_insert_size: {      type: 'float' }
+    median_insert_size: {       type: 'integer' }
+    median_abs_dev_insert_size: { type: 'integer' }
     median_coverage: {          type: 'float',   required: False }
     coverage: {                 type: 'dict',    required: False, schema: {
-        median: {type: 'float'},
-        mean: {type: 'float'},
-        std_dev: {type: 'float'},
-        coverage_percentiles: {type: 'dict', schema: { percentile_5: { type: 'integer' }, percentile_25: { type: 'integer' }, percentile_50: { type: 'integer' }, percentile_75: { type: 'integer' }, percentile_95: { type: 'integer'} } },
-        bases_at_coverage: {type: 'dict', schema: { bases_at_5X: {type: 'integer'}, bases_at_15X: {type: 'integer'}, bases_at_30X: {type: 'integer' } } },
-        genome_size: { type: 'integer' },
-        evenness: { type: 'float' }
+        median: {               type: 'float'},
+        mean: {                 type: 'float'},
+        std_dev: {              type: 'float'},
+        coverage_percentiles: { type: 'dict', schema: {
+            percentile_5: {     type: 'integer' },
+            percentile_25: {    type: 'integer' },
+            percentile_50: {    type: 'integer' },
+            percentile_75: {    type: 'integer' },
+            percentile_95: {    type: 'integer'}
+        } },
+        bases_at_coverage: {    type: 'dict', schema: {
+            bases_at_5X: {      type: 'integer'},
+            bases_at_15X: {     type: 'integer'},
+            bases_at_30X: {     type: 'integer' }
+        } },
+        genome_size: {          type: 'integer' },
+        evenness: {             type: 'float' }
     } }
     # TODO: remove pc_callable
     pc_callable: {              type: 'float',   required: False }
