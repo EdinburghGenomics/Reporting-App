@@ -1,23 +1,24 @@
-from os.path import join, abspath, dirname
 import eve
-from eve.auth import requires_auth
-import flask_cors
 import auth
+import flask_cors
+from eve.auth import requires_auth
+from os.path import join, abspath, dirname
 from config import rest_config as cfg
 from rest_api import actions
 from rest_api.limsdb import lims_extract
-from rest_api.aggregation import server_side
+from rest_api.aggregation import server_side, database_hooks
 from rest_api.aggregation.database_side import aggregate, queries
 
 app = eve.Eve(settings=join(dirname(abspath(__file__)), 'settings.py'), auth=auth.DualAuth)
 app.secret_key = cfg['key'].encode()
 flask_cors.CORS(app, supports_credentials=True, allow_headers=('Authorization',))
 
-app.on_post_GET_samples += server_side.embed_run_elements_into_samples
-app.on_post_GET_run_elements += server_side.run_element_basic_aggregation
-app.on_post_GET_lanes += server_side.aggregate_embedded_run_elements
-app.on_post_GET_runs += server_side.aggregate_embedded_run_elements_into_run
-app.on_post_GET_projects += server_side.aggregate_embedded_sample_elements_into_project
+# app.on_post_GET_samples += server_side.embed_run_elements_into_samples
+# app.on_post_GET_run_elements += server_side.run_element_basic_aggregation
+# app.on_post_GET_lanes += server_side.aggregate_embedded_run_elements
+# app.on_post_GET_runs += server_side.aggregate_embedded_run_elements_into_run
+# app.on_post_GET_projects += server_side.aggregate_embedded_sample_elements_into_project
+app.on_inserted += database_hooks.post_insert_hook
 app.on_pre_POST_actions += actions.start_action
 app.on_post_POST_actions += actions.add_to_action
 

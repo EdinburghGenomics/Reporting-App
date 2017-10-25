@@ -1,0 +1,279 @@
+import os
+import json
+from unittest import TestCase
+from time import sleep
+from rest_api import app
+from config import schema
+from tests import Helper
+from rest_api.aggregation.database_hooks import db
+from unittest.mock import patch
+
+
+class TestDatabaseHooks(TestCase):
+    db_path = os.path.join(Helper.assets_dir, 'mongod_metadata')
+
+    @classmethod
+    def setUpClass(cls):
+        app.testing = True
+        cls.client = app.test_client(use_cookies=True)
+
+        sleep(1)
+
+        cls.patched_auth = patch('auth.DualAuth.authorized', return_value=True)
+        cls.patched_auth.start()
+
+    def setUp(self):
+        self.run_elements = [
+            {
+                'run_element_id': '150724_test_1_ATGC', 'run_id': '150724_test', 'project_id': 'a_project',
+                'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGC', 'library_id': 'a_library',
+                'bases_r1': 1500000000, 'bases_r2': 1400000000, 'q30_bases_r1': 1400000000, 'q30_bases_r2': 1300000000,
+                'clean_bases_r1': 1300000000, 'clean_bases_r2': 1200000000, 'clean_q30_bases_r1': 1200000000,
+                'clean_q30_bases_r2': 1100000000, 'total_reads': 9190, 'passing_filter_reads': 8451,
+                'pc_reads_in_lane': 54.0, 'reviewed': 'not reviewed', 'clean_reads': 1337, 'lane_pc_optical_dups': 0.1,
+                'adaptor_bases_removed_r1': 1337, 'adaptor_bases_removed_r2': 1338
+            },
+            {
+                'run_element_id': '150724_test_1_ATGA', 'run_id': '150724_test', 'project_id': 'a_project',
+                'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGC', 'library_id': 'a_library',
+                'bases_r1': 1500000001, 'bases_r2': 1400000001, 'q30_bases_r1': 1400000001, 'q30_bases_r2': 1300000001,
+                'clean_bases_r1': 1300000001, 'clean_bases_r2': 1200000001, 'clean_q30_bases_r1': 1200000001,
+                'clean_q30_bases_r2': 1100000001, 'total_reads': 9180, 'passing_filter_reads': 8461,
+                'pc_reads_in_lane': 54.1, 'reviewed': 'pass', 'useable': 'yes', 'clean_reads': 1338,
+                'lane_pc_optical_dups': 0.1, 'adaptor_bases_removed_r1': 1339, 'adaptor_bases_removed_r2': 1340
+            }
+        ]
+
+    def tearDown(self):
+        for c in schema.content:
+            db[c].drop()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.patched_auth.stop()
+
+    @staticmethod
+    def json(response):
+        return json.loads(response.data.decode('utf-8'))['data']
+
+    def get(self, endpoint):
+        r = self.client.get('/api/0.1/' + endpoint)
+        return json.loads(r.data.decode('utf-8'))['data']
+
+    def post(self, endpoint, data):
+        r = self.client.post(
+            '/api/0.1/' + endpoint,
+            data=json.dumps(data),
+            headers={'Content-Type': 'application/json'}
+        )
+        return r.data
+
+    @staticmethod
+    def assert_dict_subsets(subset, superset):
+        mismatches = {}
+        for k, v in subset.items():
+            if superset.get(k) != v:
+                mismatches[k] = {'subset': v, 'superset': superset.get(k)}
+        if mismatches:
+            raise AssertionError('Mismatches in dict comparison: %s' % mismatches)
+
+    def test_common_aggregation(self):
+        self.post('run_elements', self.run_elements)
+        self.post(
+            'runs',
+            {'run_id': '150724_test', 'number_of_lanes': 8, 'run_elements': ['150724_test_1_ATGC', '150724_test_1_ATGA']}
+        )
+
+        exp = {
+            'bases_r1': 3000000001, 'bases_r2': 2800000001, 'q30_bases_r1': 2800000001, 'q30_bases_r2': 2600000001,
+            'clean_bases_r1': 2600000001, 'clean_bases_r2': 2400000001, 'clean_q30_bases_r1': 2400000001,
+            'clean_q30_bases_r2': 2200000001, 'total_reads': 18370, 'passing_filter_reads': 16912, 'clean_reads': 2675,
+
+            'pc_pass_filter': 92.06314643440392, 'pc_q30_r1': 93.33333333555555, 'pc_q30_r2': 92.85714285969388,
+            'pc_q30': 93.10344827824018, 'yield_in_gb': 5.800000002, 'yield_q30_in_gb': 5.400000002,
+            'clean_yield_in_gb': 5.000000002, 'clean_yield_q30_in_gb': 4.600000002, 'clean_pc_q30': 92.0000000032,
+            'clean_pc_q30_r1': 92.30769231065089, 'clean_pc_q30_r2': 91.66666667013888
+        }
+        obs = self.get('runs')[0]
+        self.assert_dict_subsets(exp, obs['aggregated'])
+
+        self.post(
+            'run_elements',
+            {
+                'run_element_id': '150724_test_3_ATGC', 'run_id': '150724_test', 'project_id': 'another_project',
+                'sample_id': 'a_sample', 'lane': 3, 'barcode': 'ATGC', 'library_id': 'a_library',
+                'bases_r1': 1300000001, 'q30_bases_r1': 1200000001, 'clean_bases_r1': 1100000001,
+                'clean_q30_bases_r1': 1000000001, 'total_reads': 9180, 'passing_filter_reads': 8461,
+                'pc_reads_in_lane': 54.1, 'reviewed': 'fail', 'useable': 'no'
+            }
+        )
+        exp.update(
+            {
+                'bases_r1': 4300000002, 'q30_bases_r1': 4000000002, 'clean_bases_r1': 3700000002,
+                'clean_q30_bases_r1': 3400000002, 'total_reads': 27550, 'passing_filter_reads': 25373,
+                'pc_pass_filter': 92.09800362976407, 'pc_q30_r1': 93.02325581719847, 'pc_q30': 92.95774648184883,
+                'yield_in_gb': 7.100000003, 'yield_q30_in_gb': 6.600000003, 'clean_yield_in_gb': 6.100000003,
+                'clean_yield_q30_in_gb': 5.600000003, 'clean_pc_q30': 91.80327869255576,
+                'clean_pc_q30_r1': 91.89189189627466
+            }
+        )
+        obs = self.get('runs')[0]
+        self.assert_dict_subsets(exp, obs['aggregated'])
+
+    def test_run_aggregation(self):
+        self.post('run_elements', self.run_elements)
+        self.post(
+            'runs',
+            {'run_id': '150724_test', 'number_of_lanes': 8, 'run_elements': ['150724_test_1_ATGC', '150724_test_1_ATGA']}
+        )
+
+        exp = {
+            'run_ids': ['150724_test'], 'project_ids': ['a_project'], 'review_statuses': ['not reviewed', 'pass'],
+            'useable_statuses': ['not marked', 'yes'], 'pc_adaptor': 0.00009231034479575506
+        }
+        self.assert_dict_subsets(exp, self.get('runs')[0]['aggregated'])
+
+        self.post(
+            'run_elements',
+            {
+                'run_element_id': '150724_test_3_ATGC', 'run_id': '150724_test', 'project_id': 'another_project',
+                'sample_id': 'a_sample', 'lane': 3, 'barcode': 'ATGC', 'library_id': 'a_library',
+                'bases_r1': 1300000001, 'q30_bases_r1': 1200000001, 'clean_bases_r1': 1100000001,
+                'clean_q30_bases_r1': 1000000001, 'adaptor_bases_removed_r1': 1341, 'total_reads': 9180,
+                'passing_filter_reads': 8461, 'pc_reads_in_lane': 54.1, 'reviewed': 'fail', 'useable': 'no'
+            }
+        )
+        exp.update(
+            {
+                'project_ids': ['a_project', 'another_project'], 'review_statuses': ['fail', 'not reviewed', 'pass'],
+                'useable_statuses': ['no', 'not marked', 'yes'], 'pc_adaptor': 9.429577460804404e-05
+            }
+        )
+        self.assert_dict_subsets(exp, self.get('runs')[0]['aggregated'])
+
+        proc = {'proc_id': 'run_150724_test_now', 'dataset_type': 'run', 'dataset_name': '150724_test', 'pid': 1337}
+        self.post('analysis_driver_procs', proc)
+        self.assert_dict_subsets(proc, self.get('runs')[0]['aggregated']['most_recent_proc'])
+
+    def test_lane_aggregation(self):
+        self.post('run_elements', self.run_elements)
+        self.post(
+            'lanes',
+            {
+                'lane_id': '150724_test_1', 'run_id': '150724_test', 'lane_number': 1,
+                'run_elements': ['150724_test_1_ATGC', '150724_test_1_ATGA']
+            }
+        )
+
+        exp = {
+            'cv': 0.0008362189938346116, 'sample_ids': ['a_sample'], 'pc_adaptor': 9.231034479575506e-05,
+            'stdev_pf': 5.0, 'avg_pf': 8456.0, 'lane_pc_optical_dups': 0.1, 'useable_statuses': ['not marked', 'yes'],
+            'review_statuses': ['not reviewed', 'pass']
+        }
+        obs = self.get('lanes')
+        self.assert_dict_subsets(exp, obs[0]['aggregated'])
+
+        self.post(
+            'run_elements',
+            {
+                'run_element_id': '150724_test_1_ATGG', 'run_id': '150724_test', 'project_id': 'another_project',
+                'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGG', 'library_id': 'a_library',
+                'bases_r1': 1300000001, 'q30_bases_r1': 1200000001, 'clean_bases_r1': 1100000001,
+                'clean_q30_bases_r1': 1000000001, 'adaptor_bases_removed_r1': 1341, 'total_reads': 9180,
+                'passing_filter_reads': 8461, 'pc_reads_in_lane': 54.1, 'reviewed': 'fail', 'useable': 'no'
+            }
+        )
+
+        obs = self.get('lanes')
+        exp.update(
+            {
+                'cv': 0.0006826354028175136, 'pc_adaptor': 9.429577460804404e-05, 'stdev_pf': 4.714045207910317,
+                'avg_pf': 8457.666666666666, 'useable_statuses': ['no', 'not marked', 'yes'],
+                'review_statuses': ['fail', 'not reviewed', 'pass']
+            }
+        )
+        self.assert_dict_subsets(exp, obs[0]['aggregated'])
+
+    def test_run_element_aggregation(self):
+        run_element = {
+            'run_element_id': '150724_test_1_ATGC', 'run_id': '150724_test', 'project_id': 'a_project',
+            'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGC', 'library_id': 'a_library', 'bases_r1': 1500000000,
+            'bases_r2': 1400000000, 'q30_bases_r1': 1400000000, 'q30_bases_r2': 1300000000,
+            'clean_bases_r1': 1300000000, 'clean_bases_r2': 1200000000, 'clean_q30_bases_r1': 1200000000,
+            'clean_q30_bases_r2': 1100000000, 'adaptor_bases_removed_r1': 1337, 'adaptor_bases_removed_r2': 1338,
+            'total_reads': 9190, 'passing_filter_reads': 8451, 'pc_reads_in_lane': 54.0, 'reviewed': 'not reviewed',
+            'clean_reads': 1337
+        }
+
+        self.post('run_elements', run_element)
+        exp = {
+            'pc_pass_filter': 91.95865070729053, 'pc_q30_r1': 93.33333333333333, 'pc_q30_r2': 92.85714285714286,
+            'pc_q30': 93.10344827586206, 'yield_in_gb': 2.9, 'clean_yield_in_gb': 2.5, 'yield_q30_in_gb': 2.7,
+            'clean_yield_q30_in_gb': 2.3, 'clean_pc_q30_r1': 92.3076923076923, 'clean_pc_q30_r2': 91.66666666666666,
+            'clean_pc_q30': 92.0
+        }
+        self.assert_dict_subsets(exp, self.get('run_elements')[0]['aggregated'])
+
+    def test_project_aggregation(self):
+        samples = [
+            {'sample_id': 'sample_2', 'project_id': 'test', 'reviewed': 'pass', 'delivered': 'no'},
+            {'sample_id': 'sample_3', 'project_id': 'test', 'delivered': 'yes'},
+            {'sample_id': 'sample_4', 'project_id': 'test', 'reviewed': 'fail', 'delivered': 'yes'},
+        ]
+
+        self.post(
+            'analysis_driver_procs',
+            {'proc_id': 'project_test_now', 'dataset_type': 'project', 'dataset_name': 'test'}
+        )
+        self.post('samples', {'sample_id': 'sample_1', 'project_id': 'test'})
+        self.post(
+            'projects',
+            {'project_id': 'test', 'samples': ['sample_1'], 'analysis_driver_procs': ['project_test_now']}
+        )
+
+        self.assert_dict_subsets(
+            {'nb_samples': 1, 'nb_samples_reviewed': 0, 'nb_samples_delivered': 0},
+            self.get('projects')[0]['aggregated']
+        )
+
+        self.post('samples', samples)
+        self.assert_dict_subsets(
+            {'nb_samples': 4, 'nb_samples_reviewed': 2, 'nb_samples_delivered': 2},
+            self.get('projects')[0]['aggregated']
+        )
+
+    def test_sample_aggregation(self):
+        self.post('run_elements', self.run_elements)
+
+        sample = {
+            'sample_id': 'a_sample', 'project_id': 'a_project',
+            'run_elements': ['150724_test_1_ATGC', '150724_test_1_ATGA'], 'expected_yield': 3000000000,
+            'genotype_validation': {'no_call_chip': 1, 'no_call_seq': 2, 'mismatching_snps': 5},
+            'called_gender': 'female', 'provided_gender': 'female', 'mapped_reads': 1337, 'properly_mapped_reads': 1336,
+            'bam_file_reads': 1338, 'duplicate_reads': 100,
+            'species_contamination': {'contaminant_unique_mapped': {'Homo sapiens': 501, 'Thingius thingy': 499}},
+            'coverage': {'genome_size': 3000000000, 'bases_at_coverage': {'bases_at_5X': 2900000000, 'bases_at_15X': 2000000000}}
+        }
+        self.post('samples', sample)
+
+        exp = {
+            'expected_yield_q30': 3.0, 'genotype_match': 'Match', 'gender_match': 'female',
+            'pc_mapped_reads': 99.9252615844544, 'pc_properly_mapped_reads': 99.85052316890882,
+            'pc_duplicate_reads': 7.473841554559043, 'matching_species': ['Homo sapiens'],
+            'coverage_at_5X': 96.66666666666667, 'coverage_at_15X': 66.66666666666666, 'most_recent_proc': None,
+            'clean_yield_q30_in_gb': 4.600000002
+        }
+        self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])
+
+        self.post(
+            'run_elements',
+            {
+                'run_element_id': '150724_test_1_ATGG', 'run_id': '150724_test', 'project_id': 'another_project',
+                'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGG', 'library_id': 'a_library',
+                'bases_r1': 1300000001, 'q30_bases_r1': 1200000001, 'clean_bases_r1': 1100000001,
+                'clean_q30_bases_r1': 1000000001, 'adaptor_bases_removed_r1': 1341, 'total_reads': 9180,
+                'passing_filter_reads': 8461, 'pc_reads_in_lane': 54.1, 'reviewed': 'fail', 'useable': 'no'
+            }
+        )
+        exp['clean_yield_q30_in_gb'] = 5.600000003
+        self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])

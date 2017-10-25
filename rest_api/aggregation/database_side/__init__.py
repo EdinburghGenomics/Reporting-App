@@ -11,6 +11,7 @@ from . import queries
 cli = pymongo.MongoClient(cfg['db_host'], cfg['db_port'])
 db = cli[cfg['db_name']]
 
+
 def _aggregate(endpoint, base_pipeline, request_args, post_processing=None):
     collection = db[endpoint]
     pipeline = queries.resolve_pipeline(endpoint, base_pipeline, request_args)

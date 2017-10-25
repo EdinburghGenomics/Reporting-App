@@ -1,5 +1,4 @@
 import statistics
-import datetime
 
 
 def resolve(query, element):
@@ -10,62 +9,72 @@ def resolve(query, element):
 
 
 class Expression:
-    default_return_value = None
-
-    def __init__(self, *args):
+    def __init__(self, *args, filter_func=None):
         self.args = args
-
-    def _expression(self, *args):
-        return 0
-
-    def _evaluate(self, *args):
-        try:
-            return self._expression(*args)
-        except (ZeroDivisionError, TypeError):
-            return self.default_return_value
-
-    def _resolve_element(self, e, param):
-        pass
+        self.filter_func = filter_func
 
     def evaluate(self, e):
-        data = []
+        raise NotImplementedError
+
+
+class Calculation(Expression):
+    default_return_value = None
+
+    def _expression(self, *args):
+        raise NotImplementedError
+
+    def _resolve_element(self, element, query_string):
+        e = element.copy()
+        queries = query_string.split('.')
+
+        for q in queries[:-1]:
+            e = e.get(q, {})
+        return e.get(queries[-1])
+
+    def evaluate(self, e):
         if e is None:
             return None
+
+        _args = []
         for a in self.args:
             if isinstance(a, Expression):
                 data_point = a.evaluate(e)
             else:
                 data_point = self._resolve_element(e, a)
+
             if data_point is None:
                 return self.default_return_value
-            data.append(data_point)
-        return self._evaluate(*data)
+
+            _args.append(data_point)
+
+        try:
+            return self._expression(*_args)
+        except (ZeroDivisionError, TypeError):
+            return self.default_return_value
 
 
-class SingleExp(Expression):
-    def _resolve_element(self, element, param):
-        pparam = param.split('.')
-        for e in pparam[:-1]:
-            element = element.get(e)
-        return element.get(pparam[-1])
+class Accumulation(Calculation):
+    def _resolve_element(self, element, query_string):
+        e = element.copy()
+        queries = query_string.split('.')
+        subelements = e.get(queries[0])
+        if subelements is None:
+            return None
 
-
-class Accumulation(Expression):
-    def __init__(self, *args, filter_func=None):
-        super().__init__(*args)
-        self.filter_func = filter_func
-
-    def _resolve_element(self, element, param):
-        pparam = param.split('.')
-        for p in pparam[:-1]:
-            element = element.get(p)
-        if element is None:
-            return
+        assert type(subelements) is list, 'In %s: element %s is not a list' % (self.__class__.__name__, element)
         if self.filter_func:
-            element = list(filter(self.filter_func, element))
+            subelements = list(filter(self.filter_func, subelements))
 
-        assert type(element) is list, 'In %s: element %s is not a list' % (self.__class__.__name__, element)
-        return [e.get(pparam[-1]) for e in element]
+        resolved_subelements = []
+        for s in subelements:
+            for q in queries[1:]:
+                s = s.get(q)
+            resolved_subelements.append(s)
+
+        return resolved_subelements
+
+    def _expression(self, *args):
+        raise NotImplementedError
 
 
 class Constant(Expression):
@@ -73,17 +82,22 @@ class Constant(Expression):
         return self.args[0]
 
 
-class Add(SingleExp):
+class Reference(Calculation):
+    def _expression(self, field):
+        return field
+
+
+class Add(Calculation):
     def _expression(self, *args):
         return sum(a for a in args if a is not None)
 
 
-class Multiply(SingleExp):
+class Multiply(Calculation):
     def _expression(self, arg1, arg2):
         return arg1 * arg2
 
 
-class Divide(SingleExp):
+class Divide(Calculation):
     def _expression(self, num, denom):
         return num / denom
 
@@ -108,10 +122,13 @@ class Concatenate(Accumulation):
         return list(sorted(set(elements)))
 
 
-class NbUniqueElements(SingleExp):
+class NbUniqueElements(Calculation):
     def _expression(self, elements):
         elements = [e for e in elements if e is not None]
-        return len(set(elements))
+        if self.filter_func:
+            elements = [e for e in elements if self.filter_func(e)]
+
+        return len(elements)
 
 
 class Total(Accumulation):
@@ -123,18 +140,69 @@ class Total(Accumulation):
             return sum(elements)
 
 
-class MostRecent(SingleExp):
+class Mean(Accumulation):
+    def _expression(self, elements):
+        if elements:
+            return sum(elements) / len(elements)
+
+
+class FirstElement(Accumulation):
+    def _expression(self, elements):
+        if elements:
+            return elements[0]
+
+
+class StDevPop(Accumulation):
+    def _expression(self, elements):
+        if elements:
+            return statistics.pstdev(elements)
+
+
+class GenotypeMatch(Calculation):
+    def _expression(self, geno_val):
+        if not geno_val:
+            return None
+        elif geno_val['no_call_chip'] + geno_val['no_call_seq'] < 15:
+            if geno_val['mismatching_snps'] < 6:
+                return 'Match'
+            elif geno_val['mismatching_snps'] > 5:
+                return 'Mismatch'
+        else:
+            return 'Unknown'
+
+
+class SexCheck(Calculation):
+    def _expression(self, called, provided):
+        if not called or not provided:
+            return None
+        elif called == provided:
+            return called
+        else:
+            return 'Mismatch'
+
+
+class MatchingSpecies(Calculation):
+    def _expression(self, species_contam):
+        return sorted(k for k, v in species_contam['contaminant_unique_mapped'].items() if v > 500)
+
+
+class MostRecent(Calculation):
     def __init__(self, *args, date_field='_created', date_format='%d_%m_%Y_%H:%M:%S'):
         self.date_field = date_field
         self.date_format = date_format
         super().__init__(*args)
 
     def _expression(self, elements):
-        return sorted(elements,
-                      key=lambda x: datetime.datetime.strptime(x.get(self.date_field), self.date_format))[-1]
+        procs = sorted(
+            elements,
+            key=lambda x: x.get(self.date_field)
+        )
+        if procs:
+            return procs[-1]
 
 
 __all__ = (
     'Constant', 'Add', 'Multiply', 'Divide', 'Percentage', 'CoefficientOfVariation', 'Concatenate',
-    'NbUniqueElements', 'Total', 'MostRecent'
+    'NbUniqueElements', 'Total', 'MostRecent', 'Mean', 'FirstElement', 'StDevPop', 'GenotypeMatch', 'SexCheck',
+    'MatchingSpecies', 'Reference', 'resolve'
 )

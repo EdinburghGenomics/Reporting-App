@@ -1,7 +1,7 @@
-from rest_api.aggregation import server_side
-from tests.test_rest_api.test_aggregation import TestAggregation, FakeRequest
 import json
 from datetime import datetime
+from rest_api.aggregation import server_side
+from tests.test_rest_api.test_aggregation import TestAggregation, FakeRequest
 
 
 class FakePayload:
