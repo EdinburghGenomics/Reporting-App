@@ -15,7 +15,7 @@ class TestDatabaseHooks(TestCase):
     @classmethod
     def setUpClass(cls):
         app.testing = True
-        cls.client = app.test_client(use_cookies=True)
+        cls.client = app.test_client()
 
         sleep(1)
 
@@ -68,12 +68,23 @@ class TestDatabaseHooks(TestCase):
         )
         return r.data
 
+    def patch(self, endpoint, where, data):
+        url = endpoint + '?where=%s' % json.dumps(where)
+        entity = self.get(url)[0]
+        r = self.client.patch(
+            '/api/0.1/%s/%s' % (endpoint, entity['_id']),
+            data=json.dumps(data),
+            headers={'Content-Type': 'application/json', 'If-Match': entity['_etag']}
+        )
+        return r.data
+
     @staticmethod
-    def assert_dict_subsets(subset, superset):
+    def assert_dict_subsets(exp, obs):
         mismatches = {}
-        for k, v in subset.items():
-            if superset.get(k) != v:
-                mismatches[k] = {'subset': v, 'superset': superset.get(k)}
+        for k, exp_v in exp.items():
+            obs_v = obs.get(k)
+            if obs_v != exp_v:
+                mismatches[k] = {'subset': exp_v, 'superset': obs_v}
         if mismatches:
             raise AssertionError('Mismatches in dict comparison: %s' % mismatches)
 
@@ -155,6 +166,13 @@ class TestDatabaseHooks(TestCase):
         self.post('analysis_driver_procs', proc)
         self.assert_dict_subsets(proc, self.get('runs')[0]['aggregated']['most_recent_proc'])
 
+        self.patch('run_elements', {'run_element_id': '150724_test_3_ATGC'}, {'adaptor_bases_removed_r1': 1441})
+        e = self.get('run_elements?where={"run_element_id":"150724_test_3_ATGC"}')[0]
+        assert e['adaptor_bases_removed_r1'] == 1441
+
+        exp['pc_adaptor'] = 9.570422531167427e-05
+        self.assert_dict_subsets(exp, self.get('runs')[0]['aggregated'])
+
     def test_lane_aggregation(self):
         self.post('run_elements', self.run_elements)
         self.post(
@@ -184,7 +202,6 @@ class TestDatabaseHooks(TestCase):
             }
         )
 
-        obs = self.get('lanes')
         exp.update(
             {
                 'cv': 0.0006826354028175136, 'pc_adaptor': 9.429577460804404e-05, 'stdev_pf': 4.714045207910317,
@@ -192,7 +209,11 @@ class TestDatabaseHooks(TestCase):
                 'review_statuses': ['fail', 'not reviewed', 'pass']
             }
         )
-        self.assert_dict_subsets(exp, obs[0]['aggregated'])
+        self.assert_dict_subsets(exp, self.get('lanes')[0]['aggregated'])
+
+        self.patch('run_elements', {'run_element_id': '150724_test_1_ATGG'}, {'passing_filter_reads': 8471})
+        exp.update({'cv': 0.0011818933932159319, 'stdev_pf': 8.16496580927726, 'avg_pf': 8461.0})
+        self.assert_dict_subsets(exp, self.get('lanes')[0]['aggregated'])
 
     def test_run_element_aggregation(self):
         run_element = {
@@ -212,6 +233,10 @@ class TestDatabaseHooks(TestCase):
             'clean_yield_q30_in_gb': 2.3, 'clean_pc_q30_r1': 92.3076923076923, 'clean_pc_q30_r2': 91.66666666666666,
             'clean_pc_q30': 92.0
         }
+        self.assert_dict_subsets(exp, self.get('run_elements')[0]['aggregated'])
+
+        self.patch('run_elements', {'run_element_id': '150724_test_1_ATGC'}, {'clean_q30_bases_r1': 1201000000})
+        exp.update({'clean_yield_q30_in_gb': 2.301, 'clean_pc_q30_r1': 92.38461538461539, 'clean_pc_q30': 92.04})
         self.assert_dict_subsets(exp, self.get('run_elements')[0]['aggregated'])
 
     def test_project_aggregation(self):
@@ -242,6 +267,8 @@ class TestDatabaseHooks(TestCase):
             self.get('projects')[0]['aggregated']
         )
 
+        # no patching to test here
+
     def test_sample_aggregation(self):
         self.post('run_elements', self.run_elements)
 
@@ -261,6 +288,7 @@ class TestDatabaseHooks(TestCase):
             'pc_mapped_reads': 99.9252615844544, 'pc_properly_mapped_reads': 99.85052316890882,
             'pc_duplicate_reads': 7.473841554559043, 'matching_species': ['Homo sapiens'],
             'coverage_at_5X': 96.66666666666667, 'coverage_at_15X': 66.66666666666666, 'most_recent_proc': None,
+            'clean_yield_in_gb': 5.000000002, 'clean_pc_q30_r1': 92.30769231065089, 'clean_pc_q30': 92.0000000032,
             'clean_yield_q30_in_gb': 4.600000002
         }
         self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])
@@ -268,12 +296,37 @@ class TestDatabaseHooks(TestCase):
         self.post(
             'run_elements',
             {
-                'run_element_id': '150724_test_1_ATGG', 'run_id': '150724_test', 'project_id': 'another_project',
+                'run_element_id': '150724_test_1_ATGG', 'run_id': '150724_test', 'project_id': 'a_project',
                 'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGG', 'library_id': 'a_library',
                 'bases_r1': 1300000001, 'q30_bases_r1': 1200000001, 'clean_bases_r1': 1100000001,
                 'clean_q30_bases_r1': 1000000001, 'adaptor_bases_removed_r1': 1341, 'total_reads': 9180,
                 'passing_filter_reads': 8461, 'pc_reads_in_lane': 54.1, 'reviewed': 'fail', 'useable': 'no'
             }
         )
-        exp['clean_yield_q30_in_gb'] = 5.600000003
+        exp.update(
+            {'clean_yield_in_gb': 6.100000003, 'clean_pc_q30_r1': 91.89189189627466,
+             'clean_pc_q30': 91.80327869255576, 'clean_yield_q30_in_gb': 5.600000003}
+        )
         self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])
+
+        self.patch('run_elements', {'run_element_id': '150724_test_1_ATGG'}, {'clean_q30_bases_r1': 1200001001})
+        exp.update(
+            {
+                'clean_pc_q30_r1': 97.29732432578523, 'clean_pc_q30': 95.08198360897607,
+                'clean_yield_q30_in_gb': 5.800001003
+            }
+        )
+        self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])
+
+    def test_proc_aggregation(self):
+        self.post('runs', {'run_id': '150724_test', 'number_of_lanes': 8})
+        assert self.get('runs')[0]['aggregated']['most_recent_proc'] is None
+
+        self.post(
+            'analysis_driver_procs',
+            {'proc_id': 'run_150724_test', 'dataset_type': 'run', 'dataset_name': '150724_test', 'pid': 1337}
+        )
+
+        assert self.get('runs')[0]['aggregated']['most_recent_proc']['pid'] == 1337
+        self.patch('analysis_driver_procs', {'proc_id': 'run_150724_test'}, {'pid': 1338})
+        assert self.get('runs')[0]['aggregated']['most_recent_proc']['pid'] == 1338

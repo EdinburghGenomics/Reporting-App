@@ -41,7 +41,7 @@ class DataRelation:
             rels = self._get_relations(k, v)
             self.data[k] = [r.data for r in rels]
 
-    def trigger_superelement_aggregation(self):
+    def _trigger_superelement_aggregation(self):
         for k, v in self.superelements.items():
             rel = self._get_relation(k, v)
             if rel:
@@ -59,6 +59,8 @@ class DataRelation:
                 {self.id_field: self.data[self.id_field]},
                 {'$set': {'aggregated': self.data['aggregated']}}
             )
+
+        self._trigger_superelement_aggregation()
 
 
 base_and_read_counts = {
@@ -257,4 +259,9 @@ def post_insert_hook(resource, items):
     for i in items:
         rel = data_relations[resource](i)
         rel.aggregate()
-        rel.trigger_superelement_aggregation()
+
+
+def post_update_hook(resource, updates, original):
+    rel = data_relations[resource](original)
+    rel.data.update(updates)
+    rel.aggregate()
