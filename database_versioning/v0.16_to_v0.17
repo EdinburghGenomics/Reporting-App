@@ -1,0 +1,22 @@
+import argparse
+from egcg_core.rest_communication import Communicator
+from egcg_core.app_logging import logging_default
+
+
+def main():
+    a = argparse.ArgumentParser()
+    a.add_argument('--baseurl', required=True)
+    a.add_argument('--username', required=True)
+    a.add_argument('--password', required=True)
+    args = a.parse_args()
+
+    logging_default.add_stdout_handler()
+    c = Communicator((args.username, args.password), args.baseurl)
+
+    all_runs = c.get_documents('runs', all_pages=True)
+    for r in all_runs:
+        c.patch_entries('run_elements', {}, where={'run_id': r['run_id']})
+
+
+if __name__ == '__main__':
+    main()

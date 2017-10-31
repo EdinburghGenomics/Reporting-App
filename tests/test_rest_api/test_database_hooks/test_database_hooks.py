@@ -5,7 +5,9 @@ from time import sleep
 from rest_api import app
 from config import schema
 from tests import Helper
-from rest_api.aggregation.database_hooks import db
+from math import sqrt
+from datetime import datetime
+from rest_api.aggregation import database_hooks
 from unittest.mock import patch
 
 
@@ -46,7 +48,7 @@ class TestDatabaseHooks(TestCase):
 
     def tearDown(self):
         for c in schema.content:
-            db[c].drop()
+            database_hooks.db[c].drop()
 
     @classmethod
     def tearDownClass(cls):
@@ -330,3 +332,81 @@ class TestDatabaseHooks(TestCase):
         assert self.get('runs')[0]['aggregated']['most_recent_proc']['pid'] == 1337
         self.patch('analysis_driver_procs', {'proc_id': 'run_150724_test'}, {'pid': 1338})
         assert self.get('runs')[0]['aggregated']['most_recent_proc']['pid'] == 1338
+
+
+def test_reference():
+    e = database_hooks.Reference('this.that')
+    assert e.evaluate({'this': {'that': 'other'}}) == 'other'
+
+
+def test_mean():
+    e = database_hooks.Mean('things.x')
+    assert e.evaluate({'things': [{'x': x} for x in range(12)]}) == 5.5
+
+
+def test_first_element():
+    e = database_hooks.FirstElement('things.x')
+    assert e.evaluate({'things': [{'x': x} for x in range(12)]}) == 0
+
+
+def test_stdev_pop():
+    e = database_hooks.StDevPop('things.x')
+    vals = list(range(12))
+    mean = sum(vals) / len(vals)  # 5.5
+    devs = [(v - mean) * (v - mean) for v in vals]
+    var = sum(devs) / len(devs)  # 11.91666...
+    stdev_pop = sqrt(var)  # 3.452052529534663
+
+    assert e.evaluate({'things': [{'x': x} for x in vals]}) == stdev_pop
+
+
+def test_genotype_match():
+    e = database_hooks.GenotypeMatch('genotyping')
+    assert e.evaluate({'genotyping': {}}) is None
+    assert e.evaluate({'genotyping': {'no_call_chip': 7, 'no_call_seq': 7, 'mismatching_snps': 5}}) == 'Match'
+    assert e.evaluate({'genotyping': {'no_call_chip': 7, 'no_call_seq': 7, 'mismatching_snps': 6}}) == 'Mismatch'
+    assert e.evaluate({'genotyping': {'no_call_chip': 7, 'no_call_seq': 8}}) == 'Unknown'
+
+
+def test_sex_check():
+    e = database_hooks.SexCheck('called', 'provided')
+    assert e.evaluate({'called': 'Male'}) is None
+    assert e.evaluate({'called': 'Male', 'provided': 'Male'}) == 'Male'
+    assert e.evaluate({'called': 'Male', 'provided': 'Female'}) == 'Mismatch'
+
+
+def test_matching_species():
+    e = database_hooks.MatchingSpecies('species_contam')
+    data = {
+        'species_contam': {
+            'contaminant_unique_mapped': {'Homo sapiens': 501, 'Thingius thingy': 501, 'Thingius thangy': 500}
+        }
+    }
+    obs = e.evaluate(data)
+    assert obs == ['Homo sapiens', 'Thingius thingy']
+
+
+def test_most_recent():
+    e = database_hooks.MostRecent('procs')
+    obs = e.evaluate(
+        {
+            'procs': [
+                {'_created': datetime(2017, 1, 1, 13, 0, 0), 'this': 'that'},
+                {'_created': datetime(2017, 1, 1, 13, 30, 0), 'this': 'other'}
+            ]
+        }
+    )
+    assert obs['this'] == 'other'
+
+
+def test_nb_unique_mutable_elements():
+    data = [
+        {'this': 'other', 'that': 2},
+        {'this': 'another', 'that': 1},
+        {'this': 'more', 'that': 3}
+    ]
+    e = database_hooks.NbUniqueMutableElements('things', key='this')
+    assert e.evaluate({'things': data}) == 3
+
+    e = database_hooks.NbUniqueMutableElements('things', key='this', filter_func=lambda x: x['that'] > 1)
+    assert e.evaluate({'things': data}) == 2

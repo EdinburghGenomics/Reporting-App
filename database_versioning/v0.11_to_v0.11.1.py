@@ -23,7 +23,6 @@ def find_non_marked_samples(comm):
     )
 
 
-
 def find_deleted_samples(comm):
     return comm.get_documents(
         'aggregate/samples',
@@ -36,8 +35,8 @@ def find_deleted_samples(comm):
 def update_data_deleted(comm, samples, deletion_status):
     counter = 0
     for sample in samples:
-        if counter % 100 == 0 :
-            print('updated data deleted in %s samples'%counter)
+        if counter % 100 == 0:
+            print('updated data deleted in %s samples' % counter)
         comm.patch_entry(
             'samples',
             {'data_deleted': deletion_status},
@@ -68,15 +67,13 @@ if __name__ == '__main__':
     a.add_argument('--password')
     args = a.parse_args()
 
-    comm = rest_communication.Communicator((args.username, args.password), args.baseurl)
+    c = rest_communication.Communicator((args.username, args.password), args.baseurl)
 
-    samples = find_deleted_samples(comm)
-    print('Found %s Samples'%len(samples))
-    update_data_deleted(comm, samples, deletion_status='all')
-    update_most_recent_proc(comm, samples)
+    find_samples = find_deleted_samples(c)
+    print('Found %s Samples' % len(find_samples))
+    update_data_deleted(c, find_samples, deletion_status='all')
+    update_most_recent_proc(c, find_samples)
 
-    samples = find_non_marked_samples(comm)
-    print('Found %s Samples'%len(samples))
-    update_data_deleted(comm, samples, deletion_status='none')
-
-
+    unmarked_samples = find_non_marked_samples(c)
+    print('Found %s Samples' % len(unmarked_samples))
+    update_data_deleted(c, unmarked_samples, deletion_status='none')

@@ -1,4 +1,5 @@
 import statistics
+import datetime
 
 
 def resolve(query, element):
@@ -82,11 +83,6 @@ class Constant(Expression):
         return self.args[0]
 
 
-class Reference(Calculation):
-    def _expression(self, field):
-        return field
-
-
 class Add(Calculation):
     def _expression(self, *args):
         return sum(a for a in args if a is not None)
@@ -124,11 +120,12 @@ class Concatenate(Accumulation):
 
 class NbUniqueElements(Calculation):
     def _expression(self, elements):
-        elements = [e for e in elements if e is not None]
         if self.filter_func:
             elements = [e for e in elements if self.filter_func(e)]
+        else:
+            elements = [e for e in elements if e is not None]
 
-        return len(elements)
+        return len(set(elements))
 
 
 class Total(Accumulation):
@@ -140,52 +137,6 @@ class Total(Accumulation):
             return sum(elements)
 
 
-class Mean(Accumulation):
-    def _expression(self, elements):
-        if elements:
-            return sum(elements) / len(elements)
-
-
-class FirstElement(Accumulation):
-    def _expression(self, elements):
-        if elements:
-            return elements[0]
-
-
-class StDevPop(Accumulation):
-    def _expression(self, elements):
-        if elements:
-            return statistics.pstdev(elements)
-
-
-class GenotypeMatch(Calculation):
-    def _expression(self, geno_val):
-        if not geno_val:
-            return None
-        elif geno_val['no_call_chip'] + geno_val['no_call_seq'] < 15:
-            if geno_val['mismatching_snps'] < 6:
-                return 'Match'
-            elif geno_val['mismatching_snps'] > 5:
-                return 'Mismatch'
-        else:
-            return 'Unknown'
-
-
-class SexCheck(Calculation):
-    def _expression(self, called, provided):
-        if not called or not provided:
-            return None
-        elif called == provided:
-            return called
-        else:
-            return 'Mismatch'
-
-
-class MatchingSpecies(Calculation):
-    def _expression(self, species_contam):
-        return sorted(k for k, v in species_contam['contaminant_unique_mapped'].items() if v > 500)
-
-
 class MostRecent(Calculation):
     def __init__(self, *args, date_field='_created', date_format='%d_%m_%Y_%H:%M:%S'):
         self.date_field = date_field
@@ -193,16 +144,5 @@ class MostRecent(Calculation):
         super().__init__(*args)
 
     def _expression(self, elements):
-        procs = sorted(
-            elements,
-            key=lambda x: x.get(self.date_field)
-        )
-        if procs:
-            return procs[-1]
-
-
-__all__ = (
-    'Constant', 'Add', 'Multiply', 'Divide', 'Percentage', 'CoefficientOfVariation', 'Concatenate',
-    'NbUniqueElements', 'Total', 'MostRecent', 'Mean', 'FirstElement', 'StDevPop', 'GenotypeMatch', 'SexCheck',
-    'MatchingSpecies', 'Reference', 'resolve'
-)
+        return sorted(elements,
+                      key=lambda x: datetime.datetime.strptime(x.get(self.date_field), self.date_format))[-1]

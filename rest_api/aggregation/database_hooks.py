@@ -1,4 +1,5 @@
 import pymongo
+import statistics
 from rest_api.aggregation.server_side.expressions import *
 from config import rest_config as cfg
 
@@ -61,6 +62,83 @@ class DataRelation:
             )
 
         self._trigger_superelement_aggregation()
+
+
+# TODO: move these alongside the rest of the expressions in aggregation.database_side
+class Reference(Calculation):
+    def _expression(self, field):
+        return field
+
+
+class Mean(Accumulation):
+    def _expression(self, elements):
+        if elements:
+            return sum(elements) / len(elements)
+
+
+class FirstElement(Accumulation):
+    def _expression(self, elements):
+        if elements:
+            return elements[0]
+
+
+class StDevPop(Accumulation):
+    def _expression(self, elements):
+        if elements:
+            return statistics.pstdev(elements)
+
+
+class GenotypeMatch(Calculation):
+    def _expression(self, geno_val):
+        if not geno_val:
+            return None
+        elif geno_val['no_call_chip'] + geno_val['no_call_seq'] < 15:
+            if geno_val['mismatching_snps'] < 6:
+                return 'Match'
+            elif geno_val['mismatching_snps'] > 5:
+                return 'Mismatch'
+        else:
+            return 'Unknown'
+
+
+class SexCheck(Calculation):
+    def _expression(self, called, provided):
+        if not called or not provided:
+            return None
+        elif called == provided:
+            return called
+        else:
+            return 'Mismatch'
+
+
+class MatchingSpecies(Calculation):
+    def _expression(self, species_contam):
+        return sorted(k for k, v in species_contam['contaminant_unique_mapped'].items() if v > 500)
+
+
+class MostRecent(Calculation):  # TODO: Should replace server_side.MostRecent
+    def __init__(self, *args, date_field='_created'):
+        self.date_field = date_field
+        super().__init__(*args)
+
+    def _expression(self, elements):
+        procs = sorted(elements, key=lambda x: x.get(self.date_field))
+        if procs:
+            return procs[-1]
+
+
+class NbUniqueMutableElements(Calculation):  # TODO: Should replace server_side.NbUniqueElements
+    def __init__(self, *args, filter_func=None, key=None):
+        super().__init__(*args, filter_func=filter_func)
+        self.key = key
+
+    def _expression(self, elements):
+        if self.filter_func:
+            elements = [e[self.key] for e in elements if self.filter_func(e)]
+        else:
+            elements = [e[self.key] for e in elements if e]
+
+        return len(set(elements))
 
 
 base_and_read_counts = {
@@ -187,9 +265,9 @@ class Project(DataRelation):
     id_field = 'project_id'
     aggregated_fields = [
         {
-            'nb_samples': NbUniqueElements('samples'),
-            'nb_samples_reviewed': NbUniqueElements('samples', filter_func=lambda s: s.get('reviewed') in ('pass', 'fail')),  #
-            'nb_samples_delivered': NbUniqueElements('samples', filter_func=lambda s: s.get('delivered') == 'yes'),  #
+            'nb_samples': NbUniqueMutableElements('samples', key='sample_id'),
+            'nb_samples_reviewed': NbUniqueMutableElements('samples', key='sample_id', filter_func=lambda s: s.get('reviewed') in ('pass', 'fail')),  #
+            'nb_samples_delivered': NbUniqueMutableElements('samples', key='sample_id', filter_func=lambda s: s.get('delivered') == 'yes'),  #
             'most_recent_proc': MostRecent('analysis_driver_procs')
         }
     ]
