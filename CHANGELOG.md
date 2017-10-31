@@ -4,7 +4,7 @@ Changelog for Reporting-App
 0.16 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix thresholds for Automatic review actions and coloring in the web app to match SOPs
 
 
 0.15 (2017-09-06)
