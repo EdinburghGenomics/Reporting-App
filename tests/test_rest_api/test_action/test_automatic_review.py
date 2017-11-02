@@ -118,8 +118,8 @@ class TestSampleReviewer(TestBase):
         self.init_request = Mock(form={'sample_id': 'sample1'})
         self.fake_sample = Mock(udf={
             'Yield for Quoted Coverage (Gb)': 95,
-            'Required Yield (Gb)':120,
-            'Coverage (X)':30
+            'Required Yield (Gb)': 120,
+            'Coverage (X)': 30
         })
         self.patch_lims_samples = patch.object(
             AutomaticSampleReviewer,
