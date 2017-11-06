@@ -4,8 +4,8 @@ Changelog for Reporting-App
 0.15.1 (unreleased)
 -----------------
 
+- Fix thresholds for Automatic review actions and coloring in the web app to match SOPs
 - Add schema information to support mapping metrics in run_elements
-
 
 0.15 (2017-09-06)
 -----------------
