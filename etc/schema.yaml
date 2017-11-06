@@ -117,8 +117,9 @@ samples:
     sample_id: {                type: 'string',  required: True, unique: True }
     user_sample_id: {           type: 'string',  required: False }
     species_name: {             type: 'string',  required: False }
-    expected_coverage: {        type: 'integer', required: False }
-    expected_yield: {           type: 'integer', required: False }
+    required_coverage: {        type: 'integer', required: False }
+    required_yield: {           type: 'integer', required: False }
+    required_yield_q30: {       type: 'integer', required: False }
 
     # QC metrics
     bam_file_reads: {           type: 'integer', required: False }  # reads initially found in the bam file

@@ -186,25 +186,26 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
             cfg.pop('genotype_validation.mismatching_snps', None)
             cfg.pop('genotype_validation.no_call_seq', None)
 
-        yieldq30 = self.find_value('expected_yield_q30', 'Yield for Quoted Coverage (Gb)')
-        if not yieldq30:
+        required_yield_q30 = self.find_value('required_yield_q30', 'Yield for Quoted Coverage (Gb)')
+
+        if not required_yield_q30:
             abort(404, 'Sample %s does not have a expected yield Q30' % self.sample_id)
 
-        coverage = self.find_value('expected_coverage', 'Coverage (X)')
-        expected_yield = self.lims_sample.udf.get('Required Yield (Gb)')
+        coverage = self.find_value('required_coverage', 'Coverage (X)')
+        required_yield = self.find_value('required_yield', 'Required Yield (Gb)')
 
-        tmp_expected_yield, tmp_coverage = self.coverage_values[yieldq30]
-        if not expected_yield:
-            expected_yield = tmp_expected_yield
+        tmp_expected_yield, tmp_coverage = self.coverage_values[required_yield_q30]
+        if not required_yield:
+            required_yield = tmp_expected_yield
         if not coverage:
             coverage = tmp_coverage
-        if not expected_yield:
+        if not required_yield:
             abort(404, 'Sample %s does not have a expected yield' % self.sample_id)
         if not coverage:
             abort(404, 'Sample %s does not have a target coverage' % self.sample_id)
 
-        cfg['clean_yield_q30']['value'] = yieldq30
-        cfg['clean_yield_in_gb']['value'] = expected_yield
+        cfg['clean_yield_q30']['value'] = required_yield_q30
+        cfg['clean_yield_in_gb']['value'] = required_yield
         cfg['mean_coverage']['value'] = coverage
         return cfg
 
