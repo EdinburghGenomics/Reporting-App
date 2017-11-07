@@ -79,6 +79,7 @@ class AutomaticReviewer():
         else:
             return {
                 ELEMENT_REVIEWED: 'pass',
+                ELEMENT_REVIEW_COMMENTS: 'pass',
                 ELEMENT_REVIEW_DATE: self.current_time,
             }
 
@@ -193,7 +194,7 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
         coverage = self.find_value('expected_coverage', 'Coverage (X)')
         expected_yield = self.lims_sample.udf.get('Required Yield (Gb)')
 
-        tmp_expected_yield, tmp_coverage = self.coverage_values[yieldq30]
+        tmp_expected_yield, tmp_coverage = self.coverage_values.get(yieldq30, (None, None))
         if not expected_yield:
             expected_yield = tmp_expected_yield
         if not coverage:
@@ -205,7 +206,7 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
 
         cfg['clean_yield_q30']['value'] = yieldq30
         cfg['clean_yield_in_gb']['value'] = expected_yield
-        cfg['mean_coverage']['value'] = coverage
+        cfg['coverage.mean']['value'] = coverage
         return cfg
 
     @property

@@ -24,7 +24,8 @@ sample:
             name: Yield Q30
             # value: populated in automatic_review.sample_config
             comparison: '>'
-        mean_coverage:
+        coverage.mean:
+            name: Mean coverage
             # value: populated in automatic_review.sample_config
             comparison: '>'
         pc_duplicate_reads:

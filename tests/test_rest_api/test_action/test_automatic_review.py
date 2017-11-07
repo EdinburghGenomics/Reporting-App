@@ -27,7 +27,7 @@ failing_sample = {
     'called_gender': 'male',
     'genotype_validation': {'mismatching_snps': 3, 'no_call_chip': 1, 'no_call_seq': 0, 'matching_snps': 28},
     'pc_duplicate_reads': 16.20,
-    'mean_coverage': 30.156,
+    'coverage':{ 'mean': 30.156 },
     'clean_yield_q30': 89.33
 }
 
@@ -40,7 +40,7 @@ passing_sample = {
     'clean_yield_in_gb': 120.17,
     'clean_yield_q30': 95.82,
     'called_gender': 'female',
-    'mean_coverage': 30.34,
+    'coverage': {'mean': 30.34 },
     'pc_mapped_reads': 95.62,
     'pc_duplicate_reads': 20
 }
@@ -101,14 +101,14 @@ class TestLaneReviewer(TestBase):
             lane=1,
             run_id='a_run',
             barcode='b1',
-            payload={'review_date': self.passing_reviewer.current_time, 'reviewed': 'pass'}
+            payload={'review_date': self.passing_reviewer.current_time, 'review_comments': 'pass', 'reviewed': 'pass'}
         )
         mocked_patch.assert_called_with(
             'run_elements',
             lane=1,
             run_id='a_run',
             barcode='b2',
-            payload={'review_date': self.passing_reviewer.current_time, 'reviewed': 'pass'}
+            payload={'review_date': self.passing_reviewer.current_time, 'review_comments': 'pass', 'reviewed': 'pass'}
         )
 
 
@@ -118,8 +118,8 @@ class TestSampleReviewer(TestBase):
         self.init_request = Mock(form={'sample_id': 'sample1'})
         self.fake_sample = Mock(udf={
             'Yield for Quoted Coverage (Gb)': 95,
-            'Required Yield (Gb)':120,
-            'Coverage (X)':30
+            'Required Yield (Gb)': 120,
+            'Coverage (X)': 30
         })
         self.patch_lims_samples = patch.object(
             AutomaticSampleReviewer,
@@ -150,13 +150,13 @@ class TestSampleReviewer(TestBase):
             assert 'genotype_validation.no_call_seq' not in self.reviewer.cfg
             assert 'genotype_validation.mismatching_snps' not in self.reviewer.cfg
             assert self.reviewer.cfg['clean_yield_in_gb']['value'] == 120
-            assert self.reviewer.cfg['mean_coverage']['value'] == 30
+            assert self.reviewer.cfg['coverage.mean']['value'] == 30
 
         with patch(ppath + '_aggregate', return_value=(passing_sample,)), self.patch_lims_samples:
             assert 'genotype_validation.no_call_seq' in self.reviewer1.cfg
             assert 'genotype_validation.mismatching_snps' in self.reviewer1.cfg
             assert self.reviewer1.cfg['clean_yield_in_gb']['value'] == 120
-            assert self.reviewer1.cfg['mean_coverage']['value'] == 30
+            assert self.reviewer1.cfg['coverage.mean']['value'] == 30
 
     def test_summary(self):
         with patch(ppath + '_aggregate', return_value=(failing_sample,)), self.patch_lims_samples:
@@ -173,7 +173,7 @@ class TestSampleReviewer(TestBase):
 
             mocked_patch.assert_called_with(
                 'samples',
-                payload={'reviewed': 'pass', 'review_date': self.reviewer.current_time},
+                payload={'reviewed': 'pass', 'review_comments': 'pass', 'review_date': self.reviewer.current_time},
                 sample_id='sample1'
             )
 
