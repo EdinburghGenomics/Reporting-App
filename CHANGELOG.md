@@ -1,10 +1,10 @@
 Changelog for Reporting-App
 ===========================
 
-0.16 (unreleased)
------------------
+0.15.2 (2017-11-08)
+-------------------
 
-- Nothing changed yet.
+- Fix coloring issue that caused some rows to use the wrong threshold
 
 
 0.15.1 (2017-11-08)
