@@ -281,7 +281,7 @@ def report_samples(view_type):
 @flask_login.login_required
 def report_project(project_id):
     return render_template(
-        'untabbed_datatables.html',
+        'project_report.html',
         project_id + ' Project Report',
         review=True,
         tables=[
@@ -320,7 +320,13 @@ def report_project(project_id):
                 review_entity_field='sample_id',
                 buttons=['colvis', 'copy', 'pdf', 'samplereview']
             )
-        ]
+        ],
+        procs=rest_api().get_documents(
+            'analysis_driver_procs',
+            where={'dataset_type': 'project', 'dataset_name': project_id},
+            embedded={'stages': 1},
+            sort='-_created'
+        )
     )
 
 
