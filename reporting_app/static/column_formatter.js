@@ -55,17 +55,18 @@ function string_formatter(data, fmt, row){
             formatted_data = '<a href=' + fmt['link'] + data + '>' + data + '</a>';
         }
     }
+    var min, max;
     if (fmt['min']){
-        fmt['min'] = resolve_min_max_value(row, fmt['min'])
+        min = resolve_min_max_value(row, fmt['min'])
     }
     if (fmt['max']){
-        fmt['max'] = resolve_min_max_value(row, fmt['max'])
+        max = resolve_min_max_value(row, fmt['max'])
     }
-    if (fmt['min'] && data < fmt['min']) {
+    if (min && data < min) {
         formatted_data = '<div style="color:red">' + formatted_data + '</div>';
-    } else if (fmt['max'] && !isNaN(fmt['max']) && data > fmt['max']) {
+    } else if (max && !isNaN(max) && data > max) {
         formatted_data = '<div style="color:red">' + formatted_data + '</div>';
-    } else if (fmt['max'] && data > fmt['max']) {
+    } else if (max && data > max) {
         formatted_data = '<div style="color:red">' + formatted_data + '</div>';
     }
 
