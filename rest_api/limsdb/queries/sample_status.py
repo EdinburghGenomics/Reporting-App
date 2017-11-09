@@ -240,7 +240,7 @@ def _create_samples(session, match):
     project_id = match.get('project_id')
     sample_id = match.get('sample_id')
     sample_time_since = match.get('createddate')
-    detailed = bool(request.args.get('detailed', False))
+    detailed = request.args.get('detailed') in ['true', 'True',  True]
     if detailed:
         list_process_complete = None
         list_process_queued = None
