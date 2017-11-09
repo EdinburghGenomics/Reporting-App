@@ -135,7 +135,7 @@ class Sample:
         """Date of the first completed step"""
         for p in reversed(self.processes):
             process, date, process_type, process_id = p
-            if process_type == 'complete':
+            if process_type == 'complete' and process_type in status_cfg.started_steps():
                 return date
 
     @property
