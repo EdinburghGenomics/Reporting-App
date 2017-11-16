@@ -13,6 +13,7 @@ from unittest.mock import patch
 
 class TestDatabaseHooks(TestCase):
     db_path = os.path.join(Helper.assets_dir, 'mongod_metadata')
+    patched_auth = None
 
     @classmethod
     def setUpClass(cls):
@@ -32,8 +33,8 @@ class TestDatabaseHooks(TestCase):
                 'bases_r1': 1500000000, 'bases_r2': 1400000000, 'q30_bases_r1': 1400000000, 'q30_bases_r2': 1300000000,
                 'clean_bases_r1': 1300000000, 'clean_bases_r2': 1200000000, 'clean_q30_bases_r1': 1200000000,
                 'clean_q30_bases_r2': 1100000000, 'total_reads': 9190, 'passing_filter_reads': 8451,
-                'pc_reads_in_lane': 54.0, 'reviewed': 'not reviewed', 'clean_reads': 1337, 'lane_pc_optical_dups': 0.1,
-                'adaptor_bases_removed_r1': 1337, 'adaptor_bases_removed_r2': 1338
+                'pc_reads_in_lane': 54.0, 'reviewed': 'not reviewed', 'useable': 'yes', 'clean_reads': 1337,
+                'lane_pc_optical_dups': 0.1, 'adaptor_bases_removed_r1': 1337, 'adaptor_bases_removed_r2': 1338
             },
             {
                 'run_element_id': '150724_test_1_ATGA', 'run_id': '150724_test', 'project_id': 'a_project',
@@ -68,6 +69,8 @@ class TestDatabaseHooks(TestCase):
             data=json.dumps(data),
             headers={'Content-Type': 'application/json'}
         )
+        if not 200 <= r.status_code <= 299:
+            raise AssertionError('POST got response %s: %s' % (r.status, r.data))
         return r.data
 
     def patch(self, endpoint, where, data):
@@ -78,6 +81,8 @@ class TestDatabaseHooks(TestCase):
             data=json.dumps(data),
             headers={'Content-Type': 'application/json', 'If-Match': entity['_etag']}
         )
+        if not 200 <= r.status_code <= 299:
+            raise AssertionError('PATCH got response %s: %s' % (r.status, r.data))
         return r.data
 
     @staticmethod
@@ -140,10 +145,8 @@ class TestDatabaseHooks(TestCase):
             {'run_id': '150724_test', 'number_of_lanes': 8, 'run_elements': ['150724_test_1_ATGC', '150724_test_1_ATGA']}
         )
 
-        exp = {
-            'run_ids': ['150724_test'], 'project_ids': ['a_project'], 'review_statuses': ['not reviewed', 'pass'],
-            'useable_statuses': ['not marked', 'yes'], 'pc_adaptor': 0.00009231034479575506
-        }
+        exp = {'project_ids': ['a_project'], 'review_statuses': ['not reviewed', 'pass'],
+               'useable_statuses': ['yes'], 'pc_adaptor': 0.00009231034479575506}
         self.assert_dict_subsets(exp, self.get('runs')[0]['aggregated'])
 
         self.post(
@@ -156,11 +159,19 @@ class TestDatabaseHooks(TestCase):
                 'passing_filter_reads': 8461, 'pc_reads_in_lane': 54.1, 'reviewed': 'fail', 'useable': 'no'
             }
         )
-        exp.update(
+
+        # add an unknown barcode to test filtering
+        self.post(
+            'run_elements',
             {
-                'project_ids': ['a_project', 'another_project'], 'review_statuses': ['fail', 'not reviewed', 'pass'],
-                'useable_statuses': ['no', 'not marked', 'yes'], 'pc_adaptor': 9.429577460804404e-05
+                'run_element_id': '150724_test_3_unknown', 'run_id': '150724_test', 'project_id': 'another_project',
+                'sample_id': 'a_sample', 'lane': 3, 'barcode': 'unknown', 'library_id': 'a_library',
+                'useable': 'not marked'
             }
+        )
+        exp.update(
+            {'project_ids': ['a_project', 'another_project'], 'review_statuses': ['fail', 'not reviewed', 'pass'],
+             'useable_statuses': ['no', 'yes'], 'pc_adaptor': 9.429577460804404e-05}
         )
         self.assert_dict_subsets(exp, self.get('runs')[0]['aggregated'])
 
@@ -187,8 +198,7 @@ class TestDatabaseHooks(TestCase):
 
         exp = {
             'cv': 0.0008362189938346116, 'sample_ids': ['a_sample'], 'pc_adaptor': 9.231034479575506e-05,
-            'stdev_pf': 5.0, 'avg_pf': 8456.0, 'lane_pc_optical_dups': 0.1, 'useable_statuses': ['not marked', 'yes'],
-            'review_statuses': ['not reviewed', 'pass']
+            'lane_pc_optical_dups': 0.1, 'useable_statuses': ['yes'], 'review_statuses': ['not reviewed', 'pass']
         }
         obs = self.get('lanes')
         self.assert_dict_subsets(exp, obs[0]['aggregated'])
@@ -203,18 +213,23 @@ class TestDatabaseHooks(TestCase):
                 'passing_filter_reads': 8461, 'pc_reads_in_lane': 54.1, 'reviewed': 'fail', 'useable': 'no'
             }
         )
-
-        exp.update(
+        # add an unknown barcode to test filtering
+        self.post(
+            'run_elements',
             {
-                'cv': 0.0006826354028175136, 'pc_adaptor': 9.429577460804404e-05, 'stdev_pf': 4.714045207910317,
-                'avg_pf': 8457.666666666666, 'useable_statuses': ['no', 'not marked', 'yes'],
-                'review_statuses': ['fail', 'not reviewed', 'pass']
+                'run_element_id': '150724_test_3_unknown', 'run_id': '150724_test', 'project_id': 'another_project',
+                'sample_id': 'a_sample', 'lane': 3, 'barcode': 'unknown', 'library_id': 'a_library',
+                'useable': 'not marked'
             }
+        )
+        exp.update(
+            {'cv': 0.0006826354028175136, 'pc_adaptor': 9.429577460804404e-05, 'useable_statuses': ['no', 'yes'],
+             'review_statuses': ['fail', 'not reviewed', 'pass']}
         )
         self.assert_dict_subsets(exp, self.get('lanes')[0]['aggregated'])
 
         self.patch('run_elements', {'run_element_id': '150724_test_1_ATGG'}, {'passing_filter_reads': 8471})
-        exp.update({'cv': 0.0011818933932159319, 'stdev_pf': 8.16496580927726, 'avg_pf': 8461.0})
+        exp['cv'] = 0.0011818933932159319
         self.assert_dict_subsets(exp, self.get('lanes')[0]['aggregated'])
 
     def test_run_element_aggregation(self):
@@ -286,12 +301,11 @@ class TestDatabaseHooks(TestCase):
         self.post('samples', sample)
 
         exp = {
-            'expected_yield_q30': 3.0, 'genotype_match': 'Match', 'gender_match': 'female',
-            'pc_mapped_reads': 99.9252615844544, 'pc_properly_mapped_reads': 99.85052316890882,
-            'pc_duplicate_reads': 7.473841554559043, 'matching_species': ['Homo sapiens'],
-            'coverage_at_5X': 96.66666666666667, 'coverage_at_15X': 66.66666666666666, 'most_recent_proc': None,
-            'clean_yield_in_gb': 5.000000002, 'clean_pc_q30_r1': 92.30769231065089, 'clean_pc_q30': 92.0000000032,
-            'clean_yield_q30_in_gb': 4.600000002
+            'genotype_match': 'Match', 'gender_match': 'female', 'pc_mapped_reads': 99.9252615844544,
+            'pc_properly_mapped_reads': 99.85052316890882, 'pc_duplicate_reads': 7.473841554559043,
+            'matching_species': ['Homo sapiens'], 'coverage_at_5X': 96.66666666666667,
+            'coverage_at_15X': 66.66666666666666, 'most_recent_proc': None, 'clean_yield_in_gb': 5.000000002,
+            'clean_pc_q30_r1': 92.30769231065089, 'clean_pc_q30': 92.0000000032, 'clean_yield_q30_in_gb': 4.600000002
         }
         self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])
 
@@ -299,10 +313,19 @@ class TestDatabaseHooks(TestCase):
             'run_elements',
             {
                 'run_element_id': '150724_test_1_ATGG', 'run_id': '150724_test', 'project_id': 'a_project',
-                'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGG', 'library_id': 'a_library',
+                'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGG', 'library_id': 'a_library', 'useable': 'no'
+            }
+        )
+        self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])
+
+        self.post(
+            'run_elements',
+            {
+                'run_element_id': '150724_test_2_ATGG', 'run_id': '150724_test', 'project_id': 'a_project',
+                'sample_id': 'a_sample', 'lane': 2, 'barcode': 'ATGG', 'library_id': 'a_library',
                 'bases_r1': 1300000001, 'q30_bases_r1': 1200000001, 'clean_bases_r1': 1100000001,
                 'clean_q30_bases_r1': 1000000001, 'adaptor_bases_removed_r1': 1341, 'total_reads': 9180,
-                'passing_filter_reads': 8461, 'pc_reads_in_lane': 54.1, 'reviewed': 'fail', 'useable': 'no'
+                'passing_filter_reads': 8461, 'pc_reads_in_lane': 54.1, 'reviewed': 'fail', 'useable': 'yes'
             }
         )
         exp.update(
@@ -311,12 +334,10 @@ class TestDatabaseHooks(TestCase):
         )
         self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])
 
-        self.patch('run_elements', {'run_element_id': '150724_test_1_ATGG'}, {'clean_q30_bases_r1': 1200001001})
+        self.patch('run_elements', {'run_element_id': '150724_test_2_ATGG'}, {'clean_q30_bases_r1': 1200001001})
         exp.update(
-            {
-                'clean_pc_q30_r1': 97.29732432578523, 'clean_pc_q30': 95.08198360897607,
-                'clean_yield_q30_in_gb': 5.800001003
-            }
+            {'clean_pc_q30_r1': 97.29732432578523, 'clean_pc_q30': 95.08198360897607,
+             'clean_yield_q30_in_gb': 5.800001003}
         )
         self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])
 
@@ -333,7 +354,21 @@ class TestDatabaseHooks(TestCase):
         self.patch('analysis_driver_procs', {'proc_id': 'run_150724_test'}, {'pid': 1338})
         assert self.get('runs')[0]['aggregated']['most_recent_proc']['pid'] == 1338
 
+    def test_non_aggregated_endpoint(self):
+        self.post(
+            'analysis_driver_procs',
+            {'proc_id': 'run_150724_test', 'dataset_type': 'run', 'dataset_name': '150724_test', 'pid': 1337}
+        )
+        self.post(
+            'analysis_driver_stages',
+            {
+                'stage_id': 'run_150724_test_stage_1', 'analysis_driver_proc': 'run_150724_test',
+                'stage_name': 'stage_1', 'date_started': '01_01_2017_13:00:00'
+            }
+        )
 
+
+# TODO: move these alongside the tests in test_aggregation.test_server_side
 def test_reference():
     e = database_hooks.Reference('this.that')
     assert e.evaluate({'this': {'that': 'other'}}) == 'other'
@@ -405,8 +440,8 @@ def test_nb_unique_mutable_elements():
         {'this': 'another', 'that': 1},
         {'this': 'more', 'that': 3}
     ]
-    e = database_hooks.NbUniqueMutableElements('things', key='this')
+    e = database_hooks.NbUniqueDicts('things', key='this')
     assert e.evaluate({'things': data}) == 3
 
-    e = database_hooks.NbUniqueMutableElements('things', key='this', filter_func=lambda x: x['that'] > 1)
+    e = database_hooks.NbUniqueDicts('things', key='this', filter_func=lambda x: x['that'] > 1)
     assert e.evaluate({'things': data}) == 2

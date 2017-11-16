@@ -1,46 +1,36 @@
 import os
-import sys
 import argparse
 import logging
 import logging.config
 import logging.handlers
-import tornado.log
 import tornado.wsgi
 import tornado.httpserver
 import tornado.ioloop
 import tornado.autoreload
+import signal
 from egcg_core.app_logging import LoggingConfiguration
+import config
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+app = None
 http_server = None
-watched_files = [
-    os.path.join(os.path.dirname(__file__), '..', 'etc', 'schema.yaml'),
-    os.path.join(os.path.dirname(__file__), '..', 'etc', 'column_mappings.yaml'),
-    os.getenv('REPORTINGCONFIG'),
-    os.path.expanduser('~/.reporting.yaml')
-]
 
 
-def run_app(app, cfg):
-    """
-    :param flask.Flask app: A Flask app, or any subclassing object, e.g. eve.Eve
-    :param config.Configuration cfg:
-    """
+def run_app(cfg):
     global http_server
 
-    app.debug = cfg.get('debug', False)
     log_cfg = LoggingConfiguration(cfg)
-
-    log_cfg.loggers['tornado.access'] = tornado.log.access_log
-    log_cfg.loggers['tornado.app'] = tornado.log.app_log
-    log_cfg.loggers['tornado.gen'] = tornado.log.gen_log
-    log_cfg.loggers['app'] = app.logger
-
-    app.logger.setLevel(logging.DEBUG)
+    log_cfg.get_logger('eve', logging.DEBUG)
+    log_cfg.get_logger('tornado.access', logging.DEBUG)
+    log_cfg.get_logger('tornado.application', logging.DEBUG)
+    log_cfg.get_logger('tornado.general', logging.DEBUG)
     log_cfg.configure_handlers_from_config()
 
-    for f in watched_files:
-        tornado.autoreload.watch(f)
+    app.logger.info('Started')
+
+    for f in ('schema', 'column_mappings', 'project_status_definitions', 'review_thresholds'):
+        tornado.autoreload.watch(os.path.join(os.path.dirname(__file__), '..', 'etc', f + '.yaml'))
+
+    tornado.autoreload.watch(cfg.config_file)
     tornado.autoreload.start()
 
     http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
@@ -49,23 +39,33 @@ def run_app(app, cfg):
 
 
 def stop(sig=None, frame=None):
+    if sig or frame:
+        app.logger.info('Received signal %s', sig)
     http_server.stop()
     tornado.ioloop.IOLoop.instance().stop()
+    app.logger.info('Stopped')
 
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('app', choices=['reporting_app', 'rest_api'])
+    p.add_argument('app', choices=('reporting_app', 'rest_api'))
     args = p.parse_args()
 
-    if args.app == 'reporting_app':
-        from reporting_app import app
-        from config import reporting_app_config as cfg
-    else:
-        from rest_api import app
-        from config import rest_config as cfg
+    global app
 
-    run_app(app, cfg)
+    if args.app == 'reporting_app':
+        import reporting_app
+        app = reporting_app.app
+        cfg = config.reporting_app_config
+    else:
+        import rest_api
+        app = rest_api.app
+        cfg = config.rest_config
+
+    signal.signal(signal.SIGINT, stop)
+    signal.signal(signal.SIGTERM, stop)
+
+    run_app(cfg)
 
 
 if __name__ == '__main__':

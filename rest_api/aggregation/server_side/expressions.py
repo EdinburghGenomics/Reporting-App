@@ -1,5 +1,8 @@
 import statistics
 import datetime
+from egcg_core.app_logging import logging_default
+
+logger = logging_default.get_logger(__name__)
 
 
 def resolve(query, element):
@@ -50,12 +53,17 @@ class Calculation(Expression):
 
         try:
             return self._expression(*_args)
-        except (ZeroDivisionError, TypeError):
+        except (ZeroDivisionError, TypeError) as e:
+            logger.error(e)
             return self.default_return_value
 
 
 class Accumulation(Calculation):
-    def _resolve_element(self, element, query_string):
+    def _resolve_element(self, element, query_string):  # TODO: make the list nesting level configurable.
+        """
+        Drill down into the first item of the query string and resolve each item within using the rest of the query
+        string.
+        """
         e = element.copy()
         queries = query_string.split('.')
         subelements = e.get(queries[0])
@@ -111,11 +119,11 @@ class CoefficientOfVariation(Accumulation):
         return statistics.stdev(elements) / statistics.mean(elements)
 
 
-class Concatenate(Accumulation):
-    default_return_value = ''
+class ToSet(Accumulation):
+    default_return_value = []
 
     def _expression(self, elements):
-        return list(sorted(set(elements)))
+        return sorted(set(e for e in elements if e is not None))
 
 
 class NbUniqueElements(Calculation):
@@ -146,3 +154,9 @@ class MostRecent(Calculation):
     def _expression(self, elements):
         return sorted(elements,
                       key=lambda x: datetime.datetime.strptime(x.get(self.date_field), self.date_format))[-1]
+
+
+__all__ = (
+    'resolve', 'Calculation', 'Accumulation', 'Constant', 'Add', 'Multiply', 'Divide', 'Percentage',
+    'CoefficientOfVariation', 'ToSet', 'NbUniqueElements', 'Total', 'MostRecent'
+)

@@ -8,7 +8,7 @@ DOMAIN = {
         'datasource': {
             'projection': {
                 k: 1
-                for k in ['_id', '_etag', '_updated', '_created', 'calculated', 'aggregated'] + list(schema[endpoint])
+                for k in ['_id', '_etag', '_updated', '_created', 'aggregated'] + list(schema[endpoint])
             }
         }
     }

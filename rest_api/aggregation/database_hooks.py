@@ -1,10 +1,6 @@
-import pymongo
 import statistics
 from rest_api.aggregation.server_side.expressions import *
-from config import rest_config as cfg
-
-cli = pymongo.MongoClient(cfg['db_host'], cfg['db_port'])
-db = cli[cfg['db_name']]
+from rest_api.aggregation.database_side import db
 
 
 class DataRelation:
@@ -64,7 +60,7 @@ class DataRelation:
         self._trigger_superelement_aggregation()
 
 
-# TODO: move these alongside the rest of the expressions in aggregation.database_side
+# TODO: move these alongside the rest of the expressions in aggregation.server_side
 class Reference(Calculation):
     def _expression(self, field):
         return field
@@ -127,7 +123,7 @@ class MostRecent(Calculation):  # TODO: Should replace server_side.MostRecent
             return procs[-1]
 
 
-class NbUniqueMutableElements(Calculation):  # TODO: Should replace server_side.NbUniqueElements
+class NbUniqueDicts(Calculation):  # TODO: Should replace server_side.NbUniqueElements
     def __init__(self, *args, filter_func=None, key=None):
         super().__init__(*args, filter_func=filter_func)
         self.key = key
@@ -152,8 +148,14 @@ base_and_read_counts = {
     'clean_q30_bases_r2': Total('run_elements.clean_q30_bases_r2'),
     'total_reads': Total('run_elements.total_reads'),
     'passing_filter_reads': Total('run_elements.passing_filter_reads'),
-    'clean_reads': Total('run_elements.clean_reads'),
-    'run_ids': Concatenate('run_elements.run_id')
+    'clean_reads': Total('run_elements.clean_reads')
+}
+
+
+fastq_filtering = {
+    'tiles_filtered': ToSet('run_elements.tiles_filtered'),
+    'trim_r1': ToSet('run_elements.trim_r1'),
+    'trim_r2': ToSet('run_elements.trim_r2')
 }
 
 
@@ -173,6 +175,10 @@ yields_and_percentages = {
 }
 
 
+def not_unknown_barcode(e):
+    return e.get('barcode') != 'unknown'
+
+
 class RunElement(DataRelation):
     endpoint = 'run_elements'
     id_field = 'run_element_id'
@@ -188,7 +194,11 @@ class RunElement(DataRelation):
             'clean_yield_q30_in_gb': Divide(Add('clean_q30_bases_r1', 'clean_q30_bases_r2'), Constant(1000000000)),  #
             'clean_pc_q30_r1': Percentage('clean_q30_bases_r1', 'clean_bases_r1'),  #
             'clean_pc_q30_r2': Percentage('clean_q30_bases_r2', 'clean_bases_r2'),  #
-            'clean_pc_q30': Percentage(Add('clean_q30_bases_r1', 'clean_q30_bases_r2'), Add('clean_bases_r1', 'clean_bases_r2'))  #
+            'clean_pc_q30': Percentage(Add('clean_q30_bases_r1', 'clean_q30_bases_r2'), Add('clean_bases_r1', 'clean_bases_r2')),  #
+            'pc_adaptor': Percentage(
+                Add('adaptor_bases_removed_r1', 'adaptor_bases_removed_r2'),
+                Add('bases_r1', 'bases_r2')
+            )
         }
     ]
 
@@ -207,11 +217,11 @@ class Run(DataRelation):
     aggregated_fields = [
         base_and_read_counts,
         yields_and_percentages,
+        fastq_filtering,
         {
-            'project_ids': Concatenate('run_elements.project_id'),
-            'review_statuses': Concatenate('run_elements.reviewed'),
-            'useable_statuses': Concatenate('run_elements.useable'),
-
+            'project_ids': ToSet('run_elements.project_id'),
+            'review_statuses': ToSet('run_elements.reviewed', filter_func=not_unknown_barcode),
+            'useable_statuses': ToSet('run_elements.useable', filter_func=not_unknown_barcode),
             'pc_adaptor': Percentage(  #
                 Add(Total('run_elements.adaptor_bases_removed_r1'), Total('run_elements.adaptor_bases_removed_r2')),
                 Add('aggregated.bases_r1', 'aggregated.bases_r2')
@@ -234,24 +244,17 @@ class Lane(DataRelation):
     aggregated_fields = [
         base_and_read_counts,
         yields_and_percentages,
+        fastq_filtering,
         {
-            'cv': CoefficientOfVariation(
-                'run_elements.passing_filter_reads',
-                filter_func=lambda e: e.get('barcode') != 'unknown'
-            ),
-
-            'sample_ids': Concatenate('run_elements.sample_id'),  #
+            'cv': CoefficientOfVariation('run_elements.passing_filter_reads', filter_func=not_unknown_barcode),
+            'sample_ids': ToSet('run_elements.sample_id'),  #
             'pc_adaptor': Percentage(  #
                 Add(Total('run_elements.adaptor_bases_removed_r1'), Total('run_elements.adaptor_bases_removed_r2')),
                 Add('aggregated.bases_r1', 'aggregated.bases_r2')
             ),
-
-            'stdev_pf': StDevPop('run_elements.passing_filter_reads'),  #
-            'avg_pf': Mean('run_elements.passing_filter_reads'),  #
-
             'lane_pc_optical_dups': FirstElement('run_elements.lane_pc_optical_dups'),  # # TODO: fix this in the schema
-            'useable_statuses': Concatenate('run_elements.useable'),  #
-            'review_statuses': Concatenate('run_elements.reviewed'),  #
+            'useable_statuses': ToSet('run_elements.useable', filter_func=not_unknown_barcode),  #
+            'review_statuses': ToSet('run_elements.reviewed', filter_func=not_unknown_barcode),  #
         }
     ]
 
@@ -265,9 +268,9 @@ class Project(DataRelation):
     id_field = 'project_id'
     aggregated_fields = [
         {
-            'nb_samples': NbUniqueMutableElements('samples', key='sample_id'),
-            'nb_samples_reviewed': NbUniqueMutableElements('samples', key='sample_id', filter_func=lambda s: s.get('reviewed') in ('pass', 'fail')),  #
-            'nb_samples_delivered': NbUniqueMutableElements('samples', key='sample_id', filter_func=lambda s: s.get('delivered') == 'yes'),  #
+            'nb_samples': NbUniqueDicts('samples', key='sample_id'),
+            'nb_samples_reviewed': NbUniqueDicts('samples', key='sample_id', filter_func=lambda s: s.get('reviewed') in ('pass', 'fail')),  #
+            'nb_samples_delivered': NbUniqueDicts('samples', key='sample_id', filter_func=lambda s: s.get('delivered') == 'yes'),  #
             'most_recent_proc': MostRecent('analysis_driver_procs')
         }
     ]
@@ -286,8 +289,9 @@ class Sample(DataRelation):
     aggregated_fields = [
         base_and_read_counts,
         yields_and_percentages,
+        fastq_filtering,
         {
-            'expected_yield_q30': Divide('expected_yield', Constant(1000000000)),  # # TODO: really!?
+            'run_ids': ToSet('run_elements.run_id'),
             'genotype_match': GenotypeMatch('genotype_validation'),  #
             'gender_match': SexCheck('called_gender', 'provided_gender'),  #
             'pc_mapped_reads': Percentage('mapped_reads', 'bam_file_reads'),
@@ -303,7 +307,7 @@ class Sample(DataRelation):
     @property
     def subelements(self):
         return {
-            'run_elements': {'sample_id': self.data['sample_id']},
+            'run_elements': {'sample_id': self.data['sample_id'], 'useable': 'yes'},
             'analysis_driver_procs': {'dataset_type': 'sample', 'dataset_name': self.data['sample_id']}
         }
 
@@ -334,12 +338,14 @@ data_relations = {
 
 
 def post_insert_hook(resource, items):
-    for i in items:
-        rel = data_relations[resource](i)
-        rel.aggregate()
+    if resource in data_relations:
+        for i in items:
+            rel = data_relations[resource](i)
+            rel.aggregate()
 
 
 def post_update_hook(resource, updates, original):
-    rel = data_relations[resource](original)
-    rel.data.update(updates)
-    rel.aggregate()
+    if resource in data_relations:
+        rel = data_relations[resource](original)
+        rel.data.update(updates)
+        rel.aggregate()

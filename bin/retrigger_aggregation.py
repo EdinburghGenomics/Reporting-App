@@ -2,6 +2,11 @@ import argparse
 from egcg_core.rest_communication import Communicator
 from egcg_core.app_logging import logging_default
 
+"""
+This script runs through all run elements and patches each with a null entity, retriggering database hook aggregation.
+Superelements will be re-aggregated automatically.
+"""
+
 
 def main():
     a = argparse.ArgumentParser()
