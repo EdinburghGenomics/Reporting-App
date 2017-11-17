@@ -60,7 +60,9 @@ class Sample:
             current_status = status = status_cfg.status_order[0]
             for process, date, process_type, process_id in sorted(self._processes, key=operator.itemgetter(1)):
 
-                process_dict = {'name': process, 'date': date.strftime('%b %d %Y'), 'type': process_type,
+                process_dict = {'name': process,
+                                'date': date.strftime('%b %d %Y'),
+                                'type': process_type,
                                 'process_id': process_id}
                 # This part find the new status
                 if process_type == 'complete' and process in status_cfg.step_completed_to_status:
@@ -94,7 +96,6 @@ class Sample:
                     new_status = status_cfg.step_completed_to_status.get(process)
                 elif process_type == 'queued' and process in status_cfg.step_queued_to_status:
                     new_status = status_cfg.step_queued_to_status.get(process)
-
                 if not status:
                     status = new_status
                     self._status_and_date = (status, date)
