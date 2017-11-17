@@ -17,10 +17,13 @@ def main():
 
     logging_default.add_stdout_handler()
     c = Communicator((args.username, args.password), args.baseurl)
+    retrigger_aggregation(c)
 
-    all_runs = c.get_documents('runs', all_pages=True)
+
+def retrigger_aggregation(communicator):
+    all_runs = communicator.get_documents('runs', all_pages=True)
     for r in all_runs:
-        c.patch_entries('run_elements', {}, where={'run_id': r['run_id']})
+        communicator.patch_entries('run_elements', {}, where={'run_id': r['run_id']})
 
 
 if __name__ == '__main__':

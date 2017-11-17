@@ -159,19 +159,18 @@ fastq_filtering = {
 }
 
 
-# = was in database-side aggregation, but not server-side
 yields_and_percentages = {
     'pc_pass_filter': Percentage('aggregated.passing_filter_reads', 'aggregated.total_reads'),
     'pc_q30_r1': Percentage('aggregated.q30_bases_r1', 'aggregated.bases_r1'),
     'pc_q30_r2': Percentage('aggregated.q30_bases_r2', 'aggregated.bases_r2'),
     'pc_q30': Percentage(Add('aggregated.q30_bases_r1', 'aggregated.q30_bases_r2'), Add('aggregated.bases_r1', 'aggregated.bases_r2')),
     'yield_in_gb': Divide(Add('aggregated.bases_r1', 'aggregated.bases_r2'), Constant(1000000000)),
-    'yield_q30_in_gb': Divide(Add('aggregated.q30_bases_r1', 'aggregated.q30_bases_r2'), Constant(1000000000)),  #
-    'clean_yield_in_gb': Divide(Add('aggregated.clean_bases_r1', 'aggregated.clean_bases_r2'), Constant(1000000000)),  #
-    'clean_yield_q30_in_gb': Divide(Add('aggregated.clean_q30_bases_r1', 'aggregated.clean_q30_bases_r2'), Constant(1000000000)),  #
-    'clean_pc_q30_r1': Percentage('aggregated.clean_q30_bases_r1', 'aggregated.clean_bases_r1'),  #
-    'clean_pc_q30_r2': Percentage('aggregated.clean_q30_bases_r2', 'aggregated.clean_bases_r2'),  #
-    'clean_pc_q30': Percentage(Add('aggregated.clean_q30_bases_r1', 'aggregated.clean_q30_bases_r2'), Add('aggregated.clean_bases_r1', 'aggregated.clean_bases_r2'))  #
+    'yield_q30_in_gb': Divide(Add('aggregated.q30_bases_r1', 'aggregated.q30_bases_r2'), Constant(1000000000)),
+    'clean_yield_in_gb': Divide(Add('aggregated.clean_bases_r1', 'aggregated.clean_bases_r2'), Constant(1000000000)),
+    'clean_yield_q30_in_gb': Divide(Add('aggregated.clean_q30_bases_r1', 'aggregated.clean_q30_bases_r2'), Constant(1000000000)),
+    'clean_pc_q30_r1': Percentage('aggregated.clean_q30_bases_r1', 'aggregated.clean_bases_r1'),
+    'clean_pc_q30_r2': Percentage('aggregated.clean_q30_bases_r2', 'aggregated.clean_bases_r2'),
+    'clean_pc_q30': Percentage(Add('aggregated.clean_q30_bases_r1', 'aggregated.clean_q30_bases_r2'), Add('aggregated.clean_bases_r1', 'aggregated.clean_bases_r2'))
 }
 
 
@@ -189,12 +188,12 @@ class RunElement(DataRelation):
             'pc_q30_r2': Percentage('q30_bases_r2', 'bases_r2'),
             'pc_q30': Percentage(Add('q30_bases_r1', 'q30_bases_r2'), Add('bases_r1', 'bases_r2')),
             'yield_in_gb': Divide(Add('bases_r1', 'bases_r2'), Constant(1000000000)),
-            'yield_q30_in_gb': Divide(Add('q30_bases_r1', 'q30_bases_r2'), Constant(1000000000)),  #
-            'clean_yield_in_gb': Divide(Add('clean_bases_r1', 'clean_bases_r2'), Constant(1000000000)),  #
-            'clean_yield_q30_in_gb': Divide(Add('clean_q30_bases_r1', 'clean_q30_bases_r2'), Constant(1000000000)),  #
-            'clean_pc_q30_r1': Percentage('clean_q30_bases_r1', 'clean_bases_r1'),  #
-            'clean_pc_q30_r2': Percentage('clean_q30_bases_r2', 'clean_bases_r2'),  #
-            'clean_pc_q30': Percentage(Add('clean_q30_bases_r1', 'clean_q30_bases_r2'), Add('clean_bases_r1', 'clean_bases_r2')),  #
+            'yield_q30_in_gb': Divide(Add('q30_bases_r1', 'q30_bases_r2'), Constant(1000000000)),
+            'clean_yield_in_gb': Divide(Add('clean_bases_r1', 'clean_bases_r2'), Constant(1000000000)),
+            'clean_yield_q30_in_gb': Divide(Add('clean_q30_bases_r1', 'clean_q30_bases_r2'), Constant(1000000000)),
+            'clean_pc_q30_r1': Percentage('clean_q30_bases_r1', 'clean_bases_r1'),
+            'clean_pc_q30_r2': Percentage('clean_q30_bases_r2', 'clean_bases_r2'),
+            'clean_pc_q30': Percentage(Add('clean_q30_bases_r1', 'clean_q30_bases_r2'), Add('clean_bases_r1', 'clean_bases_r2')),
             'pc_adaptor': Percentage(
                 Add('adaptor_bases_removed_r1', 'adaptor_bases_removed_r2'),
                 Add('bases_r1', 'bases_r2')
@@ -222,7 +221,7 @@ class Run(DataRelation):
             'project_ids': ToSet('run_elements.project_id'),
             'review_statuses': ToSet('run_elements.reviewed', filter_func=not_unknown_barcode),
             'useable_statuses': ToSet('run_elements.useable', filter_func=not_unknown_barcode),
-            'pc_adaptor': Percentage(  #
+            'pc_adaptor': Percentage(
                 Add(Total('run_elements.adaptor_bases_removed_r1'), Total('run_elements.adaptor_bases_removed_r2')),
                 Add('aggregated.bases_r1', 'aggregated.bases_r2')
             ),
@@ -247,14 +246,14 @@ class Lane(DataRelation):
         fastq_filtering,
         {
             'cv': CoefficientOfVariation('run_elements.passing_filter_reads', filter_func=not_unknown_barcode),
-            'sample_ids': ToSet('run_elements.sample_id'),  #
-            'pc_adaptor': Percentage(  #
+            'sample_ids': ToSet('run_elements.sample_id'),
+            'pc_adaptor': Percentage(
                 Add(Total('run_elements.adaptor_bases_removed_r1'), Total('run_elements.adaptor_bases_removed_r2')),
                 Add('aggregated.bases_r1', 'aggregated.bases_r2')
             ),
-            'lane_pc_optical_dups': FirstElement('run_elements.lane_pc_optical_dups'),  # # TODO: fix this in the schema
-            'useable_statuses': ToSet('run_elements.useable', filter_func=not_unknown_barcode),  #
-            'review_statuses': ToSet('run_elements.reviewed', filter_func=not_unknown_barcode),  #
+            'lane_pc_optical_dups': FirstElement('run_elements.lane_pc_optical_dups'),  # TODO: fix this in the schema
+            'useable_statuses': ToSet('run_elements.useable', filter_func=not_unknown_barcode),
+            'review_statuses': ToSet('run_elements.reviewed', filter_func=not_unknown_barcode),
         }
     ]
 
@@ -269,8 +268,8 @@ class Project(DataRelation):
     aggregated_fields = [
         {
             'nb_samples': NbUniqueDicts('samples', key='sample_id'),
-            'nb_samples_reviewed': NbUniqueDicts('samples', key='sample_id', filter_func=lambda s: s.get('reviewed') in ('pass', 'fail')),  #
-            'nb_samples_delivered': NbUniqueDicts('samples', key='sample_id', filter_func=lambda s: s.get('delivered') == 'yes'),  #
+            'nb_samples_reviewed': NbUniqueDicts('samples', key='sample_id', filter_func=lambda s: s.get('reviewed') in ('pass', 'fail')),
+            'nb_samples_delivered': NbUniqueDicts('samples', key='sample_id', filter_func=lambda s: s.get('delivered') == 'yes'),
             'most_recent_proc': MostRecent('analysis_driver_procs')
         }
     ]
@@ -292,15 +291,15 @@ class Sample(DataRelation):
         fastq_filtering,
         {
             'run_ids': ToSet('run_elements.run_id'),
-            'genotype_match': GenotypeMatch('genotype_validation'),  #
-            'gender_match': SexCheck('called_gender', 'provided_gender'),  #
+            'genotype_match': GenotypeMatch('genotype_validation'),
+            'gender_match': SexCheck('called_gender', 'provided_gender'),
             'pc_mapped_reads': Percentage('mapped_reads', 'bam_file_reads'),
             'pc_properly_mapped_reads': Percentage('properly_mapped_reads', 'bam_file_reads'),
             'pc_duplicate_reads': Percentage('duplicate_reads', 'bam_file_reads'),
             'matching_species': MatchingSpecies('species_contamination'),
             'coverage_at_5X': Percentage('coverage.bases_at_coverage.bases_at_5X', 'coverage.genome_size'),
             'coverage_at_15X': Percentage('coverage.bases_at_coverage.bases_at_15X', 'coverage.genome_size'),
-            'most_recent_proc': MostRecent('analysis_driver_procs')  #
+            'most_recent_proc': MostRecent('analysis_driver_procs')
         }
     ]
 
