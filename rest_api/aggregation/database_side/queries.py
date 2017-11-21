@@ -276,7 +276,6 @@ sample = merge_analysis_driver_procs(
             'required_coverage': '$required_coverage',
             'required_yield_q30': divide('$required_yield_q30', 1000000000),
             'required_yield': divide('$required_yield', 1000000000),
-            'required_yield_q30': '$required_yield_q30',
             'run_ids': '$run_ids',
             'all_run_ids': '$all_run_ids',
             'run_elements': '$run_elements',
