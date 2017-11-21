@@ -1,11 +1,24 @@
 Changelog for Reporting-App
 ===========================
 
-0.15.1 (unreleased)
+0.16 (unreleased)
 -----------------
+
+- Nothing changed yet.
+
+
+0.15.2 (2017-11-08)
+-------------------
+
+- Fix coloring issue that caused some rows to use the wrong threshold
+
+
+0.15.1 (2017-11-08)
+-------------------
 
 - Fix thresholds for Automatic review actions and coloring in the web app to match SOPs
 - Add schema information to support mapping metrics in run_elements
+- Fix automatic sample review (Server error) 
 
 0.15 (2017-09-06)
 -----------------

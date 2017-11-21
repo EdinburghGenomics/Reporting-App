@@ -135,7 +135,7 @@ class Sample:
         """Date of the first completed step"""
         for p in reversed(self.processes):
             process, date, process_type, process_id = p
-            if process_type == 'complete':
+            if process_type == 'complete' and process in status_cfg.started_steps:
                 return date
 
     @property
@@ -240,14 +240,15 @@ def _create_samples(session, match):
     project_id = match.get('project_id')
     sample_id = match.get('sample_id')
     sample_time_since = match.get('createddate')
-    detailed = bool(request.args.get('detailed', False))
+    detailed = request.args.get('detailed') in ['true', 'True',  True]
     if detailed:
         list_process_complete = None
         list_process_queued = None
     else:
         list_process_complete = list(status_cfg.step_completed_to_status) \
                        + list(status_cfg.additional_step_completed) \
-                       + list(status_cfg.library_type_step_completed)
+                       + list(status_cfg.library_type_step_completed) \
+                       + status_cfg.started_steps
         list_process_queued = status_cfg.step_queued_to_status
 
     for result in queries.get_sample_info(session, project_id, sample_id, time_since=sample_time_since,

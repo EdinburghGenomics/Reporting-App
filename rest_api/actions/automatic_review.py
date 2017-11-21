@@ -79,6 +79,7 @@ class AutomaticReviewer():
         else:
             return {
                 ELEMENT_REVIEWED: 'pass',
+                ELEMENT_REVIEW_COMMENTS: 'pass',
                 ELEMENT_REVIEW_DATE: self.current_time,
             }
 
@@ -194,7 +195,7 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
         coverage = self.find_value('required_coverage', 'Coverage (X)')
         required_yield = self.find_value('required_yield', 'Required Yield (Gb)')
 
-        tmp_expected_yield, tmp_coverage = self.coverage_values[required_yield_q30]
+        tmp_expected_yield, tmp_coverage = self.coverage_values.get(required_yield_q30)
         if not required_yield:
             required_yield = tmp_expected_yield
         if not coverage:
@@ -206,7 +207,7 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
 
         cfg['clean_yield_q30']['value'] = required_yield_q30
         cfg['clean_yield_in_gb']['value'] = required_yield
-        cfg['mean_coverage']['value'] = coverage
+        cfg['coverage.mean']['value'] = coverage
         return cfg
 
     @property

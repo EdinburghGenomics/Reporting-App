@@ -87,3 +87,8 @@ library_planned_alias:
     TruSeq PCR-Free DNA Sample Prep: TRUSEQ_PCR_FREE
     TruSeq PCR-Free Sample Prep: TRUSEQ_PCR_FREE
     TruSeq DNA PCR-Free Sample Prep: TRUSEQ_PCR_FREE
+
+started_steps:
+    - FluidX Transfer From Rack Into Plate EG 1.0 ST
+    - Receive Sample 4.0
+    - Receive Sample EG 6.1

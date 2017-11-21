@@ -43,6 +43,7 @@ class ProjectStatusConfig(Configuration):
     def __init__(self, *cfg_search_path):
         super().__init__(*cfg_search_path)
 
+        self.started_steps = self.content.get('started_steps')
         self.status_names = self.content.get('status_names')
         # Replace variable names in a list
         self.status_order = [self.status_names.get(x) for x in self.content['status_order']]
