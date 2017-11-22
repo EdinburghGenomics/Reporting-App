@@ -17,7 +17,6 @@ class Sample:
         self.original_name = None
         self.completed_processes = []
         self._processes = set()
-        self.queue_location = {}
         self._status_and_date = None
         self._all_statuses_and_date = None
         self.planned_library = None
