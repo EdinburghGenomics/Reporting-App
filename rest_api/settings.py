@@ -1,67 +1,35 @@
 from config import schema, rest_config as cfg
 
 DOMAIN = {
-
-    'runs': {
-        'url': 'runs',
-        'item_title': 'run',
-        'schema': schema['runs']
-    },
-
-    'lanes': {
-        'url': 'lanes',
-        'item_title': 'lane',
-        'id_field': 'lane_id',
-        'schema': schema['lanes']
-    },
-
-    'run_elements': {
-        'url': 'run_elements',
-        'item_title': 'element',
-        'id_field': 'run_element_id',
-        'schema': schema['run_elements']
-    },
-
-    'unexpected_barcodes': {
-        'url': 'unexpected_barcodes',
-        'item_title': 'unexpected_barcode',
-        'schema': schema['unexpected_barcodes']
-    },
-
-    'projects': {
-        'url': 'projects',
-        'item_title': 'project',
-        'schema': schema['projects']
-    },
-
-    'samples': {
-        'url': 'samples',
-        'item_title': 'sample',
-        'id_field': 'sample_id',
-        'schema': schema['samples']
-    },
-
-    'analysis_driver_procs': {
-        'url': 'analysis_driver_procs',
-        'item_title': 'analysis_driver_proc',
-        'id_field': 'proc_id',
-        'schema': schema['analysis_driver_procs']
-    },
-
-    'analysis_driver_stages': {
-        'url': 'analysis_driver_stages',
-        'item_title': 'analysis_driver_stage',
-        'id_field': 'stage_id',
-        'schema': schema['analysis_driver_stages']
-    },
-
-    'actions': {
-        'url': 'actions',
-        'item_title': 'action'
-        'id_field' 'action_id',
-        'schema': schema['actions'],
+    endpoint: {
+        'url': endpoint,
+        'item_title': endpoint[:-1],
+        'schema': schema[endpoint],
+        'datasource': {
+            'projection': {
+                k: 1
+                for k in ['_id', '_etag', '_updated', '_created', 'aggregated'] + list(schema[endpoint])
+            }
+        }
     }
+
+    for endpoint in (
+        'runs', 'lanes', 'run_elements', 'unexpected_barcodes', 'projects', 'samples', 'analysis_driver_procs',
+        'analysis_driver_stages', 'actions'
+    )
+
 }
+
+for endpoint, id_field in (
+    ('lanes', 'lane_id'),
+    ('run_elements', 'run_element_id'),
+    ('samples', 'sample_id'),
+    ('analysis_driver_procs', 'proc_id'),
+    ('analysis_driver_stages', 'stage_id'),
+    ('actions', 'action_id')
+):
+    DOMAIN[endpoint]['id_field'] = id_field
+
 
 MONGO_HOST = cfg['db_host']
 MONGO_PORT = cfg['db_port']
