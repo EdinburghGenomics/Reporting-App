@@ -9,7 +9,6 @@ from eve.auth import TokenAuth
 from config import reporting_app_config as cfg
 from egcg_core.rest_communication import Communicator
 
-_serialiser = None
 user_db = sqlite3.connect(cfg['user_db'])
 cursor = user_db.cursor()
 cursor.execute('CREATE TABLE IF NOT EXISTS users (id text UNIQUE, pw_hash text UNIQUE)')
@@ -115,13 +114,13 @@ class DualAuth(TokenAuth):
         return check_login_token(token_hash)
 
 
-def admin_users():
+def admin_users(argv=None):
     from argparse import ArgumentParser
     a = ArgumentParser()
     a.add_argument('action', choices=('add', 'remove', 'reset'))
     a.add_argument('username')
     a.add_argument('--password', nargs='?', default=None)
-    args = a.parse_args()
+    args = a.parse_args(argv)
 
     def _add_user(username, password=None):
         cursor.execute('INSERT INTO users VALUES (?, ?)', (username, hash_pw(password or username)))
