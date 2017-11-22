@@ -4,7 +4,10 @@ Changelog for Reporting-App
 0.16 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Added on-insert data aggregation via Eve database hooks
+- Added a Python 3.6 build
+- Removed Werkzeug server option
+- Updated to Eve 0.7.4 and PyMongo 3.5.1
 
 
 0.15 (2017-09-06)
