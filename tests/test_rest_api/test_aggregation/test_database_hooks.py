@@ -291,7 +291,7 @@ class TestDatabaseHooks(TestCase):
 
         sample = {
             'sample_id': 'a_sample', 'project_id': 'a_project',
-            'run_elements': ['150724_test_1_ATGC', '150724_test_1_ATGA'], 'expected_yield': 3000000000,
+            'run_elements': ['150724_test_1_ATGC', '150724_test_1_ATGA'],
             'genotype_validation': {'no_call_chip': 1, 'no_call_seq': 2, 'mismatching_snps': 5},
             'called_gender': 'female', 'provided_gender': 'female', 'mapped_reads': 1337, 'properly_mapped_reads': 1336,
             'bam_file_reads': 1338, 'duplicate_reads': 100,

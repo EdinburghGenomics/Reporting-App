@@ -6,17 +6,34 @@ import pymongo
 import sys, os
 
 from egcg_core import clarity
+from egcg_core.app_logging import logging_default as log_cfg
+from egcg_core.exceptions import ConfigError
+from egcg_core.rest_communication import Communicator
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import rest_config as cfg
+from config import rest_config as rest_cfg
+from config import reporting_app_config as app_cfg
+
+from bin.retrigger_aggregation import retrigger_aggregation
 
 
 if __name__ == '__main__':
+
+    log_cfg.add_stdout_handler()
+    app_logger = log_cfg.get_logger('migration_v0.15_v0.16')
+
     a = argparse.ArgumentParser()
+    a.add_argument('--username', required=True)
+    a.add_argument('--password', required=True)
     args = a.parse_args()
 
-    cli = pymongo.MongoClient(cfg['db_host'], cfg['db_port'])
-    db = cli[cfg['db_name']]
+    # check the config is set
+    if not rest_cfg or not app_cfg or 'db_host' not in rest_cfg or 'rest_api' not in app_cfg:
+        raise ConfigError('Configuration file was not set or is missing values')
+
+
+    cli = pymongo.MongoClient(rest_cfg['db_host'], rest_cfg['db_port'])
+    db = cli[rest_cfg['db_name']]
 
     # Rename the variable in the mongo database
     collection = db['samples']
@@ -25,13 +42,13 @@ if __name__ == '__main__':
 
     # upload the recent samples using data from the LIMS
     year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-    clarity.connection(**cfg.get('clarity'))
+    clarity.connection(**rest_cfg.get('clarity'))
     samples = list(collection.find({"_created": {'$gt': year_ago}}))
-    print('Update %s samples' % len(samples))
-    print('Query the lims for %s samples' % len(samples))
+    app_logger.info('Update %s samples' % len(samples))
+    app_logger.info('Query the lims for %s samples' % len(samples))
     sample_names = [sample.get('sample_id') for sample in samples]
     clarity.get_list_of_samples(sample_names)
-    print('Update database')
+    app_logger.info('Update %s samples in database', len(sample_names))
     counter = 0
     for element in samples:
         sample_id = element['sample_id']
@@ -52,7 +69,10 @@ if __name__ == '__main__':
             collection.update_one({'sample_id': sample_id}, {'$set': payload})
         counter += 1
         if counter % 100 == 0:
-            print('%s samples updated' % counter)
+            app_logger.info('%s samples updated' % counter)
 
+    app_logger.info('%s samples updated' % counter)
+    app_logger.info("Retrigger aggregation")
+    retrigger_aggregation(Communicator(auth=(args.username, args.password), baseurl=app_cfg['rest_api']))
 
 
