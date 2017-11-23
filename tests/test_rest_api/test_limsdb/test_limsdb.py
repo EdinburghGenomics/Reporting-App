@@ -1,11 +1,18 @@
-from unittest.mock import Mock, patch
 from unittest.case import TestCase
 from datetime import datetime
-from rest_api.limsdb.queries.sample_status import Sample, Container, Project, _create_samples
-from tests.test_rest_api.test_aggregation import TestAggregation, FakeRequest
+from rest_api.limsdb.queries.sample_status import Sample, Container, Project, _create_samples, sample_status, sample_status_per_project, sample_status_per_plate
 from unittest.mock import patch
-from rest_api.aggregation import database_side
-from rest_api.aggregation.database_side import stages as s
+
+mocked_sample = Sample()
+mocked_sample.sample_name = 'X99999P001H05'
+mocked_sample.project_name = 'X99999'
+mocked_sample.species = 'Homo sapiens'
+mocked_sample.add_completed_process('Receive Sample EG 6.1', datetime.strptime('01-06-15', '%d-%m-%y'))
+mocked_sample.add_completed_process('Read and Eval SSQC', datetime.strptime('16-07-15', '%d-%m-%y'))
+
+mocked_request = patch('rest_api.limsdb.queries.sample_status.request', return_value=mocked_sample)
+mocked_retrieve_args = patch('rest_api.limsdb.queries.sample_status.retrieve_args', return_value={'match': {'sample_id': 'X99999P001H05', 'project_id': 'X99999'}})
+mocked_get_project_info = patch('rest_api.limsdb.queries.get_project_info', return_value=[('X99999', datetime(2016, 9, 1, 13, 0), 'Jane', 'Doe', 'Number of Quoted Samples', '2')])
 
 mocked_get_sample_info = patch(
     'rest_api.limsdb.queries.get_sample_info', return_value=[
@@ -17,7 +24,6 @@ mocked_get_sample_info = patch(
 mocked_get_samples_and_processes = patch(
     'rest_api.limsdb.queries.get_samples_and_processes',
     return_value=[
-        ('X99999', 'X99999P001H05', 'Courier Number for New Plate Dispatch', 'COMPLETE', datetime(2016, 11, 11, 11, 45, 3, 367000), 39002),
         ('X99999', 'X99999P001H05', 'Receive Sample EG 6.1', 'COMPLETE', datetime(2016, 11, 11, 11, 45, 3, 367000), 39005),
         ('X99999', 'X99999P001H05', 'Sequencing Plate Preparation EG 2.0', 'COMPLETE', datetime(2016, 11, 23, 13, 34, 50, 491000), 39917),
         ('X99999', 'X99999P001H05', 'Create CFP Batch', 'COMPLETE', datetime(2016, 11, 24, 10, 49, 36, 980000), 39934),
@@ -30,7 +36,6 @@ mocked_non_QC_queues = patch(
         ('X99999', 'X99999P001H05', 'Create PDP Pool', datetime(2016, 11, 27, 11, 14, 59, 325000), 751)
     ]
 )
-
 
 
 class SampleTest(TestCase):
@@ -91,7 +96,6 @@ class SampleTest(TestCase):
                            ],
                        'name': 'sample_qc'},
                ]
-
 
         self.sample1.add_queue_location('Sequencing Plate Preparation EG 2.0', datetime.strptime('20-07-15', '%d-%m-%y'))
         all_status = self.sample1.all_statuses()
@@ -228,7 +232,6 @@ class ContainerTest(TestCase):
         self.container1.project_id = 'test_project'
         self.container1.name = 'test_plate1'
 
-
     def tearDown(self):
         pass
 
@@ -356,27 +359,123 @@ class ProjectTest(TestCase):
 @mocked_get_sample_info
 @mocked_get_samples_and_processes
 @mocked_non_QC_queues
-def test_create_samples(mocked_non_qc, mocked_samples_processes, mocked_sample_info):
+@mocked_request
+def test_create_samples(mocked_request,
+                        mocked_non_qc,
+                        mocked_samples_processes,
+                        mocked_sample_info):
     match = {'sample_id': 'X99999P001H05'}
     session = None
+    created_samples = _create_samples(session, match)
+    c = list(created_samples)[0]
+    assert c._processes == {
+                            ('Create PDP Pool', datetime(2016, 11, 27, 11, 14, 59, 325000), 'queued', 751),
+                            ('Receive Sample EG 6.1', datetime(2016, 11, 11, 11, 45, 3, 367000), 'complete', 39005),
+                            ('Sequencing Plate Preparation EG 2.0', datetime(2016, 11, 23, 13, 34, 50, 491000), 'complete', 39917),
+                            ('Create CFP Batch', datetime(2016, 11, 24, 10, 49, 36, 980000), 'complete', 39934),
+                            ('Read and Eval SSQC', datetime(2016, 11, 25, 13, 56, 13, 175000), 'complete', 40004)
+                            }
+    assert c.original_name == 'X99999P001H05'
+    assert c.planned_library == 'TruSeq PCR-Free DNA Sample Prep'
+    assert c.plate_name == 'X99999P001'
+    assert c.project_name == 'X99999'
+    assert c.sample_name == 'X99999P001H05'
+    assert c.species == 'Homo sapiens'
+    assert c.started_date == datetime(2016, 11, 11, 11, 45, 3, 367000)
+    assert c.status == 'sequencing_queue'
+    assert c.status_date == datetime(2016, 11, 27, 11, 14, 59, 325000)
 
-    with patch('rest_api.limsdb.queries.sample_status.request', new=Mock(args={'detailed': 'true'})):
-        created_samples = _create_samples(session, match)
-        c = list(created_samples)[0]
-        assert c._processes == {
-                                ('Courier Number for New Plate Dispatch', datetime(2016, 11, 11, 11, 45, 3, 367000), 'complete', 39002),
-                                ('Create PDP Pool', datetime(2016, 11, 27, 11, 14, 59, 325000), 'queued', 751),
-                                ('Receive Sample EG 6.1', datetime(2016, 11, 11, 11, 45, 3, 367000), 'complete', 39005),
-                                ('Sequencing Plate Preparation EG 2.0', datetime(2016, 11, 23, 13, 34, 50, 491000), 'complete', 39917),
-                                ('Create CFP Batch', datetime(2016, 11, 24, 10, 49, 36, 980000), 'complete', 39934),
-                                ('Read and Eval SSQC', datetime(2016, 11, 25, 13, 56, 13, 175000), 'complete', 40004)
-                                }
-        assert c.original_name == 'X99999P001H05'
-        assert c.planned_library == 'TruSeq PCR-Free DNA Sample Prep'
-        assert c.plate_name == 'X99999P001'
-        assert c.project_name == 'X99999'
-        assert c.sample_name == 'X99999P001H05'
-        assert c.species == 'Homo sapiens'
-        assert c.started_date == datetime(2016, 11, 11, 11, 45, 3, 367000)
-        assert c.status == 'sequencing_queue'
-        assert c.status_date == datetime(2016, 11, 27, 11, 14, 59, 325000)
+
+@mocked_get_sample_info
+@mocked_get_samples_and_processes
+@mocked_non_QC_queues
+@mocked_request
+@mocked_retrieve_args
+def test_sample_status(mock_retrieve_args,
+                       mocked_request,
+                       mocked_non_qc,
+                       mocked_samples_processes,
+                       mocked_sample_info):
+    session = None
+    s = sample_status(session)
+    assert s == [
+        {
+            'started_date': '2016-11-11T11:45:03.367000', 'species': 'Homo sapiens', 'current_status': 'sequencing_queue', 'project_id': 'X99999',
+            'statuses': [
+                {'processes':
+                    [
+                    {'name': 'Receive Sample EG 6.1', 'type': 'complete', 'date': 'Nov 11 2016', 'process_id': 39005}
+                    ], 'name': 'sample_submission', 'date': 'Nov 11 2016'},
+                {'processes':
+                    [
+                    {'name': 'Sequencing Plate Preparation EG 2.0', 'type': 'complete', 'date': 'Nov 23 2016', 'process_id': 39917}
+                    ], 'name': 'sample_qc', 'date': 'Nov 23 2016'},
+                {'processes':
+                    [
+                    {'name': 'Create CFP Batch', 'type': 'complete', 'date': 'Nov 24 2016', 'process_id': 39934}
+                    ], 'name': 'library_queue', 'date': 'Nov 24 2016'},
+                {'processes':
+                    [
+                    {'name': 'Read and Eval SSQC', 'type': 'complete', 'date': 'Nov 25 2016', 'process_id': 40004}
+                    ], 'name': 'library_preparation', 'date': 'Nov 25 2016'},
+                {'processes':
+                    [
+                    {'name': 'Create PDP Pool', 'type': 'queued', 'date': 'Nov 27 2016', 'process_id': 751}
+                    ], 'name': 'sequencing_queue', 'date': 'Nov 27 2016'}],
+            'library_type': 'pcr_free', 'finished_date': None, 'sample_id': 'X99999P001H05'
+        }
+    ]
+
+@mocked_get_sample_info
+@mocked_get_samples_and_processes
+@mocked_non_QC_queues
+@mocked_request
+@mocked_get_project_info
+@mocked_retrieve_args
+def test_sample_status_per_project(mocked_retrieve_args,
+                                   mocked_project_info,
+                                   mocked_request,
+                                   mocked_non_qc,
+                                   mocked_samples_processes,
+                                   mocked_sample_info):
+    session = None
+    s = sample_status_per_project(session)
+    assert s == [
+        {
+            'researcher_name': 'Jane Doe',
+            'sequencing_queue': ['X99999P001H05'],
+            'open_date': '2016-09-01T13:00:00',
+            'finished_date': None,
+            'nb_quoted_samples': '2',
+            'started_date': '2016-11-11T11:45:03.367000',
+            'library_type': 'pcr_free',
+            'nb_samples': 1,
+            'species': 'Homo sapiens',
+            'project_id': 'X99999'
+        }
+    ]
+
+@mocked_get_sample_info
+@mocked_get_samples_and_processes
+@mocked_non_QC_queues
+@mocked_request
+@mocked_get_project_info
+@mocked_retrieve_args
+def test_sample_status_per_plate(mocked_retrieve_args,
+                                 mocked_project_info,
+                                 mocked_request,
+                                 mocked_non_qc,
+                                 mocked_samples_processes,
+                                 mocked_sample_info):
+    session = None
+    s = sample_status_per_plate(session)
+    assert s == [
+        {
+            'nb_samples': 1,
+            'sequencing_queue': ['X99999P001H05'],
+            'library_type': 'pcr_free',
+            'plate_id': 'X99999P001',
+            'species': 'Homo sapiens',
+            'project_id': 'X99999'
+        }
+    ]
