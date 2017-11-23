@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 import logging
 import logging.config
@@ -9,6 +10,9 @@ import tornado.ioloop
 import tornado.autoreload
 import signal
 from egcg_core.app_logging import LoggingConfiguration
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import config
 
 app = None
