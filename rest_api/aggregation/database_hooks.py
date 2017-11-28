@@ -197,7 +197,11 @@ class RunElement(DataRelation):
             'pc_adaptor': Percentage(
                 Add('adaptor_bases_removed_r1', 'adaptor_bases_removed_r2'),
                 Add('bases_r1', 'bases_r2')
-            )
+            ),
+            'pc_mapped_reads': Percentage('mapping_metrics.mapped_reads', 'mapping_metrics.bam_file_reads'),
+            'pc_duplicate_reads': Percentage('mapping_metrics.duplicate_reads', 'mapping_metrics.bam_file_reads'),
+            'pc_opt_duplicate_reads': Percentage('mapping_metrics.picard_opt_dup_reads', 'mapping_metrics.bam_file_reads'),
+
         }
     ]
 
@@ -224,6 +228,10 @@ class Run(DataRelation):
             'pc_adaptor': Percentage(
                 Add(Total('run_elements.adaptor_bases_removed_r1'), Total('run_elements.adaptor_bases_removed_r2')),
                 Add('aggregated.bases_r1', 'aggregated.bases_r2')
+            ),
+            'pc_opt_duplicate_reads': Percentage(
+                Total('run_elements.mapping_metrics.picard_opt_dup_reads'),
+                Total('run_elements.mapping_metrics.bam_file_reads')
             ),
             'most_recent_proc': MostRecent('analysis_driver_procs')
         }
@@ -252,6 +260,11 @@ class Lane(DataRelation):
                 Add('aggregated.bases_r1', 'aggregated.bases_r2')
             ),
             'lane_pc_optical_dups': FirstElement('run_elements.lane_pc_optical_dups'),  # TODO: fix this in the schema
+            'pc_duplicate_reads': Percentage('mapping_metrics.duplicate_reads', 'mapping_metrics.bam_file_reads'),
+            'pc_opt_duplicate_reads': Percentage(
+                Total('run_elements.mapping_metrics.picard_opt_dup_reads'),
+                Total('run_elements.mapping_metrics.bam_file_reads')
+            ),
             'useable_statuses': ToSet('run_elements.useable', filter_func=not_unknown_barcode),
             'review_statuses': ToSet('run_elements.reviewed', filter_func=not_unknown_barcode),
         }

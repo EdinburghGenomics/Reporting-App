@@ -22,8 +22,8 @@ def main():
     retrigger_aggregation(c)
 
 
-def retrigger_aggregation(communicator):
-    all_runs = communicator.get_documents('runs', all_pages=True)
+def retrigger_aggregation(communicator, **filter):
+    all_runs = communicator.get_documents('runs', all_pages=True, **filter)
     app_logger.info('%s runs to process', len(all_runs))
     count = 0
     for r in all_runs:

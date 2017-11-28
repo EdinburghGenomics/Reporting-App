@@ -77,7 +77,11 @@ class Accumulation(Calculation):
         resolved_subelements = []
         for s in subelements:
             for q in queries[1:]:
-                s = s.get(q)
+                if q in s:
+                    s = s.get(q)
+                else:
+                    s = None
+                    break
             resolved_subelements.append(s)
 
         return resolved_subelements
