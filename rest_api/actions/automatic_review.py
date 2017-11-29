@@ -138,7 +138,6 @@ class AutomaticRunReviewer(Action):
 
 
 class AutomaticSampleReviewer(Action, AutomaticReviewer):
-    coverage_values = {30: (40, 30), 95: (120, 30), 120: (160, 40), 190: (240, 60), 270: (360, 90)}
 
     def __init__(self, request):
         Action.__init__(self, request)
@@ -195,11 +194,6 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
         coverage = self.find_value('required_coverage', 'Coverage (X)')
         required_yield = self.find_value('required_yield', 'Required Yield (Gb)')
 
-        tmp_expected_yield, tmp_coverage = self.coverage_values.get(required_yield_q30)
-        if not required_yield:
-            required_yield = tmp_expected_yield
-        if not coverage:
-            coverage = tmp_coverage
         if not required_yield:
             abort(404, 'Sample %s does not have a expected yield' % self.sample_id)
         if not coverage:
