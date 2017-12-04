@@ -1,10 +1,21 @@
 Changelog for Reporting-App
 ===========================
 
-0.16 (unreleased)
+0.17 (unreleased)
 -----------------
 
 - Nothing changed yet.
+
+
+0.16 (2017-11-27)
+-----------------
+
+- Added on-insert data aggregation via Eve database hooks
+- Added a Python 3.6 build
+- Removed Werkzeug server option
+- Updated to Eve 0.7.4 and PyMongo 3.5.1
+- Remove sample expected yield and add required yield/yieldq30/coverage
+- Fix date started in sample status
 
 
 0.15.2 (2017-11-08)

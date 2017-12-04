@@ -1,6 +1,5 @@
 
 reporting_app:
-    webserver: tornado
     debug: False
     port: 5000
     key: 'a_key'
@@ -11,20 +10,19 @@ reporting_app:
         - stream: 'ext://sys.stdout'
           level: DEBUG
 
-    timed_rotating_file_handlers:
-        - filename: /path/to/reporting_app.log
-          when: 'midnight'
-          level: DEBUG
+#    timed_rotating_file_handlers:
+#        - filename: /path/to/reporting_app.log
+#          when: 'midnight'
+#          level: DEBUG
 
 
 rest_app:
-    webserver: tornado
     port: 4999
     debug: False
 
     db_name: 'test_db'
     db_host: 'mongodb://localhost'
-    db_port: 4998
+    db_port: 27017
     key: 'a_key'
 
     url_prefix: 'api'
@@ -36,10 +34,10 @@ rest_app:
         - stream: 'ext://sys.stdout'
           level: DEBUG
 
-    timed_rotating_file_handlers:
-        - filename: /path/to/rest_api.log
-          when: 'midnight'
-          level: DEBUG
+#    timed_rotating_file_handlers:
+#        - filename: /path/to/rest_api.log
+#          when: 'midnight'
+#          level: DEBUG
 
     lims_database:
         username: 'user'
