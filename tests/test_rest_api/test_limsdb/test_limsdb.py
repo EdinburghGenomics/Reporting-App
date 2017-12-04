@@ -168,6 +168,7 @@ class SampleTest(TestCase):
         started_date = self.sample1.started_date
         assert started_date == datetime(2015, 6, 1, 0, 0)
         self.sample1.add_completed_process('Courier Booking EG 1.0 ST', datetime.strptime('01-01-15', '%d-%m-%y'))
+        started_date = self.sample1.started_date
         assert started_date == datetime(2015, 6, 1, 0, 0)
         self.sample1._processes.remove(('Receive Sample EG 6.1', datetime(2015, 6, 1, 0, 0), 'complete', None))
         started_date = self.sample1.started_date
