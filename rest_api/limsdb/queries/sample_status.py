@@ -15,7 +15,6 @@ class Sample:
         self.project_name = None
         self.plate_name = None
         self.original_name = None
-        self.completed_processes = []
         self._processes = set()
         self._status_and_date = None
         self._all_statuses_and_date = None
@@ -24,9 +23,11 @@ class Sample:
 
     def add_completed_process(self, process_name, completed_date, process_id=None):
         self._processes.add((process_name, completed_date, 'complete', process_id))
+        self._status_and_date = self._all_statuses_and_date = None
 
     def add_queue_location(self, process_name, queued_date, queue_id=None):
         self._processes.add((process_name, queued_date, 'queued', queue_id))
+        self._status_and_date = self._all_statuses_and_date = None
 
     @property
     def processes(self):

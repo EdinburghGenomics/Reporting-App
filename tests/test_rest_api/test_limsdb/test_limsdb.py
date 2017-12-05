@@ -57,7 +57,6 @@ class SampleTest(TestCase):
         assert self.sample1._processes == {('Receive Sample EG 6.1', datetime(2015, 6, 1, 0, 0), 'complete', None),
                                            ('Read and Eval SSQC', datetime(2015, 7, 16, 0, 0), 'complete', None),
                                            ('Test Process', datetime(2011, 1, 1, 0, 0), 'complete', None)}
-        self.sample1._processes.remove(('Test Process', datetime(2011, 1, 1, 0, 0), 'complete', None))
 
     def test_add_queue_location(self):
         self.sample1.add_queue_location('Test Process', datetime.strptime('01-01-11', '%d-%m-%y'))
@@ -66,7 +65,6 @@ class SampleTest(TestCase):
                                            ('Read and Eval SSQC', datetime(2015, 7, 16, 0, 0), 'complete', None),
                                            ('Test Process', datetime(2011, 1, 1, 0, 0), 'queued', None)}
 
-        self.sample1._processes.remove(('Test Process', datetime(2011, 1, 1, 0, 0), 'queued', None))
 
     def test_processes(self):
         assert self.sample1.processes ==[('Read and Eval SSQC', datetime(2015, 7, 16, 0, 0), 'complete', None),
@@ -98,9 +96,6 @@ class SampleTest(TestCase):
                ]
 
         self.sample1.add_queue_location('Sequencing Plate Preparation EG 2.0', datetime.strptime('20-07-15', '%d-%m-%y'))
-        all_status = self.sample1.all_statuses()
-        assert len(all_status) == 2
-        self.sample1._all_statuses_and_date = None
         all_status = self.sample1.all_statuses()
         assert len(all_status) == 3
         assert all_status == \
@@ -134,8 +129,6 @@ class SampleTest(TestCase):
                        'name': 'library_queue'}
                ]
 
-        self.sample1._processes.remove(('Sequencing Plate Preparation EG 2.0', datetime(2015, 7, 20, 0, 0), 'queued', None))
-
     def test_get_status_and_date(self):
         status_and_date = self.sample1._get_status_and_date()
         assert status_and_date == ('sample_qc', datetime(2015, 6, 1, 0, 0))
@@ -143,7 +136,6 @@ class SampleTest(TestCase):
         self.sample1._status_and_date = None
         status_and_date = self.sample1._get_status_and_date()
         assert status_and_date == ('library_queue', datetime(2015, 7, 20, 0, 0))
-        self.sample1._processes.remove(('Sequencing Plate Preparation EG 2.0', datetime(2015, 7, 20, 0, 0), 'queued', None))
 
     def test_additional_status(self):
         additional_status = self.sample1.additional_status
@@ -151,7 +143,6 @@ class SampleTest(TestCase):
         self.sample1.add_completed_process('QuantStudio Data Import EG 1.0', datetime.strptime('20-07-15', '%d-%m-%y'))
         additional_status = self.sample1.additional_status
         assert additional_status == {'genotyped'}
-        self.sample1._processes.remove(('QuantStudio Data Import EG 1.0', datetime(2015, 7, 20, 0, 0), 'complete', None))
 
     def test_library_type(self):
         library_type = self.sample1.library_type
@@ -244,7 +235,6 @@ class ContainerTest(TestCase):
         self.sample2.add_completed_process('Sequencing Plate Preparation EG 2.0', datetime.strptime('20-07-15', '%d-%m-%y'))
         samples_per_status = self.container1.samples_per_status()
         assert samples_per_status == {'sample_qc': ['test_sample1'], 'library_queue': ['test_sample2']}
-        self.sample2._processes.remove(('Sequencing Plate Preparation EG 2.0', datetime(2015, 7, 20, 0, 0), 'complete', None))
 
     def test_library_types(self):
         library_types = self.container1.library_types
@@ -287,14 +277,14 @@ class ProjectTest(TestCase):
         self.sample1 = Sample()
         self.sample1.sample_name = 'test_sample1'
         self.sample1.project_name = 'test_project1'
-        self.sample1.add_completed_process('Receive Sample EG 6.1', datetime.strptime('01-06-15', '%d-%m-%y'))
-        self.sample1.add_completed_process('Read and Eval SSQC', datetime.strptime('16-07-15', '%d-%m-%y'))
+        self.sample1.add_completed_process('Receive Sample EG 6.1', datetime.strptime('01-06-15', '%d-%m-%y'), process_id=10)
+        self.sample1.add_completed_process('Read and Eval SSQC', datetime.strptime('16-07-15', '%d-%m-%y'), process_id=11)
 
         self.sample2 = Sample()
         self.sample2.sample_name = 'test_sample2'
         self.sample2.project_name = 'test_project1'
-        self.sample2.add_completed_process('Receive Sample EG 6.1', datetime.strptime('01-06-15', '%d-%m-%y'))
-        self.sample2.add_completed_process('Read and Eval SSQC', datetime.strptime('16-07-15', '%d-%m-%y'))
+        self.sample2.add_completed_process('Receive Sample EG 6.1', datetime.strptime('01-06-15', '%d-%m-%y'), process_id=12)
+        self.sample2.add_completed_process('Read and Eval SSQC', datetime.strptime('16-07-15', '%d-%m-%y'), process_id=13)
 
         self.project1 = Project()
         self.project1.open_date = datetime(2015, 4, 1, 11, 45, 3, 367000)
@@ -324,8 +314,8 @@ class ProjectTest(TestCase):
         self.sample1.species = 'Homo sapiens'
         self.sample2.species = 'Homo sapiens'
         self.project1.samples = [self.sample1, self.sample2]
-        self.sample1.add_completed_process('Finish Processing EG 1.0 ST', datetime.strptime('01-09-15', '%d-%m-%y'))
-        self.sample2.add_completed_process('Finish Processing EG 1.0 ST', datetime.strptime('01-09-15', '%d-%m-%y'))
+        self.sample1.add_completed_process('Finish Processing EG 1.0 ST', datetime.strptime('01-09-15', '%d-%m-%y'), process_id=14)
+        self.sample2.add_completed_process('Finish Processing EG 1.0 ST', datetime.strptime('01-09-15', '%d-%m-%y'), process_id=15)
 
         json = self.project1.to_json()
         assert json == {
@@ -347,7 +337,7 @@ class ProjectTest(TestCase):
         assert finished_date is None
         for sample in [self.sample1, self.sample2]:
             sample._status_and_date = None
-            sample.add_completed_process('Finish Processing EG 1.0 ST', datetime.strptime('01-09-15', '%d-%m-%y'))
+            sample.add_completed_process('Finish Processing EG 1.0 ST', datetime.strptime('01-09-15', '%d-%m-%y'), process_id=16)
         finished_date = self.project1.finished_date
         assert finished_date == datetime(2015, 9, 1, 0, 0)
 
