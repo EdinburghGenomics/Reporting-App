@@ -133,7 +133,6 @@ class SampleTest(TestCase):
         status_and_date = self.sample1._get_status_and_date()
         assert status_and_date == ('sample_qc', datetime(2015, 6, 1, 0, 0))
         self.sample1.add_queue_location('Sequencing Plate Preparation EG 2.0', datetime.strptime('20-07-15', '%d-%m-%y'))
-        self.sample1._status_and_date = None
         status_and_date = self.sample1._get_status_and_date()
         assert status_and_date == ('library_queue', datetime(2015, 7, 20, 0, 0))
 
