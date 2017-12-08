@@ -34,7 +34,8 @@ class TestAggregation(TestBase):
                     print(different_values)
             raise AssertionError
 
-    def _reorder_comma_sep_list(self, data, key):
+    @staticmethod
+    def _reorder_comma_sep_list(data, key):
         for e in data:
             if key not in e:
                 continue

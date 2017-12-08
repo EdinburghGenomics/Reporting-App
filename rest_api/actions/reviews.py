@@ -1,26 +1,22 @@
-import datetime
 import json
-
+import datetime
 from cached_property import cached_property
-from egcg_core import clarity
-from pyclarity_lims.entities import Queue, Step
 from requests.exceptions import HTTPError
 from werkzeug.exceptions import abort
-
+from pyclarity_lims.entities import Queue, Step
+from egcg_core import clarity
 from config import rest_config as cfg
 from rest_api import settings
 from rest_api.aggregation.database_side import db
 
 
-class Action(object):
-
+class Action:
     def __init__(self, request):
         self.request = request
 
     @staticmethod
     def now():
         return datetime.datetime.now().strftime(settings.DATE_FORMAT)
-
 
     @cached_property
     def date_started(self):
@@ -30,8 +26,7 @@ class Action(object):
         raise NotImplementedError
 
     def perform_action(self):
-        action_dict = {}
-        action_dict['date_started'] = self.date_started
+        action_dict = {'date_started': self.date_started}
         if hasattr(self.request.authorization, 'username'):
             action_dict['started_by'] = self.request.authorization.username
 
@@ -56,9 +51,9 @@ class ReviewInitiator(Action):
             lims = clarity.connection(new=True, username=self.username, password=self.password,
                                       baseuri=cfg.query('clarity', 'baseuri', ret_default=''))
             lims.get(lims.get_uri())
+            return lims
         except HTTPError:
             abort(401, 'Authentication in the LIMS (%s) failed' % cfg.get('clarity', {}).get('baseuri'))
-        return lims
 
     @property
     def samples_to_review(self):

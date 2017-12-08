@@ -272,7 +272,7 @@ def _create_samples(session, match):
         (pjct_name, sample_name, process_name, process_status, date_run, process_id) = result
         all_samples[sanitize_user_id(sample_name)].add_completed_process(process_name, date_run, process_id)
 
-    for result in queries.non_QC_queues(session, project_id, sample_id, list_process=list_process_queued, time_since=sample_time_since):
+    for result in queries.non_qc_queues(session, project_id, sample_id, list_process=list_process_queued, time_since=sample_time_since):
         pjct_name, sample_name, process_name, queued_date, queue_id = result
         all_samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date, queue_id)
 

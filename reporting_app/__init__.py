@@ -1,9 +1,9 @@
-from os.path import join, dirname
-from urllib.parse import quote, unquote
 import datetime
 import flask as fl
 import flask_login
 import auth
+from os.path import join, dirname
+from urllib.parse import quote, unquote
 from reporting_app.util import datatable_cfg, tab_set_cfg, get_token
 from config import reporting_app_config as cfg
 from rest_api import settings
@@ -108,12 +108,12 @@ def runs_report(view_type):
             ],
             'merge_on': 'run_id'
         }
-    elif view_type in ['recent', 'current_year', 'year_to_date']:
+    elif view_type in ('recent', 'current_year', 'year_to_date'):
         if view_type == 'recent':
             time_ago = datetime.datetime.now() - datetime.timedelta(days=30)
         elif view_type == 'year_to_date':
             time_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-        elif view_type == 'current_year':
+        else:
             y = datetime.datetime.now().year
             time_ago = datetime.datetime(year=y, month=1, day=1)
             view_type = str(y)

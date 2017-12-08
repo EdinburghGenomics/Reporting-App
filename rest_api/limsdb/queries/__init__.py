@@ -1,11 +1,13 @@
-from sqlalchemy import or_, func
 import genologics_sql.tables as t
+from sqlalchemy import or_, func
 from sqlalchemy.orm.util import aliased
+
 
 def format_date(date):
     if date:
         return date.isoformat()
     return None
+
 
 def add_filters(q, **kwargs):
     if kwargs.get('project_name'):
@@ -76,9 +78,9 @@ def get_samples_and_processes(session, project_name=None, sample_name=None, list
     return q.all()
 
 
-def non_QC_queues(session, project_name=None, sample_name=None, list_process=None, time_since=None, only_open_project=True):
+def non_qc_queues(session, project_name=None, sample_name=None, list_process=None, time_since=None, only_open_project=True):
     """
-    This query gives all of the samples sitting in queue of a aledgedly non-qc steps
+    This query gives all of the samples sitting in queue of an allegedly non-qc step
     """
     q = session.query(
         t.Project.name, t.Sample.name, t.ProcessType.displayname, t.StageTransition.createddate, t.ProtocolStep.stepid
@@ -152,6 +154,7 @@ def runs_info(session, time_since=None, run_ids=None, run_status=None):
 
     results = q.all()
     return results
+
 
 def runs_cst(session, time_since=None, run_ids=None, run_status=None):
     """
