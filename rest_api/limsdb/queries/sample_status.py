@@ -15,9 +15,7 @@ class Sample:
         self.project_name = None
         self.plate_name = None
         self.original_name = None
-        self.completed_processes = []
         self._processes = set()
-        self.queue_location = {}
         self._status_and_date = None
         self._all_statuses_and_date = None
         self.planned_library = None
@@ -25,9 +23,11 @@ class Sample:
 
     def add_completed_process(self, process_name, completed_date, process_id=None):
         self._processes.add((process_name, completed_date, 'complete', process_id))
+        self._status_and_date = self._all_statuses_and_date = None
 
     def add_queue_location(self, process_name, queued_date, queue_id=None):
         self._processes.add((process_name, queued_date, 'queued', queue_id))
+        self._status_and_date = self._all_statuses_and_date = None
 
     @property
     def processes(self):
@@ -60,7 +60,9 @@ class Sample:
             current_status = status = status_cfg.status_order[0]
             for process, date, process_type, process_id in sorted(self._processes, key=operator.itemgetter(1)):
 
-                process_dict = {'name': process, 'date': date.strftime('%b %d %Y'), 'type': process_type,
+                process_dict = {'name': process,
+                                'date': date.strftime('%b %d %Y'),
+                                'type': process_type,
                                 'process_id': process_id}
                 # This part find the new status
                 if process_type == 'complete' and process in status_cfg.step_completed_to_status:
@@ -94,7 +96,6 @@ class Sample:
                     new_status = status_cfg.step_completed_to_status.get(process)
                 elif process_type == 'queued' and process in status_cfg.step_queued_to_status:
                     new_status = status_cfg.step_queued_to_status.get(process)
-
                 if not status:
                     status = new_status
                     self._status_and_date = (status, date)
