@@ -108,6 +108,7 @@ column_def:
     trim_r1:                  { data: 'aggregated.trim_r1',                   title: 'Read 1 Max length',                                              visible: 'false'}
     trim_r2:                  { data: 'aggregated.trim_r2',                   title: 'Read 2 Max length',                                              visible: 'false'}
     tiles_filtered:           { data: 'aggregated.tiles_filtered',            title: 'Tile removed',                                                   visible: 'false'}
+    family_id:                { data: 'Family ID',                            title: 'Family ID (SGP)',                                                visible: 'false'}
 
 # Datatables tables definition
 # the remaining top level entries each define a table with a list of column
@@ -248,6 +249,7 @@ unexpected_barcodes:
 samples:
     - sample_id
     - user_sample_id
+    - family_id
     - 2D_barcode
     - current_lims_status
     - library_type

@@ -161,6 +161,8 @@ function plotCharts(input_data) {
     });
     // Add filtered data
     input_data.map(function(element) {
+        element['yield_in_gb'] = element['aggregated']['yield_in_gb']
+        element['yield_q30_in_gb'] = element['aggregated']['yield_q30_in_gb']
         if (element['useable'] == 'yes'){
             element['useable_yield_in_gb'] = element['yield_in_gb'];
         }else{

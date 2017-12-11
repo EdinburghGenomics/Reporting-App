@@ -384,7 +384,7 @@ def report_sample(sample_id):
 def plotting_report():
     return render_template(
         'charts.html',
-        api_url=construct_url('aggregate/run_elements', paginate=False),
+        api_url=construct_url('run_elements', max_results=1000000),
         ajax_token=get_token()
     )
 
