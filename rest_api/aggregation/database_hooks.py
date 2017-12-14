@@ -123,6 +123,20 @@ class MostRecent(Calculation):  # TODO: Should replace server_side.MostRecent
             return procs[-1]
 
 
+class UniqDict(Calculation):
+    def __init__(self, *args, filter_func=None, key=None):
+        super().__init__(*args, filter_func=filter_func)
+        self.key = key
+
+    def _expression(self, elements):
+        if self.filter_func:
+            elements = [e[self.key] for e in elements if self.filter_func(e)]
+        else:
+            elements = [e[self.key] for e in elements if e]
+
+        return list(set(elements))
+
+
 class NbUniqueDicts(Calculation):  # TODO: Should replace server_side.NbUniqueElements
     def __init__(self, *args, filter_func=None, key=None):
         super().__init__(*args, filter_func=filter_func)
@@ -280,9 +294,9 @@ class Project(DataRelation):
     id_field = 'project_id'
     aggregated_fields = [
         {
-            'nb_samples': NbUniqueDicts('samples', key='sample_id'),
-            'nb_samples_reviewed': NbUniqueDicts('samples', key='sample_id', filter_func=lambda s: s.get('reviewed') in ('pass', 'fail')),
-            'nb_samples_delivered': NbUniqueDicts('samples', key='sample_id', filter_func=lambda s: s.get('delivered') == 'yes'),
+            'samples': UniqDict('samples', key='sample_id'),
+            'samples_reviewed': UniqDict('samples', key='sample_id', filter_func=lambda s: s.get('reviewed') in ('pass', 'fail')),
+            'samples_delivered': UniqDict('samples', key='sample_id', filter_func=lambda s: s.get('delivered') == 'yes'),
             'most_recent_proc': MostRecent('analysis_driver_procs')
         }
     ]

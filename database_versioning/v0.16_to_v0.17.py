@@ -13,8 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from rest_api import settings
 from config import reporting_app_config as app_cfg
 
-from bin.retrigger_aggregation import retrigger_aggregation
-
+from bin.retrigger_aggregation import retrigger_aggregation_run_element, retrigger_aggregation_project
 
 if __name__ == '__main__':
 
@@ -34,9 +33,13 @@ if __name__ == '__main__':
 
     app_logger.info("Retrigger aggregation")
     # only retrigger aggregation on recent runs
-    retrigger_aggregation(
-        Communicator(auth=(args.username, args.password), baseurl=app_cfg['rest_api']),
-        where={'_created': {'$gte': two_month_ago.strftime(settings.DATE_FORMAT)}}
-    )
+    c = Communicator(auth=(args.username, args.password), baseurl=app_cfg['rest_api'])
+
+    # retrigger_aggregation_run_element(
+    #     c,
+    #     where={'_created': {'$gte': two_month_ago.strftime(settings.DATE_FORMAT)}}
+    # )
+
+    retrigger_aggregation_project(c)
 
 

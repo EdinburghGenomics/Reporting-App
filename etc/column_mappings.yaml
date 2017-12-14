@@ -39,9 +39,9 @@ column_def:
     evenness:                 { data: 'coverage.evenness',                    title: '% Evenness',               fmt: { type: 'ratio_percentage', min: .8 } }
     mismatching_snps:         { data: 'genotype_validation.mismatching_snps', title: 'Mismatching snps' ,                                              visible: 'false'}
     nb_quoted_samples:        { data: 'nb_quoted_samples',                    title: 'Quoted Samples' ,          class_name: 'text-center sum' }
-    nb_samples_delivered:     { data: 'aggregated.nb_samples_delivered',      title: 'Samples Delivered' }
-    nb_samples:               { data: 'aggregated.nb_samples',                title: 'Nb of Samples' }
-    nb_samples_reviewed:      { data: 'aggregated.nb_samples_reviewed',       title: 'Samples Reviewed' }
+    nb_samples_delivered:     { data: 'aggregated.samples_delivered',         title: 'Samples Delivered',        fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
+    nb_samples:               { data: 'aggregated.samples',                   title: 'Samples',                  fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
+    nb_samples_reviewed:      { data: 'aggregated.samples_reviewed',          title: 'Samples Reviewed',         fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_sample_submission:     { data: 'sample_submission',                    title: 'Sample Submission' ,       fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_sample_qc:             { data: 'sample_qc',                            title: 'Sample QC' ,               fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_library_queue:         { data: 'library_queue',                        title: 'Library Queue' ,           fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
