@@ -139,6 +139,7 @@ projects:
     - nb_samples
     - nb_samples_reviewed
     - nb_samples_delivered
+    - proc_status
     - _created
 
 

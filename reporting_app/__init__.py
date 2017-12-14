@@ -234,6 +234,7 @@ def project_reports():
 @app.route('/samples/<view_type>')
 @flask_login.login_required
 def report_samples(view_type):
+    six_month_ago = datetime.datetime.now() - datetime.timedelta(days=183)
     if view_type == 'all':
         ajax_call = {
             'func_name': 'merge_multi_sources_keep_first',
@@ -245,14 +246,27 @@ def report_samples(view_type):
             'merge_on': 'sample_id'
         }
         title = 'All samples'
+    elif view_type == 'processing':
+
+        ajax_call = {
+            'func_name': 'merge_multi_sources_keep_first',
+            'api_urls': [
+                construct_url('samples', where={'aggregated.most_recent_proc.status': 'processing'},
+                              max_results=10000),
+                construct_url('lims/status/sample_status',
+                              match={'createddate': six_month_ago.strftime(settings.DATE_FORMAT)}),
+                construct_url('lims/samples', match={'createddate': six_month_ago.strftime(settings.DATE_FORMAT)})
+            ],
+            'merge_on': 'sample_id'
+        }
+        title = 'Samples processing'
     elif view_type == 'toreview':
-        three_month_ago = datetime.datetime.now() - datetime.timedelta(days=91)
         ajax_call = {
             'func_name': 'merge_multi_sources_keep_first',
             'api_urls': [
                 construct_url('samples', where={'useable': 'not%20marked', 'aggregated.most_recent_proc.status': 'finished'}, max_results=10000),
-                construct_url('lims/status/sample_status', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)}),
-                construct_url('lims/samples', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)})
+                construct_url('lims/status/sample_status', match={'createddate': six_month_ago.strftime(settings.DATE_FORMAT)}),
+                construct_url('lims/samples', match={'createddate': six_month_ago.strftime(settings.DATE_FORMAT)})
             ],
             'merge_on': 'sample_id'
         }
@@ -281,7 +295,7 @@ def report_samples(view_type):
 @flask_login.login_required
 def report_project(project_id):
     return render_template(
-        'untabbed_datatables.html',
+        'project_report.html',
         project_id + ' Project Report',
         review=True,
         tables=[
@@ -320,7 +334,13 @@ def report_project(project_id):
                 review_entity_field='sample_id',
                 buttons=['colvis', 'copy', 'pdf', 'samplereview']
             )
-        ]
+        ],
+        procs=rest_api().get_documents(
+            'analysis_driver_procs',
+            where={'dataset_type': 'project', 'dataset_name': project_id},
+            embedded={'stages': 1},
+            sort='-_created'
+        )
     )
 
 

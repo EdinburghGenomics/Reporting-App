@@ -7,9 +7,10 @@ import sys, os
 from egcg_core.app_logging import logging_default as log_cfg
 from egcg_core.exceptions import ConfigError
 from egcg_core.rest_communication import Communicator
-from pymongo import settings
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from rest_api import settings
 from config import reporting_app_config as app_cfg
 
 from bin.retrigger_aggregation import retrigger_aggregation
