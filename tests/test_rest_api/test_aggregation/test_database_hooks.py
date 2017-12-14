@@ -1,7 +1,6 @@
 import os
 import json
 from unittest import TestCase
-from time import sleep
 from rest_api import app
 from config import schema
 from tests import Helper
@@ -13,39 +12,33 @@ from unittest.mock import patch
 
 class TestDatabaseHooks(TestCase):
     db_path = os.path.join(Helper.assets_dir, 'mongod_metadata')
-    patched_auth = None
+    patched_auth = patch('auth.DualAuth.authorized', return_value=True)
+    run_elements = [
+        {
+            'run_element_id': '150724_test_1_ATGC', 'run_id': '150724_test', 'project_id': 'a_project',
+            'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGC', 'library_id': 'a_library',
+            'bases_r1': 1500000000, 'bases_r2': 1400000000, 'q30_bases_r1': 1400000000, 'q30_bases_r2': 1300000000,
+            'clean_bases_r1': 1300000000, 'clean_bases_r2': 1200000000, 'clean_q30_bases_r1': 1200000000,
+            'clean_q30_bases_r2': 1100000000, 'total_reads': 9190, 'passing_filter_reads': 8451,
+            'pc_reads_in_lane': 54.0, 'reviewed': 'not reviewed', 'useable': 'yes', 'clean_reads': 1337,
+            'lane_pc_optical_dups': 0.1, 'adaptor_bases_removed_r1': 1337, 'adaptor_bases_removed_r2': 1338
+        },
+        {
+            'run_element_id': '150724_test_1_ATGA', 'run_id': '150724_test', 'project_id': 'a_project',
+            'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGC', 'library_id': 'a_library',
+            'bases_r1': 1500000001, 'bases_r2': 1400000001, 'q30_bases_r1': 1400000001, 'q30_bases_r2': 1300000001,
+            'clean_bases_r1': 1300000001, 'clean_bases_r2': 1200000001, 'clean_q30_bases_r1': 1200000001,
+            'clean_q30_bases_r2': 1100000001, 'total_reads': 9180, 'passing_filter_reads': 8461,
+            'pc_reads_in_lane': 54.1, 'reviewed': 'pass', 'useable': 'yes', 'clean_reads': 1338,
+            'lane_pc_optical_dups': 0.1, 'adaptor_bases_removed_r1': 1339, 'adaptor_bases_removed_r2': 1340
+        }
+    ]
 
     @classmethod
     def setUpClass(cls):
         app.testing = True
         cls.client = app.test_client()
-
-        sleep(1)
-
-        cls.patched_auth = patch('auth.DualAuth.authorized', return_value=True)
         cls.patched_auth.start()
-
-    def setUp(self):
-        self.run_elements = [
-            {
-                'run_element_id': '150724_test_1_ATGC', 'run_id': '150724_test', 'project_id': 'a_project',
-                'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGC', 'library_id': 'a_library',
-                'bases_r1': 1500000000, 'bases_r2': 1400000000, 'q30_bases_r1': 1400000000, 'q30_bases_r2': 1300000000,
-                'clean_bases_r1': 1300000000, 'clean_bases_r2': 1200000000, 'clean_q30_bases_r1': 1200000000,
-                'clean_q30_bases_r2': 1100000000, 'total_reads': 9190, 'passing_filter_reads': 8451,
-                'pc_reads_in_lane': 54.0, 'reviewed': 'not reviewed', 'useable': 'yes', 'clean_reads': 1337,
-                'lane_pc_optical_dups': 0.1, 'adaptor_bases_removed_r1': 1337, 'adaptor_bases_removed_r2': 1338
-            },
-            {
-                'run_element_id': '150724_test_1_ATGA', 'run_id': '150724_test', 'project_id': 'a_project',
-                'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGC', 'library_id': 'a_library',
-                'bases_r1': 1500000001, 'bases_r2': 1400000001, 'q30_bases_r1': 1400000001, 'q30_bases_r2': 1300000001,
-                'clean_bases_r1': 1300000001, 'clean_bases_r2': 1200000001, 'clean_q30_bases_r1': 1200000001,
-                'clean_q30_bases_r2': 1100000001, 'total_reads': 9180, 'passing_filter_reads': 8461,
-                'pc_reads_in_lane': 54.1, 'reviewed': 'pass', 'useable': 'yes', 'clean_reads': 1338,
-                'lane_pc_optical_dups': 0.1, 'adaptor_bases_removed_r1': 1339, 'adaptor_bases_removed_r2': 1340
-            }
-        ]
 
     def tearDown(self):
         for c in schema.content:

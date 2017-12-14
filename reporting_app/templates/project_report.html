@@ -1,10 +1,8 @@
 {% extends 'untabbed_datatables.html' %}
-{% from 'sample_status_report.html' import sample_status %}
 {% from 'datatable_macro.html' import datatable %}
 {% from 'proc_report.html' import proc_report %}
 
 {% block content %}
 {{ super() }}
 {{ proc_report(procs) }}
-{{ sample_status(sample_id, sample_statuses, lims_url) }}
 {% endblock %}

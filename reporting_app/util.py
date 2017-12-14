@@ -1,4 +1,5 @@
 import auth
+import flask_login
 from config import col_mappings
 
 
@@ -7,7 +8,14 @@ def _format_order(col_name, cols):
     return [[c['data'] for c in cols].index(col_name.lstrip('-')), direction]
 
 
-def datatable_cfg(title, cols, api_url=None, ajax_call=None, default_sort_col=None, **kwargs):
+def construct_url(endpoint, **query_args):
+    url = flask_login.current_user.comm.api_url(endpoint)
+    if query_args:
+        url += '?' + '&'.join(['%s=%s' % (k, v) for k, v in query_args.items()])
+    return url.replace('\'', '"')
+
+
+def datatable_cfg(title, cols, api_url=None, ajax_call=None, default_sort_col=None, minimal=False, review=None, **kwargs):
     if not api_url and not ajax_call:
         raise ValueError('Either api_url or ajax_call must be provided')
     if default_sort_col is None:
@@ -25,6 +33,20 @@ def datatable_cfg(title, cols, api_url=None, ajax_call=None, default_sort_col=No
         'token': get_token()
     }
     d.update(kwargs)
+
+    if minimal:
+        d.update({'paging': False, 'searching': False, 'info': False})
+
+    if review:
+        d.update(
+            {
+                'select': {'style': 'os', 'blurable': True},
+                'review_url': construct_url('actions'),
+                'review_entity_field': review['entity_field'],
+                'buttons': ['colvis', 'copy', 'pdf', review['button_name']]
+            }
+        )
+
     return d
 
 
@@ -46,6 +68,3 @@ def capitalise(word):
 
 def snake_case(text):
     return text.lower().replace(' ', '_')
-
-
-

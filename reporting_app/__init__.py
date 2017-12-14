@@ -4,8 +4,8 @@ import flask_login
 import auth
 from os.path import join, dirname
 from urllib.parse import quote, unquote
-from reporting_app.util import datatable_cfg, tab_set_cfg, get_token
-from config import reporting_app_config as cfg
+from reporting_app.util import datatable_cfg, tab_set_cfg, get_token, construct_url
+from config import reporting_app_config as cfg, project_status
 from rest_api import settings
 
 app = fl.Flask(__name__)
@@ -15,15 +15,12 @@ login_manager.init_app(app)
 version = open(join(dirname(dirname(__file__)), 'version.txt')).read()
 
 
-def construct_url(endpoint, **query_args):
-    url = rest_api().api_url(endpoint)
-    if query_args:
-        url += '?' + '&'.join(['%s=%s' % (k, v) for k, v in query_args.items()])
-    return url.replace('\'', '"')
-
-
 def rest_api():
     return flask_login.current_user.comm
+
+
+def _now():
+    return datetime.datetime.now()
 
 
 def render_template(template, title=None, **context):
@@ -99,52 +96,44 @@ def change_password():
 @app.route('/runs/<view_type>')
 @flask_login.login_required
 def runs_report(view_type):
+    ajax_call = {'func_name': 'merge_multi_sources', 'merge_on': 'run_id'}
+
     if view_type == 'all':
-        ajax_call = {
-            'func_name': 'merge_multi_sources',
-            'api_urls': [
-                construct_url('aggregate/all_runs'),
-                construct_url('lims/status/run_status'),
-            ],
-            'merge_on': 'run_id'
-        }
+        ajax_call['api_urls'] = [
+            util.construct_url('aggregate/all_runs'),
+            util.construct_url('lims/status/run_status')
+        ]
     elif view_type in ('recent', 'current_year', 'year_to_date'):
         if view_type == 'recent':
-            time_ago = datetime.datetime.now() - datetime.timedelta(days=30)
+            time_ago = _now() - datetime.timedelta(days=30)
         elif view_type == 'year_to_date':
-            time_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+            time_ago = _now() - datetime.timedelta(days=365)
         else:
-            y = datetime.datetime.now().year
+            y = _now().year
             time_ago = datetime.datetime(year=y, month=1, day=1)
             view_type = str(y)
-        ajax_call = {
-            'func_name': 'merge_multi_sources',
-            'api_urls': [
-                construct_url('aggregate/all_runs', match={'_created': {'$gte': time_ago.strftime(settings.DATE_FORMAT)}}),
-                construct_url('lims/status/run_status', createddate=time_ago.strftime(settings.DATE_FORMAT)),
-            ],
-            'merge_on': 'run_id'
-        }
+        ajax_call['api_urls'] = [
+            util.construct_url('aggregate/all_runs', match={'_created': {'$gte': time_ago.strftime(settings.DATE_FORMAT)}}),
+            util.construct_url('lims/status/run_status', createddate=time_ago.strftime(settings.DATE_FORMAT)),
+        ]
     else:
         fl.abort(404)
         return None
-    title = util.capitalise(view_type).replace('_', ' ') + ' runs'
+
+    title = util.capitalise(view_type).replace('_', ' ') + ' Runs'
 
     return render_template(
         'untabbed_datatables.html',
         title,
-        table=datatable_cfg(
-            title=title,
-            cols='runs',
+        include_review_modal=True,
+        table=util.datatable_cfg(
+            title,
+            'runs',
             ajax_call=ajax_call,
             create_row='color_filter',
             fixed_header=True,
-            select={'style': 'os', 'blurable': True},
-            review_url=construct_url('actions'),
-            review_entity_field='sample_ids',
-            buttons=['colvis', 'copy', 'pdf', 'runreview']
-        ),
-        review=True
+            review={'entity_field': 'sample_ids', 'button_name': 'runreview'}
+        )
     )
 
 
@@ -155,53 +144,41 @@ def report_run(run_id):
 
     return render_template(
         'run_report.html',
-        title=run_id + ' Run Report',
-        review=True,
-        lane_aggregation=datatable_cfg(
-            title='Aggregation per lane',
-            cols='lane_aggregation',
-            api_url=construct_url('aggregate/run_elements_by_lane', match={'run_id': run_id}),
+        run_id + ' Run Report',
+        include_review_modal=True,
+        lane_aggregation=util.datatable_cfg(
+            'Aggregation per lane',
+            'lane_aggregation',
+            api_url=util.construct_url('aggregate/run_elements_by_lane', match={'run_id': run_id}),
             default_sort_col='lane_number',
-            paging=False,
-            searching=False,
-            info=False,
+            minimal=True,
             create_row='color_filter',
-            select={'style': 'os', 'blurable': True},
-            review_url=construct_url('actions'),
-            review_entity_field='sample_ids',
-            buttons=['colvis', 'copy', 'pdf', 'runreview']
+            review={'entity_field': 'sample_ids', 'button_name': 'runreview'}
         ),
         tab_sets=[
-            tab_set_cfg(
+            util.tab_set_cfg(
                 'Demultiplexing reports per lane',
                 [
-                    datatable_cfg(
-                        title='Demultiplexing lane ' + str(lane),
-                        cols='demultiplexing',
-                        api_url=construct_url('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
-                        paging=False,
-                        searching=False,
-                        info=False,
+                    util.datatable_cfg(
+                        'Demultiplexing lane ' + str(lane),
+                        'demultiplexing',
+                        api_url=util.construct_url('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
+                        minimal=True,
                         create_row='color_filter',
-                        select={'style': 'os', 'blurable': True},
-                        review_url=construct_url('actions'),
-                        review_entity_field='sample_id',
-                        buttons=['colvis', 'copy', 'pdf', 'runreview']
+                        review={'entity_field': 'sample_id', 'button_name': 'runreview'}
                     )
                     for lane in lanes
                 ]
             ),
-            tab_set_cfg(
+            util.tab_set_cfg(
                 'Unexpected barcodes',
                 [
-                    datatable_cfg(
-                        title='Unexpected barcodes lane ' + str(lane),
-                        cols='unexpected_barcodes',
-                        api_url=construct_url('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
+                    util.datatable_cfg(
+                        'Unexpected barcodes lane ' + str(lane),
+                        'unexpected_barcodes',
+                        api_url=util.construct_url('unexpected_barcodes', where={'run_id': run_id, 'lane': lane}),
                         default_sort_col='passing_filter_reads',
-                        paging=False,
-                        searching=False,
-                        info=False,
+                        minimal=True,
                         create_row='color_filter'
                     )
                     for lane in lanes
@@ -223,10 +200,10 @@ def project_reports():
     return render_template(
         'untabbed_datatables.html',
         'Projects',
-        table=datatable_cfg(
+        table=util.datatable_cfg(
             'Project list',
             'projects',
-            api_url=construct_url('aggregate/projects')
+            api_url=util.construct_url('aggregate/projects')
         )
     )
 
@@ -237,22 +214,22 @@ def report_samples(view_type):
     if view_type == 'all':
         ajax_call = {
             'func_name': 'merge_multi_sources_keep_first',
+            'merge_on': 'sample_id',
             'api_urls': [
-                construct_url('aggregate/samples'),
-                construct_url('lims/status/sample_status'),
-                construct_url('lims/samples')
-            ],
-            'merge_on': 'sample_id'
+                util.construct_url('aggregate/samples'),
+                util.construct_url('lims/status/sample_status'),
+                util.construct_url('lims/samples')
+            ]
         }
         title = 'All samples'
     elif view_type == 'toreview':
-        three_month_ago = datetime.datetime.now() - datetime.timedelta(days=91)
+        three_month_ago = _now() - datetime.timedelta(days=91)
         ajax_call = {
             'func_name': 'merge_multi_sources_keep_first',
             'api_urls': [
-                construct_url('aggregate/samples', match={'useable': 'not%20marked', 'proc_status': 'finished'}),
-                construct_url('lims/status/sample_status', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)}),
-                construct_url('lims/samples', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)})
+                util.construct_url('aggregate/samples', match={'useable': 'not%20marked', 'proc_status': 'finished'}),
+                util.construct_url('lims/status/sample_status', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)}),
+                util.construct_url('lims/samples', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)})
             ],
             'merge_on': 'sample_id'
         }
@@ -264,15 +241,12 @@ def report_samples(view_type):
     return render_template(
         'untabbed_datatables.html',
         title,
-        review=True,
-        table=datatable_cfg(
-            title=title,
-            cols='samples',
+        include_review_modal=True,
+        table=util.datatable_cfg(
+            title,
+            'samples',
             ajax_call=ajax_call,
-            select={'style': 'os', 'blurable': True},
-            review_url=construct_url('actions'),
-            review_entity_field='sample_id',
-            buttons=['colvis', 'copy', 'pdf', 'samplereview']
+            review={'entity_field': 'sample_id', 'button_name': 'samplereview'}
         )
     )
 
@@ -281,46 +255,45 @@ def report_samples(view_type):
 @flask_login.login_required
 def report_project(project_id):
     return render_template(
-        'untabbed_datatables.html',
+        'project_report.html',
         project_id + ' Project Report',
-        review=True,
+        include_review_modal=True,
         tables=[
-            datatable_cfg(
+            util.datatable_cfg(
                 'Project Status for ' + project_id,
                 'project_status',
-                api_url=construct_url('lims/status/project_status', match={'project_id': project_id}),
-                paging=False,
-                searching=False,
-                info=False
+                api_url=util.construct_url('lims/status/project_status', match={'project_id': project_id}),
+                minimal=True,
             ),
-            datatable_cfg(
+            util.datatable_cfg(
                 'Plate Status for ' + project_id,
                 'plate_status',
-                api_url=construct_url('lims/status/plate_status', match={'project_id': project_id}),
-                paging=False,
-                searching=False,
-                info=False,
+                api_url=util.construct_url('lims/status/plate_status', match={'project_id': project_id}),
+                minimal=True,
                 default_sort_col='plate_id'
             ),
-            datatable_cfg(
+            util.datatable_cfg(
                 'Bioinformatics report for ' + project_id,
                 'samples',
                 ajax_call={
                     'func_name': 'merge_multi_sources',
                     'api_urls': [
-                        construct_url('aggregate/samples', match={'project_id': project_id}),
-                        construct_url('lims/status/sample_status', match={'project_id': project_id}),
-                        construct_url('lims/samples', match={'project_id': project_id})
+                        util.construct_url('aggregate/samples', match={'project_id': project_id}),
+                        util.construct_url('lims/status/sample_status', match={'project_id': project_id}),
+                        util.construct_url('lims/samples', match={'project_id': project_id})
                     ],
                     'merge_on': 'sample_id'
                 },
                 fixed_header=True,
-                select={'style': 'os', 'blurable': True},
-                review_url=construct_url('actions'),
-                review_entity_field='sample_id',
-                buttons=['colvis', 'copy', 'pdf', 'samplereview']
+                review={'entity_field': 'sample_id', 'button_name': 'samplereview'}
             )
-        ]
+        ],
+        procs=rest_api().get_documents(
+            'analysis_driver_procs',
+            where={'dataset_type': 'project', 'dataset_name': project_id},
+            embedded={'stages': 1},
+            sort='-_created'
+        )
     )
 
 
@@ -330,42 +303,35 @@ def report_sample(sample_id):
     return render_template(
         'sample_report.html',
         sample_id + ' Sample Report',
-        review=True,
+        include_review_modal=True,
         tables=[
-            datatable_cfg(
+            util.datatable_cfg(
                 'Bioinformatics report for ' + sample_id,
                 'samples',
                 api_url=None,
                 ajax_call={
                     'func_name': 'merge_multi_sources',
                     'api_urls': [
-                        construct_url('aggregate/samples', match={'sample_id': sample_id}),
-                        construct_url('lims/status/sample_status', match={'sample_id': sample_id}),
-                        construct_url('lims/samples', match={'sample_id': sample_id})
+                        util.construct_url('aggregate/samples', match={'sample_id': sample_id}),
+                        util.construct_url('lims/status/sample_status', match={'sample_id': sample_id}),
+                        util.construct_url('lims/samples', match={'sample_id': sample_id})
                     ],
                     'merge_on': 'sample_id'
                 },
-                paging=False,
-                searching=False,
-                info=False,
-                select={'style': 'os', 'blurable': True},
-                review_url=construct_url('actions'),
-                review_entity_field='sample_id',
-                buttons=['colvis', 'copy', 'pdf', 'samplereview']
+                minimal=True,
+                review={'entity_field': 'sample_id', 'button_name': 'samplereview'}
             ),
-            datatable_cfg(
+            util.datatable_cfg(
                 'Run elements generated for ' + sample_id,
                 'sample_run_elements',
-                api_url=construct_url('aggregate/run_elements', match={'sample_id': sample_id}),
-                paging=False,
-                searching=False,
-                info=False,
+                api_url=util.construct_url('aggregate/run_elements', match={'sample_id': sample_id}),
+                minimal=True,
                 create_row='color_filter'
             )
         ],
+        sample_id=sample_id,
         sample_statuses=rest_api().get_document('lims/status/sample_status', detailed=True, match={'sample_id': sample_id}),
         lims_url=cfg['lims_url'],
-        sample_id=sample_id,
         procs=rest_api().get_documents(
             'analysis_driver_procs',
             where={'dataset_type': 'sample', 'dataset_name': sample_id},
@@ -380,47 +346,32 @@ def report_sample(sample_id):
 def plotting_report():
     return render_template(
         'charts.html',
-        api_url=construct_url('aggregate/run_elements', paginate=False),
-        ajax_token=get_token()
+        api_url=util.construct_url('aggregate/run_elements', paginate=False),
+        ajax_token=util.get_token()
     )
 
 
 @app.route('/project_status/')
 @flask_login.login_required
 def project_status_reports():
-    # FIXME: Remove this ugly html generation when the page status becomes more stable
-    from config import project_status as project_status_cfg
-    table = '<table class="table"><th>Status</th> <th>Completed Steps</th> <th>Queued in Steps</th>'
-    for status in project_status_cfg.status_order:
-        table += ''.join([
-            '<tr>',
-            '<th>' + status + '</th>',
-            '<td>' + ', '.join([
-                                    step for step, st
-                                    in project_status_cfg.step_completed_to_status.items()
-                                    if st == status
-                                ]) + '</td>',
-            '<td>' + ', '.join([
-                                    step for step, st
-                                    in project_status_cfg.step_queued_to_status.items()
-                                    if st == status
-                                ]) + '</td>',
-            '</tr>'
-        ])
-    table += '</table>'
+    status_order = []
+    for s in project_status.status_order:
+        status_order.append(
+            {
+                'name': s,
+                'completed': [step for step, st in project_status.step_completed_to_status.items() if st == s],
+                'queued': [step for step, st in project_status.step_queued_to_status.items() if st == s]
+            }
+        )
 
-    collapse_description = '''<button data-toggle="collapse" data-target="#description">Description</button>
-<div id="description" class="collapse">
-The project status table shows the number sample in each project based on the workflow they completed and the step
-they're queued. the steps involved are described below.''' + table + '</div>'
     return render_template(
-        'untabbed_datatables.html',
+        'project_status.html',
         'Project Status',
-        description_html=collapse_description,
-        table=datatable_cfg(
+        status_order=status_order,
+        table=util.datatable_cfg(
             'Project Status',
             'project_status',
-            api_url=construct_url('lims/status/project_status'),
+            api_url=util.construct_url('lims/status/project_status'),
             fixed_header=True,
             table_foot='sum_row_per_column'
         )
