@@ -1,5 +1,6 @@
 import auth
 import flask_login
+from json import dumps
 from config import col_mappings
 
 
@@ -11,8 +12,14 @@ def _format_order(col_name, cols):
 def construct_url(endpoint, **query_args):
     url = flask_login.current_user.comm.api_url(endpoint)
     if query_args:
-        url += '?' + '&'.join(['%s=%s' % (k, v) for k, v in query_args.items()])
-    return url.replace('\'', '"')
+        _query_args = []
+        for k1 in sorted(query_args):
+            q = query_args[k1]
+            if type(q) is dict:
+                q = dumps(q, sort_keys=True)
+            _query_args.append('%s=%s' % (k1, q))
+        url += '?' + '&'.join(_query_args)
+    return url
 
 
 def datatable_cfg(title, cols, api_url=None, ajax_call=None, default_sort_col=None, minimal=False, review=None, **kwargs):

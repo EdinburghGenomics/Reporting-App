@@ -59,6 +59,7 @@ def login():
             message='Welcome to the EGCG Reporting App. Log in here.',
             redirect=quote(fl.request.args.get('redirect', ''), safe=())
         )
+
     username = fl.request.form['username']
     redirect = fl.request.form['redirect']
     if auth.check_user_auth(username, fl.request.form['pw']):
@@ -66,6 +67,7 @@ def login():
         flask_login.login_user(u, remember=True)
         app.logger.info("Logged in user '%s'", username)
         return fl.redirect(unquote(redirect))
+
     return render_template(
         'login.html',
         'Login',

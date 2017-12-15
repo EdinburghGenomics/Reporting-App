@@ -52,7 +52,14 @@ fake_procs = [
 
 
 class TestReportingApp(Helper):
-    patched_current_user = patch('reporting_app.flask_login.current_user', new=Mock(comm=Mock(api_url=fake_api_url)))
+    patched_current_user = patch(
+        'reporting_app.flask_login.current_user',
+        new=Mock(
+            comm=Mock(api_url=fake_api_url),
+            get_auth_token=Mock(return_value='a_token'),
+            username='a_user'
+        )
+    )
     patched_get_token = patch('reporting_app.util.get_token', return_value='a_token')
 
     @classmethod
@@ -61,9 +68,6 @@ class TestReportingApp(Helper):
         cls.client = reporting_app.app.test_client()
         cls.mocked_current_user = cls.patched_current_user.start()
         cls.patched_get_token.start()
-
-    # def tearDown(self):
-    #     self.mocked_current_user.reset_mock()
 
     @classmethod
     def tearDownClass(cls):
@@ -103,13 +107,13 @@ class TestReportingApp(Helper):
             'title': 'A Tab Set', 'name': 'a_tab_set', 'tables': ['a_dt_cfg']
         }
 
-    def _test_render_template(self, query_string):
-        response = self.client.get(query_string)
+    def _test_render_template(self, url):
+        response = self.client.get(url)
         assert 199 < response.status_code < 300
         assert response.data
 
         with patch('reporting_app.render_template', return_value='some web content') as mocked_render:
-            response = self.client.get(query_string)
+            response = self.client.get(url)
             assert 199 < response.status_code < 300
             assert response.data == b'some web content'
 
@@ -117,16 +121,50 @@ class TestReportingApp(Helper):
         return mocked_render
 
     def test_main_page(self):
-        pass
+        self._test_render_template('/')
 
     def test_login(self):
-        pass
+        self._test_render_template('/login')
+
+    @patch('auth.check_user_auth')
+    def test_login_attempt(self, mocked_check_auth):
+        mocked_check_auth.return_value = True
+        response = self.client.post(
+            '/login',
+            data={'redirect': 'a_redirect', 'username': 'a_user', 'pw': 'a_password'}
+        )
+        assert response.status_code == 302
+
+        mocked_check_auth.return_value = False
+        response = self.client.post(
+            '/login',
+            data={'redirect': 'a_redirect', 'username': 'a_user', 'pw': 'a_password'}
+        )
+        assert response.status_code == 200
+        assert 'Bad login.' in response.data.decode('utf-8')
 
     def test_logout(self):
-        pass
+        self._test_render_template('/logout')
 
     def test_change_password(self):
-        pass
+        self._test_render_template('/change_password')
+
+    @patch('auth.change_pw')
+    def test_change_password_attempt(self, mocked_change_pw):
+        mocked_change_pw.return_value = True
+        response = self.client.post(
+            '/change_password',
+            data={'old_pw': 'an_old_pw', 'new_pw': 'a_new_pw'}
+        )
+        assert response.status_code == 302
+
+        mocked_change_pw.return_value = False
+        response = self.client.post(
+            '/change_password',
+            data={'old_pw': 'an_old_pw', 'new_pw': 'a_new_pw'}
+        )
+        assert response.status_code == 200
+        assert 'Bad request.' in response.data.decode('utf-8')
 
     @patch('reporting_app.util.datatable_cfg', return_value='a_datatable_cfg')
     @patch('reporting_app._now', return_value=datetime(2017, 12, 12, 0, 0, 0))
@@ -248,7 +286,7 @@ class TestReportingApp(Helper):
                 'func_name': 'merge_multi_sources_keep_first',
                 'merge_on': 'sample_id',
                 'api_urls': [
-                    '/api/0.1/aggregate/samples?match={"useable": "not%20marked", "proc_status": "finished"}',
+                    '/api/0.1/aggregate/samples?match={"proc_status": "finished", "useable": "not%20marked"}',
                     '/api/0.1/lims/status/sample_status?match={"createddate": "12_09_2017_00:00:00"}',
                     '/api/0.1/lims/samples?match={"createddate": "12_09_2017_00:00:00"}'
                 ]

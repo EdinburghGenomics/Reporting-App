@@ -37,8 +37,8 @@ QUnit.test('string_formatter', function(assert) {
     );
 
     assert.equal(
-        string_formatter('2017-04-20T15:09:56.013000', {'type': 'datetime'}, row),
-        '<div class="dt_cell">2017-04-20 15:09:56</div>'
+        string_formatter('2017-04-20T15:09:56.013000Z', {'type': 'datetime'}, row),
+        '<div class="dt_cell">2017-04-20 16:09:56</div>'
     );
 
     assert.equal(
