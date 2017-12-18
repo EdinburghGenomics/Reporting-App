@@ -35,10 +35,10 @@ if __name__ == '__main__':
     # only retrigger aggregation on recent runs
     c = Communicator(auth=(args.username, args.password), baseurl=app_cfg['rest_api'])
 
-    # retrigger_aggregation_run_element(
-    #     c,
-    #     where={'_created': {'$gte': two_month_ago.strftime(settings.DATE_FORMAT)}}
-    # )
+    retrigger_aggregation_run_element(
+        c,
+        where={'_created': {'$gte': two_month_ago.strftime(settings.DATE_FORMAT)}}
+    )
 
     retrigger_aggregation_project(c)
 

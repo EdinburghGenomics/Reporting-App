@@ -1,3 +1,4 @@
+import copy
 import os
 import json
 from unittest import TestCase
@@ -9,6 +10,37 @@ from math import sqrt
 from datetime import datetime
 from rest_api.aggregation import database_hooks
 from unittest.mock import patch
+
+
+run_element1 = {
+    'run_element_id': '150724_test_1_ATGC', 'run_id': '150724_test', 'project_id': 'a_project',
+    'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGC', 'library_id': 'a_library',
+    'bases_r1': 1500000000, 'bases_r2': 1400000000, 'q30_bases_r1': 1400000000, 'q30_bases_r2': 1300000000,
+    'clean_bases_r1': 1300000000, 'clean_bases_r2': 1200000000, 'clean_q30_bases_r1': 1200000000,
+    'clean_q30_bases_r2': 1100000000, 'total_reads': 9190, 'passing_filter_reads': 8451,
+    'pc_reads_in_lane': 54.0, 'reviewed': 'not reviewed', 'useable': 'yes', 'clean_reads': 1337,
+    'lane_pc_optical_dups': 0.1, 'adaptor_bases_removed_r1': 1337, 'adaptor_bases_removed_r2': 1338,
+    'mapping_metrics':{
+        'bam_file_reads': 8420, 'mapped_reads': 8200, 'duplicate_reads': 1000, 'properly_mapped_reads': 8100,
+        'picard_dup_reads': 1010, 'picard_opt_dup_reads': 500, 'picard_est_lib_size': 10000, 'mean_insert_size': 450.2,
+        'std_dev_insert_size': 68.4, 'median_insert_size': 432.5, 'median_abs_dev_insert_size': 58.5
+    }
+}
+
+run_element2 = {
+    'run_element_id': '150724_test_1_ATGA', 'run_id': '150724_test', 'project_id': 'a_project',
+    'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGC', 'library_id': 'a_library',
+    'bases_r1': 1500000001, 'bases_r2': 1400000001, 'q30_bases_r1': 1400000001, 'q30_bases_r2': 1300000001,
+    'clean_bases_r1': 1300000001, 'clean_bases_r2': 1200000001, 'clean_q30_bases_r1': 1200000001,
+    'clean_q30_bases_r2': 1100000001, 'total_reads': 9180, 'passing_filter_reads': 8461,
+    'pc_reads_in_lane': 54.1, 'reviewed': 'pass', 'useable': 'yes', 'clean_reads': 1338,
+    'lane_pc_optical_dups': 0.1, 'adaptor_bases_removed_r1': 1339, 'adaptor_bases_removed_r2': 1340,
+    'mapping_metrics': {
+        'bam_file_reads': 8620, 'mapped_reads': 8300, 'duplicate_reads': 1100, 'properly_mapped_reads': 8200,
+        'picard_dup_reads': 1110, 'picard_opt_dup_reads': 600, 'picard_est_lib_size': 10000, 'mean_insert_size': 450.2,
+        'std_dev_insert_size': 68.4, 'median_insert_size': 432.5, 'median_abs_dev_insert_size': 58.5
+    }
+}
 
 
 class TestDatabaseHooks(TestCase):
@@ -26,26 +58,7 @@ class TestDatabaseHooks(TestCase):
         cls.patched_auth.start()
 
     def setUp(self):
-        self.run_elements = [
-            {
-                'run_element_id': '150724_test_1_ATGC', 'run_id': '150724_test', 'project_id': 'a_project',
-                'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGC', 'library_id': 'a_library',
-                'bases_r1': 1500000000, 'bases_r2': 1400000000, 'q30_bases_r1': 1400000000, 'q30_bases_r2': 1300000000,
-                'clean_bases_r1': 1300000000, 'clean_bases_r2': 1200000000, 'clean_q30_bases_r1': 1200000000,
-                'clean_q30_bases_r2': 1100000000, 'total_reads': 9190, 'passing_filter_reads': 8451,
-                'pc_reads_in_lane': 54.0, 'reviewed': 'not reviewed', 'useable': 'yes', 'clean_reads': 1337,
-                'lane_pc_optical_dups': 0.1, 'adaptor_bases_removed_r1': 1337, 'adaptor_bases_removed_r2': 1338
-            },
-            {
-                'run_element_id': '150724_test_1_ATGA', 'run_id': '150724_test', 'project_id': 'a_project',
-                'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGC', 'library_id': 'a_library',
-                'bases_r1': 1500000001, 'bases_r2': 1400000001, 'q30_bases_r1': 1400000001, 'q30_bases_r2': 1300000001,
-                'clean_bases_r1': 1300000001, 'clean_bases_r2': 1200000001, 'clean_q30_bases_r1': 1200000001,
-                'clean_q30_bases_r2': 1100000001, 'total_reads': 9180, 'passing_filter_reads': 8461,
-                'pc_reads_in_lane': 54.1, 'reviewed': 'pass', 'useable': 'yes', 'clean_reads': 1338,
-                'lane_pc_optical_dups': 0.1, 'adaptor_bases_removed_r1': 1339, 'adaptor_bases_removed_r2': 1340
-            }
-        ]
+        self.run_elements = [copy.deepcopy(run_element1), copy.deepcopy(run_element2)]
 
     def tearDown(self):
         for c in schema.content:
@@ -110,7 +123,8 @@ class TestDatabaseHooks(TestCase):
             'pc_pass_filter': 92.06314643440392, 'pc_q30_r1': 93.33333333555555, 'pc_q30_r2': 92.85714285969388,
             'pc_q30': 93.10344827824018, 'yield_in_gb': 5.800000002, 'yield_q30_in_gb': 5.400000002,
             'clean_yield_in_gb': 5.000000002, 'clean_yield_q30_in_gb': 4.600000002, 'clean_pc_q30': 92.0000000032,
-            'clean_pc_q30_r1': 92.30769231065089, 'clean_pc_q30_r2': 91.66666667013888
+            'clean_pc_q30_r1': 92.30769231065089, 'clean_pc_q30_r2': 91.66666667013888,
+            'pc_opt_duplicate_reads': 6.455399061032864,
         }
         obs = self.get('runs')[0]
         self.assert_dict_subsets(exp, obs['aggregated'])
@@ -233,28 +247,21 @@ class TestDatabaseHooks(TestCase):
         self.assert_dict_subsets(exp, self.get('lanes')[0]['aggregated'])
 
     def test_run_element_aggregation(self):
-        run_element = {
-            'run_element_id': '150724_test_1_ATGC', 'run_id': '150724_test', 'project_id': 'a_project',
-            'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGC', 'library_id': 'a_library', 'bases_r1': 1500000000,
-            'bases_r2': 1400000000, 'q30_bases_r1': 1400000000, 'q30_bases_r2': 1300000000,
-            'clean_bases_r1': 1300000000, 'clean_bases_r2': 1200000000, 'clean_q30_bases_r1': 1200000000,
-            'clean_q30_bases_r2': 1100000000, 'adaptor_bases_removed_r1': 1337, 'adaptor_bases_removed_r2': 1338,
-            'total_reads': 9190, 'passing_filter_reads': 8451, 'pc_reads_in_lane': 54.0, 'reviewed': 'not reviewed',
-            'clean_reads': 1337
-        }
-
-        self.post('run_elements', run_element)
+        self.post('run_elements', self.run_elements[0])
         exp = {
             'pc_pass_filter': 91.95865070729053, 'pc_q30_r1': 93.33333333333333, 'pc_q30_r2': 92.85714285714286,
             'pc_q30': 93.10344827586206, 'yield_in_gb': 2.9, 'clean_yield_in_gb': 2.5, 'yield_q30_in_gb': 2.7,
             'clean_yield_q30_in_gb': 2.3, 'clean_pc_q30_r1': 92.3076923076923, 'clean_pc_q30_r2': 91.66666666666666,
-            'clean_pc_q30': 92.0
+            'clean_pc_q30': 92.0, 'pc_duplicate_reads': 11.87648456057007, 'pc_opt_duplicate_reads': 5.938242280285035,
+            'pc_mapped_reads': 97.38717339667458,
         }
         self.assert_dict_subsets(exp, self.get('run_elements')[0]['aggregated'])
 
         self.patch('run_elements', {'run_element_id': '150724_test_1_ATGC'}, {'clean_q30_bases_r1': 1201000000})
         exp.update({'clean_yield_q30_in_gb': 2.301, 'clean_pc_q30_r1': 92.38461538461539, 'clean_pc_q30': 92.04})
-        self.assert_dict_subsets(exp, self.get('run_elements')[0]['aggregated'])
+        obs = self.get('run_elements')[0]['aggregated']
+
+        self.assert_dict_subsets(exp, obs)
 
     def test_project_aggregation(self):
         samples = [
@@ -262,10 +269,10 @@ class TestDatabaseHooks(TestCase):
             {'sample_id': 'sample_3', 'project_id': 'test', 'delivered': 'yes'},
             {'sample_id': 'sample_4', 'project_id': 'test', 'reviewed': 'fail', 'delivered': 'yes'},
         ]
-
+        proc = {'proc_id': 'project_test_now', 'dataset_type': 'project', 'dataset_name': 'test'}
         self.post(
             'analysis_driver_procs',
-            {'proc_id': 'project_test_now', 'dataset_type': 'project', 'dataset_name': 'test'}
+            proc
         )
         self.post('samples', {'sample_id': 'sample_1', 'project_id': 'test'})
         self.post(
@@ -274,13 +281,16 @@ class TestDatabaseHooks(TestCase):
         )
 
         self.assert_dict_subsets(
-            {'nb_samples': 1, 'nb_samples_reviewed': 0, 'nb_samples_delivered': 0},
+            {'samples': ['sample_1'], 'samples_delivered': [], 'samples_reviewed': []},
             self.get('projects')[0]['aggregated']
         )
 
         self.post('samples', samples)
-        self.assert_dict_subsets(
-            {'nb_samples': 4, 'nb_samples_reviewed': 2, 'nb_samples_delivered': 2},
+        self.assert_dict_subsets({
+                'samples': ['sample_1', 'sample_2', 'sample_3', 'sample_4'],
+                'samples_reviewed': ['sample_2', 'sample_4'],
+                'samples_delivered': ['sample_3', 'sample_4']
+            },
             self.get('projects')[0]['aggregated']
         )
 

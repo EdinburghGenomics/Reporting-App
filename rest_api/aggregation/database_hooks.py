@@ -134,7 +134,7 @@ class UniqDict(Calculation):
         else:
             elements = [e[self.key] for e in elements if e]
 
-        return list(set(elements))
+        return sorted(set(elements))
 
 
 class NbUniqueDicts(Calculation):  # TODO: Should replace server_side.NbUniqueElements
@@ -327,6 +327,19 @@ class Sample(DataRelation):
             'coverage_at_5X': Percentage('coverage.bases_at_coverage.bases_at_5X', 'coverage.genome_size'),
             'coverage_at_15X': Percentage('coverage.bases_at_coverage.bases_at_15X', 'coverage.genome_size'),
             'most_recent_proc': MostRecent('analysis_driver_procs')
+        },
+        {
+            'mean_coverage_from_re': Total('run_elements.coverage.mean'),
+            'bam_file_reads_from_re': Total('run_elements.coverage.bam_file_reads'),
+            'mapped_reads_from_re': Total('run_elements.coverage.mapped_reads'),
+            'duplicate_reads_from_re': Total('run_elements.coverage.duplicate_reads'),
+            'picard_dup_reads_from_re': Total('run_elements.coverage.picard_dup_reads'),
+            'picard_opt_dup_reads_from_re': Total('run_elements.coverage.picard_opt_dup_reads')
+        },
+        {
+            'pc_mapped_reads_from_re': Percentage('aggregated.mapped_reads_from_re', 'aggregated.bam_file_reads_from_re'),
+            'pc_duplicate_reads_from_re': Percentage('aggregated.duplicate_reads_from_re', 'aggregated.bam_file_reads_from_re'),
+            'pc_opt_duplicate_reads_from_re': Percentage('aggregated.picard_opt_dup_reads_from_re', 'aggregated.bam_file_reads_from_re'),
         }
     ]
 
