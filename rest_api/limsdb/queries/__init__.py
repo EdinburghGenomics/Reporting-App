@@ -140,7 +140,7 @@ def runs_info(session, time_since=None, run_ids=None, run_status=None):
         .join(t.ContainerPlacement.container) \
         .join(t.Artifact.samples) \
         .join(t.Sample.project) \
-        .filter(t.ProcessUdfView.udfname.in_(('Run Status', 'RunID', 'InstrumentID'))) \
+        .filter(t.ProcessUdfView.udfname.in_(('Run Status', 'RunID', 'InstrumentID', 'Cycle', 'Read'))) \
         .filter(t.ProcessType.displayname == 'AUTOMATED - Sequence')
 
     if time_since:
