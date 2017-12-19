@@ -8,7 +8,13 @@ logger = logging_default.get_logger(__name__)
 def resolve(query, element):
     q = {}
     for k, v in query.items():
-        q[k] = v.evaluate(element)
+        if isinstance(v, Expression):
+            q[k] = v.evaluate(element)
+        elif isinstance(v, dict):
+            # recurse for dictionaries
+            q[k] = resolve(v, element)
+        else:
+            raise ValueError('Unsupported type %s for key %s' % (type(v), k))
     return q
 
 
@@ -43,9 +49,14 @@ class Calculation(Expression):
         for a in self.args:
             if isinstance(a, Expression):
                 data_point = a.evaluate(e)
-            else:
+            elif isinstance(a, int) or isinstance(a, float):
+                # keep the value as they are for numbers
+                data_point = a
+            elif isinstance(a, str):
+                # This is a string describing a query
                 data_point = self._resolve_element(e, a)
-
+            else:
+                raise ValueError('Unsupported type %s in resolving %s' % (type(a).__name__, type(self).__name__))
             if data_point is None:
                 return self.default_return_value
 
@@ -88,11 +99,6 @@ class Accumulation(Calculation):
 
     def _expression(self, *args):
         raise NotImplementedError
-
-
-class Constant(Expression):
-    def evaluate(self, e):
-        return self.args[0]
 
 
 class Add(Calculation):
@@ -161,6 +167,6 @@ class MostRecent(Calculation):
 
 
 __all__ = (
-    'resolve', 'Calculation', 'Accumulation', 'Constant', 'Add', 'Multiply', 'Divide', 'Percentage',
+    'resolve', 'Calculation', 'Accumulation', 'Add', 'Multiply', 'Divide', 'Percentage',
     'CoefficientOfVariation', 'ToSet', 'NbUniqueElements', 'Total', 'MostRecent'
 )

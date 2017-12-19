@@ -1,7 +1,18 @@
 import statistics
+
+import collections
+
 from rest_api.aggregation.server_side.expressions import *
 from rest_api.aggregation.database_side import db
 
+
+def deep_dict_update(d, u):
+    for k, v in u.items():
+        if isinstance(v, dict):
+            d[k] = deep_dict_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
 
 class DataRelation:
     """
@@ -50,7 +61,7 @@ class DataRelation:
             self.data['aggregated'] = {}
             for stage in self.aggregated_fields:
                 new_data = resolve(stage, self.data)
-                self.data['aggregated'].update(new_data)
+                deep_dict_update(self.data['aggregated'], new_data)
 
             db[self.endpoint].update_one(
                 {self.id_field: self.data[self.id_field]},
@@ -178,10 +189,10 @@ yields_and_percentages = {
     'pc_q30_r1': Percentage('aggregated.q30_bases_r1', 'aggregated.bases_r1'),
     'pc_q30_r2': Percentage('aggregated.q30_bases_r2', 'aggregated.bases_r2'),
     'pc_q30': Percentage(Add('aggregated.q30_bases_r1', 'aggregated.q30_bases_r2'), Add('aggregated.bases_r1', 'aggregated.bases_r2')),
-    'yield_in_gb': Divide(Add('aggregated.bases_r1', 'aggregated.bases_r2'), Constant(1000000000)),
-    'yield_q30_in_gb': Divide(Add('aggregated.q30_bases_r1', 'aggregated.q30_bases_r2'), Constant(1000000000)),
-    'clean_yield_in_gb': Divide(Add('aggregated.clean_bases_r1', 'aggregated.clean_bases_r2'), Constant(1000000000)),
-    'clean_yield_q30_in_gb': Divide(Add('aggregated.clean_q30_bases_r1', 'aggregated.clean_q30_bases_r2'), Constant(1000000000)),
+    'yield_in_gb': Divide(Add('aggregated.bases_r1', 'aggregated.bases_r2'), 1000000000),
+    'yield_q30_in_gb': Divide(Add('aggregated.q30_bases_r1', 'aggregated.q30_bases_r2'), 1000000000),
+    'clean_yield_in_gb': Divide(Add('aggregated.clean_bases_r1', 'aggregated.clean_bases_r2'), 1000000000),
+    'clean_yield_q30_in_gb': Divide(Add('aggregated.clean_q30_bases_r1', 'aggregated.clean_q30_bases_r2'), 1000000000),
     'clean_pc_q30_r1': Percentage('aggregated.clean_q30_bases_r1', 'aggregated.clean_bases_r1'),
     'clean_pc_q30_r2': Percentage('aggregated.clean_q30_bases_r2', 'aggregated.clean_bases_r2'),
     'clean_pc_q30': Percentage(Add('aggregated.clean_q30_bases_r1', 'aggregated.clean_q30_bases_r2'), Add('aggregated.clean_bases_r1', 'aggregated.clean_bases_r2'))
@@ -201,10 +212,10 @@ class RunElement(DataRelation):
             'pc_q30_r1': Percentage('q30_bases_r1', 'bases_r1'),
             'pc_q30_r2': Percentage('q30_bases_r2', 'bases_r2'),
             'pc_q30': Percentage(Add('q30_bases_r1', 'q30_bases_r2'), Add('bases_r1', 'bases_r2')),
-            'yield_in_gb': Divide(Add('bases_r1', 'bases_r2'), Constant(1000000000)),
-            'yield_q30_in_gb': Divide(Add('q30_bases_r1', 'q30_bases_r2'), Constant(1000000000)),
-            'clean_yield_in_gb': Divide(Add('clean_bases_r1', 'clean_bases_r2'), Constant(1000000000)),
-            'clean_yield_q30_in_gb': Divide(Add('clean_q30_bases_r1', 'clean_q30_bases_r2'), Constant(1000000000)),
+            'yield_in_gb': Divide(Add('bases_r1', 'bases_r2'), 1000000000),
+            'yield_q30_in_gb': Divide(Add('q30_bases_r1', 'q30_bases_r2'), 1000000000),
+            'clean_yield_in_gb': Divide(Add('clean_bases_r1', 'clean_bases_r2'), 1000000000),
+            'clean_yield_q30_in_gb': Divide(Add('clean_q30_bases_r1', 'clean_q30_bases_r2'), 1000000000),
             'clean_pc_q30_r1': Percentage('clean_q30_bases_r1', 'clean_bases_r1'),
             'clean_pc_q30_r2': Percentage('clean_q30_bases_r2', 'clean_bases_r2'),
             'clean_pc_q30': Percentage(Add('clean_q30_bases_r1', 'clean_q30_bases_r2'), Add('clean_bases_r1', 'clean_bases_r2')),
@@ -215,7 +226,6 @@ class RunElement(DataRelation):
             'pc_mapped_reads': Percentage('mapping_metrics.mapped_reads', 'mapping_metrics.bam_file_reads'),
             'pc_duplicate_reads': Percentage('mapping_metrics.duplicate_reads', 'mapping_metrics.bam_file_reads'),
             'pc_opt_duplicate_reads': Percentage('mapping_metrics.picard_opt_dup_reads', 'mapping_metrics.bam_file_reads'),
-
         }
     ]
 
@@ -329,17 +339,21 @@ class Sample(DataRelation):
             'most_recent_proc': MostRecent('analysis_driver_procs')
         },
         {
-            'mean_coverage_from_re': Total('run_elements.coverage.mean'),
-            'bam_file_reads_from_re': Total('run_elements.coverage.bam_file_reads'),
-            'mapped_reads_from_re': Total('run_elements.coverage.mapped_reads'),
-            'duplicate_reads_from_re': Total('run_elements.coverage.duplicate_reads'),
-            'picard_dup_reads_from_re': Total('run_elements.coverage.picard_dup_reads'),
-            'picard_opt_dup_reads_from_re': Total('run_elements.coverage.picard_opt_dup_reads')
+            'from_run_elements':{
+                'mean_coverage': Total('run_elements.coverage.mean'),
+                'bam_file_reads': Total('run_elements.mapping_metrics.bam_file_reads'),
+                'mapped_reads': Total('run_elements.mapping_metrics.mapped_reads'),
+                'duplicate_reads': Total('run_elements.mapping_metrics.duplicate_reads'),
+                'picard_dup_reads': Total('run_elements.mapping_metrics.picard_dup_reads'),
+                'picard_opt_dup_reads': Total('run_elements.mapping_metrics.picard_opt_dup_reads')
+            }
         },
         {
-            'pc_mapped_reads_from_re': Percentage('aggregated.mapped_reads_from_re', 'aggregated.bam_file_reads_from_re'),
-            'pc_duplicate_reads_from_re': Percentage('aggregated.duplicate_reads_from_re', 'aggregated.bam_file_reads_from_re'),
-            'pc_opt_duplicate_reads_from_re': Percentage('aggregated.picard_opt_dup_reads_from_re', 'aggregated.bam_file_reads_from_re'),
+            'from_run_elements': {
+                'pc_mapped_reads': Percentage('aggregated.from_run_elements.mapped_reads', 'aggregated.from_run_elements.bam_file_reads'),
+                'pc_duplicate_reads': Percentage('aggregated.from_run_elements.duplicate_reads', 'aggregated.from_run_elements.bam_file_reads'),
+                'pc_opt_duplicate_reads': Percentage('aggregated.from_run_elements.picard_opt_dup_reads', 'aggregated.from_run_elements.bam_file_reads'),
+            }
         }
     ]
 

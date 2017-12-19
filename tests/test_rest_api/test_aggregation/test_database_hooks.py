@@ -3,8 +3,12 @@ import os
 import json
 from unittest import TestCase
 from time import sleep
+
+import pymongo
+
 from rest_api import app
 from config import schema
+from config import rest_config as cfg
 from tests import Helper
 from math import sqrt
 from datetime import datetime
@@ -24,7 +28,8 @@ run_element1 = {
         'bam_file_reads': 8420, 'mapped_reads': 8200, 'duplicate_reads': 1000, 'properly_mapped_reads': 8100,
         'picard_dup_reads': 1010, 'picard_opt_dup_reads': 500, 'picard_est_lib_size': 10000, 'mean_insert_size': 450.2,
         'std_dev_insert_size': 68.4, 'median_insert_size': 432.5, 'median_abs_dev_insert_size': 58.5
-    }
+    },
+    'coverage': {'mean': 2.6}
 }
 
 run_element2 = {
@@ -39,7 +44,8 @@ run_element2 = {
         'bam_file_reads': 8620, 'mapped_reads': 8300, 'duplicate_reads': 1100, 'properly_mapped_reads': 8200,
         'picard_dup_reads': 1110, 'picard_opt_dup_reads': 600, 'picard_est_lib_size': 10000, 'mean_insert_size': 450.2,
         'std_dev_insert_size': 68.4, 'median_insert_size': 432.5, 'median_abs_dev_insert_size': 58.5
-    }
+    },
+    'coverage': {'mean': 2.4}
 }
 
 
@@ -53,6 +59,11 @@ class TestDatabaseHooks(TestCase):
         cls.client = app.test_client()
 
         sleep(1)
+
+        # test the connection to the database to make it is running before running the tests
+        cli = pymongo.MongoClient(cfg['db_host'], cfg['db_port'], serverSelectionTimeoutMS=100)
+        db = cli[cfg['db_name']]
+        db['run_elements'].find_one()
 
         cls.patched_auth = patch('auth.DualAuth.authorized', return_value=True)
         cls.patched_auth.start()
@@ -315,8 +326,15 @@ class TestDatabaseHooks(TestCase):
             'pc_properly_mapped_reads': 99.85052316890882, 'pc_duplicate_reads': 7.473841554559043,
             'matching_species': ['Homo sapiens'], 'coverage_at_5X': 96.66666666666667,
             'coverage_at_15X': 66.66666666666666, 'most_recent_proc': None, 'clean_yield_in_gb': 5.000000002,
-            'clean_pc_q30_r1': 92.30769231065089, 'clean_pc_q30': 92.0000000032, 'clean_yield_q30_in_gb': 4.600000002
+            'clean_pc_q30_r1': 92.30769231065089, 'clean_pc_q30': 92.0000000032, 'clean_yield_q30_in_gb': 4.600000002,
+            'from_run_elements': {
+                'mapped_reads': 16500, 'duplicate_reads': 2100, 'bam_file_reads': 17040,
+                'pc_mapped_reads': 96.83098591549296, 'picard_opt_dup_reads': 1100,
+                'pc_duplicate_reads': 12.323943661971832, 'pc_opt_duplicate_reads': 6.455399061032864,
+                'picard_dup_reads': 2120, 'mean_coverage': 5
+            }
         }
+
         self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])
 
         self.post(
@@ -335,13 +353,17 @@ class TestDatabaseHooks(TestCase):
                 'sample_id': 'a_sample', 'lane': 2, 'barcode': 'ATGG', 'library_id': 'a_library',
                 'bases_r1': 1300000001, 'q30_bases_r1': 1200000001, 'clean_bases_r1': 1100000001,
                 'clean_q30_bases_r1': 1000000001, 'adaptor_bases_removed_r1': 1341, 'total_reads': 9180,
-                'passing_filter_reads': 8461, 'pc_reads_in_lane': 54.1, 'reviewed': 'fail', 'useable': 'yes'
+                'passing_filter_reads': 8461, 'pc_reads_in_lane': 54.1, 'reviewed': 'fail', 'useable': 'yes',
+                'coverage': {'mean': 1.5}
             }
         )
+
         exp.update(
             {'clean_yield_in_gb': 6.100000003, 'clean_pc_q30_r1': 91.89189189627466,
              'clean_pc_q30': 91.80327869255576, 'clean_yield_q30_in_gb': 5.600000003}
         )
+        exp['from_run_elements'].update({'mean_coverage': 6.5})
+
         self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])
 
         self.patch('run_elements', {'run_element_id': '150724_test_2_ATGG'}, {'clean_q30_bases_r1': 1200001001})

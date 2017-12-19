@@ -317,6 +317,11 @@ sample_run_elements:
     - clean_pc_q30
     - lane_pc_optical_dups
     - pc_adaptor
+    - pc_mapped_reads
+    - pc_duplicate_reads
+    - pc_opt_duplicate_reads
+    - mean_insert_size
+    - mean_coverage
     - reviewed
     - useable
 
