@@ -234,7 +234,7 @@ def project_reports():
 @app.route('/samples/<view_type>')
 @flask_login.login_required
 def report_samples(view_type):
-    six_month_ago = datetime.datetime.now() - datetime.timedelta(days=183)
+    year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
     if view_type == 'all':
         ajax_call = {
             'func_name': 'merge_multi_sources_keep_first',
@@ -254,8 +254,8 @@ def report_samples(view_type):
                 construct_url('samples', where={'aggregated.most_recent_proc.status': 'processing'},
                               max_results=10000),
                 construct_url('lims/status/sample_status',
-                              match={'createddate': six_month_ago.strftime(settings.DATE_FORMAT)}),
-                construct_url('lims/samples', match={'createddate': six_month_ago.strftime(settings.DATE_FORMAT)})
+                              match={'createddate': year_ago.strftime(settings.DATE_FORMAT)}),
+                construct_url('lims/samples', match={'createddate': year_ago.strftime(settings.DATE_FORMAT)})
             ],
             'merge_on': 'sample_id'
         }
@@ -265,8 +265,8 @@ def report_samples(view_type):
             'func_name': 'merge_multi_sources_keep_first',
             'api_urls': [
                 construct_url('samples', where={'useable': 'not%20marked', 'aggregated.most_recent_proc.status': 'finished'}, max_results=10000),
-                construct_url('lims/status/sample_status', match={'createddate': six_month_ago.strftime(settings.DATE_FORMAT)}),
-                construct_url('lims/samples', match={'createddate': six_month_ago.strftime(settings.DATE_FORMAT)})
+                construct_url('lims/status/sample_status', match={'createddate': year_ago.strftime(settings.DATE_FORMAT)}),
+                construct_url('lims/samples', match={'createddate': year_ago.strftime(settings.DATE_FORMAT)})
             ],
             'merge_on': 'sample_id'
         }
