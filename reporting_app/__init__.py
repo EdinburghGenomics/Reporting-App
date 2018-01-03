@@ -234,7 +234,7 @@ def project_reports():
 @app.route('/samples/<view_type>')
 @flask_login.login_required
 def report_samples(view_type):
-    year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+    year_ago = datetime.datetime.now() - datetime.timedelta(days=182)
     if view_type == 'all':
         ajax_call = {
             'func_name': 'merge_multi_sources_keep_first',
