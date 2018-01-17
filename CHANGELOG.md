@@ -4,7 +4,9 @@ Changelog for Reporting-App
 0.17 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- add tests for limsdb
+- get coverage values from rest API/LIMS rather than from hardcoded values
+- Use aggregated data
 
 
 0.16 (2017-11-27)
