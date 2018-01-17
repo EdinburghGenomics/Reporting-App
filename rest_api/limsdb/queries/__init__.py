@@ -1,4 +1,4 @@
-from sqlalchemy import or_, func
+from sqlalchemy import or_, and_, func
 import genologics_sql.tables as t
 from sqlalchemy.orm.util import aliased
 
@@ -79,28 +79,45 @@ def get_samples_and_processes(session, project_name=None, sample_name=None, list
 def non_QC_queues(session, project_name=None, sample_name=None, list_process=None, time_since=None, only_open_project=True):
     """
     This query gives all of the samples sitting in queue of a aledgedly non-qc steps
+    See explaination at https://genologics.zendesk.com/hc/en-us/articles/213982003-Reporting-the-contents-of-a-Queue
     """
+
+    # Sub query that find active processes to distinguish between transition that marks Queued artifact
+    # and the one that are in progress already
+    subq = session.query(t.ProcessIOTracker.inputartifactid, t.Process.processid, t.Process.typeid)
+    subq = subq.join(t.ProcessIOTracker.process)
+    subq = subq.filter(t.Process.workstatus != 'COMPLETE')
+    subq = subq.subquery()
+
     q = session.query(
-        t.Project.name, t.Sample.name, t.ProcessType.displayname, t.StageTransition.createddate, t.ProtocolStep.stepid
+        t.Project.name, t.Sample.name, t.ProcessType.displayname, t.StageTransition.createddate, t.ProtocolStep.stepid,
+        t.StageTransition.generatedbyid, subq.c.processid
     )
     q = q.distinct(
-        t.Project.name, t.Sample.name, t.ProcessType.displayname, t.StageTransition.createddate, t.ProtocolStep.stepid
+        t.Project.name, t.Sample.name, t.ProcessType.displayname, t.StageTransition.createddate, t.ProtocolStep.stepid,
+        t.StageTransition.generatedbyid, subq.c.processid
     )
     q = q.join(t.Sample.project) \
         .join(t.Sample.artifacts) \
         .join(t.Artifact.stage_transitions) \
         .join(t.StageTransition.stage) \
-        .join(t.Stage.protocolstep) \
-        .join(t.ProtocolStep.processtype) \
         .join(t.Stage.workflowsection) \
         .join(t.WorkflowSection.labprotocol) \
+        .join(t.LabProtocol.protocolsteps) \
+        .join(t.ProtocolStep.processtype) \
         .join(t.WorkflowSection.labworkflow)
+    q = q.outerjoin(subq, and_(subq.c.inputartifactid == t.Artifact.artifactid,
+                               subq.c.typeid == t.ProcessType.typeid))
+
     q = q.order_by(t.Project.name, t.Sample.name, t.ProcessType.displayname)
     q = add_filters(q, project_name=project_name, sample_name=sample_name, list_process=list_process,
                     only_open_project=only_open_project, time_since=time_since)
     # StageTransition.workflowrunid is positive when the transition is not
     # complete and negative when the transition is completed
     q = q.filter(t.StageTransition.workflowrunid > 0)
+    # For non-QC processes the protocol step id is the same as the stage stepid.
+    # However QC stages have a NULL step ID in the stage table.
+    q = q.filter(or_(t.ProtocolStep.stepid == t.Stage.stepid, t.Stage.stepid.is_(None)))
     q = q.filter(t.StageTransition.completedbyid.is_(None))
     return q.all()
 
@@ -207,3 +224,28 @@ def runs_cst(session, time_since=None, run_ids=None, run_status=None):
 
     results = q.all()
     return results
+
+
+if __name__ == "__main__":
+    '''checkout '''
+
+
+    import datetime
+    from rest_api.limsdb import get_session
+    from pprint import pprint
+    session = get_session()
+    time_since = datetime.datetime.now() - datetime.timedelta(days=200)
+    res = non_QC_queues(session, sample_name='X17151P001A08')
+    header = [
+        "Project.name",
+        "Sample.name",
+        "ProcessType.displayname",
+        "StageTransition.createddate",
+        "ProtocolStep.stepid",
+        "StageTransition.generatedbyid",
+        "NextProcess.processid"
+    ]
+    for r in res:
+        for i, e in enumerate(r):
+            print('%s: %s' %(header[i], e))
+        print('\n')

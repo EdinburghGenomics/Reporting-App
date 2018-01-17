@@ -32,7 +32,8 @@ def _create_samples(session):
     sample_id = match.get('sample_id')
     time_since = match.get('createddate')
 
-    for result in queries.get_sample_info(session, project_id, sample_id, time_since=time_since, udfs='all'):
+    for result in queries.get_sample_info(session, project_id, sample_id, time_since=time_since, udfs='all',
+                                          only_open_project=False):
         (pjct_name, sample_name, container, wellx, welly, udf_name, udf_value) = result
         s = all_samples[sanitize_user_id(sample_name)]
         s.sample_name = sanitize_user_id(sample_name)
