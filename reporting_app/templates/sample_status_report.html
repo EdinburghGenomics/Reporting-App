@@ -44,10 +44,21 @@
                                 <td>
                                     {{ process.date }}
                                 </td>
+                            {% elif process.type == 'progress' %}
+                                <td style="padding-left:20px;">
+                                    <a href="{{ lims_url }}/clarity/work-details/{{ process.process_id }}" target="_blank">
+                                        {{ process.name }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {{ process.date }}
+                                    <span class="badge pull-right"> In Progress </span>
+                                </td>
                             {% else %}
-                                <td><a href="{{ lims_url }}/clarity/queue/{{ process.process_id }}" target="_blank" >
-                                    {{ process.name }}
-                                </a>
+                                <td style="padding-left:20px;">
+                                    <a href="{{ lims_url }}/clarity/queue/{{ process.process_id }}" target="_blank" >
+                                        {{ process.name }}
+                                    </a>
                                 </td>
                                 <td>
                                     {{ process.date }}

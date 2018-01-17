@@ -76,7 +76,7 @@ def get_samples_and_processes(session, project_name=None, sample_name=None, list
     return q.all()
 
 
-def non_QC_queues(session, project_name=None, sample_name=None, list_process=None, time_since=None, only_open_project=True):
+def get_sample_in_queues_or_progress(session, project_name=None, sample_name=None, list_process=None, time_since=None, only_open_project=True):
     """
     This query gives all of the samples sitting in queue of a aledgedly non-qc steps
     See explaination at https://genologics.zendesk.com/hc/en-us/articles/213982003-Reporting-the-contents-of-a-Queue
@@ -84,18 +84,18 @@ def non_QC_queues(session, project_name=None, sample_name=None, list_process=Non
 
     # Sub query that find active processes to distinguish between transition that marks Queued artifact
     # and the one that are in progress already
-    subq = session.query(t.ProcessIOTracker.inputartifactid, t.Process.processid, t.Process.typeid)
+    subq = session.query(t.ProcessIOTracker.inputartifactid, t.Process.processid, t.Process.typeid, t.Process.lastmodifieddate)
     subq = subq.join(t.ProcessIOTracker.process)
     subq = subq.filter(t.Process.workstatus != 'COMPLETE')
     subq = subq.subquery()
 
     q = session.query(
         t.Project.name, t.Sample.name, t.ProcessType.displayname, t.StageTransition.createddate, t.ProtocolStep.stepid,
-        t.StageTransition.generatedbyid, subq.c.processid
+        subq.c.processid, subq.c.lastmodifieddate
     )
     q = q.distinct(
         t.Project.name, t.Sample.name, t.ProcessType.displayname, t.StageTransition.createddate, t.ProtocolStep.stepid,
-        t.StageTransition.generatedbyid, subq.c.processid
+        subq.c.processid, subq.c.lastmodifieddate
     )
     q = q.join(t.Sample.project) \
         .join(t.Sample.artifacts) \
@@ -235,15 +235,15 @@ if __name__ == "__main__":
     from pprint import pprint
     session = get_session()
     time_since = datetime.datetime.now() - datetime.timedelta(days=200)
-    res = non_QC_queues(session, sample_name='X17151P001A08')
+    res = get_sample_in_queues_or_progress(session, sample_name='X17151P001A08')
     header = [
         "Project.name",
         "Sample.name",
         "ProcessType.displayname",
         "StageTransition.createddate",
         "ProtocolStep.stepid",
-        "StageTransition.generatedbyid",
-        "NextProcess.processid"
+        "NextProcess.processid",
+        "NextProcess.date"
     ]
     for r in res:
         for i, e in enumerate(r):
