@@ -29,7 +29,7 @@ if __name__ == '__main__':
     if not app_cfg or 'rest_api' not in app_cfg:
         raise ConfigError('Configuration file was not set or is missing values')
 
-    two_month_ago = datetime.datetime.now() - datetime.timedelta(days=60)
+    two_month_ago = datetime.datetime.now() - datetime.timedelta(days=90)
 
     app_logger.info("Retrigger aggregation")
     # only retrigger aggregation on recent runs
