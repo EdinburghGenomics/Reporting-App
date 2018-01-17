@@ -1,7 +1,7 @@
 Changelog for Reporting-App
 ===========================
 
-0.17 (unreleased)
+0.17 (2018-01-17)
 -----------------
 
 - add tests for limsdb
