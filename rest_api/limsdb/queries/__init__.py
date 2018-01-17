@@ -224,28 +224,3 @@ def runs_cst(session, time_since=None, run_ids=None, run_status=None):
 
     results = q.all()
     return results
-
-
-if __name__ == "__main__":
-    '''checkout '''
-
-
-    import datetime
-    from rest_api.limsdb import get_session
-    from pprint import pprint
-    session = get_session()
-    time_since = datetime.datetime.now() - datetime.timedelta(days=200)
-    res = get_sample_in_queues_or_progress(session, sample_name='X17151P001A08')
-    header = [
-        "Project.name",
-        "Sample.name",
-        "ProcessType.displayname",
-        "StageTransition.createddate",
-        "ProtocolStep.stepid",
-        "NextProcess.processid",
-        "NextProcess.date"
-    ]
-    for r in res:
-        for i, e in enumerate(r):
-            print('%s: %s' %(header[i], e))
-        print('\n')
