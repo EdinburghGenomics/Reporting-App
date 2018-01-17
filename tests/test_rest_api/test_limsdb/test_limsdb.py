@@ -31,9 +31,9 @@ mocked_get_samples_and_processes = patch(
     ]
 )
 
-mocked_non_QC_queues = patch(
-    'rest_api.limsdb.queries.non_QC_queues', return_value=[
-        ('X99999', 'X99999P001H05', 'Create PDP Pool', datetime(2016, 11, 27, 11, 14, 59, 325000), 751)
+mocked_get_sample_in_queues_or_progress = patch(
+    'rest_api.limsdb.queries.get_sample_in_queues_or_progress', return_value=[
+        ('X99999', 'X99999P001H05', 'Create PDP Pool', datetime(2016, 11, 27, 11, 14, 59, 325000), 751, None, None)
     ]
 )
 
@@ -347,7 +347,7 @@ class ProjectTest(TestCase):
 
 @mocked_get_sample_info
 @mocked_get_samples_and_processes
-@mocked_non_QC_queues
+@mocked_get_sample_in_queues_or_progress
 @mocked_request
 def test_create_samples(mocked_request,
                         mocked_non_qc,
@@ -377,7 +377,7 @@ def test_create_samples(mocked_request,
 
 @mocked_get_sample_info
 @mocked_get_samples_and_processes
-@mocked_non_QC_queues
+@mocked_get_sample_in_queues_or_progress
 @mocked_request
 @mocked_retrieve_args
 def test_sample_status(mock_retrieve_args,
@@ -417,7 +417,7 @@ def test_sample_status(mock_retrieve_args,
 
 @mocked_get_sample_info
 @mocked_get_samples_and_processes
-@mocked_non_QC_queues
+@mocked_get_sample_in_queues_or_progress
 @mocked_request
 @mocked_get_project_info
 @mocked_retrieve_args
@@ -446,7 +446,7 @@ def test_sample_status_per_project(mocked_retrieve_args,
 
 @mocked_get_sample_info
 @mocked_get_samples_and_processes
-@mocked_non_QC_queues
+@mocked_get_sample_in_queues_or_progress
 @mocked_request
 @mocked_get_project_info
 @mocked_retrieve_args
