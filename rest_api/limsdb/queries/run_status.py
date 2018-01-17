@@ -21,7 +21,9 @@ class Run:
             'run_status': self.udfs['Run Status'],
             'sample_ids': sorted(list(self.samples)),
             'project_ids': sorted(list(self.projects)),
-            'instrument_id': self.udfs['InstrumentID']
+            'instrument_id': self.udfs['InstrumentID'],
+            'nb_reads': self.udfs['Read'],
+            'nb_cycles': self.udfs['Cycle']
         }
 
 

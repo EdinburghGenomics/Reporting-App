@@ -103,7 +103,7 @@ def runs_report(view_type):
         ajax_call = {
             'func_name': 'merge_multi_sources',
             'api_urls': [
-                construct_url('aggregate/all_runs'),
+                construct_url('runs', max_results=10000),
                 construct_url('lims/status/run_status'),
             ],
             'merge_on': 'run_id'
@@ -120,7 +120,7 @@ def runs_report(view_type):
         ajax_call = {
             'func_name': 'merge_multi_sources',
             'api_urls': [
-                construct_url('aggregate/all_runs', match={'_created': {'$gte': time_ago.strftime(settings.DATE_FORMAT)}}),
+                construct_url('runs', where={'_created': {'$gte': time_ago.strftime(settings.DATE_FORMAT)}}, max_results=10000),
                 construct_url('lims/status/run_status', createddate=time_ago.strftime(settings.DATE_FORMAT)),
             ],
             'merge_on': 'run_id'
@@ -160,7 +160,7 @@ def report_run(run_id):
         lane_aggregation=datatable_cfg(
             title='Aggregation per lane',
             cols='lane_aggregation',
-            api_url=construct_url('aggregate/run_elements_by_lane', match={'run_id': run_id}),
+            api_url=construct_url('lanes', where={'run_id': run_id}),
             default_sort_col='lane_number',
             paging=False,
             searching=False,
@@ -178,7 +178,7 @@ def report_run(run_id):
                     datatable_cfg(
                         title='Demultiplexing lane ' + str(lane),
                         cols='demultiplexing',
-                        api_url=construct_url('aggregate/run_elements', match={'run_id': run_id, 'lane': lane}),
+                        api_url=construct_url('run_elements', where={'run_id': run_id, 'lane': lane}),
                         paging=False,
                         searching=False,
                         info=False,
@@ -226,7 +226,7 @@ def project_reports():
         table=datatable_cfg(
             'Project list',
             'projects',
-            api_url=construct_url('aggregate/projects')
+            api_url=construct_url('projects', max_results=10000)
         )
     )
 
@@ -234,25 +234,39 @@ def project_reports():
 @app.route('/samples/<view_type>')
 @flask_login.login_required
 def report_samples(view_type):
+    year_ago = datetime.datetime.now() - datetime.timedelta(days=182)
     if view_type == 'all':
         ajax_call = {
             'func_name': 'merge_multi_sources_keep_first',
             'api_urls': [
-                construct_url('aggregate/samples'),
+                construct_url('samples', max_results=10000),
                 construct_url('lims/status/sample_status'),
                 construct_url('lims/samples')
             ],
             'merge_on': 'sample_id'
         }
         title = 'All samples'
-    elif view_type == 'toreview':
-        three_month_ago = datetime.datetime.now() - datetime.timedelta(days=91)
+    elif view_type == 'processing':
+
         ajax_call = {
             'func_name': 'merge_multi_sources_keep_first',
             'api_urls': [
-                construct_url('aggregate/samples', match={'useable': 'not%20marked', 'proc_status': 'finished'}),
-                construct_url('lims/status/sample_status', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)}),
-                construct_url('lims/samples', match={'createddate': three_month_ago.strftime(settings.DATE_FORMAT)})
+                construct_url('samples', where={'aggregated.most_recent_proc.status': 'processing'},
+                              max_results=10000),
+                construct_url('lims/status/sample_status',
+                              match={'createddate': year_ago.strftime(settings.DATE_FORMAT)}),
+                construct_url('lims/samples', match={'createddate': year_ago.strftime(settings.DATE_FORMAT)})
+            ],
+            'merge_on': 'sample_id'
+        }
+        title = 'Samples processing'
+    elif view_type == 'toreview':
+        ajax_call = {
+            'func_name': 'merge_multi_sources_keep_first',
+            'api_urls': [
+                construct_url('samples', where={'useable': 'not%20marked', 'aggregated.most_recent_proc.status': 'finished'}, max_results=10000),
+                construct_url('lims/status/sample_status', match={'createddate': year_ago.strftime(settings.DATE_FORMAT)}),
+                construct_url('lims/samples', match={'createddate': year_ago.strftime(settings.DATE_FORMAT)})
             ],
             'merge_on': 'sample_id'
         }
@@ -281,7 +295,7 @@ def report_samples(view_type):
 @flask_login.login_required
 def report_project(project_id):
     return render_template(
-        'untabbed_datatables.html',
+        'project_report.html',
         project_id + ' Project Report',
         review=True,
         tables=[
@@ -308,7 +322,7 @@ def report_project(project_id):
                 ajax_call={
                     'func_name': 'merge_multi_sources',
                     'api_urls': [
-                        construct_url('aggregate/samples', match={'project_id': project_id}),
+                        construct_url('samples', where={'project_id': project_id}, max_results=10000),
                         construct_url('lims/status/sample_status', match={'project_id': project_id}),
                         construct_url('lims/samples', match={'project_id': project_id})
                     ],
@@ -320,7 +334,13 @@ def report_project(project_id):
                 review_entity_field='sample_id',
                 buttons=['colvis', 'copy', 'pdf', 'samplereview']
             )
-        ]
+        ],
+        procs=rest_api().get_documents(
+            'analysis_driver_procs',
+            where={'dataset_type': 'project', 'dataset_name': project_id},
+            embedded={'stages': 1},
+            sort='-_created'
+        )
     )
 
 
@@ -339,7 +359,7 @@ def report_sample(sample_id):
                 ajax_call={
                     'func_name': 'merge_multi_sources',
                     'api_urls': [
-                        construct_url('aggregate/samples', match={'sample_id': sample_id}),
+                        construct_url('samples', where={'sample_id': sample_id}),
                         construct_url('lims/status/sample_status', match={'sample_id': sample_id}),
                         construct_url('lims/samples', match={'sample_id': sample_id})
                     ],
@@ -356,14 +376,18 @@ def report_sample(sample_id):
             datatable_cfg(
                 'Run elements generated for ' + sample_id,
                 'sample_run_elements',
-                api_url=construct_url('aggregate/run_elements', match={'sample_id': sample_id}),
+                api_url=construct_url('run_elements', where={'sample_id': sample_id}, max_results=1000),
                 paging=False,
                 searching=False,
                 info=False,
                 create_row='color_filter'
             )
         ],
-        sample_statuses=rest_api().get_document('lims/status/sample_status', detailed=True, match={'sample_id': sample_id}),
+        sample_statuses=rest_api().get_document(
+            'lims/status/sample_status',
+            detailed=True,
+            match={'sample_id': sample_id}
+        ),
         lims_url=cfg['lims_url'],
         sample_id=sample_id,
         procs=rest_api().get_documents(
@@ -380,7 +404,7 @@ def report_sample(sample_id):
 def plotting_report():
     return render_template(
         'charts.html',
-        api_url=construct_url('aggregate/run_elements', paginate=False),
+        api_url=construct_url('run_elements', max_results=1000000),
         ajax_token=get_token()
     )
 

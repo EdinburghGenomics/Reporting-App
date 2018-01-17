@@ -14,7 +14,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import rest_config as rest_cfg
 from config import reporting_app_config as app_cfg
 
-from bin.retrigger_aggregation import retrigger_aggregation
+from bin.retrigger_aggregation import retrigger_aggregation_run_element
 
 
 if __name__ == '__main__':
@@ -73,6 +73,6 @@ if __name__ == '__main__':
 
     app_logger.info('%s samples updated' % counter)
     app_logger.info("Retrigger aggregation")
-    retrigger_aggregation(Communicator(auth=(args.username, args.password), baseurl=app_cfg['rest_api']))
+    retrigger_aggregation_run_element(Communicator(auth=(args.username, args.password), baseurl=app_cfg['rest_api']))
 
 
