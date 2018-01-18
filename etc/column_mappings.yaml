@@ -300,7 +300,7 @@ samples:
 
 sample_run_elements:
     - run_id
-    - lane_number
+    - { column_def: 'lane_number',  data: 'lane'}
     - barcode
     - project_id
     - sample_id
