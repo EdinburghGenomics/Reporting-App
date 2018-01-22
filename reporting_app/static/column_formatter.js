@@ -19,15 +19,18 @@ function render_data(data, type, row, meta, fmt) {
 
 function string_formatter(data, fmt, row){
     var formatted_data = data;
-
+    var nb_digit = 1
+    if (fmt['digit']) {
+        nb_digit = fmt['digit']
+    }
     if (fmt['type'] == 'percentage') {
-        formatted_data = Humanize.toFixed(formatted_data, 1) + '%';
+        formatted_data = Humanize.toFixed(formatted_data, nb_digit) + '%';
     }if (fmt['type'] == 'ratio_percentage') {
-        formatted_data = Humanize.toFixed(formatted_data * 100, 1) + '%';
+        formatted_data = Humanize.toFixed(formatted_data * 100, nb_digit) + '%';
     } else if (fmt['type'] == 'int') {
         formatted_data = Humanize.intComma(formatted_data);
     } else if (fmt['type'] == 'float') {
-        formatted_data = Humanize.formatNumber(formatted_data, 2);
+        formatted_data = Humanize.formatNumber(formatted_data, nb_digit);
     } else if (fmt['type'] == 'date') {
         formatted_data = moment(new Date(formatted_data)).format('YYYY-MM-DD');
     } else if (fmt['type'] == 'datetime') {

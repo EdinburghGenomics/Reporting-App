@@ -70,7 +70,7 @@ column_def:
     pc_q30:                   { data: 'aggregated.pc_q30',                    title: '%Q30',                     fmt: { type: 'percentage',  min: 75 } }
     pc_q30_r1:                { data: 'aggregated.pc_q30_r1',                 title: '%Q30 R1',                  fmt: { type: 'percentage',  min: 75 } }
     pc_q30_r2:                { data: 'aggregated.pc_q30_r2',                 title: '%Q30 R2',                  fmt: { type: 'percentage',  min: 75 } }
-    pc_reads_in_lane:         { data: 'pc_reads_in_lane',                     title: '% Reads in lane',          fmt: { type: 'percentage'} }
+    pc_reads_in_lane:         { data: 'pc_reads_in_lane',                     title: '% Reads in lane',          fmt: { type: 'ratio_percentage', digit: 3} }
     proc_status:              { data: 'aggregated.most_recent_proc.status',   title: 'Processing Status' }
     project_id:               { data: 'project_id',                           title: 'Project ID',               fmt: { link: '/projects/' }  }
     project_ids:              { data: 'project_ids',                          title: 'Projects',                 fmt: { link: '/projects/' } }
