@@ -1,24 +1,24 @@
-{% macro tabset(name, title, tabs, name_field='name', title_field='title') -%}
-{# tabs need to be in the format: {'name': ..., 'title': ..., 'content': ...} #}
+{% macro tabset(name, title, tabs, title_field='title') -%}
+{# tabs need to be in the format: {'name': ..., 'title': ...} #}
 <h2><a data-toggle="collapse" href="#{{ name }}_tabs">{{ title }}</a></h2>
 <div id="{{ name }}_tabs" class="tab-content collapse in">
     {% if tabs %}
     <ul class="nav nav-tabs" id="{{ name }}_ul">
         {# Clickable tab links to show target divs. The first one needs 'active' #}
         <li class="nav active">
-            <a data-target="#{{ tabs[0][name_field] }}_tab" data-toggle="tab">{{ tabs[0][title_field] }}</a>
+            <a data-target="#{{ name }}_1_tab" data-toggle="tab">{{ tabs[0][title_field] }}</a>
         </li>
         {% for tab in tabs[1:] %}
         <li class="nav">
-            <a data-target="#{{ tab[name_field] }}_tab" data-toggle="tab">{{ tab[title_field] }}</a>
+            <a data-target="#{{ name }}_{{ loop.index + 1 }}_tab" data-toggle="tab">{{ tab[title_field] }}</a>
         </li>
         {% endfor %}
     </ul>
 
     {# Data target divs. The first one needs 'in' and 'active' so it's displayed by default. #}
-    <div id="{{ tabs[0][name_field] }}_tab" class="tab-pane fade in active">{{ caller(tabs[0]) }}</div>
+    <div id="{{ name }}_1_tab" class="tab-pane fade in active">{{ caller(tabs[0]) }}</div>
     {% for tab in tabs[1:] %}
-        <div id="{{ tab[name_field] }}_tab" class="tab-pane fade">{{ caller(tab) }}</div>
+        <div id="{{ name }}_{{ loop.index + 1 }}_tab" class="tab-pane fade">{{ caller(tab) }}</div>
     {% endfor %}
 
     {% endif %}

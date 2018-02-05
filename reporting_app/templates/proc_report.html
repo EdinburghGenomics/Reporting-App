@@ -38,7 +38,7 @@
 {% macro proc_report(procs) -%}
 <br/>
 <p>Number of times processed: {{ procs|length }}</p>
-{% call(tab) tabset('analysis_driver_proc', 'Analysis Driver processes', procs, '_created', '_created') %}
+{% call(tab) tabset('analysis_driver_procs', 'Analysis Driver processes', procs, '_created') %}
 {{ proc_timeline(tab) }}
 {% endcall %}
 {%- endmacro %}
