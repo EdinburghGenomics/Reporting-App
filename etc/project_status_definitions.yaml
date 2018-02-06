@@ -52,7 +52,7 @@ step_completed_to_status:
     Data Release EG 1.0: FINISHED
     Finish Processing EG 1.0 ST: FINISHED
     Remove From Processing EG 1.0 ST: SAMPLE_REMOVED
-
+    Request Repeats EG 1.0 ST: SAMPLE_REMOVED
 
 # This section describe the LIMS steps that specify that the sample is queued in a status
 # ie: if the sample is queued 'Sequencing Plate Preparation EG 2.0' then it is in LIBRARY_QUEUE
