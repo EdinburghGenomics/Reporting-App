@@ -29,6 +29,9 @@ class Sample:
         self._processes.add((process_name, queued_date, 'queued', queue_id))
         self._status_and_date = self._all_statuses_and_date = None
 
+    def add_inprogress(self, process_name, last_update_date, process_id=None):
+        self._processes.add((process_name, last_update_date, 'progress', process_id))
+
     @property
     def processes(self):
         return sorted(self._processes, key=operator.itemgetter(1), reverse=True)
@@ -67,7 +70,7 @@ class Sample:
                 # This part find the new status
                 if process_type == 'complete' and process in status_cfg.step_completed_to_status:
                     status = status_cfg.step_completed_to_status.get(process)
-                elif process_type == 'queued' and process in status_cfg.step_queued_to_status:
+                elif process_type in ['queued', 'progress'] and process in status_cfg.step_queued_to_status:
                     status = status_cfg.step_queued_to_status.get(process)
 
                 # Associate the process with the last status seen
@@ -94,7 +97,7 @@ class Sample:
                 new_status = None
                 if process_type == 'complete' and process in status_cfg.step_completed_to_status:
                     new_status = status_cfg.step_completed_to_status.get(process)
-                elif process_type == 'queued' and process in status_cfg.step_queued_to_status:
+                elif process_type in ['queued', 'progress'] and process in status_cfg.step_queued_to_status:
                     new_status = status_cfg.step_queued_to_status.get(process)
                 if not status:
                     status = new_status
@@ -241,6 +244,10 @@ def _create_samples(session, match):
     project_id = match.get('project_id')
     sample_id = match.get('sample_id')
     sample_time_since = match.get('createddate')
+    if project_id or sample_id or sample_time_since:
+        only_open_project = False
+    else:
+        only_open_project = True
     detailed = request.args.get('detailed') in ['true', 'True',  True]
     if detailed:
         list_process_complete = None
@@ -252,8 +259,8 @@ def _create_samples(session, match):
                        + status_cfg.started_steps
         list_process_queued = status_cfg.step_queued_to_status
 
-    for result in queries.get_sample_info(session, project_id, sample_id, time_since=sample_time_since,
-                                          udfs=['Prep Workflow', 'Species']):
+    for result in queries.get_sample_info(session, project_id, sample_id, only_open_project=only_open_project,
+                                          time_since=sample_time_since, udfs=['Prep Workflow', 'Species']):
         (pjct_name, sample_name, container, wellx, welly, udf_name, udf_value) = result
         s = all_samples[sanitize_user_id(sample_name)]
         s.sample_name = sanitize_user_id(sample_name)
@@ -266,15 +273,21 @@ def _create_samples(session, match):
         if udf_name == 'Species':
             all_samples[sanitize_user_id(sample_name)].species = udf_value
 
-    for result in queries.get_samples_and_processes(session,  project_id, sample_id,
+    for result in queries.get_samples_and_processes(session,  project_id, sample_id, only_open_project=only_open_project,
                                                     workstatus='COMPLETE', list_process=list_process_complete,
                                                     time_since=sample_time_since):
         (pjct_name, sample_name, process_name, process_status, date_run, process_id) = result
         all_samples[sanitize_user_id(sample_name)].add_completed_process(process_name, date_run, process_id)
 
-    for result in queries.non_QC_queues(session, project_id, sample_id, list_process=list_process_queued, time_since=sample_time_since):
-        pjct_name, sample_name, process_name, queued_date, queue_id = result
-        all_samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date, queue_id)
+    for result in queries.get_sample_in_queues_or_progress(
+            session, project_id, sample_id, list_process=list_process_queued,
+            time_since=sample_time_since, only_open_project=only_open_project):
+        pjct_name, sample_name, process_name, queued_date, queue_id, process_id, process_date = result
+        if not process_id:
+            all_samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date, queue_id)
+        else:
+            all_samples[sanitize_user_id(sample_name)].add_inprogress(process_name, process_date, process_id)
+
 
     return all_samples.values()
 
