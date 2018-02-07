@@ -63,6 +63,7 @@ run_elements:
         std_dev_insert_size: { type: 'float' },
         median_insert_size: { type: 'integer' },
         median_abs_dev_insert_size: { type: 'integer' }
+        other_insert_type: { type: 'dict' }
     } }
 
     coverage: {                 type: 'dict',    required: False, schema: {
@@ -133,6 +134,7 @@ samples:
     std_dev_insert_size: {      type: 'float' }
     median_insert_size: {       type: 'integer' }
     median_abs_dev_insert_size: { type: 'integer' }
+    other_insert_type: {        type: 'dict', required: False }
     median_coverage: {          type: 'float',   required: False }
     coverage: {                 type: 'dict',    required: False, schema: {
         median: {               type: 'float'},
