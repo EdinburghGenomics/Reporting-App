@@ -10,7 +10,15 @@ lanes:
     run_id: {                   type: 'string',  required: False }
     lane_number: {              type: 'integer', required: False, min: 1, max: 8 }
     run_elements: {             type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
-
+    interop_metrics: {          type: 'dict',    required: False, schema: {
+        pc_clust_pf_r1:  {type: 'float'},  phasing_r1:      {type: 'float'},  prephasing_r1:   {type: 'float'},
+        pr_q30_r1:       {type: 'float'},  intensity_c1_r1: {type: 'float'},  pc_aligned_r1:   {type: 'float'},
+        pc_error_r1:     {type: 'float'},  pc_error_35_r1:  {type: 'float'},  pc_error_75_r1:  {type: 'float'},
+        pc_error_100_r1: {type: 'float'},  pc_clust_pf_r2:  {type: 'float'},  phasing_r2:      {type: 'float'},
+        prephasing_r2:   {type: 'float'},  pr_q30_r2:       {type: 'float'},  intensity_c1_r2: {type: 'float'},
+        pc_aligned_r2:   {type: 'float'},  pc_error_r2:     {type: 'float'},  pc_error_35_r2:  {type: 'float'},
+        pc_error_75_r2:  {type: 'float'},  pc_error_100_r2: {type: 'float'}
+    } }
 
 run_elements:
     run_element_id: {           type: 'string',  required: True,  unique: True }
