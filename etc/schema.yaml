@@ -63,7 +63,7 @@ run_elements:
         std_dev_insert_size: { type: 'float' },
         median_insert_size: { type: 'integer' },
         median_abs_dev_insert_size: { type: 'integer' },
-        other_insert_type: { type: 'dict' }
+        non_fr_inserts: { type: 'dict' }
     } }
 
     coverage: {                 type: 'dict',    required: False, schema: {
