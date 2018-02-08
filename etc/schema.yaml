@@ -63,7 +63,7 @@ run_elements:
         std_dev_insert_size:        { type: 'float' },
         median_insert_size:         { type: 'float' },
         median_abs_dev_insert_size: { type: 'float' },
-        pc_insert_size:             { type: 'float' }
+        pc_insert_size:             { type: 'float' },
         non_fr_inserts:             { type: 'dict' }
     } }
 
