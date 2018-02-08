@@ -52,19 +52,19 @@ run_elements:
     trim_r2: {                  type: 'integer', required: False, nullable: True }
 
     mapping_metrics: {          type: 'dict',    required: False, schema: {
-        bam_file_reads:             { type: 'integer' },
-        mapped_reads:               { type: 'integer' },
-        duplicate_reads:            { type: 'integer' },
-        properly_mapped_reads:      { type: 'integer' },
-        picard_dup_reads:           { type: 'integer' },
-        picard_opt_dup_reads:       { type: 'integer' },
-        picard_est_lib_size:        { type: 'integer' },
-        mean_insert_size:           { type: 'float' },
-        std_dev_insert_size:        { type: 'float' },
-        median_insert_size:         { type: 'float' },
+        bam_file_reads: {             type: 'integer' },
+        mapped_reads: {               type: 'integer' },
+        duplicate_reads: {            type: 'integer' },
+        properly_mapped_reads: {      type: 'integer' },
+        picard_dup_reads: {           type: 'integer' },
+        picard_opt_dup_reads: {       type: 'integer' },
+        picard_est_lib_size: {        type: 'integer' },
+        mean_insert_size: {           type: 'float' },
+        std_dev_insert_size: {        type: 'float' },
+        median_insert_size: {         type: 'float' },
         median_abs_dev_insert_size: { type: 'float' },
-        pc_insert_size:             { type: 'float' },
-        non_fr_inserts:             { type: 'dict' }
+        pc_insert_size: {             type: 'float' },
+        non_fr_inserts: {             type: 'dict' }
     } }
 
     coverage: {                 type: 'dict',    required: False, schema: {
@@ -135,7 +135,8 @@ samples:
     std_dev_insert_size: {      type: 'float' }
     median_insert_size: {       type: 'integer' }
     median_abs_dev_insert_size: { type: 'integer' }
-    other_insert_type: {        type: 'dict', required: False }
+    pc_insert_size: {           type: 'float' }
+    non_fr_inserts: {           type: 'dict',    required: False }
     median_coverage: {          type: 'float',   required: False }
     coverage: {                 type: 'dict',    required: False, schema: {
         median: {               type: 'float'},
