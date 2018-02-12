@@ -220,8 +220,8 @@ analysis_driver_stages:
     analysis_driver_proc: {     type: 'string', required: True }
     stage_name: {               type: 'string', required: True }
     date_started: {             type: 'datetime', required: True }
-    date_finished: {            type: 'datetime' }
-    exit_status: {              type: 'integer' }
+    date_finished: {            type: 'datetime', nullable: True }
+    exit_status: {              type: 'integer', nullable: True }
 
 actions:
     action_id: {                type: 'string', required: True, unique: True }
