@@ -10,6 +10,7 @@ status_names:
     SEQUENCING_QUEUE: sequencing_queue
     SEQUENCING: sequencing
     BIOINFORMATICS: bioinformatics
+    BIOINFORMATICS_REVIEWED: bioinfo_reviewed
     DELIVERY: delivery
     FINISHED: finished
     GENOTYPING: genotyped
@@ -28,6 +29,7 @@ status_order:
     - SEQUENCING_QUEUE
     - SEQUENCING
     - BIOINFORMATICS
+    - BIOINFORMATICS_REVIEWED
     - DELIVERY
     - FINISHED
     - SAMPLE_REPEAT
@@ -48,6 +50,7 @@ step_completed_to_status:
     Create Pooling CST Batch: SEQUENCING
     Create Production CST Batch: SEQUENCING
     AUTOMATED - Sequence: BIOINFORMATICS
+    Sample Review EG 1.0 ST: BIOINFORMATICS_REVIEWED
     bioinformatics: DELIVERY
     Data Release EG 1.0: FINISHED
     Finish Processing EG 1.0 ST: FINISHED
