@@ -133,8 +133,8 @@ samples:
     picard_est_lib_size: {      type: 'integer' }
     mean_insert_size: {         type: 'float' }
     std_dev_insert_size: {      type: 'float' }
-    median_insert_size: {       type: 'integer' }
-    median_abs_dev_insert_size: { type: 'integer' }
+    median_insert_size: {       type: 'float' }
+    median_abs_dev_insert_size: { type: 'float' }
     pc_insert_size: {           type: 'float' }
     non_fr_inserts: {           type: 'dict',    required: False }
     median_coverage: {          type: 'float',   required: False }
