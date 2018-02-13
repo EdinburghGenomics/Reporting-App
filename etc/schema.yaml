@@ -75,17 +75,19 @@ run_elements:
     trim_r2: {                  type: 'integer', required: False, nullable: True }
 
     mapping_metrics: {          type: 'dict',    required: False, schema: {
-        bam_file_reads: { type: 'integer' },
-        mapped_reads: { type: 'integer' },
-        duplicate_reads: { type: 'integer' },
-        properly_mapped_reads: { type: 'integer' },
-        picard_dup_reads: { type: 'integer' },
-        picard_opt_dup_reads: { type: 'integer' },
-        picard_est_lib_size: { type: 'integer' },
-        mean_insert_size: { type: 'float' },
-        std_dev_insert_size: { type: 'float' },
-        median_insert_size: { type: 'integer' },
-        median_abs_dev_insert_size: { type: 'integer' }
+        bam_file_reads: {             type: 'integer' },
+        mapped_reads: {               type: 'integer' },
+        duplicate_reads: {            type: 'integer' },
+        properly_mapped_reads: {      type: 'integer' },
+        picard_dup_reads: {           type: 'integer' },
+        picard_opt_dup_reads: {       type: 'integer' },
+        picard_est_lib_size: {        type: 'integer' },
+        mean_insert_size: {           type: 'float' },
+        std_dev_insert_size: {        type: 'float' },
+        median_insert_size: {         type: 'float' },
+        median_abs_dev_insert_size: { type: 'float' },
+        pc_insert_size: {             type: 'float' },
+        non_fr_inserts: {             type: 'dict' }
     } }
 
     coverage: {                 type: 'dict',    required: False, schema: {
@@ -93,7 +95,7 @@ run_elements:
         mean: {type: 'float'},
         std_dev: {type: 'float'},
         coverage_percentiles: {type: 'dict', schema: {
-            percentile_5: { type: 'integer' },
+            percentile_5:  { type: 'integer' },
             percentile_25: { type: 'integer' },
             percentile_50: { type: 'integer' },
             percentile_75: { type: 'integer' },
@@ -156,6 +158,8 @@ samples:
     std_dev_insert_size: {      type: 'float' }
     median_insert_size: {       type: 'integer' }
     median_abs_dev_insert_size: { type: 'integer' }
+    pc_insert_size: {           type: 'float' }
+    non_fr_inserts: {           type: 'dict',    required: False }
     median_coverage: {          type: 'float',   required: False }
     coverage: {                 type: 'dict',    required: False, schema: {
         median: {               type: 'float'},
@@ -243,8 +247,8 @@ analysis_driver_stages:
     analysis_driver_proc: {     type: 'string', required: True }
     stage_name: {               type: 'string', required: True }
     date_started: {             type: 'datetime', required: True }
-    date_finished: {            type: 'datetime' }
-    exit_status: {              type: 'integer' }
+    date_finished: {            type: 'datetime', nullable: True }
+    exit_status: {              type: 'integer', nullable: True }
 
 actions:
     action_id: {                type: 'string', required: True, unique: True }
