@@ -1,11 +1,14 @@
 Changelog for Reporting-App
 ===========================
 
-0.18 (unreleased)
------------------
+0.17.1 (2018-02-22)
+-------------------
 
-- Nothing changed yet.
-
+- Fix process in progress in sample's process list
+- Add other insert type in schema to record non standard insert and fix median insert size
+- Fix sample status remove by adding "Request Repeat"
+- Fix schema to support pipeline resume
+- Add interop metrics to the lane end point
 
 0.17 (2018-01-17)
 -----------------
