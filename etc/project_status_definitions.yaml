@@ -71,6 +71,7 @@ step_queued_to_status:
     AUTOMATED - Make CST: SEQUENCING
     AUTOMATED - Make Pooled CST: SEQUENCING
     AUTOMATED - Sequence: SEQUENCING
+    Sample Review EG 1.0 ST: BIOINFORMATICS
     Data Release EG 1.0: DELIVERY
     Request Repeats EG 1.0 ST: SAMPLE_REPEAT
     Finish Processing EG 1.0 ST: FINISHED
