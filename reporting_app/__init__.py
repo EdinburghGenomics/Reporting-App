@@ -291,41 +291,76 @@ def report_samples(view_type):
     )
 
 
-@app.route('/projects/<project_id>')
+@app.route('/projects/<project_ids>')
 @flask_login.login_required
-def report_project(project_id):
+def report_project(project_ids):
+    _project_ids = project_ids.split(',')
+
+    if len(_project_ids) > 1:
+        project_status_call = {
+            'ajax_call': {
+                'func_name': 'merge_multi_sources',
+                'merge_on': 'project_id',
+                'api_urls': [
+                    construct_url('lims/status/project_status', match={'project_id': p})
+                    for p in _project_ids
+                ]
+            }
+        }
+        plate_status_call = {
+            'ajax_call': {
+                'func_name': 'merge_multi_sources',
+                'merge_on': 'plate_id',
+                'api_urls': [
+                    construct_url('lims/status/plate_status', match={'project_id': p})
+                    for p in _project_ids
+                ]
+            }
+        }
+    else:
+        project_status_call = {
+            'api_url': construct_url('lims/status/project_status', match={'project_id': _project_ids[0]})
+        }
+        plate_status_call = {
+            'api_url': construct_url('lims/status/plate_status', match={'project_id': _project_ids[0]})
+        }
+
+    bioinformatics_urls = []
+    for p in _project_ids:
+        bioinformatics_urls += [
+            construct_url('samples', where={'project_id': p}, max_results=10000),
+            construct_url('lims/status/sample_status', match={'project_id': p}),
+            construct_url('lims/samples', match={'project_id': p})
+        ]
+
     return render_template(
         'project_report.html',
-        project_id + ' Project Report',
+        'Project report for ' + project_ids,
         review=True,
         tables=[
             datatable_cfg(
-                'Project Status for ' + project_id,
+                'Project Status for ' + project_ids,
                 'project_status',
-                api_url=construct_url('lims/status/project_status', match={'project_id': project_id}),
-                paging=False,
-                searching=False,
-                info=False
-            ),
-            datatable_cfg(
-                'Plate Status for ' + project_id,
-                'plate_status',
-                api_url=construct_url('lims/status/plate_status', match={'project_id': project_id}),
                 paging=False,
                 searching=False,
                 info=False,
-                default_sort_col='plate_id'
+                **project_status_call
             ),
             datatable_cfg(
-                'Bioinformatics report for ' + project_id,
+                'Plate Status for ' + project_ids,
+                'plate_status',
+                paging=False,
+                searching=False,
+                info=False,
+                default_sort_col='plate_id',
+                **plate_status_call
+            ),
+            datatable_cfg(
+                'Bioinformatics report for ' + project_ids,
                 'samples',
                 ajax_call={
                     'func_name': 'merge_multi_sources',
-                    'api_urls': [
-                        construct_url('samples', where={'project_id': project_id}, max_results=10000),
-                        construct_url('lims/status/sample_status', match={'project_id': project_id}),
-                        construct_url('lims/samples', match={'project_id': project_id})
-                    ],
+                    'api_urls': bioinformatics_urls,
                     'merge_on': 'sample_id'
                 },
                 fixed_header=True,
@@ -337,7 +372,7 @@ def report_project(project_id):
         ],
         procs=rest_api().get_documents(
             'analysis_driver_procs',
-            where={'dataset_type': 'project', 'dataset_name': project_id},
+            where={'dataset_type': 'project', '$or': [{'dataset_name': p} for p in _project_ids]},
             embedded={'stages': 1},
             sort='-_created'
         )

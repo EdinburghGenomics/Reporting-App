@@ -1,6 +1,8 @@
 import auth
 from config import col_mappings
 
+invalid_attr_chars = str.maketrans({k: '_' for k in (' ', ',')})
+
 
 def _format_order(col_name, cols):
     direction = 'desc' if col_name.startswith('-') else 'asc'
@@ -45,7 +47,4 @@ def capitalise(word):
 
 
 def snake_case(text):
-    return text.lower().replace(' ', '_')
-
-
-
+    return text.translate(invalid_attr_chars).lower()
