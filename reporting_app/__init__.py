@@ -294,16 +294,22 @@ def report_samples(view_type):
 @app.route('/projects/<project_ids>')
 @flask_login.login_required
 def report_project(project_ids):
-    _project_ids = project_ids.split(',')
+    if project_ids == 'SGP':
+        id_list = []
+        for p in rest_api().get_documents('projects', all_pages=True):
+            if p['project_id'].startswith('S'):
+                id_list.append(p['project_id'])
+    else:
+        id_list = project_ids.split(',')
 
-    if len(_project_ids) > 1:
+    if len(id_list) > 1:
         project_status_call = {
             'ajax_call': {
                 'func_name': 'merge_multi_sources',
                 'merge_on': 'project_id',
                 'api_urls': [
-                    construct_url('lims/status/project_status', match={'project_id': p})
-                    for p in _project_ids
+                    construct_url('lims/status/project_status', match={'project_id': i})
+                    for i in id_list
                 ]
             }
         }
@@ -312,25 +318,34 @@ def report_project(project_ids):
                 'func_name': 'merge_multi_sources',
                 'merge_on': 'plate_id',
                 'api_urls': [
-                    construct_url('lims/status/plate_status', match={'project_id': p})
-                    for p in _project_ids
+                    construct_url('lims/status/plate_status', match={'project_id': i})
+                    for i in id_list
                 ]
             }
         }
     else:
         project_status_call = {
-            'api_url': construct_url('lims/status/project_status', match={'project_id': _project_ids[0]})
+            'api_url': construct_url('lims/status/project_status', match={'project_id': id_list[0]})
         }
         plate_status_call = {
-            'api_url': construct_url('lims/status/plate_status', match={'project_id': _project_ids[0]})
+            'api_url': construct_url('lims/status/plate_status', match={'project_id': id_list[0]})
         }
 
+    procs = []
     bioinformatics_urls = []
-    for p in _project_ids:
+    for i in id_list:
+        x = rest_api().get_documents(
+            'analysis_driver_procs',
+            where={'dataset_type': 'project', 'dataset_name': i},
+            embedded={'stages': 1},
+            sort='-_created'
+        )
+        procs.extend(x)
+
         bioinformatics_urls += [
-            construct_url('samples', where={'project_id': p}, max_results=10000),
-            construct_url('lims/status/sample_status', match={'project_id': p}),
-            construct_url('lims/samples', match={'project_id': p})
+            construct_url('samples', where={'project_id': i}, max_results=10000),
+            construct_url('lims/status/sample_status', match={'project_id': i}),
+            construct_url('lims/samples', match={'project_id': i})
         ]
 
     return render_template(
@@ -370,12 +385,7 @@ def report_project(project_ids):
                 buttons=['colvis', 'copy', 'pdf', 'samplereview']
             )
         ],
-        procs=rest_api().get_documents(
-            'analysis_driver_procs',
-            where={'dataset_type': 'project', '$or': [{'dataset_name': p} for p in _project_ids]},
-            embedded={'stages': 1},
-            sort='-_created'
-        )
+        procs=procs
     )
 
 
