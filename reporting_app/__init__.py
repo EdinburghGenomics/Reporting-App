@@ -168,7 +168,7 @@ def report_run(run_id):
             create_row='color_filter',
             select={'style': 'os', 'blurable': True},
             review_url=construct_url('actions'),
-            review_entity_field='sample_ids',
+            review_entity_field='aggregated.sample_ids',
             buttons=['colvis', 'copy', 'pdf', 'runreview']
         ),
         tab_sets=[
