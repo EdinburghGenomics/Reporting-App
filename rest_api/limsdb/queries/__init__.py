@@ -2,10 +2,12 @@ from sqlalchemy import or_, and_, func
 import genologics_sql.tables as t
 from sqlalchemy.orm.util import aliased
 
+
 def format_date(date):
     if date:
         return date.isoformat()
     return None
+
 
 def add_filters(q, **kwargs):
     if kwargs.get('project_name'):
@@ -14,8 +16,11 @@ def add_filters(q, **kwargs):
         q = q.filter(t.Sample.name == kwargs.get('sample_name'))
     if kwargs.get('list_process'):
         q = q.filter(t.ProcessType.displayname.in_(kwargs.get('list_process')))
-    if kwargs.get('only_open_project'):
-        q = q.filter(t.Project.closedate == None)
+    if kwargs.get('project_status'):
+        if kwargs.get('project_status') == 'open':
+            q = q.filter(t.Project.closedate == None)
+        elif kwargs.get('project_status') == 'closed':
+            q = q.filter(t.Project.closedate != None)
     if kwargs.get('workstatus'):
         q = q.filter(t.Process.workstatus == kwargs.get('workstatus'))
     if kwargs.get('time_since'):
@@ -23,21 +28,21 @@ def add_filters(q, **kwargs):
     return q
 
 
-def get_project_info(session, project_name=None, only_open_project=True, udfs=None):
+def get_project_info(session, project_name=None, project_status='open', udfs=None):
     """This method runs a query that return the get projects and specific udfs"""
-    q = session.query(t.Project.name, t.Project.opendate, t.Researcher.firstname, t.Researcher.lastname,
+    q = session.query(t.Project.name, t.Project.opendate, t.Project.closedate, t.Researcher.firstname, t.Researcher.lastname,
                       t.EntityUdfView.udfname, t.EntityUdfView.udfvalue) \
         .distinct(t.Project.name) \
         .outerjoin(t.Project.researcher) \
         .outerjoin(t.Project.udfs)
-    q = add_filters(q, project_name=project_name, only_open_project=only_open_project)
+    q = add_filters(q, project_name=project_name, project_status=project_status)
     if udfs:
         q = q.distinct(t.Project.name, t.EntityUdfView.udfname)
         q = q.filter(or_(t.EntityUdfView.udfname.in_(udfs), t.EntityUdfView.udfname == None))
     return q.all()
 
 
-def get_sample_info(session, project_name=None, sample_name=None, only_open_project=True, time_since=None, udfs=None):
+def get_sample_info(session, project_name=None, sample_name=None, project_status='open', time_since=None, udfs=None):
     """This method runs a query that return samples, its associated original container and some specified UDFs"""
     q = session.query(t.Project.name, t.Sample.name, t.Container.name,
                       t.ContainerPlacement.wellxposition, t.ContainerPlacement.wellyposition,
@@ -55,13 +60,13 @@ def get_sample_info(session, project_name=None, sample_name=None, only_open_proj
         else:
             q = q.filter(or_(t.SampleUdfView.udfname.in_(udfs), t.SampleUdfView.udfname == None))
     q = q.filter(t.Artifact.isoriginal)
-    q = add_filters(q, project_name=project_name, sample_name=sample_name, only_open_project=only_open_project,
+    q = add_filters(q, project_name=project_name, sample_name=sample_name, project_status=project_status,
                     time_since=time_since)
     return q.all()
 
 
 def get_samples_and_processes(session, project_name=None, sample_name=None, list_process=None, workstatus=None,
-                              time_since=None, only_open_project=True):
+                              time_since=None, project_status='open'):
     """This method runs a query that return the sample name and the processeses they went through"""
     q = session.query(t.Project.name, t.Sample.name, t.ProcessType.displayname,
                       t.Process.workstatus, t.Process.createddate, t.Process.processid) \
@@ -72,13 +77,14 @@ def get_samples_and_processes(session, project_name=None, sample_name=None, list
         .join(t.ProcessIOTracker.process) \
         .join(t.Process.type)
     q = add_filters(q, project_name=project_name, sample_name=sample_name, list_process=list_process,
-                    workstatus=workstatus, only_open_project=only_open_project, time_since=time_since)
+                    workstatus=workstatus, project_status=project_status, time_since=time_since)
     return q.all()
 
 
-def get_sample_in_queues_or_progress(session, project_name=None, sample_name=None, list_process=None, time_since=None, only_open_project=True):
+def get_sample_in_queues_or_progress(session, project_name=None, sample_name=None, list_process=None, time_since=None,
+                                     project_status='open'):
     """
-    This query gives all of the samples sitting in queue of a aledgedly non-qc steps
+    This query gives all of the samples sitting in queue of a allegedly non-qc steps
     See explaination at https://genologics.zendesk.com/hc/en-us/articles/213982003-Reporting-the-contents-of-a-Queue
     """
 
@@ -111,7 +117,7 @@ def get_sample_in_queues_or_progress(session, project_name=None, sample_name=Non
 
     q = q.order_by(t.Project.name, t.Sample.name, t.ProcessType.displayname)
     q = add_filters(q, project_name=project_name, sample_name=sample_name, list_process=list_process,
-                    only_open_project=only_open_project, time_since=time_since)
+                    project_status=project_status, time_since=time_since)
     # StageTransition.workflowrunid is positive when the transition is not
     # complete and negative when the transition is completed
     q = q.filter(t.StageTransition.workflowrunid > 0)
