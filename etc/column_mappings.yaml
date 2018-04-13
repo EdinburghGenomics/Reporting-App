@@ -141,11 +141,15 @@ runs:
 
 projects:
     - project_id
+    - { column_def: 'reseacher', visible: 'true' }
+    - nb_quoted_samples
+    - { column_def: 'project_status', visible: 'true' }
+    - open_date
+    - { column_def: 'closed_date', visible: 'true' }
     - nb_samples
     - nb_samples_reviewed
     - nb_samples_delivered
-    - proc_status
-    - _created
+    - { column_def: 'proc_status', title: 'Bioinformatics processing' }
 
 
 project_status:

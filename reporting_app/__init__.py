@@ -224,9 +224,16 @@ def project_reports():
         'untabbed_datatables.html',
         'Projects',
         table=datatable_cfg(
-            'Project list',
+            'All projects list',
             'projects',
-            api_url=construct_url('projects', max_results=10000)
+            ajax_call={
+                'func_name': 'merge_multi_sources',
+                'api_urls': [
+                    construct_url('projects', max_results=10000),
+                    construct_url('lims/project_info', match={'project_status': 'all'}),
+                ],
+                'merge_on': 'project_id'
+            }
         )
     )
 
@@ -452,6 +459,7 @@ they're queued. the steps involved are described below.''' + table + '</div>'
             'Status of ' + prj_status.capitalize() + ' Projects',
             'project_status',
             api_url=construct_url('lims/project_status', match={'project_status': prj_status}),
+            state_save=True,
             fixed_header=True,
             table_foot='sum_row_per_column'
         )
