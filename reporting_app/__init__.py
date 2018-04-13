@@ -247,8 +247,8 @@ def report_samples(view_type):
             'func_name': 'merge_multi_sources_keep_first',
             'api_urls': [
                 construct_url('samples', max_results=10000),
-                construct_url('lims/sample_status', match={'project_status': 'any'}),
-                construct_url('lims/sample_info', match={'project_status': 'any'})
+                construct_url('lims/sample_status', match={'project_status': 'all'}),
+                construct_url('lims/sample_info', match={'project_status': 'all'})
             ],
             'merge_on': 'sample_id'
         }
@@ -315,7 +315,7 @@ def report_project(project_id):
                 'Project Status for ' + project_id,
                 'project_status',
                 api_url=construct_url('lims/project_status',
-                                      match={'project_id': project_id, 'project_status': 'any'}),
+                                      match={'project_id': project_id, 'project_status': 'all'}),
                 paging=False,
                 searching=False,
                 info=False
@@ -324,7 +324,7 @@ def report_project(project_id):
                 'Plate Status for ' + project_id,
                 'plate_status',
                 api_url=construct_url('lims/plate_status',
-                                      match={'project_id': project_id, 'project_status': 'any'}),
+                                      match={'project_id': project_id, 'project_status': 'all'}),
                 paging=False,
                 searching=False,
                 info=False,
@@ -337,8 +337,8 @@ def report_project(project_id):
                     'func_name': 'merge_multi_sources',
                     'api_urls': [
                         construct_url('samples', where={'project_id': project_id}, max_results=10000),
-                        construct_url('lims/sample_status', match={'project_id': project_id, 'project_status': 'any'}),
-                        construct_url('lims/sample_info', match={'project_id': project_id, 'project_status': 'any'})
+                        construct_url('lims/sample_status', match={'project_id': project_id, 'project_status': 'all'}),
+                        construct_url('lims/sample_info', match={'project_id': project_id, 'project_status': 'all'})
                     ],
                     'merge_on': 'sample_id'
                 },
@@ -374,8 +374,8 @@ def report_sample(sample_id):
                     'func_name': 'merge_multi_sources',
                     'api_urls': [
                         construct_url('samples', where={'sample_id': sample_id}),
-                        construct_url('lims/sample_status', match={'sample_id': sample_id, 'project_status': 'any'}),
-                        construct_url('lims/sample_info', match={'sample_id': sample_id, 'project_status': 'any'})
+                        construct_url('lims/sample_status', match={'sample_id': sample_id, 'project_status': 'all'}),
+                        construct_url('lims/sample_info', match={'sample_id': sample_id, 'project_status': 'all'})
                     ],
                     'merge_on': 'sample_id'
                 },
@@ -400,7 +400,7 @@ def report_sample(sample_id):
         sample_statuses=rest_api().get_document(
             'lims/status/sample_status',
             detailed=True,
-            match={'sample_id': sample_id, 'project_status': 'any'}
+            match={'sample_id': sample_id, 'project_status': 'all'}
         ),
         lims_url=cfg['lims_url'],
         sample_id=sample_id,

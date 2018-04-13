@@ -17,10 +17,15 @@ def add_filters(q, **kwargs):
     if kwargs.get('list_process'):
         q = q.filter(t.ProcessType.displayname.in_(kwargs.get('list_process')))
     if kwargs.get('project_status'):
-        if kwargs.get('project_status') == 'open':
-            q = q.filter(t.Project.closedate == None)
-        elif kwargs.get('project_status') == 'closed':
+        if kwargs.get('project_status') == 'closed':
             q = q.filter(t.Project.closedate != None)
+        elif kwargs.get('project_status') == 'open':
+            q = q.filter(t.Project.closedate == None)
+        elif kwargs.get('project_status') == 'all':
+            # No filtering
+            pass
+        else:
+            raise ValueError('Unknown value %s for project_status' % kwargs.get('project_status'))
     if kwargs.get('workstatus'):
         q = q.filter(t.Process.workstatus == kwargs.get('workstatus'))
     if kwargs.get('time_since'):

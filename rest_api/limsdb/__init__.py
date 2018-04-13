@@ -1,3 +1,4 @@
+from cerberus import Validator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from genologics_sql.tables import Base
