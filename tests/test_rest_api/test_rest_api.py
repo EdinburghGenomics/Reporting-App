@@ -20,6 +20,7 @@ def json_of_response(response):
 class TestLIMSRestAPI(TestBase):
     sample_process_id = 10000
     all_ids = Counter()
+
     @classmethod
     def setUpClass(cls):
         app.testing = True
@@ -45,8 +46,8 @@ class TestLIMSRestAPI(TestBase):
     @classmethod
     def _get_id(cls, klass):
         cls.all_ids[klass] += 1
-        id = cls.all_ids[klass]
-        return id
+        dbid = cls.all_ids[klass]
+        return dbid
 
     @classmethod
     def _create_project(cls, name, udfs=None, closed=False):
@@ -68,7 +69,6 @@ class TestLIMSRestAPI(TestBase):
         a = t.Artifact(artifactid=cls._get_id(t.Artifact), samples=[sample], containerplacement=placemment, isoriginal=original)
         cls.session.add(a)
         cls.session.commit()
-
         return a
 
     @classmethod
@@ -97,7 +97,6 @@ class TestLIMSRestAPI(TestBase):
         )
         # Needs to add this udf to a sample
         return udf
-
 
     @classmethod
     def _create_sample(cls, name, project, udfs=None):
