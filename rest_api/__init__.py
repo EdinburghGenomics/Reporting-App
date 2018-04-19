@@ -86,7 +86,7 @@ def project_info():
         post_processing=[server_side.post_processing.date_to_string('_created')]
     )
 
-
+# Keep this for now for backward compatibility
 @app.route(_lims_endpoint('status/<status_type>'))
 @requires_auth('home')
 def lims_status_info(status_type):
@@ -96,6 +96,7 @@ def lims_status_info(status_type):
     )
 
 
+# Keep this for now for backward compatibility
 @app.route(_lims_endpoint('samples'))
 @requires_auth('home')
 def lims_sample_info():
@@ -103,3 +104,13 @@ def lims_sample_info():
         'sample_info',
         app
     )
+
+
+@app.route(_lims_endpoint('<endpoint>'))
+@requires_auth('home')
+def lims_info(endpoint):
+    return lims_extract(
+        endpoint,
+        app
+    )
+

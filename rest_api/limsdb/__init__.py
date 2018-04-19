@@ -1,10 +1,11 @@
+from cerberus import Validator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from genologics_sql.tables import Base
 from flask import jsonify
 
 from config import rest_config as cfg
-from rest_api.limsdb.queries import sample_status, run_status, sample_info
+from rest_api.limsdb.queries import factories
 
 _session = None
 
@@ -29,11 +30,12 @@ def get_session(echo=False):
 
 
 function_mapping = {
-    'project_status': sample_status.sample_status_per_project,
-    'plate_status': sample_status.sample_status_per_plate,
-    'sample_status': sample_status.sample_status,
-    'run_status': run_status.run_status,
-    'sample_info': sample_info.sample_info
+    'project_status': factories.sample_status_per_project,
+    'plate_status': factories.sample_status_per_plate,
+    'sample_status': factories.sample_status,
+    'run_status': factories.run_status,
+    'sample_info': factories.sample_info,
+    'project_info': factories.project_info
 }
 
 
