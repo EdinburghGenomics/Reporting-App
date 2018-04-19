@@ -34,7 +34,7 @@ column_def:
     matching_snps:            { data: 'genotype_validation.matching_snps',    title: 'Matching snps' ,                                                 visible: 'false'}
     median_coverage:          { data: 'median_coverage',                      title: 'Median coverage',          fmt: { type: 'float', min: {field: 'Coverage (X)', default: 30} } }
     mean_coverage:            { data: 'coverage.mean',                        title: 'Mean coverage',            fmt: { type: 'float', min: {field: 'Coverage (X)', default: 30} } }
-    closed_date:              { data: 'close_date',                           title: 'Close on',                 fmt: { type: 'date' }, visible: 'false' }
+    closed_date:              { data: 'close_date',                           title: 'Closed on',                fmt: { type: 'date' }, visible: 'false' }
     coverage_5X:              { data: 'coverage',                             title: '% covered 5X',             fmt: { name: 'coverage_5X', type: 'percentage' }, visible: 'false' }
     coverage_15X:             { data: 'coverage',                             title: '% covered 15X',            fmt: { name: 'coverage_15X', type: 'percentage' } }
     evenness:                 { data: 'coverage.evenness',                    title: '% Evenness',               fmt: { type: 'ratio_percentage' } }

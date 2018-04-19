@@ -236,11 +236,9 @@ class Container:
 
 class Project(Container, ProjectInfo):
     def __init__(self):
-        super().__init__()
-        self.open_date = None
-        self.close_date = None
-        self.researcher_name = None
-        self.nb_quoted_samples = None
+        # Explicitly call parent constructors
+        Container.__init__(self)
+        ProjectInfo.__init__(self)
 
     def to_json(self):
         ret = {
