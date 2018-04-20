@@ -1,6 +1,7 @@
 from unittest.case import TestCase
 from datetime import datetime
-from rest_api.limsdb.queries.sample_status import Sample, Container, Project, _create_samples, sample_status, sample_status_per_project, sample_status_per_plate
+from rest_api.limsdb.queries.data_models import Sample, Container, Project
+from rest_api.limsdb.queries.factories import _create_samples, sample_status, sample_status_per_project, sample_status_per_plate
 from unittest.mock import patch
 
 mocked_sample = Sample()
@@ -10,9 +11,9 @@ mocked_sample.species = 'Homo sapiens'
 mocked_sample.add_completed_process('Receive Sample EG 6.1', datetime.strptime('01-06-15', '%d-%m-%y'), process_id=111)
 mocked_sample.add_completed_process('Read and Eval SSQC', datetime.strptime('16-07-15', '%d-%m-%y'), process_id=111)
 
-mocked_request = patch('rest_api.limsdb.queries.sample_status.request', return_value=mocked_sample)
-mocked_retrieve_args = patch('rest_api.limsdb.queries.sample_status.retrieve_args', return_value={'match': {'sample_id': 'X99999P001H05', 'project_id': 'X99999'}})
-mocked_get_project_info = patch('rest_api.limsdb.queries.get_project_info', return_value=[('X99999', datetime(2016, 9, 1, 13, 0), 'Jane', 'Doe', 'Number of Quoted Samples', '2')])
+mocked_request = patch('rest_api.limsdb.queries.factories.request', return_value=mocked_sample)
+mocked_retrieve_args = patch('rest_api.limsdb.queries.factories.retrieve_args', return_value={'match': {'sample_id': 'X99999P001H05', 'project_id': 'X99999'}})
+mocked_get_project_info = patch('rest_api.limsdb.queries.get_project_info', return_value=[('X99999', datetime(2016, 9, 1, 13, 0), None, 'Jane', 'Doe', 'Number of Quoted Samples', '2')])
 
 mocked_get_sample_info = patch(
     'rest_api.limsdb.queries.get_sample_info', return_value=[
@@ -222,7 +223,7 @@ class ContainerTest(TestCase):
 
         self.container1.samples = [self.sample1, self.sample2]
         self.container1.project_id = 'test_project'
-        self.container1.name = 'test_plate1'
+        self.container1.container_name = 'test_plate1'
 
     def tearDown(self):
         pass
@@ -289,19 +290,20 @@ class ProjectTest(TestCase):
         self.project1.nb_quoted_samples = 2
 
         self.project1.project_id = 'test_project'
-        self.project1.name = 'test_plate1'
 
     def tearDown(self):
         pass
 
     def test_to_json(self):
         json = self.project1.to_json()
-        assert json ==  {
-            'project_id': 'test_plate1',
+        assert json == {
+            'project_id': 'test_project',
             'nb_samples': 0,
             'library_type': '',
             'species': '',
             'open_date': '2015-04-01T11:45:03.367000',
+            'close_date': None,
+            'project_status': 'open',
             'researcher_name': 'Joe Bloggs',
             'nb_quoted_samples': 2,
             'finished_date': None,
@@ -316,11 +318,13 @@ class ProjectTest(TestCase):
 
         json = self.project1.to_json()
         assert json == {
-            'project_id': 'test_plate1',
+            'project_id': 'test_project',
             'nb_samples': 2,
             'library_type': 'pcr_free',
             'species': 'Homo sapiens',
             'open_date': '2015-04-01T11:45:03.367000',
+            'close_date': None,
+            'project_status': 'open',
             'researcher_name': 'Joe Bloggs',
             'nb_quoted_samples': 2,
             'finished_date': '2015-09-01T00:00:00',
@@ -434,6 +438,8 @@ def test_sample_status_per_project(mocked_retrieve_args,
             'researcher_name': 'Jane Doe',
             'sequencing_queue': ['X99999P001H05'],
             'open_date': '2016-09-01T13:00:00',
+            'close_date': None,
+            'project_status': 'open',
             'finished_date': None,
             'nb_quoted_samples': '2',
             'started_date': '2016-11-11T11:45:03.367000',

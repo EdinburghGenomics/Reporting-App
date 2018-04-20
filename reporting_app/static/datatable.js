@@ -250,7 +250,7 @@ var configure_dt = function(dt_config) {
         'processing': true,
         'serverSide': false,
         'autoWidth': false,
-        //'stateSave': true,
+        'stateSave': String(dt_config.state_save).toLowerCase() == 'true',
         'lengthMenu': [[10, 25, 50, -1], [10, 25, 50, 'All']],
         'pageLength': 25,
         'select': dt_config.select,

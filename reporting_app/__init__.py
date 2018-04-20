@@ -104,7 +104,7 @@ def runs_report(view_type):
             'func_name': 'merge_multi_sources',
             'api_urls': [
                 construct_url('runs', max_results=10000),
-                construct_url('lims/status/run_status'),
+                construct_url('lims/run_status'),
             ],
             'merge_on': 'run_id'
         }
@@ -121,7 +121,7 @@ def runs_report(view_type):
             'func_name': 'merge_multi_sources',
             'api_urls': [
                 construct_url('runs', where={'_created': {'$gte': time_ago.strftime(settings.DATE_FORMAT)}}, max_results=10000),
-                construct_url('lims/status/run_status', createddate=time_ago.strftime(settings.DATE_FORMAT)),
+                construct_url('lims/run_status', createddate=time_ago.strftime(settings.DATE_FORMAT)),
             ],
             'merge_on': 'run_id'
         }
@@ -168,7 +168,7 @@ def report_run(run_id):
             create_row='color_filter',
             select={'style': 'os', 'blurable': True},
             review_url=construct_url('actions'),
-            review_entity_field='sample_ids',
+            review_entity_field='aggregated.sample_ids',
             buttons=['colvis', 'copy', 'pdf', 'runreview']
         ),
         tab_sets=[
@@ -224,9 +224,16 @@ def project_reports():
         'untabbed_datatables.html',
         'Projects',
         table=datatable_cfg(
-            'Project list',
+            'All projects list',
             'projects',
-            api_url=construct_url('projects', max_results=10000)
+            ajax_call={
+                'func_name': 'merge_multi_sources',
+                'api_urls': [
+                    construct_url('projects', max_results=10000),
+                    construct_url('lims/project_info', match={'project_status': 'all'}),
+                ],
+                'merge_on': 'project_id'
+            }
         )
     )
 
@@ -240,8 +247,8 @@ def report_samples(view_type):
             'func_name': 'merge_multi_sources_keep_first',
             'api_urls': [
                 construct_url('samples', max_results=10000),
-                construct_url('lims/status/sample_status'),
-                construct_url('lims/samples')
+                construct_url('lims/sample_status', match={'project_status': 'all'}),
+                construct_url('lims/sample_info', match={'project_status': 'all'})
             ],
             'merge_on': 'sample_id'
         }
@@ -253,9 +260,10 @@ def report_samples(view_type):
             'api_urls': [
                 construct_url('samples', where={'aggregated.most_recent_proc.status': 'processing'},
                               max_results=10000),
-                construct_url('lims/status/sample_status',
-                              match={'createddate': year_ago.strftime(settings.DATE_FORMAT)}),
-                construct_url('lims/samples', match={'createddate': year_ago.strftime(settings.DATE_FORMAT)})
+                construct_url('lims/sample_status',
+                              match={'createddate': year_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'}),
+                construct_url('lims/sample_info',
+                              match={'createddate': year_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'})
             ],
             'merge_on': 'sample_id'
         }
@@ -264,9 +272,13 @@ def report_samples(view_type):
         ajax_call = {
             'func_name': 'merge_multi_sources_keep_first',
             'api_urls': [
-                construct_url('samples', where={'useable': 'not%20marked', 'aggregated.most_recent_proc.status': 'finished'}, max_results=10000),
-                construct_url('lims/status/sample_status', match={'createddate': year_ago.strftime(settings.DATE_FORMAT)}),
-                construct_url('lims/samples', match={'createddate': year_ago.strftime(settings.DATE_FORMAT)})
+                construct_url('samples',
+                              where={'useable': 'not%20marked', 'aggregated.most_recent_proc.status': 'finished'},
+                              max_results=10000),
+                construct_url('lims/sample_status',
+                              match={'createddate': year_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'}),
+                construct_url('lims/sample_info',
+                              match={'createddate': year_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'})
             ],
             'merge_on': 'sample_id'
         }
@@ -308,7 +320,7 @@ def report_project(project_ids):
                 'func_name': 'merge_multi_sources',
                 'merge_on': 'project_id',
                 'api_urls': [
-                    construct_url('lims/status/project_status', match={'project_id': i})
+                    construct_url('lims/project_status', match={'project_id': i, 'project_status': 'all'})
                     for i in id_list
                 ]
             }
@@ -318,17 +330,17 @@ def report_project(project_ids):
                 'func_name': 'merge_multi_sources',
                 'merge_on': 'plate_id',
                 'api_urls': [
-                    construct_url('lims/status/plate_status', match={'project_id': i})
+                    construct_url('lims/plate_status', match={'project_id': i, 'project_status': 'all'})
                     for i in id_list
                 ]
             }
         }
     else:
         project_status_call = {
-            'api_url': construct_url('lims/status/project_status', match={'project_id': id_list[0]})
+            'api_url': construct_url('lims/project_status', match={'project_id': id_list[0], 'project_status': 'all'})
         }
         plate_status_call = {
-            'api_url': construct_url('lims/status/plate_status', match={'project_id': id_list[0]})
+            'api_url': construct_url('lims/plate_status', match={'project_id': id_list[0], 'project_status': 'all'})
         }
 
     procs = []
@@ -344,8 +356,8 @@ def report_project(project_ids):
 
         bioinformatics_urls += [
             construct_url('samples', where={'project_id': i}, max_results=10000),
-            construct_url('lims/status/sample_status', match={'project_id': i}),
-            construct_url('lims/samples', match={'project_id': i})
+            construct_url('lims/sample_status', match={'project_id': i, 'project_status': 'all'}),
+            construct_url('lims/sample_info', match={'project_id': i, 'project_status': 'all'})
         ]
 
     return render_template(
@@ -405,8 +417,8 @@ def report_sample(sample_id):
                     'func_name': 'merge_multi_sources',
                     'api_urls': [
                         construct_url('samples', where={'sample_id': sample_id}),
-                        construct_url('lims/status/sample_status', match={'sample_id': sample_id}),
-                        construct_url('lims/samples', match={'sample_id': sample_id})
+                        construct_url('lims/sample_status', match={'sample_id': sample_id, 'project_status': 'all'}),
+                        construct_url('lims/sample_info', match={'sample_id': sample_id, 'project_status': 'all'})
                     ],
                     'merge_on': 'sample_id'
                 },
@@ -431,7 +443,7 @@ def report_sample(sample_id):
         sample_statuses=rest_api().get_document(
             'lims/status/sample_status',
             detailed=True,
-            match={'sample_id': sample_id}
+            match={'sample_id': sample_id, 'project_status': 'all'}
         ),
         lims_url=cfg['lims_url'],
         sample_id=sample_id,
@@ -454,42 +466,43 @@ def plotting_report():
     )
 
 
-@app.route('/project_status/')
+@app.route('/project_status', defaults={'prj_status': 'open'})
+@app.route('/project_status/<prj_status>')
 @flask_login.login_required
-def project_status_reports():
+def project_status_reports(prj_status):
     # FIXME: Remove this ugly html generation when the page status becomes more stable
     from config import project_status as project_status_cfg
     table = '<table class="table"><th>Status</th> <th>Completed Steps</th> <th>Queued in Steps</th>'
-    for status in project_status_cfg.status_order:
+    for sample_status in project_status_cfg.status_order:
         table += ''.join([
             '<tr>',
-            '<th>' + status + '</th>',
+            '<th>' + sample_status + '</th>',
             '<td>' + ', '.join([
                                     step for step, st
                                     in project_status_cfg.step_completed_to_status.items()
-                                    if st == status
+                                    if st == sample_status
                                 ]) + '</td>',
             '<td>' + ', '.join([
                                     step for step, st
                                     in project_status_cfg.step_queued_to_status.items()
-                                    if st == status
+                                    if st == sample_status
                                 ]) + '</td>',
             '</tr>'
         ])
     table += '</table>'
-
     collapse_description = '''<button data-toggle="collapse" data-target="#description">Description</button>
 <div id="description" class="collapse">
 The project status table shows the number sample in each project based on the workflow they completed and the step
 they're queued. the steps involved are described below.''' + table + '</div>'
     return render_template(
         'untabbed_datatables.html',
-        'Project Status',
+        prj_status.capitalize() + ' Project Status',
         description_html=collapse_description,
         table=datatable_cfg(
-            'Project Status',
+            'Status of ' + prj_status.capitalize() + ' Projects',
             'project_status',
-            api_url=construct_url('lims/status/project_status'),
+            api_url=construct_url('lims/project_status', match={'project_status': prj_status}),
+            state_save=True,
             fixed_header=True,
             table_foot='sum_row_per_column'
         )
