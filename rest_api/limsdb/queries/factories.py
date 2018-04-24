@@ -4,9 +4,7 @@ from flask import request
 from config import project_status as status_cfg
 from rest_api.common import retrieve_args
 from rest_api.limsdb import queries
-from rest_api.limsdb.queries.data_models import ProjectInfo, SampleInfo, Container
-from rest_api.limsdb.queries.data_models import Run
-from rest_api.limsdb.queries.data_models import Sample, Project
+from rest_api.limsdb.queries.data_models import ProjectInfo, SampleInfo, Container, Run, Sample, Project
 
 
 def _create_samples_info(session, match):

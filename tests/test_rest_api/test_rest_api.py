@@ -1,15 +1,13 @@
 import json
-from collections import Counter
-from datetime import datetime
+import genologics_sql.tables as t
 from time import sleep
-from unittest.mock import patch
-
+from datetime import datetime
+from collections import Counter
 from config import rest_config as cfg
-
 from rest_api import app
 from rest_api.limsdb import get_session
+from unittest.mock import patch
 from tests.test_rest_api import TestBase
-import genologics_sql.tables as t
 
 
 def json_of_response(response):
@@ -18,6 +16,7 @@ def json_of_response(response):
 
 
 class TestLIMSRestAPI(TestBase):
+    session = None
     sample_process_id = 10000
     all_ids = Counter()
 

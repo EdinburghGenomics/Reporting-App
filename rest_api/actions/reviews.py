@@ -1,26 +1,22 @@
-import datetime
 import json
-
-from cached_property import cached_property
-from egcg_core import clarity
-from pyclarity_lims.entities import Queue, Step
-from requests.exceptions import HTTPError
+import datetime
 from werkzeug.exceptions import abort
-
-from config import rest_config as cfg
+from requests.exceptions import HTTPError
+from cached_property import cached_property
+from pyclarity_lims.entities import Queue, Step
+from egcg_core import clarity
 from rest_api import settings
 from rest_api.aggregation.database_side import db
+from config import rest_config as cfg
 
 
-class Action(object):
-
+class Action:
     def __init__(self, request):
         self.request = request
 
     @staticmethod
     def now():
         return datetime.datetime.now().strftime(settings.DATE_FORMAT)
-
 
     @cached_property
     def date_started(self):
@@ -30,13 +26,12 @@ class Action(object):
         raise NotImplementedError
 
     def perform_action(self):
-        action_dict = {}
-        action_dict['date_started'] = self.date_started
+        action = {'date_started': self.date_started}
         if hasattr(self.request.authorization, 'username'):
-            action_dict['started_by'] = self.request.authorization.username
+            action['started_by'] = self.request.authorization.username
 
-        action_dict.update(self._perform_action())
-        return action_dict
+        action.update(self._perform_action())
+        return action
 
 
 class ReviewInitiator(Action):
@@ -56,9 +51,9 @@ class ReviewInitiator(Action):
             lims = clarity.connection(new=True, username=self.username, password=self.password,
                                       baseuri=cfg.query('clarity', 'baseuri', ret_default=''))
             lims.get(lims.get_uri())
+            return lims
         except HTTPError:
             abort(401, 'Authentication in the LIMS (%s) failed' % cfg.get('clarity', {}).get('baseuri'))
-        return lims
 
     @property
     def samples_to_review(self):
@@ -129,7 +124,6 @@ class ReviewInitiator(Action):
         if self.populate_artifacts_epp_name in s.program_names:
             s.trigger_program(self.populate_artifacts_epp_name)
 
-        # build the returned json
         return {
             'action_id': 'lims_' + s.id,
             'started_by': self.username,

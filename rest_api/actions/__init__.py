@@ -1,7 +1,6 @@
 from flask import json
 from werkzeug.datastructures import ImmutableMultiDict
 from werkzeug.exceptions import abort
-
 from rest_api.actions.automatic_review import AutomaticSampleReviewer, AutomaticRunReviewer
 from rest_api.actions.reviews import RunReviewInitiator, SampleReviewInitiator
 

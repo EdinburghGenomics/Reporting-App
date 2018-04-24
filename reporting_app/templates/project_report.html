@@ -1,10 +1,5 @@
 {% extends 'untabbed_datatables.html' %}
-{% from 'proc_report.html' import proc_report, proc_header %}
-
-{% block head %}
-{{ proc_header() }}
-{{ super() }}
-{% endblock %}
+{% from 'proc_report.html' import proc_report %}
 
 {% block content %}
 {{ super() }}

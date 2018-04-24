@@ -12,7 +12,6 @@ import signal
 from egcg_core.app_logging import LoggingConfiguration
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import config
 
 app = None

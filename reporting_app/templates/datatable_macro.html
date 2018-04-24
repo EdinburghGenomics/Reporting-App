@@ -1,0 +1,35 @@
+{% macro datatable(dt_config, set_title) -%}
+{# args: dt_config containing title, name, cols, api_url, default_dort_col, paging, searching, info, etc #}
+{% set set_title = set_title|default(True) %}
+
+{% if set_title %}
+    <h2>
+        <a data-toggle="collapse" href="#{{ dt_config.name }}-container">
+            {{ dt_config.title }}
+        </a>
+    </h2>
+{% endif %}
+
+<script type="text/javascript" language="JavaScript">create_datatable({{ dt_config|tojson|safe }})</script>
+
+<div id="{{ dt_config.name }}-container" class="collapse in">
+    <table id="{{ dt_config.name }}" class="table table-hover table-condensed table-responsive">
+        <thead>
+            <tr>
+                {% for col in dt_config.cols %}
+                <th>{{ col.title }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        {% if dt_config.table_foot %}
+            <tfoot>
+                <tr>
+                    {% for col in dt_config.cols %}
+                    <th></th>
+                    {% endfor %}
+                </tr>
+            </tfoot>
+        {% endif %}
+    </table>
+</div>
+{%- endmacro %}

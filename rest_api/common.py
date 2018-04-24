@@ -1,6 +1,5 @@
-import datetime
 import json
-
+import datetime
 from flask import request, current_app as app
 
 
@@ -11,7 +10,7 @@ def retrieve_args():
         if len(request.args.getlist(key)) == 1:
             d[key] = request.args.get(key)
         else:
-            d[key]=request.args.getlist(key)
+            d[key] = request.args.getlist(key)
         if key in ['match', 'where']:
             d[key] = json.loads(d[key])
     return convert_date(d)
@@ -22,7 +21,7 @@ def convert_date(source):
     def try_cast(v):
         try:
             return datetime.datetime.strptime(v, app.config['DATE_FORMAT'])
-        except ValueError as e:
+        except ValueError:
             return v
     if isinstance(source, list):
         for i, v in enumerate(source):

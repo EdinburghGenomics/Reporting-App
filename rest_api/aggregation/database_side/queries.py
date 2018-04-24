@@ -1,4 +1,4 @@
-from flask import request, json, current_app as app
+from flask import json, current_app as app
 from config import schema
 from rest_api.common import convert_date
 from rest_api.settings import DATE_FORMAT
@@ -28,8 +28,8 @@ run_elements_group_by_lane = [
             'lane_pc_optical_dups': {'$first': '$lane_pc_optical_dups'},
             'stdev_pf': {'$stdDevPop': '$passing_filter_reads'},
             'avg_pf': {'$avg': '$passing_filter_reads'},
-            'adaptor_bases_removed_r1' : {'$sum': '$adaptor_bases_removed_r1'},
-            'adaptor_bases_removed_r2' : {'$sum': '$adaptor_bases_removed_r2'},
+            'adaptor_bases_removed_r1': {'$sum': '$adaptor_bases_removed_r1'},
+            'adaptor_bases_removed_r2': {'$sum': '$adaptor_bases_removed_r2'},
             'tiles_filtered': {'$addToSet': '$tiles_filtered'},
             'trim_r1': {'$addToSet': '$trim_r1'},
             'trim_r2': {'$addToSet': '$trim_r2'}
@@ -88,10 +88,10 @@ demultiplexing = [
             'passing_filter_reads': '$passing_filter_reads',
             'reviewed': '$reviewed',
             'review_comments': '$review_comments',
-            'review_date': { '$dateToString': { 'format': DATE_FORMAT, 'date': '$review_date'} },
+            'review_date': {'$dateToString': {'format': DATE_FORMAT, 'date': '$review_date'}},
             'useable': '$useable',
             'useable_comments': '$useable_comments',
-            'useable_date': { '$dateToString': { 'format': DATE_FORMAT, 'date': '$useable_date'} },
+            'useable_date': {'$dateToString': {'format': DATE_FORMAT, 'date': '$useable_date'}},
             'tiles_filtered': '$tiles_filtered',
             'trim_r1': '$trim_r1',
             'trim_r2': '$trim_r2',
@@ -132,8 +132,8 @@ sequencing_run_information = merge_analysis_driver_procs('run_id', ['run_id', 'n
             'clean_bases_r2': {'$sum': '$run_elements.clean_bases_r2'},
             'clean_q30_bases_r1': {'$sum': '$run_elements.clean_q30_bases_r1'},
             'clean_q30_bases_r2': {'$sum': '$run_elements.clean_q30_bases_r2'},
-            'adaptor_bases_removed_r1' : {'$sum': '$run_elements.adaptor_bases_removed_r1'},
-            'adaptor_bases_removed_r2' : {'$sum': '$run_elements.adaptor_bases_removed_r2'},
+            'adaptor_bases_removed_r1': {'$sum': '$run_elements.adaptor_bases_removed_r1'},
+            'adaptor_bases_removed_r2': {'$sum': '$run_elements.adaptor_bases_removed_r2'},
 
             'reviewed': '$run_elements.reviewed',
             'useable': '$run_elements.useable',

@@ -1,14 +1,18 @@
-{% extends 'tabbed_datatables.html' %}
-{% from 'datatable.html' import datatable %}
-{% from 'proc_report.html' import proc_report, proc_header %}
-
-{% block head %}
-{{ proc_header() }}
-{{ super() }}
-{% endblock %}
+{% extends 'reporting_base.html' %}
+{% from 'tab_sets.html' import tabset %}
+{% from 'datatable_macro.html' import datatable %}
+{% from 'proc_report.html' import proc_report %}
 
 {% block content %}
 {{ datatable(lane_aggregation) }}
+
+{% for t in tab_sets %}
+    {% call(tab) tabset(t.name, t.title, t.tables) %}
+    {{ datatable(tab, False) }}
+    {% endcall %}
+{% endfor %}
+
 {{ super() }}
 {{ proc_report(procs) }}
+
 {% endblock %}

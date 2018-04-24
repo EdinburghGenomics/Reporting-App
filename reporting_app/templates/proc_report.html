@@ -1,26 +1,6 @@
-{% macro proc_header() -%}
-<script src="//cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
-<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" type="text/css" />
-<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
-<script src="/static/stage_timeline.js"></script>
-
-<style>
-    .vis-item .vis-item-overflow {
-        overflow: visible;
-    }
-
-    div.vis-tooltip {
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;  // override vis defaults back to bootstrap
-        background-color: #f9f9f9;
-    }
-</style>
-{%- endmacro %}
-
+{% from 'tab_sets.html' import tabset %}
 
 {% macro proc_timeline(proc) -%}
-{# args:
-    proc (dict) - analysis_driver_proc from the Rest API.
-#}
     <br/>
     <div>
         <div>Started: {{ proc._created }}</div>
@@ -56,24 +36,9 @@
 
 
 {% macro proc_report(procs) -%}
-{# procs (list[dict]) - analysis_driver_procs from the Rest API. #}
-
-<h2><a data-toggle="collapse" data-target="#analysis_driver_proc_tabs">Analysis Driver processes</a></h2>
-<div id="analysis_driver_proc_tabs" class="tab-content collapse">
-    <p>Number of times processed: {{ procs|length }}</p>
-    {% if procs %}
-        <ul class="nav nav-tabs" id="analysis_driver_proc_ul">
-            <li class="nav active"><a data-target="#analysis_driver_proc_1_tab" data-toggle="tab">{{ procs[0]._created }}</a></li>
-            {% for proc in procs[1:] %}
-                <li class="nav"><a data-target="#analysis_driver_proc_{{ loop.index + 1 }}_tab" data-toggle="tab">{{ proc._created }}</a></li>
-            {% endfor %}
-        </ul>
-
-        <div id="analysis_driver_proc_1_tab" class="tab-pane fade in active">{{ proc_timeline(procs[0]) }}</div>
-        {% for proc in procs[1:] %}
-            <div id="analysis_driver_proc_{{ loop.index + 1 }}_tab" class="tab-pane fade">{{ proc_timeline(proc) }}</div>
-        {% endfor %}
-    {% endif %}
-</div>
-
+<br/>
+<p>Number of times processed: {{ procs|length }}</p>
+{% call(tab) tabset('analysis_driver_procs', 'Analysis Driver processes', procs, '_created') %}
+{{ proc_timeline(tab) }}
+{% endcall %}
 {%- endmacro %}

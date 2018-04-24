@@ -1,5 +1,5 @@
-from sqlalchemy import or_, and_, func
 import genologics_sql.tables as t
+from sqlalchemy import or_, and_, func
 from sqlalchemy.orm.util import aliased
 
 
@@ -180,6 +180,7 @@ def runs_info(session, time_since=None, run_ids=None, run_status=None):
 
     results = q.all()
     return results
+
 
 def runs_cst(session, time_since=None, run_ids=None, run_status=None):
     """

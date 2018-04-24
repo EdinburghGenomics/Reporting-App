@@ -1,9 +1,7 @@
-from cerberus import Validator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from genologics_sql.tables import Base
 from flask import jsonify
-
 from config import rest_config as cfg
 from rest_api.limsdb.queries import factories
 
