@@ -5,7 +5,13 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% if title %}{{ title }} - {% endif %}{% endblock %}Edinburgh Genomics Analysis Driver Reporting App</title>
 
+    <!-- minimal styling -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/bootstrap-3.3.6-dist/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/reporting_app.css') }}">
+
+    {% block reporting_deps %}
     <!-- jQuery -->
     <script type="text/javascript" charset="utf8" src="//code.jquery.com/jquery-1.10.2.min.js"></script>
     <script type="text/javascript" charset="utf8" src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
@@ -19,14 +25,9 @@
     <![endif]-->
 
     <!-- Bootstrap/styling -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/bootstrap-3.3.6-dist/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/bootstrap-3.3.6-dist/css/bootstrap-theme.min.css') }}">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" crossorigin="anonymous"></script>
-
-    <!-- reporting app/styling -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/reporting_app.css') }}">
-
-    <title>{% block title %}{% if title %}{{ title }} - {% endif %}{% endblock %}Edinburgh Genomics Analysis Driver Reporting App</title>
+    {% endblock %}
     {% endblock %}
 </head>
 

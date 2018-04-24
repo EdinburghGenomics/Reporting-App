@@ -109,12 +109,12 @@ class TestReportingApp(Helper):
 
     def _test_render_template(self, url):
         response = self.client.get(url)
-        assert 199 < response.status_code < 300
+        assert response.status_code == 200
         assert response.data
 
         with patch('reporting_app.render_template', return_value='some web content') as mocked_render:
             response = self.client.get(url)
-            assert 199 < response.status_code < 300
+            assert response.status_code == 200
             assert response.data == b'some web content'
 
         assert mocked_render.call_count
@@ -167,7 +167,7 @@ class TestReportingApp(Helper):
         assert 'Bad request.' in response.data.decode('utf-8')
 
     @patch('reporting_app.util.datatable_cfg', return_value='a_datatable_cfg')
-    @patch('reporting_app._now', return_value=datetime(2017, 12, 12, 0, 0, 0))
+    @patch('reporting_app.util.now', return_value=datetime(2017, 12, 12, 0, 0, 0))
     def test_runs_report(self, mocked_datetime, mocked_cfg):
         for endpoint, title in (('all', 'All'), ('recent', 'Recent'), ('current_year', '2017'), ('year_to_date', 'Year to date')):
             mocked_render = self._test_render_template('/runs/' + endpoint)
@@ -248,7 +248,7 @@ class TestReportingApp(Helper):
         self._test_render_template('/projects/')
 
     @patch('reporting_app.util.datatable_cfg', return_value='a_datatable_cfg')
-    @patch('reporting_app._now', return_value=datetime(2017, 12, 12, 0, 0, 0))
+    @patch('reporting_app.util.now', return_value=datetime(2017, 12, 12, 0, 0, 0))
     def test_report_samples(self, mocked_datetime, mocked_cfg):
         mocked_render = self._test_render_template('/samples/all')
         mocked_render.assert_called_with(

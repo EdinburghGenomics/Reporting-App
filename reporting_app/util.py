@@ -1,6 +1,7 @@
-import auth
+import datetime
 import flask_login
 from json import dumps
+import auth
 from config import col_mappings
 
 invalid_attr_chars = str.maketrans({k: '_' for k in (' ', ',')})
@@ -79,3 +80,7 @@ def capitalise(word):
 
 def snake_case(text):
     return text.translate(invalid_attr_chars).lower()
+
+
+def now():
+    return datetime.datetime.now()

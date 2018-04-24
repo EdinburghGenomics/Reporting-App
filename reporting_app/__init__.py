@@ -1,12 +1,12 @@
+from os.path import join, dirname
+from urllib.parse import quote, unquote
 import datetime
 import flask as fl
 import flask_login
 import auth
-from os.path import join, dirname
-from urllib.parse import quote, unquote
 from reporting_app import util
-from config import reporting_app_config as cfg, project_status as project_status_cfg
 from rest_api import settings
+from config import reporting_app_config as cfg, project_status as project_status_cfg
 
 app = fl.Flask(__name__)
 app.secret_key = cfg['key'].encode()
@@ -17,10 +17,6 @@ version = open(join(dirname(dirname(__file__)), 'version.txt')).read()
 
 def rest_api():
     return flask_login.current_user.comm
-
-
-def _now():
-    return datetime.datetime.now()
 
 
 def render_template(template, title=None, **context):
@@ -108,11 +104,11 @@ def runs_report(view_type):
 
     elif view_type in ['recent', 'current_year', 'year_to_date']:
         if view_type == 'recent':
-            time_ago = _now() - datetime.timedelta(days=30)
+            time_ago = util.now() - datetime.timedelta(days=30)
         elif view_type == 'year_to_date':
-            time_ago = _now() - datetime.timedelta(days=365)
+            time_ago = util.now() - datetime.timedelta(days=365)
         elif view_type == 'current_year':
-            y = _now().year
+            y = util.now().year
             time_ago = datetime.datetime(year=y, month=1, day=1)
             view_type = str(y)
 
@@ -223,7 +219,7 @@ def project_reports():
 @app.route('/samples/<view_type>')
 @flask_login.login_required
 def report_samples(view_type):
-    six_months_ago = _now() - datetime.timedelta(days=182)
+    six_months_ago = util.now() - datetime.timedelta(days=182)
     ajax_call = {'func_name': 'merge_multi_sources_keep_first', 'merge_on': 'sample_id'}
 
     if view_type == 'all':
