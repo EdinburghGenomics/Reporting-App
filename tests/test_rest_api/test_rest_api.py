@@ -12,9 +12,22 @@ from rest_api.limsdb import get_session
 from tests.test_rest_api import TestBase
 
 
+def ordered(obj):
+    if isinstance(obj, dict):
+        return sorted((k, ordered(v)) for k, v in obj.items())
+    if isinstance(obj, list):
+        return sorted(ordered(x) for x in obj)
+    else:
+        return obj
+
+
 def json_of_response(response):
     """Decode json from response"""
     return json.loads(response.data.decode('utf8'))
+
+
+def assert_json_equal(json1, json2):
+    assert ordered(json1) == ordered(json2)
 
 
 class TestLIMSRestAPI(TestBase):
@@ -161,7 +174,7 @@ class TestLIMSRestAPI(TestBase):
     def test_lims_project_info(self):
         response = self.client.get('/api/0.1/lims/project_info')
         assert response.status_code == 200
-        assert json_of_response(response) == {
+        assert_json_equal(json_of_response(response), {
             '_meta': {'total': 1},
             'data': [{
                 'close_date': None,
@@ -171,10 +184,10 @@ class TestLIMSRestAPI(TestBase):
                 'project_status': 'open',
                 'researcher_name': 'Jane Doe'
             }]
-        }
+        })
         response = self.client.get('/api/0.1/lims/project_info?match={"project_status": "closed"}')
         assert response.status_code == 200
-        assert json_of_response(response) == {
+        assert_json_equal(json_of_response(response), {
             '_meta': {'total': 1},
             'data': [{
                 'close_date': '2018-02-28T00:00:00',
@@ -184,7 +197,7 @@ class TestLIMSRestAPI(TestBase):
                 'project_status': 'closed',
                 'researcher_name': 'Jane Doe'
             }]
-        }
+        })
         response = self.client.get('/api/0.1/lims/project_info?match={"project_status": "all"}')
         assert json_of_response(response)['_meta']['total'] == 2
 
@@ -200,7 +213,7 @@ class TestLIMSRestAPI(TestBase):
                  'project_id': 'testproject1', 'sample_id': 'sample2'}
             ]
         }
-        assert json_of_response(response) == exp
+        assert_json_equal(json_of_response(response), exp)
         response = self.client.get('/api/0.1/lims/sample_info?match={"project_status": "closed"}')
         assert response.status_code == 200
         assert json_of_response(response)['_meta']['total'] == 4
@@ -227,7 +240,7 @@ class TestLIMSRestAPI(TestBase):
                 'started_date': None
             }]
         }
-        assert json_of_response(response) == exp
+        assert_json_equal(json_of_response(response), exp)
 
         response = self.client.get('/api/0.1/lims/project_status?match={"project_status": "all"}')
         assert response.status_code == 200
@@ -280,8 +293,7 @@ class TestLIMSRestAPI(TestBase):
                 ]
             }]
         }
-        self.assertEqual(json_of_response(response), exp)
-        assert json_of_response(response) == exp
+        assert_json_equal(json_of_response(response), exp)
 
         response = self.client.get('/api/0.1/lims/sample_status?match={"sample_id":"sample1"}&detailed=true')
         assert json_of_response(response)['_meta']['total'] == 1
@@ -305,4 +317,4 @@ class TestLIMSRestAPI(TestBase):
                 'sample_ids': ['sample5', 'sample6', 'sample7', 'sample8']
             }]
         }
-        assert json_of_response(response) == exp
+        assert_json_equal(json_of_response(response), exp)
