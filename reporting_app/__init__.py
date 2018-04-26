@@ -229,6 +229,18 @@ def report_samples(view_type):
             util.construct_url('lims/sample_status', match={'project_status': 'all'}),
             util.construct_url('lims/sample_info', match={'project_status': 'all'})
         ]
+    elif view_type == 'pending':
+        title = 'Samples pending'
+        ajax_call['api_urls'] = [
+            util.construct_url('samples', where={'$or': [
+                {'aggregated.most_recent_proc.status': None},
+                {'aggregated.most_recent_proc.status': 'reprocess'},
+                {'aggregated.most_recent_proc.status': 'resume'},
+                {'aggregated.most_recent_proc.status': 'force_ready'}
+            ]}, max_results=10000),
+            util.construct_url('lims/sample_status', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'}),
+            util.construct_url('lims/sample_info', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'})
+        ]
     elif view_type == 'processing':
         title = 'Samples processing'
         ajax_call['api_urls'] = [
