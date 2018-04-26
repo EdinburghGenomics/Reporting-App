@@ -53,57 +53,31 @@ mocked_get_sample_in_queues_or_progress = patch(
 )
 
 
-class SampleTest(TestCase):
+class TestSample(TestCase):
     def setUp(self):
-        self.sample1 = dm.Sample()
-        self.sample1.sample_name = 'test_sample'
-        self.sample1.project_name = 'test_project'
-        self.sample1.species = 'Homo sapiens'
-        self.sample1.add_completed_process('Receive Sample EG 6.1', datetime.strptime('01-06-15', '%d-%m-%y'), 111)
-        self.sample1.add_completed_process('Read and Eval SSQC', datetime.strptime('16-07-15', '%d-%m-%y'), 111)
+        self.sample = fake_sample(species='Homo sapiens')
 
     def test_add_completed_process(self):
 
-        self.sample1.add_completed_process('Test Process', datetime.strptime('01-01-11', '%d-%m-%y'), 111)
-        assert self.sample1._processes == {('Receive Sample EG 6.1', datetime(2015, 6, 1, 0, 0), 'complete', 111),
-                                           ('Read and Eval SSQC', datetime(2015, 7, 16, 0, 0), 'complete', 111),
-                                           ('Test Process', datetime(2011, 1, 1, 0, 0), 'complete', 111)}
+        self.sample.add_completed_process('Test Process', datetime.strptime('01-01-11', '%d-%m-%y'), 111)
+        assert self.sample._processes == {('Receive Sample EG 6.1', datetime(2015, 6, 1, 0, 0), 'complete', 111),
+                                          ('Read and Eval SSQC', datetime(2015, 7, 16, 0, 0), 'complete', 111),
+                                          ('Test Process', datetime(2011, 1, 1, 0, 0), 'complete', 111)}
 
     def test_add_queue_location(self):
-        self.sample1.add_queue_location('Test Process', datetime.strptime('01-01-11', '%d-%m-%y'), 111)
+        self.sample.add_queue_location('Test Process', datetime.strptime('01-01-11', '%d-%m-%y'), 111)
 
-        assert self.sample1._processes == {('Receive Sample EG 6.1', datetime(2015, 6, 1, 0, 0), 'complete', 111),
-                                           ('Read and Eval SSQC', datetime(2015, 7, 16, 0, 0), 'complete', 111),
-                                           ('Test Process', datetime(2011, 1, 1, 0, 0), 'queued', 111)}
+        assert self.sample._processes == {('Receive Sample EG 6.1', datetime(2015, 6, 1, 0, 0), 'complete', 111),
+                                          ('Read and Eval SSQC', datetime(2015, 7, 16, 0, 0), 'complete', 111),
+                                          ('Test Process', datetime(2011, 1, 1, 0, 0), 'queued', 111)}
 
     def test_processes(self):
-        assert self.sample1.processes == [('Read and Eval SSQC', datetime(2015, 7, 16, 0, 0), 'complete', 111),
-                                          ('Receive Sample EG 6.1', datetime(2015, 6, 1, 0, 0), 'complete', 111)]
+        assert self.sample.processes == [('Read and Eval SSQC', datetime(2015, 7, 16, 0, 0), 'complete', 111),
+                                         ('Receive Sample EG 6.1', datetime(2015, 6, 1, 0, 0), 'complete', 111)]
 
     def test_all_statuses(self):
-        all_status = self.sample1.all_statuses()
-        assert len(all_status) == 2
-        assert all_status == [
-            {
-                'date': 'Jun 01 2015',
-                'name': 'sample_submission',
-                'processes': [
-                    {'date': 'Jun 01 2015', 'process_id': 111, 'type': 'complete', 'name': 'Receive Sample EG 6.1'}
-                 ]
-            },
-            {
-                'date': 'Jul 16 2015',
-                'name': 'sample_qc',
-                'processes': [
-                    {'date': 'Jul 16 2015', 'process_id': 111, 'type': 'complete', 'name': 'Read and Eval SSQC'}
-                ]
-            }
-        ]
-
-        self.sample1.add_queue_location('Sequencing Plate Preparation EG 2.0', datetime.strptime('20-07-15', '%d-%m-%y'), 111)
-        all_status = self.sample1.all_statuses()
-        assert len(all_status) == 3
-        assert all_status == [
+        all_statuses = self.sample.all_statuses()
+        exp = [
             {
                 'date': 'Jun 01 2015',
                 'name': 'sample_submission',
@@ -115,7 +89,15 @@ class SampleTest(TestCase):
                 'processes': [
                     {'date': 'Jul 16 2015', 'process_id': 111, 'type': 'complete', 'name': 'Read and Eval SSQC'}
                 ]
-            },
+            }
+        ]
+
+        assert len(all_statuses) == 2
+        assert all_statuses == exp
+
+        self.sample.add_queue_location('Sequencing Plate Preparation EG 2.0', datetime.strptime('20-07-15', '%d-%m-%y'), 111)
+        all_statuses = self.sample.all_statuses()
+        exp.append(
             {
                 'date': 'Jul 20 2015',
                 'name': 'library_queue',
@@ -123,61 +105,63 @@ class SampleTest(TestCase):
                     {'date': 'Jul 20 2015', 'process_id': 111, 'type': 'queued', 'name': 'Sequencing Plate Preparation EG 2.0'}
                 ]
             }
-        ]
+        )
+        assert len(all_statuses) == 3
+        assert all_statuses == exp
 
     def test_get_status_and_date(self):
-        status_and_date = self.sample1._get_status_and_date()
+        status_and_date = self.sample._get_status_and_date()
         assert status_and_date == ('sample_qc', datetime(2015, 6, 1, 0, 0))
-        self.sample1.add_queue_location('Sequencing Plate Preparation EG 2.0', datetime.strptime('20-07-15', '%d-%m-%y'))
-        status_and_date = self.sample1._get_status_and_date()
+        self.sample.add_queue_location('Sequencing Plate Preparation EG 2.0', datetime.strptime('20-07-15', '%d-%m-%y'))
+        status_and_date = self.sample._get_status_and_date()
         assert status_and_date == ('library_queue', datetime(2015, 7, 20, 0, 0))
 
     def test_additional_status(self):
-        additional_status = self.sample1.additional_status
+        additional_status = self.sample.additional_status
         assert additional_status == set()
-        self.sample1.add_completed_process('QuantStudio Data Import EG 1.0', datetime.strptime('20-07-15', '%d-%m-%y'), 111)
-        additional_status = self.sample1.additional_status
+        self.sample.add_completed_process('QuantStudio Data Import EG 1.0', datetime.strptime('20-07-15', '%d-%m-%y'), 111)
+        additional_status = self.sample.additional_status
         assert additional_status == {'genotyped'}
 
     def test_library_type(self):
-        library_type = self.sample1.library_type
+        library_type = self.sample.library_type
         assert library_type == 'pcr_free'
 
     def test_status(self):
-        assert self.sample1.status == 'sample_qc'
+        assert self.sample.status == 'sample_qc'
 
     def test_status_date(self):
-        date = self.sample1.status_date
+        date = self.sample.status_date
         assert date == datetime(2015, 6, 1, 0, 0)
 
     def test_started_date(self):
-        started_date = self.sample1.started_date
+        started_date = self.sample.started_date
         assert started_date == datetime(2015, 6, 1, 0, 0)
-        self.sample1.add_completed_process('Courier Booking EG 1.0 ST', datetime.strptime('01-01-15', '%d-%m-%y'), 111)
-        started_date = self.sample1.started_date
+        self.sample.add_completed_process('Courier Booking EG 1.0 ST', datetime.strptime('01-01-15', '%d-%m-%y'), 111)
+        started_date = self.sample.started_date
         assert started_date == datetime(2015, 6, 1, 0, 0)
-        self.sample1._processes.remove(('Receive Sample EG 6.1', datetime(2015, 6, 1, 0, 0), 'complete', 111))
-        started_date = self.sample1.started_date
+        self.sample._processes.remove(('Receive Sample EG 6.1', datetime(2015, 6, 1, 0, 0), 'complete', 111))
+        started_date = self.sample.started_date
         assert started_date is None
 
     def test_finished_date(self):
-        finished_date = self.sample1.finished_date
+        finished_date = self.sample.finished_date
         assert finished_date is None
-        self.sample1.add_completed_process('Data Release EG 1.0', datetime.strptime('30-09-15', '%d-%m-%y'), 111)
-        self.sample1._status_and_date = None
-        finished_date = self.sample1.finished_date
+        self.sample.add_completed_process('Data Release EG 1.0', datetime.strptime('30-09-15', '%d-%m-%y'), 111)
+        self.sample._status_and_date = None
+        finished_date = self.sample.finished_date
         assert finished_date == datetime(2015, 9, 30, 0, 0)
 
     def test_to_json(self):
-        json = self.sample1.to_json()
+        json = self.sample.to_json()
         assert json == {
             'library_type': 'pcr_free',
-            'sample_id': 'test_sample',
+            'sample_id': 'X99999P001H05',
             'species': 'Homo sapiens',
             'finished_date': None,
             'current_status': 'sample_qc',
             'started_date': '2015-06-01T00:00:00',
-            'project_id': 'test_project',
+            'project_id': 'X99999',
             'statuses': [
                 {
                     'date': 'Jun 01 2015',
@@ -197,33 +181,23 @@ class SampleTest(TestCase):
         }
 
 
-class ContainerTest(TestCase):
+class TestContainer(TestCase):
     def setUp(self):
+        self.sample1 = fake_sample('X99999P001H05')
+        self.sample2 = fake_sample('X99999P001H06')
+
         self.container1 = dm.Container()
-
-        self.sample1 = dm.Sample()
-        self.sample1.sample_name = 'test_sample1'
-        self.sample1.project_name = 'test_project1'
-        self.sample1.add_completed_process('Receive Sample EG 6.1', datetime.strptime('01-06-15', '%d-%m-%y'), 111)
-        self.sample1.add_completed_process('Read and Eval SSQC', datetime.strptime('16-07-15', '%d-%m-%y'), 111)
-
-        self.sample2 = dm.Sample()
-        self.sample2.sample_name = 'test_sample2'
-        self.sample2.project_name = 'test_project1'
-        self.sample2.add_completed_process('Receive Sample EG 6.1', datetime.strptime('01-06-15', '%d-%m-%y'), 111)
-        self.sample2.add_completed_process('Read and Eval SSQC', datetime.strptime('16-07-15', '%d-%m-%y'), 111)
-
         self.container1.samples = [self.sample1, self.sample2]
-        self.container1.project_id = 'test_project'
-        self.container1.container_name = 'test_plate1'
+        self.container1.project_id = 'X99999'
+        self.container1.container_name = 'X99999P001'
 
     def test_samples_per_status(self):
         samples_per_status = self.container1.samples_per_status()
-        assert samples_per_status == {'sample_qc': ['test_sample1', 'test_sample2']}
+        assert samples_per_status == {'sample_qc': ['X99999P001H05', 'X99999P001H06']}
         self.sample1._status_and_date = self.sample2._status_and_date = None
         self.sample2.add_completed_process('Sequencing Plate Preparation EG 2.0', datetime.strptime('20-07-15', '%d-%m-%y'), 111)
         samples_per_status = self.container1.samples_per_status()
-        assert samples_per_status == {'sample_qc': ['test_sample1'], 'library_queue': ['test_sample2']}
+        assert samples_per_status == {'sample_qc': ['X99999P001H05'], 'library_queue': ['X99999P001H06']}
 
     def test_library_types(self):
         library_types = self.container1.library_types
@@ -250,38 +224,29 @@ class ContainerTest(TestCase):
         json = self.container1.to_json()
         assert json == {
             'library_type': 'pcr_free',
-            'project_id': 'test_project',
-            'plate_id': 'test_plate1',
-            'sample_qc': ['test_sample1', 'test_sample2'],
-            'species': '', 'nb_samples': 2
+            'project_id': 'X99999',
+            'plate_id': 'X99999P001',
+            'sample_qc': ['X99999P001H05', 'X99999P001H06'],
+            'species': '',
+            'nb_samples': 2
         }
 
 
-class ProjectTest(TestCase):
+class TestProject(TestCase):
     def setUp(self):
-        self.sample1 = dm.Sample()
-        self.sample1.sample_name = 'test_sample1'
-        self.sample1.project_name = 'test_project1'
-        self.sample1.add_completed_process('Receive Sample EG 6.1', datetime.strptime('01-06-15', '%d-%m-%y'), 111)
-        self.sample1.add_completed_process('Read and Eval SSQC', datetime.strptime('16-07-15', '%d-%m-%y'), 111)
+        self.sample1 = fake_sample('X99999P001H05')
+        self.sample2 = fake_sample('X99999P001H06')
 
-        self.sample2 = dm.Sample()
-        self.sample2.sample_name = 'test_sample2'
-        self.sample2.project_name = 'test_project1'
-        self.sample2.add_completed_process('Receive Sample EG 6.1', datetime.strptime('01-06-15', '%d-%m-%y'), 111)
-        self.sample2.add_completed_process('Read and Eval SSQC', datetime.strptime('16-07-15', '%d-%m-%y'), 111)
-
-        self.project1 = dm.Project()
-        self.project1.open_date = datetime(2015, 4, 1, 11, 45, 3, 367000)
-        self.project1.researcher_name = 'Joe Bloggs'
-        self.project1.nb_quoted_samples = 2
-
-        self.project1.project_id = 'test_project'
+        self.project = dm.Project()
+        self.project.open_date = datetime(2015, 4, 1, 11, 45, 3, 367000)
+        self.project.researcher_name = 'Joe Bloggs'
+        self.project.nb_quoted_samples = 2
+        self.project.project_id = 'X99999'
 
     def test_to_json(self):
-        json = self.project1.to_json()
+        json = self.project.to_json()
         assert json == {
-            'project_id': 'test_project',
+            'project_id': 'X99999',
             'nb_samples': 0,
             'library_type': '',
             'species': '',
@@ -296,13 +261,13 @@ class ProjectTest(TestCase):
 
         self.sample1.species = 'Homo sapiens'
         self.sample2.species = 'Homo sapiens'
-        self.project1.samples = [self.sample1, self.sample2]
+        self.project.samples = [self.sample1, self.sample2]
         self.sample1.add_completed_process('Finish Processing EG 1.0 ST', datetime.strptime('01-09-15', '%d-%m-%y'), 111)
         self.sample2.add_completed_process('Finish Processing EG 1.0 ST', datetime.strptime('01-09-15', '%d-%m-%y'), 111)
 
-        json = self.project1.to_json()
+        json = self.project.to_json()
         assert json == {
-            'project_id': 'test_project',
+            'project_id': 'X99999',
             'nb_samples': 2,
             'library_type': 'pcr_free',
             'species': 'Homo sapiens',
@@ -313,24 +278,24 @@ class ProjectTest(TestCase):
             'nb_quoted_samples': 2,
             'finished_date': '2015-09-01T00:00:00',
             'started_date': '2015-06-01T00:00:00',
-            'finished': ['test_sample1', 'test_sample2']
+            'finished': ['X99999P001H05', 'X99999P001H06']
         }
 
     def test_finished_date(self):
-        self.project1.samples = [self.sample1, self.sample2]
-        finished_date = self.project1.finished_date
+        self.project.samples = [self.sample1, self.sample2]
+        finished_date = self.project.finished_date
         assert finished_date is None
         for sample in [self.sample1, self.sample2]:
             sample._status_and_date = None
             sample.add_completed_process('Finish Processing EG 1.0 ST', datetime.strptime('01-09-15', '%d-%m-%y'), 111)
-        finished_date = self.project1.finished_date
+        finished_date = self.project.finished_date
         assert finished_date == datetime(2015, 9, 1, 0, 0)
 
     def test_started_date(self):
-        started_date = self.project1.started_date
+        started_date = self.project.started_date
         assert started_date is None
-        self.project1.samples = [self.sample1, self.sample2]
-        started_date = self.project1.started_date
+        self.project.samples = [self.sample1, self.sample2]
+        started_date = self.project.started_date
         assert started_date == datetime(2015, 6, 1, 0, 0)
 
 
@@ -339,9 +304,7 @@ class ProjectTest(TestCase):
 @mocked_get_sample_in_queues_or_progress
 @mocked_request
 def test_create_samples(mocked_request, mocked_non_qc, mocked_samples_processes, mocked_sample_info):
-    match = {'sample_id': 'X99999P001H05'}
-    session = None
-    created_samples = f._create_samples(session, match)
+    created_samples = f._create_samples(None, match={'sample_id': 'X99999P001H05'})
     c = list(created_samples)[0]
     assert c._processes == {
         ('Create PDP Pool', datetime(2016, 11, 27, 11, 14, 59, 325000), 'queued', 751),
@@ -350,11 +313,10 @@ def test_create_samples(mocked_request, mocked_non_qc, mocked_samples_processes,
         ('Create CFP Batch', datetime(2016, 11, 24, 10, 49, 36, 980000), 'complete', 39934),
         ('Read and Eval SSQC', datetime(2016, 11, 25, 13, 56, 13, 175000), 'complete', 40004)
     }
-    assert c.original_name == 'X99999P001H05'
+    assert c.original_name == c.sample_name == 'X99999P001H05'
     assert c.planned_library == 'TruSeq PCR-Free DNA Sample Prep'
     assert c.plate_name == 'X99999P001'
     assert c.project_name == 'X99999'
-    assert c.sample_name == 'X99999P001H05'
     assert c.species == 'Homo sapiens'
     assert c.started_date == datetime(2016, 11, 11, 11, 45, 3, 367000)
     assert c.status == 'sequencing_queue'

@@ -212,7 +212,9 @@ function plotCharts(input_data) {
         )
     );
 
-    fields.push(...fields_sample);
+    for (var i=0; i<fields_sample.length; i++) {
+        fields.push(fields_sample[i]);
+    }
     var run_yield_data_weeks = datatable_from_dict(aggregate_weeks, {'format': format_week}, fields);
     var run_yield_data_months = datatable_from_dict(aggregate_months, {'format': format_month}, fields);
 

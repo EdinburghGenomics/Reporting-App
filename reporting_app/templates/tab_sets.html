@@ -1,7 +1,10 @@
-{% macro tabset(name, title, tabs, title_field='title') -%}
-{# tabs need to be in the format: {'name': name, 'title': title} #}
+{% macro tabset(name, title, tabs, title_field='title', extra_classes='') -%}
+{#
+Tabs need to be in the format: {'name': name, 'title': title}. The arg 'extra_classes' can be used to specify whether
+or not the tab set is hidden by default.
+#}
 <h2><a data-toggle="collapse" href="#{{ name }}_tabs">{{ title }}</a></h2>
-<div id="{{ name }}_tabs" class="tab-content collapse in">
+<div id="{{ name }}_tabs" class="tab-content collapse {{ extra_classes }}">
     {% if tabs %}
     <ul class="nav nav-tabs" id="{{ name }}_ul">
         {# Clickable tab links to show target divs. The first one needs 'active' #}

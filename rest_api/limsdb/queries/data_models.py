@@ -77,15 +77,13 @@ class Sample(SampleInfo):
 
     def all_statuses(self):
         """
-        This function is a bit overcomplicated !!! but bare with me while I try to explain.
-        The goal is to extract the all the statuses this sample had and the LIMS processes that had gone
-        though during those status.
-        The relationship between process and statuses is defined by the config file project_status_definitions.yaml.
+        Extract all the statuses this sample has had and the LIMS processes run during those statuses.
+
+        The relationships between processes and statuses is defined by the config file project_status_definitions.yaml.
         We start by sorting all the processes by date from the oldest to the most recent, then iterate and get the
-        status associated with each process. Processes not associated with a status will associated with the most
-        recent status encountered.
-        For completed process we associate them with the last status seen but the queued process get assotiated with
-        the status defined by the current process.
+        status associated with each process. Processes not associated with a status will be associated with the most
+        recent status encountered. We associate completed processes with the last status seen, but processes queued or
+        in progress get associated with the status defined by the current process.
         """
 
         def add_process_with_status(status_order, process_per_status, status, process):
@@ -97,27 +95,27 @@ class Sample(SampleInfo):
 
         if not self._all_statuses_and_date:
             self._all_statuses_and_date = []
-            processes_per_status = []  # Contains lists of processes stored in the same order as  status in status_order
-            status_order = []  # Contains a list of status ordered chronologically.
+            processes_per_status = []  # Contains lists of processes stored in the same order as status_order
+            status_order = []  # Contains a list of statuses ordered chronologically
             current_status = status = status_cfg.status_order[0]
             for process, date, process_type, process_id in sorted(self._processes, key=operator.itemgetter(1)):
+                process_info = {
+                    'name': process, 'date': date.strftime('%b %d %Y'), 'type': process_type, 'process_id': process_id
+                }
 
-                process_dict = {'name': process,
-                                'date': date.strftime('%b %d %Y'),
-                                'type': process_type,
-                                'process_id': process_id}
-                # This part find the new status
+                # Find the new status
                 if process_type == 'complete' and process in status_cfg.step_completed_to_status:
                     status = status_cfg.step_completed_to_status.get(process)
                 elif process_type in ['queued', 'progress'] and process in status_cfg.step_queued_to_status:
                     status = status_cfg.step_queued_to_status.get(process)
 
-                # Associate the process with the last status seen
+                # Associate the process with the last status seen...
                 if process_type == 'complete':
-                    add_process_with_status(status_order, processes_per_status, current_status, process_dict)
-                # Associate the process with the status defined by the current process
+                    add_process_with_status(status_order, processes_per_status, current_status, process_info)
+                # ... or with the status it defines
                 else:
-                    add_process_with_status(status_order, processes_per_status, status, process_dict)
+                    add_process_with_status(status_order, processes_per_status, status, process_info)
+
                 current_status = status
 
             for i, status in enumerate(status_order):

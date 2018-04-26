@@ -17,7 +17,7 @@ def retrieve_args():
 
 
 def convert_date(source):
-    """Recursively iterates a JSON dictionary, turning date strings into datetime values."""
+    """Recursively iterate a JSON dictionary, turning date strings into datetime values."""
     def try_cast(v):
         try:
             return datetime.datetime.strptime(v, app.config['DATE_FORMAT'])
