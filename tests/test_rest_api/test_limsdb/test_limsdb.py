@@ -175,6 +175,7 @@ class SampleTest(TestCase):
 
     def test_to_json(self):
         json = self.sample1.to_json()
+        print(json)
         assert json == {'library_type': 'pcr_free',
                      'sample_id': 'test_sample',
                      'species': 'Homo sapiens',

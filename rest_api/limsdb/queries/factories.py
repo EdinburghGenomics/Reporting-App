@@ -47,20 +47,22 @@ def _create_samples(session, match):
                        + list(status_cfg.library_type_step_completed) \
                        + status_cfg.started_steps
         list_process_queued = status_cfg.step_queued_to_status
-
+    udfs_to_fields = {
+        'Prep Workflow': 'planned_library',
+        'Species': 'species',
+        'Required Yield (Gb)': 'required_yield',
+        'Coverage (X)': 'coverage'
+    }
     for result in queries.get_sample_info(session, project_id, sample_id, project_status=project_status,
-                                          time_since=sample_time_since, udfs=['Prep Workflow', 'Species']):
+                                          time_since=sample_time_since, udfs=list(udfs_to_fields)):
         (pjct_name, sample_name, container, wellx, welly, udf_name, udf_value) = result
         s = all_samples[sanitize_user_id(sample_name)]
         s.sample_name = sanitize_user_id(sample_name)
         s.project_name = pjct_name
         s.plate_name = container
         s.original_name = sample_name
-
-        if udf_name == 'Prep Workflow':
-            all_samples[sanitize_user_id(sample_name)].planned_library = udf_value
-        if udf_name == 'Species':
-            all_samples[sanitize_user_id(sample_name)].species = udf_value
+        if udf_name in udfs_to_fields:
+            setattr(all_samples[sanitize_user_id(sample_name)], udfs_to_fields[udf_name], udf_value)
 
     for result in queries.get_samples_and_processes(session,  project_id, sample_id, project_status=project_status,
                                                     workstatus='COMPLETE', list_process=list_process_complete,

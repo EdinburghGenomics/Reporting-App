@@ -3,6 +3,8 @@ from urllib.parse import quote, unquote
 import datetime
 import flask as fl
 import flask_login
+import subprocess
+
 import auth
 from reporting_app.util import datatable_cfg, tab_set_cfg, get_token
 from config import reporting_app_config as cfg
@@ -12,7 +14,20 @@ app = fl.Flask(__name__)
 app.secret_key = cfg['key'].encode()
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
-version = open(join(dirname(dirname(__file__)), 'version.txt')).read()
+version = open(join(dirname(dirname(__file__)), 'version.txt')).read().strip()
+
+
+def get_git_revision_short_hash():
+    try:
+        return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('utf-8').strip()
+    except:
+        return None
+
+
+git_commit = get_git_revision_short_hash()
+if git_commit:
+    # This should not appear once deployed.
+    version = version + '-' + git_commit
 
 
 def construct_url(endpoint, **query_args):
