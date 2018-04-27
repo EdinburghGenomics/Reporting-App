@@ -6,11 +6,7 @@ QUnit.test('aggregate_on_date', function(assert) {
         {'date': moment('2017-12-06', 'YYYY-MM-DD'), 'a_field': 5, 'another_field': 6}
     ];
 
-
-    var fields = [
-        {'name':'a_field', 'title': 'A field'},
-        {'name':'another_field', 'title': 'Another field'}
-    ];
+    var fields = ['a_field', 'another_field'];
 
     assert.deepEqual(
         aggregate_on_date(data, 'month', fields),
@@ -94,10 +90,7 @@ QUnit.test('sort_dict_by_date', function(assert) {
 
 
 QUnit.test('add_cumulative', function(assert) {
-    var fields = [
-        {'name': 'yield_in_gb', 'title': 'Yield in Gb'},
-        {'name': 'yield_q30_in_gb', 'title': 'Yield Q30 in Gb'}
-    ];
+    var fields = ['yield_in_gb', 'yield_q30_in_gb'];
     var data = {
         'Wed Dec 03 2017': {
             'yield_in_gb': 7677,
@@ -109,7 +102,7 @@ QUnit.test('add_cumulative', function(assert) {
         }
     }
 
-    add_cummulative(data, fields)
+    add_cumulative(data, fields)
 
     assert.deepEqual(
         data,
@@ -160,7 +153,7 @@ QUnit.test('datatable_config', function(assert) {
     }
 
     assert.deepEqual(
-        datatable_from_dict(data, {'format': format_month}, fields),
+        datatable_config(data, format_month, fields),
         {
             'cols': [
                 {'id': 'Date', 'label': 'Date', 'type': 'date'},
@@ -231,7 +224,7 @@ QUnit.test('merge_objects', function(assert) {
     var obj2 = {'x': {'other': 3, 'that': 4}, 'y': {'other': 5}};
 
     assert.deepEqual(
-        merge_dict_of_object(obj1, obj2),
+        merge_dict_of_objects(obj1, obj2),
         {'x': {'this': 0, 'that': 4, 'other': 3}, 'y': {'this': 2, 'other': 5}}
     );
 });
