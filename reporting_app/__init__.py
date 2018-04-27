@@ -303,43 +303,91 @@ def report_samples(view_type):
     )
 
 
-@app.route('/projects/<project_id>')
+@app.route('/projects/<project_ids>')
 @flask_login.login_required
-def report_project(project_id):
+def report_project(project_ids):
+    if project_ids == 'SGP':
+        id_list = []
+        for p in rest_api().get_documents('lims/project_info', match={'project_status': 'open'}):
+            if p['project_id'].startswith('S'):
+                id_list.append(p['project_id'])
+    else:
+        id_list = project_ids.split(',')
+
+    if len(id_list) > 1:
+        project_status_call = {
+            'ajax_call': {
+                'func_name': 'merge_multi_sources',
+                'merge_on': 'project_id',
+                'api_urls': [
+                    construct_url('lims/project_status', match={'project_id': i, 'project_status': 'all'})
+                    for i in id_list
+                ]
+            }
+        }
+        plate_status_call = {
+            'ajax_call': {
+                'func_name': 'merge_multi_sources',
+                'merge_on': 'plate_id',
+                'api_urls': [
+                    construct_url('lims/plate_status', match={'project_id': i, 'project_status': 'all'})
+                    for i in id_list
+                ]
+            }
+        }
+    else:
+        project_status_call = {
+            'api_url': construct_url('lims/project_status', match={'project_id': id_list[0], 'project_status': 'all'})
+        }
+        plate_status_call = {
+            'api_url': construct_url('lims/plate_status', match={'project_id': id_list[0], 'project_status': 'all'})
+        }
+
+    procs = []
+    bioinformatics_urls = []
+    for i in id_list:
+        x = rest_api().get_documents(
+            'analysis_driver_procs',
+            where={'dataset_type': 'project', 'dataset_name': i},
+            embedded={'stages': 1},
+            sort='-_created'
+        )
+        procs.extend(x)
+
+        bioinformatics_urls += [
+            construct_url('samples', where={'project_id': i}, max_results=10000),
+            construct_url('lims/sample_status', match={'project_id': i, 'project_status': 'all'}),
+            construct_url('lims/sample_info', match={'project_id': i, 'project_status': 'all'})
+        ]
+
     return render_template(
         'project_report.html',
-        project_id + ' Project Report',
+        'Project report for ' + project_ids,
         review=True,
         tables=[
             datatable_cfg(
-                'Project Status for ' + project_id,
+                'Project Status for ' + project_ids,
                 'project_status',
-                api_url=construct_url('lims/project_status',
-                                      match={'project_id': project_id, 'project_status': 'all'}),
-                paging=False,
-                searching=False,
-                info=False
-            ),
-            datatable_cfg(
-                'Plate Status for ' + project_id,
-                'plate_status',
-                api_url=construct_url('lims/plate_status',
-                                      match={'project_id': project_id, 'project_status': 'all'}),
                 paging=False,
                 searching=False,
                 info=False,
-                default_sort_col='plate_id'
+                **project_status_call
             ),
             datatable_cfg(
-                'Bioinformatics report for ' + project_id,
+                'Plate Status for ' + project_ids,
+                'plate_status',
+                paging=False,
+                searching=False,
+                info=False,
+                default_sort_col='plate_id',
+                **plate_status_call
+            ),
+            datatable_cfg(
+                'Bioinformatics report for ' + project_ids,
                 'samples',
                 ajax_call={
                     'func_name': 'merge_multi_sources',
-                    'api_urls': [
-                        construct_url('samples', where={'project_id': project_id}, max_results=10000),
-                        construct_url('lims/sample_status', match={'project_id': project_id, 'project_status': 'all'}),
-                        construct_url('lims/sample_info', match={'project_id': project_id, 'project_status': 'all'})
-                    ],
+                    'api_urls': bioinformatics_urls,
                     'merge_on': 'sample_id'
                 },
                 fixed_header=True,
@@ -349,12 +397,7 @@ def report_project(project_id):
                 buttons=['colvis', 'copy', 'pdf', 'samplereview']
             )
         ],
-        procs=rest_api().get_documents(
-            'analysis_driver_procs',
-            where={'dataset_type': 'project', 'dataset_name': project_id},
-            embedded={'stages': 1},
-            sort='-_created'
-        )
+        procs=procs
     )
 
 
