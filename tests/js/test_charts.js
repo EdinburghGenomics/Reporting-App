@@ -39,6 +39,14 @@ QUnit.test('unwind_samples_sequenced', function(assert) {
         {'sample_id': 'another_sample', 'run_id': '171212_run'},
     ]
 
+    if (Array.from == undefined) {
+        console.log('Mocking Array.from and Set');
+        Set = function(content) {
+            this.content = content;
+        }
+        Array.from = function(fake_set) { return fake_set.content };
+    }
+
     assert.deepEqual(
         unwind_samples_sequenced(run_elements),
         [
