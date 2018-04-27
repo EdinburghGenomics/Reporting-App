@@ -4,7 +4,9 @@ Changelog for Reporting-App
 0.18 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Allow multiple projects to be viewed on one page
+- Show open and closed projects
+- Fix bug in lane review
 
 
 0.17.1 (2018-02-22)
