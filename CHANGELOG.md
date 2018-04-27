@@ -1,7 +1,7 @@
 Changelog for Reporting-App
 ===========================
 
-0.18 (unreleased)
+0.18 (2018-04-27)
 -----------------
 
 - Allow multiple projects to be viewed on one page
