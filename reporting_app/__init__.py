@@ -265,7 +265,7 @@ def report_samples(view_type):
 def report_project(project_ids):
     if project_ids == 'SGP':
         id_list = []
-        for p in rest_api().get_documents('lims/project_info', match={'project_status': 'all'}):
+        for p in rest_api().get_documents('lims/project_info', match={'project_status': 'open'}):
             if p['project_id'].startswith('S'):
                 id_list.append(p['project_id'])
     else:
@@ -408,7 +408,7 @@ def plotting_report():
     )
 
 
-@app.route('/project_status', defaults={'prj_status': 'open'})
+@app.route('/project_status/', defaults={'prj_status': 'open'})
 @app.route('/project_status/<prj_status>')
 @flask_login.login_required
 def project_status_reports(prj_status):
