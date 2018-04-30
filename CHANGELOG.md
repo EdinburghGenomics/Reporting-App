@@ -1,7 +1,7 @@
 Changelog for Reporting-App
 ===========================
 
-0.18.1 (unreleased)
+0.18.1 (2018-04-30)
 -------------------
 
 - fix project status URL bug
