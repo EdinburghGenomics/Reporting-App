@@ -466,7 +466,7 @@ def plotting_report():
     )
 
 
-@app.route('/project_status', defaults={'prj_status': 'open'})
+@app.route('/project_status/', defaults={'prj_status': 'open'})
 @app.route('/project_status/<prj_status>')
 @flask_login.login_required
 def project_status_reports(prj_status):
