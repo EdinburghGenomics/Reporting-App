@@ -1,5 +1,5 @@
-from sqlalchemy import or_, and_, func
 import genologics_sql.tables as t
+from sqlalchemy import or_, and_, func
 from sqlalchemy.orm.util import aliased
 
 
@@ -34,7 +34,7 @@ def add_filters(q, **kwargs):
 
 
 def get_project_info(session, project_name=None, project_status='open', udfs=None):
-    """This method runs a query that return the get projects and specific udfs"""
+    """Run a query that returns projects and specific UDFs"""
     q = session.query(t.Project.name, t.Project.opendate, t.Project.closedate, t.Researcher.firstname, t.Researcher.lastname,
                       t.EntityUdfView.udfname, t.EntityUdfView.udfvalue) \
         .distinct(t.Project.name) \
@@ -48,7 +48,7 @@ def get_project_info(session, project_name=None, project_status='open', udfs=Non
 
 
 def get_sample_info(session, project_name=None, sample_name=None, project_status='open', time_since=None, udfs=None):
-    """This method runs a query that return samples, its associated original container and some specified UDFs"""
+    """Run a query that returns samples, associated original containers and specified UDFs"""
     q = session.query(t.Project.name, t.Sample.name, t.Container.name,
                       t.ContainerPlacement.wellxposition, t.ContainerPlacement.wellyposition,
                       t.SampleUdfView.udfname, t.SampleUdfView.udfvalue) \
@@ -72,7 +72,7 @@ def get_sample_info(session, project_name=None, sample_name=None, project_status
 
 def get_samples_and_processes(session, project_name=None, sample_name=None, list_process=None, workstatus=None,
                               time_since=None, project_status='open'):
-    """This method runs a query that return the sample name and the processeses they went through"""
+    """Run a query that returns samples and the processeses they went through"""
     q = session.query(t.Project.name, t.Sample.name, t.ProcessType.displayname,
                       t.Process.workstatus, t.Process.createddate, t.Process.processid) \
         .distinct(t.Sample.name, t.Process.processid) \
@@ -89,8 +89,8 @@ def get_samples_and_processes(session, project_name=None, sample_name=None, list
 def get_sample_in_queues_or_progress(session, project_name=None, sample_name=None, list_process=None, time_since=None,
                                      project_status='open'):
     """
-    This query gives all of the samples sitting in queue of a allegedly non-qc steps
-    See explaination at https://genologics.zendesk.com/hc/en-us/articles/213982003-Reporting-the-contents-of-a-Queue
+    Get all samples sitting in the queue of an allegedly non-QC step. See explanation at
+    https://genologics.zendesk.com/hc/en-us/articles/213982003-Reporting-the-contents-of-a-Queue
     """
 
     # Sub query that find active processes to distinguish between transition that marks Queued artifact
@@ -180,6 +180,7 @@ def runs_info(session, time_since=None, run_ids=None, run_status=None):
 
     results = q.all()
     return results
+
 
 def runs_cst(session, time_since=None, run_ids=None, run_status=None):
     """

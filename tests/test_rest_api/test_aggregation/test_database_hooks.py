@@ -1,16 +1,14 @@
 import copy
 import os
 import json
+import pymongo
 from unittest import TestCase
 from time import sleep
-
-import pymongo
-
+from math import sqrt
 from rest_api import app
 from config import schema
 from config import rest_config as cfg
 from tests import Helper
-from math import sqrt
 from datetime import datetime
 from rest_api.aggregation import database_hooks
 from unittest.mock import patch
@@ -24,7 +22,7 @@ run_element1 = {
     'clean_q30_bases_r2': 1100000000, 'total_reads': 9190, 'passing_filter_reads': 8451,
     'pc_reads_in_lane': 54.0, 'reviewed': 'not reviewed', 'useable': 'yes', 'clean_reads': 1337,
     'lane_pc_optical_dups': 0.1, 'adaptor_bases_removed_r1': 1337, 'adaptor_bases_removed_r2': 1338,
-    'mapping_metrics':{
+    'mapping_metrics': {
         'bam_file_reads': 8420, 'mapped_reads': 8200, 'duplicate_reads': 1000, 'properly_mapped_reads': 8100,
         'picard_dup_reads': 1010, 'picard_opt_dup_reads': 500, 'picard_est_lib_size': 10000, 'mean_insert_size': 450.2,
         'std_dev_insert_size': 68.4, 'median_insert_size': 432.5, 'median_abs_dev_insert_size': 58.5
@@ -130,7 +128,6 @@ class TestDatabaseHooks(TestCase):
             'bases_r1': 3000000001, 'bases_r2': 2800000001, 'q30_bases_r1': 2800000001, 'q30_bases_r2': 2600000001,
             'clean_bases_r1': 2600000001, 'clean_bases_r2': 2400000001, 'clean_q30_bases_r1': 2400000001,
             'clean_q30_bases_r2': 2200000001, 'total_reads': 18370, 'passing_filter_reads': 16912, 'clean_reads': 2675,
-
             'pc_pass_filter': 92.06314643440392, 'pc_q30_r1': 93.33333333555555, 'pc_q30_r2': 92.85714285969388,
             'pc_q30': 93.10344827824018, 'yield_in_gb': 5.800000002, 'yield_q30_in_gb': 5.400000002,
             'clean_yield_in_gb': 5.000000002, 'clean_yield_q30_in_gb': 4.600000002, 'clean_pc_q30': 92.0000000032,

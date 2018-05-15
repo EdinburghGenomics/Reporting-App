@@ -19,11 +19,11 @@ def main():
 
     log_cfg.add_stdout_handler()
     c = Communicator((args.username, args.password), args.baseurl)
-    retrigger_aggregation_run_element(c)
+    retrigger_aggregation_run_elements(c)
 
 
-def retrigger_aggregation_run_element(communicator, **filter):
-    all_runs = communicator.get_documents('runs', all_pages=True, **filter)
+def retrigger_aggregation_run_elements(communicator, **params):
+    all_runs = communicator.get_documents('runs', all_pages=True, **params)
     app_logger.info('%s runs to process', len(all_runs))
     count = 0
     for r in all_runs:
@@ -33,8 +33,8 @@ def retrigger_aggregation_run_element(communicator, **filter):
         communicator.patch_entries('run_elements', {}, where={'run_id': r['run_id']})
 
 
-def retrigger_aggregation_project(communicator, **filter):
-    all_projects = communicator.get_documents('projects', all_pages=True, **filter)
+def retrigger_aggregation_projects(communicator, **params):
+    all_projects = communicator.get_documents('projects', all_pages=True, **params)
     app_logger.info('%s project to process', len(all_projects))
     count = 0
     for p in all_projects:

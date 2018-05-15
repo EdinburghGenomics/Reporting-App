@@ -1,9 +1,7 @@
-
+import os
+import sys
 import argparse
-
 import datetime
-import sys, os
-
 from egcg_core.app_logging import logging_default as log_cfg
 from egcg_core.exceptions import ConfigError
 from egcg_core.rest_communication import Communicator
@@ -12,8 +10,8 @@ from egcg_core.rest_communication import Communicator
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from rest_api import settings
 from config import reporting_app_config as app_cfg
+from bin.retrigger_aggregation import retrigger_aggregation_run_elements, retrigger_aggregation_projects
 
-from bin.retrigger_aggregation import retrigger_aggregation_run_element, retrigger_aggregation_project
 
 if __name__ == '__main__':
 
@@ -31,15 +29,15 @@ if __name__ == '__main__':
 
     two_month_ago = datetime.datetime.now() - datetime.timedelta(days=90)
 
-    app_logger.info("Retrigger aggregation")
+    app_logger.info('Retrigger aggregation')
     # only retrigger aggregation on recent runs
     c = Communicator(auth=(args.username, args.password), baseurl=app_cfg['rest_api'])
 
-    retrigger_aggregation_run_element(
+    retrigger_aggregation_run_elements(
         c,
         where={'_created': {'$gte': two_month_ago.strftime(settings.DATE_FORMAT)}}
     )
 
-    retrigger_aggregation_project(c)
+    retrigger_aggregation_projects(c)
 
 

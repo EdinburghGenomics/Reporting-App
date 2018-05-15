@@ -86,6 +86,7 @@ def project_info():
         post_processing=[server_side.post_processing.date_to_string('_created')]
     )
 
+
 # Keep this for now for backward compatibility
 @app.route(_lims_endpoint('status/<status_type>'))
 @requires_auth('home')
@@ -113,4 +114,3 @@ def lims_info(endpoint):
         endpoint,
         app
     )
-

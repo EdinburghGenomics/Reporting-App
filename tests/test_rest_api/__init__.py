@@ -1,5 +1,4 @@
 from unittest.mock import Mock
-
 from tests import Helper
 from config import rest_config, schema
 

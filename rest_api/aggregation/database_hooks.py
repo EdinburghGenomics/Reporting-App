@@ -1,7 +1,4 @@
 import statistics
-
-import collections
-
 from rest_api.aggregation.server_side.expressions import *
 from rest_api.aggregation.database_side import db
 
@@ -13,6 +10,7 @@ def deep_dict_update(d, u):
         else:
             d[k] = v
     return d
+
 
 class DataRelation:
     """
@@ -339,7 +337,7 @@ class Sample(DataRelation):
             'most_recent_proc': MostRecent('analysis_driver_procs')
         },
         {
-            'from_run_elements':{
+            'from_run_elements': {
                 'mean_coverage': Total('run_elements.coverage.mean'),
                 'bam_file_reads': Total('run_elements.mapping_metrics.bam_file_reads'),
                 'mapped_reads': Total('run_elements.mapping_metrics.mapped_reads'),
