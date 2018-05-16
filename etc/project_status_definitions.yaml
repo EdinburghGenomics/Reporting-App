@@ -74,6 +74,7 @@ step_queued_to_status:
 additional_step_completed:
     QuantStudio Data Import EG 1.0: GENOTYPING
     Genotyping Data Received EG 1.0: GENOTYPING
+    QuantStudio Data Import EG 2.0: GENOTYPING
     Finance - Invoice Processed: INVOICED
 
 library_type_step_completed:
