@@ -1,4 +1,4 @@
-# This section describe the name of the different statuses
+# This section describes the names of the different statuses
 # Note that to add/remove columns to the project status table the entry needs to be added to the column_mappings.yaml
 status_names:
     SAMPLE_REMOVED: removed
@@ -17,8 +17,7 @@ status_names:
     TRUSEQ_NANO: nano
     TRUSEQ_PCR_FREE: pcr_free
 
-
-# This section describe the order in which sample travel through the different status.
+# This section describes the order in which samples travel through the different statuses.
 # Note that the order of the columns in the project status table needs to be changed in column_mappings.yaml
 status_order:
     - SAMPLE_SUBMISSION
@@ -33,9 +32,8 @@ status_order:
     - SAMPLE_REPEAT
     - SAMPLE_REMOVED
 
-# This section describe the LIMS steps that specify the exit from a status.
-# ie: if the sample finished 'Receive Sample EG 6.1' then it completed SAMPLE_SUBMISSION
-#     and will be move to the next one.
+# This section describes the LIMS steps that specify the exit from a status, e.g. if the sample finished
+# 'Receive Sample EG 6.1' then it completed SAMPLE_SUBMISSION and will be moved to the next one.
 step_completed_to_status:
     FluidX Sample Receipt EG 1.1 ST: SAMPLE_QC
     Receive Sample 4.0: SAMPLE_QC
@@ -54,8 +52,8 @@ step_completed_to_status:
     Remove From Processing EG 1.0 ST: SAMPLE_REMOVED
     Request Repeats EG 1.0 ST: SAMPLE_REMOVED
 
-# This section describe the LIMS steps that specify that the sample is queued in a status
-# ie: if the sample is queued 'Sequencing Plate Preparation EG 2.0' then it is in LIBRARY_QUEUE
+# This section describes the LIMS steps that specify that the sample is queued in a status, e.g, if the sample is queued
+# to 'Sequencing Plate Preparation EG 2.0' then it is in LIBRARY_QUEUE
 step_queued_to_status:
     FluidX Sample Receipt EG 1.1 ST: SAMPLE_SUBMISSION
     Receive Sample EG 6.1: SAMPLE_SUBMISSION
@@ -76,6 +74,7 @@ step_queued_to_status:
 additional_step_completed:
     QuantStudio Data Import EG 1.0: GENOTYPING
     Genotyping Data Received EG 1.0: GENOTYPING
+    QuantStudio Data Import EG 2.0: GENOTYPING
     Finance - Invoice Processed: INVOICED
 
 library_type_step_completed:

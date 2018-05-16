@@ -1,10 +1,24 @@
 Changelog for Reporting-App
 ===========================
 
-0.18 (unreleased)
+0.19 (unreleased)
 -----------------
 
 - Nothing changed yet.
+
+
+0.18.1 (2018-04-30)
+-------------------
+
+- fix project status URL bug
+
+
+0.18 (2018-04-27)
+-----------------
+
+- Allow multiple projects to be viewed on one page
+- Show open and closed projects
+- Fix bug in lane review
 
 
 0.17.1 (2018-02-22)

@@ -327,4 +327,4 @@ class TestReportingApp(Helper):
         self._test_render_template('/charts')
 
     def test_project_status_report(self):
-        self._test_render_template('/project_status')
+        self._test_render_template('/project_status/')

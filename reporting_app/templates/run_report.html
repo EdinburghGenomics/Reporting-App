@@ -7,7 +7,7 @@
 {{ datatable(lane_aggregation) }}
 
 {% for t in tab_sets %}
-    {% call(tab) tabset(t.name, t.title, t.tables) %}
+    {% call(tab) tabset(t.name, t.title, t.tables, extra_classes='in') %}
     {{ datatable(tab, False) }}
     {% endcall %}
 {% endfor %}

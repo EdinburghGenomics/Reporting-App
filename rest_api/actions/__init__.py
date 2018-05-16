@@ -25,10 +25,7 @@ def start_action(request):
 
 
 def add_to_action(request, response):
-    """
-    Add the content of the post request in the response
-    so the data create by the action is available to the client
-    """
+    """Add the payload of the post to the response data so it is available to the client"""
     input_json = json.loads(response.data.decode('utf-8'))
     input_json['data'] = request.form.to_dict()
     response.data = json.dumps(input_json, indent=4).encode()
