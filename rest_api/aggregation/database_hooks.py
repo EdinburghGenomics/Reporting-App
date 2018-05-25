@@ -171,7 +171,8 @@ base_and_read_counts = {
     'clean_q30_bases_r2': Total('run_elements.clean_q30_bases_r2'),
     'total_reads': Total('run_elements.total_reads'),
     'passing_filter_reads': Total('run_elements.passing_filter_reads'),
-    'clean_reads': Total('run_elements.clean_reads')
+    'clean_reads': Total('run_elements.clean_reads'),
+    'phix_reads': Total('run_elements.phix_reads'),
 }
 
 
@@ -183,6 +184,7 @@ fastq_filtering = {
 
 
 yields_and_percentages = {
+    'pc_phix': Percentage('aggregated.phix_reads', 'aggregated.total_reads'),
     'pc_pass_filter': Percentage('aggregated.passing_filter_reads', 'aggregated.total_reads'),
     'pc_q30_r1': Percentage('aggregated.q30_bases_r1', 'aggregated.bases_r1'),
     'pc_q30_r2': Percentage('aggregated.q30_bases_r2', 'aggregated.bases_r2'),
@@ -206,6 +208,7 @@ class RunElement(DataRelation):
     id_field = 'run_element_id'
     aggregated_fields = [
         {
+            'pc_phix': Percentage('phix_reads', 'total_reads'),
             'pc_pass_filter': Percentage('passing_filter_reads', 'total_reads'),
             'pc_q30_r1': Percentage('q30_bases_r1', 'bases_r1'),
             'pc_q30_r2': Percentage('q30_bases_r2', 'bases_r2'),

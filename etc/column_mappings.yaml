@@ -67,6 +67,7 @@ column_def:
     pc_opt_duplicate_reads:   { data: 'aggregated.pc_opt_duplicate_reads',    title: '% opt duplicate reads',    fmt: { type: 'percentage', max: 25 } }
     pc_mapped_reads:          { data: 'aggregated.pc_mapped_reads',           title: '% mapped reads',           fmt: { type: 'percentage', min: 90 } }
     pc_pass_filter:           { data: 'aggregated.pc_pass_filter',            title: '% Pass filter',            fmt: { type: 'percentage' } }
+    pc_phix:                  { data: 'aggregated.pc_phix',                   title: '% Phix',                   fmt: { type: 'percentage' } }
     pc_properly_mapped_reads: { data: 'aggregated.pc_properly_mapped_reads',  title: '% properly mapped reads',  fmt: { type: 'percentage' }, visible: 'false' }
     pc_q30:                   { data: 'aggregated.pc_q30',                    title: '%Q30',                     fmt: { type: 'percentage',  min: 75 } }
     pc_q30_r1:                { data: 'aggregated.pc_q30_r1',                 title: '%Q30 R1',                  fmt: { type: 'percentage',  min: 75 } }
@@ -132,6 +133,7 @@ runs:
     - clean_pc_q30
     - clean_yield_in_gb
     - clean_yield_q30_in_gb
+    - pc_phix
     - pc_adaptor
     - pc_opt_duplicate_reads
     - proc_status
@@ -246,6 +248,7 @@ lane_aggregation:
     - clean_pc_q30_r2
     - { column_def: 'lane_pc_optical_dups',  data: 'aggregated.lane_pc_optical_dups' }
     - pc_opt_duplicate_reads
+    - pc_phix
     - pc_adaptor
     - cv
     - review_statuses

@@ -61,6 +61,7 @@ run_elements:
 
     lane_pc_optical_dups:     { type: 'float',   required: False }
 
+    phix_reads: {               type: 'integer', required: False }
     clean_reads: {              type: 'integer', required: False }
     clean_bases_r1: {           type: 'integer', required: False }
     clean_q30_bases_r1: {       type: 'integer', required: False }
