@@ -133,8 +133,8 @@ runs:
     - clean_pc_q30
     - clean_yield_in_gb
     - clean_yield_q30_in_gb
-    - pc_phix
     - pc_adaptor
+    - pc_phix
     - pc_opt_duplicate_reads
     - proc_status
     - review_statuses
@@ -219,6 +219,7 @@ demultiplexing:
     - clean_pc_q30_r2
     - lane_pc_optical_dups
     - pc_adaptor
+    - pc_phix
     - pc_mapped_reads
     - pc_duplicate_reads
     - pc_opt_duplicate_reads
@@ -248,8 +249,8 @@ lane_aggregation:
     - clean_pc_q30_r2
     - { column_def: 'lane_pc_optical_dups',  data: 'aggregated.lane_pc_optical_dups' }
     - pc_opt_duplicate_reads
-    - pc_phix
     - pc_adaptor
+    - pc_phix
     - cv
     - review_statuses
     - useable_statuses
@@ -326,6 +327,7 @@ sample_run_elements:
     - clean_pc_q30
     - lane_pc_optical_dups
     - pc_adaptor
+    - pc_phix
     - pc_mapped_reads
     - pc_duplicate_reads
     - pc_opt_duplicate_reads
