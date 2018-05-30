@@ -214,7 +214,6 @@ class TestLIMSRestAPI(TestBase):
                  'project_id': 'testproject1', 'sample_id': 'sample2'}
             ]
         }
-        print(json_of_response(response))
         assert_json_equal(json_of_response(response), exp)
         response = self.client.get('/api/0.1/lims/sample_info?match={"project_status": "closed"}')
         assert response.status_code == 200
@@ -244,7 +243,6 @@ class TestLIMSRestAPI(TestBase):
                 'required_coverage': '15'
             }]
         }
-        print(json_of_response(response))
         assert_json_equal(json_of_response(response), exp)
 
         response = self.client.get('/api/0.1/lims/project_status?match={"project_status": "all"}')
@@ -274,7 +272,6 @@ class TestLIMSRestAPI(TestBase):
                 'required_coverage': '15'
             }]
         }
-        print(json_of_response(response))
         assert json_of_response(response) == exp
 
     def test_lims_sample_status(self):
