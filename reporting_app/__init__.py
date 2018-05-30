@@ -20,13 +20,13 @@ version = open(join(dirname(dirname(__file__)), 'version.txt')).read().strip()
 def get_git_revision_short_hash():
     try:
         return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('utf-8').strip()
-    except:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return None
 
 
 git_commit = get_git_revision_short_hash()
 if git_commit:
-    # This should not appear once deployed.
+    # This should not appear once deployed in production.
     version = version + '-' + git_commit
 
 

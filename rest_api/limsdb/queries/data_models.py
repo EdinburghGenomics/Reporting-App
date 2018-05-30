@@ -217,7 +217,7 @@ class Container:
         return sample_per_status
 
     def _extract_from_samples(self, field):
-        return ', '.join(sorted(set(getattr(sample,field) for sample in self.samples if getattr(sample,field))))
+        return ', '.join(sorted(set(getattr(sample, field) for sample in self.samples if getattr(sample, field))))
 
     @property
     def coverage(self):

@@ -50,13 +50,14 @@ class TestLIMSRestAPI(TestBase):
         cls.session = get_session()
         p1 = cls._create_project('testproject1', udfs={'Number of Quoted Samples': 9})
         p2 = cls._create_project('testproject2', udfs={'Number of Quoted Samples': 9}, closed=True)
-        s1 = cls._create_sample('sample1', p1, udfs={'Required Yield': 3000, 'Species': 'Gallus gallus'})
-        s2 = cls._create_sample('sample2', p1, udfs={'Required Yield': 3000, 'Species': 'Gallus gallus'})
-
-        p2s1 = cls._create_sample('sample5', p2, udfs={'Required Yield': 3000, 'Species': 'Homo Sapiens'})
-        p2s2 = cls._create_sample('sample6', p2, udfs={'Required Yield': 3000, 'Species': 'Homo Sapiens'})
-        p2s3 = cls._create_sample('sample7', p2, udfs={'Required Yield': 3000, 'Species': 'Homo Sapiens'})
-        p2s4 = cls._create_sample('sample8', p2, udfs={'Required Yield': 3000, 'Species': 'Homo Sapiens'})
+        udfs = {'Required Yield (Gb)': 30, 'Coverage (X)': 15, 'Species': 'Gallus gallus'}
+        s1 = cls._create_sample('sample1', p1, udfs=udfs)
+        s2 = cls._create_sample('sample2', p1, udfs=udfs)
+        udfs['Species'] = 'Homo Sapiens'
+        p2s1 = cls._create_sample('sample5', p2, udfs=udfs)
+        p2s2 = cls._create_sample('sample6', p2, udfs=udfs)
+        p2s3 = cls._create_sample('sample7', p2, udfs=udfs)
+        p2s4 = cls._create_sample('sample8', p2, udfs=udfs)
 
         a1 = cls._create_input_artifact(s1, 'plate1', 'H', '12')
         a2 = cls._create_input_artifact(s2, 'plate1', 'H', '11')
@@ -207,12 +208,13 @@ class TestLIMSRestAPI(TestBase):
         exp = {
             '_meta': {'total': 2},
             'data': [
-                {'Required Yield': '3000', 'Species': 'Gallus gallus', 'plate_id': 'plate1',
+                {'Required Yield (Gb)': '30', 'Coverage (X)': '15', 'Species': 'Gallus gallus', 'plate_id': 'plate1',
                  'project_id': 'testproject1', 'sample_id': 'sample1'},
-                {'Required Yield': '3000', 'Species': 'Gallus gallus', 'plate_id': 'plate1',
+                {'Required Yield (Gb)': '30', 'Coverage (X)': '15', 'Species': 'Gallus gallus', 'plate_id': 'plate1',
                  'project_id': 'testproject1', 'sample_id': 'sample2'}
             ]
         }
+        print(json_of_response(response))
         assert_json_equal(json_of_response(response), exp)
         response = self.client.get('/api/0.1/lims/sample_info?match={"project_status": "closed"}')
         assert response.status_code == 200
@@ -237,9 +239,12 @@ class TestLIMSRestAPI(TestBase):
                 'project_status': 'open',
                 'researcher_name': 'Jane Doe',
                 'species': 'Gallus gallus',
-                'started_date': None
+                'started_date': None,
+                'required_yield': '30',
+                'required_coverage': '15'
             }]
         }
+        print(json_of_response(response))
         assert_json_equal(json_of_response(response), exp)
 
         response = self.client.get('/api/0.1/lims/project_status?match={"project_status": "all"}')
@@ -264,9 +269,12 @@ class TestLIMSRestAPI(TestBase):
                 'nb_samples': 2,
                 'plate_id': 'plate1',
                 'project_id': 'testproject1',
-                'species': 'Gallus gallus'
+                'species': 'Gallus gallus',
+                'required_yield': '30',
+                'required_coverage': '15'
             }]
         }
+        print(json_of_response(response))
         assert json_of_response(response) == exp
 
     def test_lims_sample_status(self):
@@ -282,6 +290,8 @@ class TestLIMSRestAPI(TestBase):
                 'sample_id': 'sample1',
                 'species': 'Gallus gallus',
                 'started_date': None,
+                'required_yield': '30',
+                'required_coverage': '15',
                 'statuses': [{
                     'date': 'Feb 10 2018',
                     'name': 'sample_submission',
