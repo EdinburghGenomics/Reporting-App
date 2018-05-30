@@ -48,8 +48,7 @@ step_completed_to_status:
     Create Pooling CST Batch: SEQUENCING
     Create Production CST Batch: SEQUENCING
     AUTOMATED - Sequence: BIOINFORMATICS
-    Sample Review EG 1.0 ST: BIOINFORMATICS_REVIEWED
-    bioinformatics: DELIVERY
+    Data Release Trigger EG 1.0 ST: DELIVERY
     Data Release EG 1.0: FINISHED
     Finish Processing EG 1.0 ST: FINISHED
     Data Release EG 2.0 ST: FINISHED
@@ -70,7 +69,7 @@ step_queued_to_status:
     AUTOMATED - Make CST: SEQUENCING
     AUTOMATED - Make Pooled CST: SEQUENCING
     AUTOMATED - Sequence: SEQUENCING
-    Sample Review EG 1.0 ST: BIOINFORMATICS
+    Data Release Trigger EG 1.0 ST: BIOINFORMATICS_REVIEWED
     Data Release EG 2.0 ST: DELIVERY
     Request Repeats EG 1.0 ST: SAMPLE_REPEAT
     Finish Processing EG 1.0 ST: FINISHED
