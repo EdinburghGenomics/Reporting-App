@@ -1,7 +1,4 @@
 import statistics
-
-import collections
-
 from rest_api.aggregation.server_side.expressions import *
 from rest_api.aggregation.database_side import db
 
@@ -13,6 +10,7 @@ def deep_dict_update(d, u):
         else:
             d[k] = v
     return d
+
 
 class DataRelation:
     """
@@ -173,7 +171,8 @@ base_and_read_counts = {
     'clean_q30_bases_r2': Total('run_elements.clean_q30_bases_r2'),
     'total_reads': Total('run_elements.total_reads'),
     'passing_filter_reads': Total('run_elements.passing_filter_reads'),
-    'clean_reads': Total('run_elements.clean_reads')
+    'clean_reads': Total('run_elements.clean_reads'),
+    'phix_reads': Total('run_elements.phix_reads'),
 }
 
 
@@ -186,6 +185,7 @@ fastq_filtering = {
 
 yields_and_percentages = {
     'pc_pass_filter': Percentage('aggregated.passing_filter_reads', 'aggregated.total_reads'),
+    'pc_phix': Percentage('aggregated.phix_reads', 'aggregated.passing_filter_reads'),
     'pc_q30_r1': Percentage('aggregated.q30_bases_r1', 'aggregated.bases_r1'),
     'pc_q30_r2': Percentage('aggregated.q30_bases_r2', 'aggregated.bases_r2'),
     'pc_q30': Percentage(Add('aggregated.q30_bases_r1', 'aggregated.q30_bases_r2'), Add('aggregated.bases_r1', 'aggregated.bases_r2')),
@@ -209,6 +209,7 @@ class RunElement(DataRelation):
     aggregated_fields = [
         {
             'pc_pass_filter': Percentage('passing_filter_reads', 'total_reads'),
+            'pc_phix': Percentage('phix_reads', 'passing_filter_reads'),
             'pc_q30_r1': Percentage('q30_bases_r1', 'bases_r1'),
             'pc_q30_r2': Percentage('q30_bases_r2', 'bases_r2'),
             'pc_q30': Percentage(Add('q30_bases_r1', 'q30_bases_r2'), Add('bases_r1', 'bases_r2')),
@@ -339,7 +340,7 @@ class Sample(DataRelation):
             'most_recent_proc': MostRecent('analysis_driver_procs')
         },
         {
-            'from_run_elements':{
+            'from_run_elements': {
                 'mean_coverage': Total('run_elements.coverage.mean'),
                 'bam_file_reads': Total('run_elements.mapping_metrics.bam_file_reads'),
                 'mapped_reads': Total('run_elements.mapping_metrics.mapped_reads'),

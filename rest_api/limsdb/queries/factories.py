@@ -4,13 +4,11 @@ from flask import request
 from config import project_status as status_cfg
 from rest_api.common import retrieve_args
 from rest_api.limsdb import queries
-from rest_api.limsdb.queries.data_models import ProjectInfo, SampleInfo, Container
-from rest_api.limsdb.queries.data_models import Run
-from rest_api.limsdb.queries.data_models import Sample, Project
+from rest_api.limsdb.queries.data_models import ProjectInfo, SampleInfo, Container, Run, Sample, Project
 
 
 def _create_samples_info(session, match):
-    """This function queries the lims database for sample information and create SampleInfo objects"""
+    """Query the LIMS database for sample information and create SampleInfo objects"""
     all_samples = defaultdict(SampleInfo)
     project_id = match.get('project_id')
     project_status = match.get('project_status', 'open')
@@ -31,7 +29,7 @@ def _create_samples_info(session, match):
 
 
 def _create_samples(session, match):
-    """This function queries the lims database for sample information and create Sample objects"""
+    """Query the LIMS database for sample information and create Sample objects"""
     all_samples = defaultdict(Sample)
     project_id = match.get('project_id')
     project_status = match.get('project_status', 'open')
@@ -83,14 +81,14 @@ def _create_samples(session, match):
 
 
 def sample_status(session):
-    """This function queries the lims database for sample information and return json representation"""
+    """Query the LIMS database for sample information and return json representations"""
     kwargs = retrieve_args()
     samples = _create_samples(session, kwargs.get('match', {}))
     return [s.to_json() for s in samples]
 
 
 def sample_status_per_project(session):
-    """This function queries the lims database for sample information and aggregate at the project name level"""
+    """Query the LIMS database for sample information and aggregate at the project name level"""
     kwargs = retrieve_args()
     match = kwargs.get('match', {})
     samples = _create_samples(session, match)
@@ -113,7 +111,7 @@ def sample_status_per_project(session):
 
 
 def sample_status_per_plate(session):
-    """This function queries the lims database for sample information and aggregate at the plate name level"""
+    """Query the LIMS database for sample information and aggregate at the plate name level"""
     kwargs = retrieve_args()
     match = kwargs.get('match', {})
     samples = _create_samples(session, match)
@@ -127,14 +125,14 @@ def sample_status_per_plate(session):
 
 
 def sample_info(session):
-    """This function queries the lims database for sample information and return json representation"""
+    """Query the LIMS database for sample information and return json representation"""
     kwargs = retrieve_args()
     samples = _create_samples_info(session, kwargs.get('match', {}))
     return [s.to_json() for s in samples]
 
 
 def project_info(session):
-    """This function queries the lims database for sample information and aggregate at the project name level"""
+    """Query the LIMS database for sample information and aggregate at the project name level"""
     kwargs = retrieve_args()
     match = kwargs.get('match', {})
     project_name = match.get('project_id')
@@ -153,6 +151,7 @@ def project_info(session):
 
 
 def run_status(session):
+    """Query the LIMS database for run information"""
     kwargs = retrieve_args()
     time_since = kwargs.get('createddate', None)
     status = kwargs.get('status', None)

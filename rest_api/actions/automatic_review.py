@@ -1,15 +1,12 @@
 import os
-
-import datetime
-
 import yaml
+import datetime
 from cached_property import cached_property
 from egcg_core.clarity import connection, get_sample
 from egcg_core.constants import ELEMENT_REVIEW_COMMENTS, ELEMENT_REVIEW_DATE, ELEMENT_REVIEWED
 from eve.methods.patch import patch_internal
 from eve.methods.get import get
 from werkzeug.exceptions import abort
-
 from config import rest_config
 from rest_api import settings
 from rest_api.actions.reviews import Action
@@ -19,7 +16,7 @@ cfg_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__
 review_thresholds = yaml.safe_load(open(cfg_path, 'r'))
 
 
-class AutomaticReviewer():
+class AutomaticReviewer:
     reviewable_data = None
 
     @cached_property
@@ -115,12 +112,15 @@ class AutomaticLaneReviewer(AutomaticReviewer):
 
 
 class AutomaticRunReviewer(Action):
-
     def __init__(self, request):
         super().__init__(request)
         self.run_id = self.request.form.get('run_id')
 
-        lanes = _aggregate('run_elements', queries.run_elements_group_by_lane, request_args={'match':'{"run_id": "%s"}' % self.run_id})
+        lanes = _aggregate(
+            'run_elements',
+            queries.run_elements_group_by_lane,
+            request_args={'match': '{"run_id": "%s"}' % self.run_id}
+        )
         if not lanes:
             abort(404, 'No data found for run id %s.' % self.run_id)
         self.lane_reviewers = [AutomaticLaneReviewer(lane) for lane in lanes]
@@ -138,7 +138,6 @@ class AutomaticRunReviewer(Action):
 
 
 class AutomaticSampleReviewer(Action, AutomaticReviewer):
-
     def __init__(self, request):
         Action.__init__(self, request)
         self.sample_id = self.request.form.get('sample_id')
@@ -161,7 +160,7 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
         if data:
             return data[0]
         else:
-            (404, 'No data found for run id %s.' % self.sample_id)
+            abort(404, 'No data found for run id %s.' % self.sample_id)
 
     @property
     def sample_genotype(self):

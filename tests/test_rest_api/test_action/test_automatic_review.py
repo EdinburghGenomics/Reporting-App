@@ -1,5 +1,4 @@
 from unittest.mock import patch, Mock, PropertyMock
-
 from rest_api.actions import automatic_review as ar
 from rest_api.actions.automatic_review import AutomaticSampleReviewer
 from rest_api.aggregation.database_side import queries
@@ -27,7 +26,7 @@ failing_sample = {
     'called_gender': 'male',
     'genotype_validation': {'mismatching_snps': 3, 'no_call_chip': 1, 'no_call_seq': 0, 'matching_snps': 28},
     'pc_duplicate_reads': 16.20,
-    'coverage':{ 'mean': 30.156 },
+    'coverage': {'mean': 30.156},
     'clean_yield_q30': 89.33
 }
 
@@ -40,7 +39,7 @@ passing_sample = {
     'clean_yield_in_gb': 120.17,
     'clean_yield_q30': 95.82,
     'called_gender': 'female',
-    'coverage': {'mean': 30.34 },
+    'coverage': {'mean': 30.34},
     'pc_mapped_reads': 95.62,
     'pc_duplicate_reads': 20
 }
@@ -92,7 +91,7 @@ class TestLaneReviewer(TestBase):
         assert 'review_date' in self.passing_reviewer._summary
         assert self.passing_reviewer._summary['review_comments'] == 'failed due to some, failing, metrics'
 
-    @patch(ppath + 'get', return_value=({'data':run_elements}, ))
+    @patch(ppath + 'get', return_value=({'data': run_elements}, None, 'an_etag', 200, 'headers'))
     @patch(ppath + 'patch_internal')
     def test_push_review(self, mocked_patch, mocked_get):
         self.passing_reviewer.push_review()
@@ -132,10 +131,10 @@ class TestSampleReviewer(TestBase):
     def test_reviewable_data(self):
         with patch(ppath + '_aggregate', return_value=(passing_sample,)) as patch_aggregate, \
              self.patch_lims_samples:
-            self.reviewer.reviewable_data
-            patch_aggregate.assert_called_once_with('samples',
-                                                    queries.sample,
-                                                    request_args={'match':'{"sample_id": "sample1"}'})
+            _ = self.reviewer.reviewable_data
+            patch_aggregate.assert_called_once_with(
+                'samples', queries.sample, request_args={'match': '{"sample_id": "sample1"}'}
+            )
 
     def test_failing_metrics(self):
         with patch(ppath + '_aggregate', return_value=(passing_sample,)), self.patch_lims_samples:
@@ -176,4 +175,3 @@ class TestSampleReviewer(TestBase):
                 payload={'reviewed': 'pass', 'review_comments': 'pass', 'review_date': self.reviewer.current_time},
                 sample_id='sample1'
             )
-
