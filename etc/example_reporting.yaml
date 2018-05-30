@@ -5,6 +5,7 @@ reporting_app:
     key: 'a_key'
     user_db: reporting_app_users.sqlite
     rest_api: 'http://localhost:4999/api/0.1'
+    lims_url: http://clarity.com
 
     stream_handlers:
         - stream: 'ext://sys.stdout'

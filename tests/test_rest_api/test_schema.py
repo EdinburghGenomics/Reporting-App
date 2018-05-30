@@ -1,12 +1,11 @@
 from egcg_core import constants
-
 from config import schema
 from tests import Helper
 
 
 class TestSchema(Helper):
     def setUp(self):
-        self.constant_values = [v for k,v in constants.__dict__.items() if k.startswith('ELEMENT')]
+        self.constant_values = [v for k, v in constants.__dict__.items() if k.startswith('ELEMENT')]
 
     def test_schema_name_in_constant(self):
         list_values_in_constants = set()
@@ -26,7 +25,6 @@ class TestSchema(Helper):
                         schema_provided[field]['schema'],
                         islist=schema_provided[field]['type'] == 'list'
                     )
-
 
         for endpoint in ('runs', 'lanes', 'run_elements', 'unexpected_barcodes', 'projects', 'samples',
                          'analysis_driver_procs', 'analysis_driver_stages', 'actions'):

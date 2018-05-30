@@ -34,6 +34,7 @@ column_def:
     matching_snps:            { data: 'genotype_validation.matching_snps',    title: 'Matching snps' ,                                                 visible: 'false'}
     median_coverage:          { data: 'median_coverage',                      title: 'Median coverage',          fmt: { type: 'float', min: {field: 'Coverage (X)', default: 30} } }
     mean_coverage:            { data: 'coverage.mean',                        title: 'Mean coverage',            fmt: { type: 'float', min: {field: 'Coverage (X)', default: 30} } }
+    closed_date:              { data: 'close_date',                           title: 'Closed on',                fmt: { type: 'date' }, visible: 'false' }
     coverage_5X:              { data: 'coverage',                             title: '% covered 5X',             fmt: { name: 'coverage_5X', type: 'percentage' }, visible: 'false' }
     coverage_15X:             { data: 'coverage',                             title: '% covered 15X',            fmt: { name: 'coverage_15X', type: 'percentage' } }
     evenness:                 { data: 'coverage.evenness',                    title: '% Evenness',               fmt: { type: 'ratio_percentage' } }
@@ -67,6 +68,7 @@ column_def:
     pc_opt_duplicate_reads:   { data: 'aggregated.pc_opt_duplicate_reads',    title: '% opt duplicate reads',    fmt: { type: 'percentage', max: 25 } }
     pc_mapped_reads:          { data: 'aggregated.pc_mapped_reads',           title: '% mapped reads',           fmt: { type: 'percentage', min: 90 } }
     pc_pass_filter:           { data: 'aggregated.pc_pass_filter',            title: '% Pass filter',            fmt: { type: 'percentage' } }
+    pc_phix:                  { data: 'aggregated.pc_phix',                   title: '% Phix',                   fmt: { type: 'percentage' } }
     pc_properly_mapped_reads: { data: 'aggregated.pc_properly_mapped_reads',  title: '% properly mapped reads',  fmt: { type: 'percentage' }, visible: 'false' }
     pc_q30:                   { data: 'aggregated.pc_q30',                    title: '%Q30',                     fmt: { type: 'percentage',  min: 75 } }
     pc_q30_r1:                { data: 'aggregated.pc_q30_r1',                 title: '%Q30 R1',                  fmt: { type: 'percentage',  min: 75 } }
@@ -75,6 +77,7 @@ column_def:
     proc_status:              { data: 'aggregated.most_recent_proc.status',   title: 'Processing Status' }
     project_id:               { data: 'project_id',                           title: 'Project ID',               fmt: { link: '/projects/' }  }
     project_ids:              { data: 'project_ids',                          title: 'Projects',                 fmt: { link: '/projects/' } }
+    project_status:           { data: 'project_status',                       title: 'Status',                                                          visible: 'false'}
     plate_id:                 { data: 'plate_id',                             title: 'Plate' }
     properly_mapped_reads:    { data: 'properly_mapped_reads',                title: '# properly mapped reads',  fmt: { type: 'int' },    visible: 'false'}
     reviewed:                 { data: 'reviewed',                             title: 'Review status' }
@@ -132,6 +135,7 @@ runs:
     - clean_yield_in_gb
     - clean_yield_q30_in_gb
     - pc_adaptor
+    - pc_phix
     - pc_opt_duplicate_reads
     - proc_status
     - review_statuses
@@ -140,11 +144,15 @@ runs:
 
 projects:
     - project_id
+    - { column_def: 'reseacher', visible: 'true' }
+    - nb_quoted_samples
+    - { column_def: 'project_status', visible: 'true' }
+    - open_date
+    - { column_def: 'closed_date', visible: 'true' }
     - nb_samples
     - nb_samples_reviewed
     - nb_samples_delivered
-    - proc_status
-    - _created
+    - { column_def: 'proc_status', title: 'Bioinformatics processing' }
 
 
 project_status:
@@ -156,7 +164,9 @@ project_status:
     - library_type
     - nb_invoiced
     - nb_genotyped
+    - project_status
     - open_date
+    - closed_date
     - started_date
     - finished_date
     - nb_removed
@@ -212,6 +222,7 @@ demultiplexing:
     - clean_pc_q30_r2
     - lane_pc_optical_dups
     - pc_adaptor
+    - pc_phix
     - pc_mapped_reads
     - pc_duplicate_reads
     - pc_opt_duplicate_reads
@@ -242,6 +253,7 @@ lane_aggregation:
     - { column_def: 'lane_pc_optical_dups',  data: 'aggregated.lane_pc_optical_dups' }
     - pc_opt_duplicate_reads
     - pc_adaptor
+    - pc_phix
     - cv
     - review_statuses
     - useable_statuses
@@ -318,6 +330,7 @@ sample_run_elements:
     - clean_pc_q30
     - lane_pc_optical_dups
     - pc_adaptor
+    - pc_phix
     - pc_mapped_reads
     - pc_duplicate_reads
     - pc_opt_duplicate_reads

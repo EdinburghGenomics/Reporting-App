@@ -87,6 +87,7 @@ def project_info():
     )
 
 
+# Keep this for now for backward compatibility
 @app.route(_lims_endpoint('status/<status_type>'))
 @requires_auth('home')
 def lims_status_info(status_type):
@@ -96,10 +97,20 @@ def lims_status_info(status_type):
     )
 
 
+# Keep this for now for backward compatibility
 @app.route(_lims_endpoint('samples'))
 @requires_auth('home')
 def lims_sample_info():
     return lims_extract(
         'sample_info',
+        app
+    )
+
+
+@app.route(_lims_endpoint('<endpoint>'))
+@requires_auth('home')
+def lims_info(endpoint):
+    return lims_extract(
+        endpoint,
         app
     )

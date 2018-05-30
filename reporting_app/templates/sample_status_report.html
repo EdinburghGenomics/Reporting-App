@@ -1,9 +1,8 @@
-
 {% macro sample_status(sample_id, sample_statuses, lims_url) -%}
 {# args:
     sample_id (string)
     sample_statuses (dict) - contains information about the sample
-    sample_statuses.status (list) - list of status with date and inner processes from the LIMSDB REST API.
+    sample_statuses.statuses (list) - list of status with date and inner processes from the LIMSDB REST API.
     lims_url (string) - the url to the LIMS to create links
 #}
 <h2>
@@ -17,59 +16,58 @@
             View sample in LIMS
         </a>
     </div>
-    <div class="col-md-2 col-md-offset-5"></div>
-        <div class="panel-group" id="accordion">
-            <div class="panel">
-                <table class="table">
-                {% for status in sample_statuses.statuses %}
-                    {% set loopindex=loop.index0 %}
-                    <tr data-toggle="collapse" data-target=".{{ status.name }}-{{ loopindex }}">
-                        <th>
-                            {{ status.name }}
-                        </th>
-                        <th>
-                            {{ status.date }}
-                            <span class="badge pull-right">{{ status.processes|length }}</span>
-                        </th>
-                    </tr>
+    <div class="col-md-4 col-md-offset-5"></div>
+    <div class="panel-group" id="accordion">
+        <div class="panel">
+            <table class="table">
+            {% for status in sample_statuses.statuses %}
+                {% set loopindex=loop.index0 %}
+                <tr data-toggle="collapse" data-target=".{{ status.name }}-{{ loopindex }}">
+                    <th>
+                        {{ status.name }}
+                    </th>
+                    <th>
+                        {{ status.date }}
+                        <span class="badge pull-right">{{ status.processes|length }}</span>
+                    </th>
+                </tr>
 
-                        {% for process in status.processes %}
-                            <tr class="collapse out budgets {{ status.name }}-{{ loopindex }}">
-                            {% if process.type == 'complete' %}
-                                <td style="padding-left:20px;">
-                                    <a href="{{ lims_url }}/clarity/work-complete/{{ process.process_id }}" target="_blank">
-                                        {{ process.name }}
-                                    </a>
-                                </td>
-                                <td>
-                                    {{ process.date }}
-                                </td>
-                            {% elif process.type == 'progress' %}
-                                <td style="padding-left:20px;">
-                                    <a href="{{ lims_url }}/clarity/work-details/{{ process.process_id }}" target="_blank">
-                                        {{ process.name }}
-                                    </a>
-                                </td>
-                                <td>
-                                    {{ process.date }}
-                                    <span class="badge pull-right"> In Progress </span>
-                                </td>
-                            {% else %}
-                                <td style="padding-left:20px;">
-                                    <a href="{{ lims_url }}/clarity/queue/{{ process.process_id }}" target="_blank" >
-                                        {{ process.name }}
-                                    </a>
-                                </td>
-                                <td>
-                                    {{ process.date }}
-                                    <span class="badge pull-right"> Queued </span>
-                                </td>
-                            {% endif %}
-                            </tr>
-                        {% endfor %}
+                {% for process in status.processes %}
+                    <tr class="collapse out budgets {{ status.name }}-{{ loopindex }}">
+                    {% if process.type == 'complete' %}
+                        <td style="padding-left:20px;">
+                            <a href="{{ lims_url }}/clarity/work-complete/{{ process.process_id }}" target="_blank">
+                                {{ process.name }}
+                            </a>
+                        </td>
+                        <td>
+                            {{ process.date }}
+                        </td>
+                    {% elif process.type == 'progress' %}
+                        <td style="padding-left:20px;">
+                            <a href="{{ lims_url }}/clarity/work-details/{{ process.process_id }}" target="_blank">
+                                {{ process.name }}
+                            </a>
+                        </td>
+                        <td>
+                            {{ process.date }}
+                            <span class="badge pull-right"> In Progress </span>
+                        </td>
+                    {% else %}
+                        <td style="padding-left:20px;">
+                            <a href="{{ lims_url }}/clarity/queue/{{ process.process_id }}" target="_blank" >
+                                {{ process.name }}
+                            </a>
+                        </td>
+                        <td>
+                            {{ process.date }}
+                            <span class="badge pull-right"> Queued </span>
+                        </td>
+                    {% endif %}
+                    </tr>
+                    {% endfor %}
                 {% endfor %}
-                </table>
-            </div>
+            </table>
         </div>
     </div>
 </div>
