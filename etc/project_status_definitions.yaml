@@ -49,6 +49,7 @@ step_completed_to_status:
     bioinformatics: DELIVERY
     Data Release EG 1.0: FINISHED
     Finish Processing EG 1.0 ST: FINISHED
+    Data Release EG 2.0 ST: FINISHED
     Remove From Processing EG 1.0 ST: SAMPLE_REMOVED
     Request Repeats EG 1.0 ST: SAMPLE_REMOVED
 
@@ -66,7 +67,7 @@ step_queued_to_status:
     AUTOMATED - Make CST: SEQUENCING
     AUTOMATED - Make Pooled CST: SEQUENCING
     AUTOMATED - Sequence: SEQUENCING
-    Data Release EG 1.0: DELIVERY
+    Data Release EG 2.0 ST: DELIVERY
     Request Repeats EG 1.0 ST: SAMPLE_REPEAT
     Finish Processing EG 1.0 ST: FINISHED
 
