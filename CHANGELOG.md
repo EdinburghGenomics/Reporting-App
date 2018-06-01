@@ -1,10 +1,12 @@
 Changelog for Reporting-App
 ===========================
 
-0.19 (unreleased)
------------------
+0.18.2 (2018-06-01)
+-------------------
 
-- Nothing changed yet.
+- Add field for storing phix and display it on run/lane/run_elements
+- Fix status definition for genotyping and finished 
+- Code refactor 
 
 
 0.18.1 (2018-04-30)
