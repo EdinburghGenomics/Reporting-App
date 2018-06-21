@@ -1,10 +1,151 @@
 Changelog for Reporting-App
 ===========================
 
-0.12.1 (Unreleased)
--------------------
-- Add Repeat status in sample/plate/project status
+0.19 (unreleased)
+-----------------
 
+- Nothing changed yet.
+
+
+0.18.2 (2018-06-01)
+-------------------
+
+- Add field for storing phix and display it on run/lane/run_elements
+- Fix status definition for genotyping and finished 
+- Code refactor 
+
+
+0.18.1 (2018-04-30)
+-------------------
+
+- fix project status URL bug
+
+
+0.18 (2018-04-27)
+-----------------
+
+- Allow multiple projects to be viewed on one page
+- Show open and closed projects
+- Fix bug in lane review
+
+
+0.17.1 (2018-02-22)
+-------------------
+
+- Fix process in progress in sample's process list
+- Add other insert type in schema to record non standard insert and fix median insert size
+- Fix sample status remove by adding "Request Repeat"
+- Fix schema to support pipeline resume
+- Add interop metrics to the lane end point
+
+0.17 (2018-01-17)
+-----------------
+
+- add tests for limsdb
+- get coverage values from rest API/LIMS rather than from hardcoded values
+- Use aggregated data
+
+
+0.16 (2017-11-27)
+-----------------
+
+- Added on-insert data aggregation via Eve database hooks
+- Added a Python 3.6 build
+- Removed Werkzeug server option
+- Updated to Eve 0.7.4 and PyMongo 3.5.1
+- Remove sample expected yield and add required yield/yieldq30/coverage
+- Fix date started in sample status
+
+
+0.15.2 (2017-11-08)
+-------------------
+
+- Fix coloring issue that caused some rows to use the wrong threshold
+
+
+0.15.1 (2017-11-08)
+-------------------
+
+- Fix thresholds for Automatic review actions and coloring in the web app to match SOPs
+- Add schema information to support mapping metrics in run_elements
+- Fix automatic sample review (Server error) 
+
+0.15 (2017-09-06)
+-----------------
+
+- Added initiation of LIMS-based run/sample review
+    - modal popup to initiate review of selected rows of a datatable
+    - sends a POST entry to new `actions` endpoint
+      - starts a LIMS step and sends back the step url
+- Automatic run/sample review
+    - as from EGCG-Project-Management
+    - applies metric-based review and pushes results directly back to the database 
+- Removed `/runs/recentlims` page
+- Added cst_date to `/lims/status/run_status`
+- Added `Finish Processing` to project status
+- Fixed setup in Docker image entrypoint
+- Added recent, current_year and year_to_date run views
+- New datatable columns: `coverage_5X`, `cst_date`, `mean_coverage` (pointing to coverage.mean)
+- New schema entries:
+    - run_elements: `useable_reviewer`
+    - projects: `sample_pipeline` (stores which pipeline version to use for a sample in a project)
+    - samples: `useable_reviewer`, `files_delivered.size`, `files_downloaded.size`
+    - analysis_driver_procs: `pipeline_used` (stores the pipeline version run on a dataset)
+    - `actions` endpoint
+    - records actions performed on the REST API
+- Schema fixes:
+    - fixed data type of `useable_comments`
+- Added EGCG-Core and PyClarity-Lims as requirements
+
+
+0.14.3 (2017-06-28)
+-------------------
+
+- Added 2D barcode field to sample view
+- Made tiles_filtered, trim_r1 and trim_r2 nullable
+- Added files_delivered and files_downloaded to sample schema
+- Added data_source to analysis_driver_proc schema
+
+
+0.14.2 (2017-05-24)
+-------------------
+
+- Add Cleaned yield/%Q30 in many pages along with colouring of row that described filtered runs
+
+
+0.14.1 (2017-05-16)
+-------------------
+
+- Fix queries to sample info and sample status with no match statement.
+
+
+0.14 (2017-05-16)
+-----------------
+
+- Add unitest to javascript code through Qunit
+- Reorganise the Samples and Runs pages to remove the one nobody was using
+
+
+0.13.2 (2017-05-02)
+-------------------
+
+- Add new lims end point showing sample information from udfs
+- Add multiple columns in sample report
+- Fix FluidX samples status 
+
+
+0.13.1 (2017-04-18)
+-------------------
+
+- Fix sample page
+
+
+0.13 (2017-04-18)
+-----------------
+ - Add repeat status in sample/plate/project status
+ - Enable merging of multiple rest API queries in datatables: Use this to get the LIMS status into bioinformatics report
+ - Stage timeline has been refactored and now shows exit status
+  
 0.12
 -----
  - Add abbility to create a Docker image of the reporting with sensible default 

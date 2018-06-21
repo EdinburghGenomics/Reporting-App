@@ -1,89 +1,117 @@
 import statistics
 import datetime
+from egcg_core.app_logging import logging_default
+
+logger = logging_default.get_logger(__name__)
 
 
 def resolve(query, element):
     q = {}
     for k, v in query.items():
-        q[k] = v.evaluate(element)
+        if isinstance(v, Expression):
+            q[k] = v.evaluate(element)
+        elif isinstance(v, dict):
+            # recurse for dictionaries
+            q[k] = resolve(v, element)
+        else:
+            raise ValueError('Unsupported type %s for key %s' % (type(v), k))
     return q
 
 
 class Expression:
-    default_return_value = None
-
-    def __init__(self, *args):
+    def __init__(self, *args, filter_func=None):
         self.args = args
-
-    def _expression(self, *args):
-        return 0
-
-    def _evaluate(self, *args):
-        try:
-            return self._expression(*args)
-        except (ZeroDivisionError, TypeError):
-            return self.default_return_value
-
-    def _resolve_element(self, e, param):
-        pass
+        self.filter_func = filter_func
 
     def evaluate(self, e):
-        data = []
+        raise NotImplementedError
+
+
+class Calculation(Expression):
+    default_return_value = None
+
+    def _expression(self, *args):
+        raise NotImplementedError
+
+    def _resolve_element(self, element, query_string):
+        e = element.copy()
+        queries = query_string.split('.')
+
+        for q in queries[:-1]:
+            e = e.get(q, {})
+        return e.get(queries[-1])
+
+    def evaluate(self, e):
         if e is None:
             return None
+
+        _args = []
         for a in self.args:
             if isinstance(a, Expression):
                 data_point = a.evaluate(e)
-            else:
+            elif isinstance(a, int) or isinstance(a, float):
+                # keep the value as they are for numbers
+                data_point = a
+            elif isinstance(a, str):
+                # This is a string describing a query
                 data_point = self._resolve_element(e, a)
+            else:
+                raise ValueError('Unsupported type %s in resolving %s' % (type(a).__name__, type(self).__name__))
             if data_point is None:
                 return self.default_return_value
-            data.append(data_point)
-        return self._evaluate(*data)
+
+            _args.append(data_point)
+
+        try:
+            return self._expression(*_args)
+        except (ZeroDivisionError, TypeError) as e:
+            logger.error(e)
+            return self.default_return_value
 
 
-class SingleExp(Expression):
-    def _resolve_element(self, element, param):
-        pparam = param.split('.')
-        for e in pparam[:-1]:
-            element = element.get(e)
-        return element.get(pparam[-1])
+class Accumulation(Calculation):
+    def _resolve_element(self, element, query_string):  # TODO: make the list nesting level configurable.
+        """
+        Drill down into the first item of the query string and resolve each item within using the rest of the query
+        string.
+        """
+        e = element.copy()
+        queries = query_string.split('.')
+        subelements = e.get(queries[0])
+        if subelements is None:
+            return None
 
-
-class Accumulation(Expression):
-    def __init__(self, *args, filter_func=None):
-        super().__init__(*args)
-        self.filter_func = filter_func
-
-    def _resolve_element(self, element, param):
-        pparam = param.split('.')
-        for p in pparam[:-1]:
-            element = element.get(p)
-        if element is None:
-            return
+        assert type(subelements) is list, 'In %s: element %s is not a list' % (self.__class__.__name__, element)
         if self.filter_func:
-            element = list(filter(self.filter_func, element))
+            subelements = list(filter(self.filter_func, subelements))
 
-        assert type(element) is list, 'In %s: element %s is not a list' % (self.__class__.__name__, element)
-        return [e.get(pparam[-1]) for e in element]
+        resolved_subelements = []
+        for s in subelements:
+            for q in queries[1:]:
+                if q in s:
+                    s = s.get(q)
+                else:
+                    s = None
+                    break
+            resolved_subelements.append(s)
+
+        return resolved_subelements
+
+    def _expression(self, *args):
+        raise NotImplementedError
 
 
-class Constant(Expression):
-    def evaluate(self, e):
-        return self.args[0]
-
-
-class Add(SingleExp):
+class Add(Calculation):
     def _expression(self, *args):
         return sum(a for a in args if a is not None)
 
 
-class Multiply(SingleExp):
+class Multiply(Calculation):
     def _expression(self, arg1, arg2):
         return arg1 * arg2
 
 
-class Divide(SingleExp):
+class Divide(Calculation):
     def _expression(self, num, denom):
         return num / denom
 
@@ -101,16 +129,20 @@ class CoefficientOfVariation(Accumulation):
         return statistics.stdev(elements) / statistics.mean(elements)
 
 
-class Concatenate(Accumulation):
-    default_return_value = ''
+class ToSet(Accumulation):
+    default_return_value = []
 
     def _expression(self, elements):
-        return list(sorted(set(elements)))
+        return sorted(set(e for e in elements if e is not None))
 
 
-class NbUniqueElements(SingleExp):
+class NbUniqueElements(Calculation):
     def _expression(self, elements):
-        elements = [e for e in elements if e is not None]
+        if self.filter_func:
+            elements = [e for e in elements if self.filter_func(e)]
+        else:
+            elements = [e for e in elements if e is not None]
+
         return len(set(elements))
 
 
@@ -123,7 +155,7 @@ class Total(Accumulation):
             return sum(elements)
 
 
-class MostRecent(SingleExp):
+class MostRecent(Calculation):
     def __init__(self, *args, date_field='_created', date_format='%d_%m_%Y_%H:%M:%S'):
         self.date_field = date_field
         self.date_format = date_format
@@ -135,6 +167,6 @@ class MostRecent(SingleExp):
 
 
 __all__ = (
-    'Constant', 'Add', 'Multiply', 'Divide', 'Percentage', 'CoefficientOfVariation', 'Concatenate',
-    'NbUniqueElements', 'Total', 'MostRecent'
+    'resolve', 'Calculation', 'Accumulation', 'Add', 'Multiply', 'Divide', 'Percentage',
+    'CoefficientOfVariation', 'ToSet', 'NbUniqueElements', 'Total', 'MostRecent'
 )

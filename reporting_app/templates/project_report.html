@@ -1,0 +1,7 @@
+{% extends 'untabbed_datatables.html' %}
+{% from 'proc_report.html' import proc_report %}
+
+{% block content %}
+{{ super() }}
+{{ proc_report(procs) }}
+{% endblock %}

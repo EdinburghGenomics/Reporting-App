@@ -1,17 +1,7 @@
 {% extends 'reporting_base.html' %}
-{% from 'datatable.html' import datatable, dt_header %}
-
-{% block head %}
-    {{ super() }}
-    {{ dt_header() }}
-{% endblock %}
+{% from 'datatable_macro.html' import datatable %}
 
 {% block content %}
-{% if description_html %}
-    {{ description_html|safe }}
-{% else %}
-    {{ description }}
-{% endif %}
 
 {% if tables %}
     {% for table in tables %}

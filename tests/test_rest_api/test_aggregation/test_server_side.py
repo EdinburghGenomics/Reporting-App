@@ -1,7 +1,7 @@
-from rest_api.aggregation import server_side
-from tests.test_rest_api.test_aggregation import TestAggregation, FakeRequest
 import json
 from datetime import datetime
+from rest_api.aggregation import server_side
+from tests.test_rest_api.test_aggregation import TestAggregation, FakeRequest
 
 
 class FakePayload:
@@ -66,8 +66,6 @@ class TestServerSide(TestAggregation):
         if incomplete:
             filename += '_incomplete'
         filename += '.json'
-        print()
-        print(filename)
         self._compare_jsons(
             json.loads(server_side._aggregate_data(json.load(self._json_test_file('pre', filename)), aggregate, trim_run_elements=trim_run_elements)),
             json.load(self._json_test_file('post', filename))

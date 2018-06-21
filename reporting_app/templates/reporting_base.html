@@ -1,74 +1,53 @@
 {% extends 'base.html' %}
 
+{% block head %}
+    {{ super() }}
+
+    <!-- DataTables -->
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.11/js/dataTables.bootstrap.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/buttons/1.1.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/buttons/1.1.2/js/buttons.bootstrap.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/buttons/1.1.2/js/buttons.colVis.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/buttons/1.1.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/select/1.1.2/js/dataTables.select.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/fixedheader/3.1.2/js/dataTables.fixedHeader.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/pdfmake.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.rawgit.com/bpampuch/pdfmake/0.1.18/build/vfs_fonts.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="//cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='datatable.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.11/css/dataTables.bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/buttons/1.1.2/css/buttons.bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/select/1.1.2/css/select.bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css"/>
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/fixedheader/3.1.2/css/fixedHeader.dataTables.min.css"/>
+
+    <!-- humanize and column formatting -->
+    <script src="/static/humanize.js"></script>
+    <script src="/static/column_formatter.js"></script>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" type="text/css"/>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script src="/static/stage_timeline.js"></script>
+
+    <style>
+        .vis-item .vis-item-overflow {
+            overflow: visible;
+        }
+
+        div.vis-tooltip {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;  // override vis defaults back to bootstrap
+            background-color: #f9f9f9;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
-<div class="navbar navbar-inverse navbar-static-top" role="navigation">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                <span class="sr-only">Toggle Navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a href="/" class="navbar-brand">
-                <img style="height:28px;" src="{{ url_for('static', filename='img/EG_logo_final_version_colourwhite_cropped_white.svg') }}">
-            </a>
-        </div>
-        <div class="navbar-collapse collapse">
-            <ul class="nav navbar-nav navbar-right" >
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Runs<b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li class="dropdown-header">Lims</li>
-                        <li><a href="/runs">Active runs</a></li>
-                        <li class="dropdown-header">QC</li>
-                        <li><a href="/pipelines/runs/all">All</a></li>
-                        <li><a href="/pipelines/runs/recent">Recent</a></li>
-                        <li><a href="/pipelines/runs/queued">Queued</a></li>
-                        <li><a href="/pipelines/runs/processing">Processing</a></li>
-                        <li><a href="/pipelines/runs/finished">Finished</a></li>
-                        <li><a href="/pipelines/runs/archived">Archived</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a href="#" class="dropdown=toggle" data-toggle="dropdown">Samples<b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="/pipelines/samples/all">All</a></li>
-                        <li><a href="/pipelines/samples/queued">Queued</a></li>
-                        <li><a href="/pipelines/samples/processing">Processing</a></li>
-                        <li><a href="/pipelines/samples/finished">Finished</a></li>
-                        <li><a href="/pipelines/samples/archived">Archived</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a href="#" class="dropdown=toggle" data-toggle="dropdown">Projects<b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="/projects">Projects</a></li>
-                        <li><a href="/project_status">Project Status</a></li>
-                    </ul>
-                </li>
-                <li><a href="/charts">Charts</a></li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown=toggle" data-toggle="dropdown">{{ current_user.username }}<b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="/change_password">Change password</a></li>
-                        <li><a href="/logout">Logout</a></li>
-                    </ul>
-
-                </li>
-            </ul>
-        </div>
-
-    </div>
-</div>
-
 {{ super() }}
+{% if include_review_modal %}
+    {% include 'review_modal.html' %}
+{% endif %}
 
-<footer class="footer">
-    <div class="container">
-        <p class="text-muted">
-            Edinburgh Genomics Reporting App version <a href="https://github.com/EdinburghGenomics/Reporting-App/tree/v{{ version }}">{{ version }}</a>
-        </p>
-    </div>
-</footer>
 {% endblock %}

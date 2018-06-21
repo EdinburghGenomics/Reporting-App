@@ -364,63 +364,79 @@ function all_tat_charts(data){
 }
 
 
-
-function aggregate_on_date(data, time_period, fields){
+function aggregate_on_date(run_elements, time_period, fields) {
     var aggregate = {};
     // make dict to aggregate data provided by month and by week
     // for each date that exists in the data provided, set the value as the associated data for that date
     // if data already exists for date corresponding to that key, add the current associated data to the existing values
-    for (var e=0; e < data.length; e++) {
-        var d = data[e];
-        st = moment(d['date']).startOf(time_period);
-        en = moment(d['date']).endOf(time_period);
+    var i;
+    var data_len = run_elements.length;  // cache the data length to avoid looking it up 30,000 times
+    var j;
+    var fields_len = fields.length;
+    for (i=0; i<data_len; i++) {
+        var e = run_elements[i];
+        // startOf and endOf have side-effects, so these need to be done on new moment() objects
+        var st = moment(e['date']).startOf(time_period);
+        var en = moment(e['date']).endOf(time_period);
         var middle_of_time_period = st.add(en.diff(st) / 2);
-        if(typeof aggregate[middle_of_time_period] == 'undefined'){
+
+        if (aggregate[middle_of_time_period] == undefined) {
             aggregate[middle_of_time_period] = {};
-            for (var i = 0; i < fields.length; i++) {
-                aggregate[middle_of_time_period][fields[i]['name']] = d[fields[i]['name']];
+            for (j=0; j<fields_len; j++) {
+                aggregate[middle_of_time_period][fields[j]] = e[fields[j]];
             }
         } else {
-            for (var i = 0; i < fields.length; i++) {
-                aggregate[middle_of_time_period][fields[i]['name']] += d[fields[i]['name']];
+            for (j=0; j<fields_len; j++) {
+                aggregate[middle_of_time_period][fields[j]] += e[fields[j]];
             }
         }
     }
     return aggregate
 }
 
-function unwind_samples_sequenced(sample_data){
+function unwind_samples_sequenced(run_elements) {
     var all_sample_data = [];
     var seen_sample_ids = {};
-    for (var e=0; e < sample_data.length; e++) {
-        d = sample_data[e];
-        sample_id = d['sample_id'];
-        run_id = d['run_id']
-        if (! (sample_id in seen_sample_ids) ) {
-            seen_sample_ids[sample_id] = [run_id]
+
+    var i;
+    var len = run_elements.length;
+    for (i=0; i<len; i++) {
+        var e = run_elements[i];
+        var sample_id = e['sample_id'];
+        var run_id = e['run_id'];
+        if (seen_sample_ids[sample_id] == undefined) {
+            seen_sample_ids[sample_id] = [run_id];
         } else {
-            seen_sample_ids[sample_id].push(run_id)
+            seen_sample_ids[sample_id].push(run_id);
         }
     }
-    for (var key in seen_sample_ids) {
-        var runs = seen_sample_ids[key].slice(0);
-        var unique_runs = Array.from(new Set(runs));
-        unique_runs.sort();
-        var repeat_unique_runs = unique_runs.slice(1)
 
-        if (unique_runs.length > 0) {
-            all_sample_data.push({'date': moment(unique_runs[0].split("_")[0], "YYMMDD").toDate(),
-            'total': 1,
-            'first': 1,
-            'repeat': 0
-            });
-            for (run in repeat_unique_runs) {
-                all_sample_data.push({
-                    'date': moment(repeat_unique_runs[run].split("_")[0], "YYMMDD").toDate(),
+    var sample;
+    var run;
+    for (sample in seen_sample_ids) {
+        var runs = seen_sample_ids[sample];
+        var uniq_runs = _.uniq(runs);
+        uniq_runs.sort();
+        var repeat_uniq_runs = uniq_runs.slice(1);
+
+        if (uniq_runs.length > 0) {
+            all_sample_data.push(
+                {
+                    'date': moment(uniq_runs[0].split('_')[0], 'YYMMDD').toDate(),
                     'total': 1,
-                    'first': 0,
-                    'repeat': 1
-                });
+                    'first': 1,
+                    'repeat': 0
+                }
+            );
+            for (run in repeat_uniq_runs) {
+                all_sample_data.push(
+                    {
+                        'date': moment(repeat_uniq_runs[run].split('_')[0], 'YYMMDD').toDate(),
+                        'total': 1,
+                        'first': 0,
+                        'repeat': 1
+                    }
+                );
             }
         }
     }
@@ -429,155 +445,162 @@ function unwind_samples_sequenced(sample_data){
 
 function sortDictByDate(dict){
     var sorted_dict = {};
-    var sort = (Object.keys(dict)).sort(function(a, b) {
-    return new Date(a) - new Date(b);
+    var sort = Object.keys(dict).sort(function(a, b) {
+        return new Date(a) - new Date(b);
     });
-    var sort_aggregate_weeks = sort.map(function(t){
+    var sort_aggregate_weeks = sort.map(function(t) {
         sorted_dict[t] = dict[t];
     });
     return sorted_dict
 }
 
-function add_cummulative(dict, fields){
-    prev = {};
-    for (var k1 in dict){
-        for (var i = 0; i < fields.length; i++) {
-            dict[k1]['cumm_' + fields[i]['name']] = (prev[fields[i]['name']] || 0) + dict[k1][fields[i]['name']];
-            prev[fields[i]['name']] = dict[k1]['cumm_' + fields[i]['name']];
+function add_cumulative(dict, fields){
+    var prev = {};
+
+    var k;
+    var i;
+    var len = fields.length;
+    for (k in dict) {
+        for (i=0; i<len; i++) {
+            var f = fields[i];
+            dict[k]['cumm_' + f] = (prev[f] || 0) + dict[k][f];
+            prev[f] = dict[k]['cumm_' + f];
         }
     }
 }
 
-// This function will generate a google charts datatable from a dict of values where the key will be the
+// This function will generate a config for a google charts datatable from a dict of values where the key is the
 // X axis and the value a dict containing the fields to display.
-// The X formating is described in the X format dict and fields is a list discribing the fields that are needed and their format
-function datatable_from_dict(dict, X_format, fields){
-    var cols = [];
+// Formatting for the X value is given in format_func and fields is a list describing the fields needed
+function datatable_config(dict, format_func, fields) {
     var rows = [];
-    cols.push({
-        'id':X_format['name'] || 'Date',
-        'label': X_format['name'] || 'Date',
-        'type': X_format['type'] || 'date'
-    });
-    for (var i = 0; i < fields.length; i++) {
-        cols.push({
-            'id': fields[i]['name'],
-            'label': fields[i]['title'] || field['name'],
-            'type': fields[i]['type'] || 'number'
-        });
-    }
-    for (var k in dict) {
-        var cells = [];
-        if (X_format['format'] !== undefined){
-            cells.push(X_format['format'](k));
-        }else{
-            cells.push({'v':new Date(k)});
-        }
-        for (var i = 0; i < fields.length; i++) {
-            if (fields[i]['format'] !== undefined){
-                cells.push(
-                    field['format'](dict[k][fields[i]['name']])
-                );
-            }else{
-                cells.push({'v': dict[k][fields[i]['name']]});
+    var cols = [
+        {'id': 'Date', 'label': 'Date', 'type': 'date'}
+    ];
+
+    var i;
+    var len = fields.length;
+    for (i=0; i<len; i++) {
+        cols.push(
+            {
+                'id': fields[i]['name'],
+                'label': fields[i]['title'] || field['name'],
+                'type': fields[i]['type'] || 'number'
             }
+        );
+    }
+
+    var k;
+    var i;
+    for (k in dict) {
+        var cells = [format_func(k)];
+        for (i=0; i<len; i++) {
+            cells.push({'v': dict[k][fields[i]['name']]});
         }
         rows.push({'c': cells});
     }
-    return new google.visualization.DataTable({'cols': cols, 'rows': rows});
+    return {'cols': cols, 'rows': rows}
 }
 
 // Format a date as a week
-function format_week(d){
-    var m = moment(new Date(d));
+function format_week(dateformat) {
+    var d = new Date(dateformat);
     return {
-        'v': new Date(d),
-        'f': 'week '+ m.format('w YYYY') + ' (' + m.startOf('week').format('DD/MM') + ' -  ' + m.endOf('week').format('DD/MM') + ')'
-    } ;
+        'v': d,
+        'f': 'week ' + moment(d).format('w YYYY') + ' (' + moment(d).startOf('week').format('DD/MM') + ' -  ' + moment(d).endOf('week').format('DD/MM') + ')'
+    };
 }
 
 // Format a date as a month
-function format_month(m){
-    return {'v': new Date(m), 'f': moment(new Date(m)).format('MMM YYYY')};
+function format_month(dateformat) {
+    var d = new Date(dateformat);
+    return {'v': d, 'f': moment(d).format('MMM YYYY')};
 }
 
 // Add a percentage in a list of dict with the provided name
 function add_percentage(dict, numerator, denominator, name){
-    for (k in dict){
+    var k;
+    for (k in dict) {
         dict[k][name] = dict[k][numerator]/dict[k][denominator];
     }
 }
 
 
-function merge_dict_of_object(obj1, obj2){
+function merge_dict_of_objects(obj1, obj2){
     var obj3 = {};
-    for (k in obj1){
-        obj3[k]={};
-        for (var attrname in obj1[k]) { obj3[k][attrname] = obj1[k][attrname]; }
-        for (var attrname in obj2[k]) { obj3[k][attrname] = obj2[k][attrname]; }
+
+    var k;
+    var attrname;
+    for (k in obj1) {
+        obj3[k] = {};
+        for (attrname in obj1[k]) { obj3[k][attrname] = obj1[k][attrname]; }
+        for (attrname in obj2[k]) { obj3[k][attrname] = obj2[k][attrname]; }
     }
     return obj3;
 }
 
-function plotCharts(input_data) {
+function plotCharts(run_elements) {
     // This function adds a date object in a dict
-    input_data.map(function(element) {
-        element['date'] = moment(element['run_id'].split("_")[0], "YYMMDD").toDate();
+    run_elements.map(function(element) {
+        element['date'] = moment(element['run_id'].split('_')[0], 'YYMMDD');
     });
     // Add filtered data
-    input_data.map(function(element) {
-        if (element['useable'] == 'yes'){
+    run_elements.map(function(element) {
+        if (element['useable'] == 'yes') {
             element['useable_yield_in_gb'] = element['yield_in_gb'];
-        }else{
+        } else {
             element['useable_yield_in_gb'] = 0;
         }
     });
 
-    fields = [
-        {'name':'yield_in_gb', 'title': 'Yield'},
-        {'name':'yield_q30_in_gb', 'title': 'Yield Q30'},
-        {'name': 'useable_yield_in_gb', 'title': 'Useable yield'}
-    ];
+    var field_names = ['yield_in_gb', 'yield_q30_in_gb', 'useable_yield_in_gb'];
 
     // Aggregate per month and weeks
-    var aggregate_months = sortDictByDate(aggregate_on_date(input_data, 'month', fields));
-    var aggregate_weeks = sortDictByDate(aggregate_on_date(input_data, 'week', fields));
+    var aggregate_months = sortDictByDate(aggregate_on_date(run_elements, 'month', field_names));
+    var aggregate_weeks = sortDictByDate(aggregate_on_date(run_elements, 'week', field_names));
     add_percentage(aggregate_weeks, 'yield_q30_in_gb', 'yield_in_gb', 'ratio_Q30');
     add_percentage(aggregate_months, 'yield_q30_in_gb', 'yield_in_gb', 'ratio_Q30');
     add_percentage(aggregate_weeks, 'useable_yield_in_gb', 'yield_in_gb', 'ratio_useable');
     add_percentage(aggregate_months, 'useable_yield_in_gb', 'yield_in_gb', 'ratio_useable');
 
-    add_cummulative(aggregate_weeks, fields);
-    add_cummulative(aggregate_months, fields);
+    add_cumulative(aggregate_weeks, field_names);
+    add_cumulative(aggregate_months, field_names);
 
-    fields.push({'name':'ratio_Q30', 'title': '%Q30'});
-    fields.push({'name':'ratio_useable', 'title': '% useable'});
-    fields.push({'name':'cumm_yield_in_gb', 'title': 'Cummulative Yield'});
-    fields.push({'name':'cumm_yield_q30_in_gb', 'title': 'Cummulative Yield Q30'});
+    var unwound_samples = unwind_samples_sequenced(run_elements);
 
-    fields_sample = [
-        {'name':'first', 'title': 'First'},
-        {'name':'repeat', 'title': 'Repeat'},
-        {'name':'total', 'title': 'Total'}
-    ];
-    var unwinded_samples = unwind_samples_sequenced(input_data);
-
-    aggregate_weeks = sortDictByDate(
-        merge_dict_of_object(
+    var fields_sample = ['first', 'repeat', 'total'];
+    var aggregate_weeks = sortDictByDate(
+        merge_dict_of_objects(
             aggregate_weeks,
-            aggregate_on_date(unwinded_samples, 'week', fields_sample)
+            aggregate_on_date(unwound_samples, 'week', fields_sample)
         )
     );
-    aggregate_months = sortDictByDate(
-        merge_dict_of_object(
+    var aggregate_months = sortDictByDate(
+        merge_dict_of_objects(
             aggregate_months,
-            aggregate_on_date(unwinded_samples, 'month', fields_sample)
+            aggregate_on_date(unwound_samples, 'month', fields_sample)
         )
     );
 
-    fields.push(...fields_sample);
-    var run_yield_data_weeks = datatable_from_dict(aggregate_weeks, {'format': format_week}, fields);
-    var run_yield_data_months = datatable_from_dict(aggregate_months, {'format': format_month}, fields);
+    var fields = [
+        {'name': 'yield_in_gb', 'title': 'Yield'},
+        {'name': 'yield_q30_in_gb', 'title': 'Yield Q30'},
+        {'name': 'useable_yield_in_gb', 'title': 'Useable yield'},
+        {'name': 'ratio_Q30', 'title': '%Q30'},
+        {'name': 'ratio_useable', 'title': '% useable'},
+        {'name': 'cumm_yield_in_gb', 'title': 'Cumulative Yield'},
+        {'name': 'cumm_yield_q30_in_gb', 'title': 'Cumulative Yield Q30'},
+        {'name': 'first', 'title': 'First'},
+        {'name': 'repeat', 'title': 'Repeat'},
+        {'name': 'total', 'title': 'Total'}
+    ];
+
+    var run_yield_data_weeks = new google.visualization.DataTable(
+        datatable_config(aggregate_weeks, format_week, fields)
+    );
+    var run_yield_data_months = new google.visualization.DataTable(
+        datatable_config(aggregate_months, format_month, fields)
+    );
 
     // draw run charts
     var dashboard = new google.visualization.Dashboard(document.getElementById('dashboard_div'));
@@ -600,7 +623,7 @@ function plotCharts(input_data) {
         'state' : {
             'range': {
                 'start': moment().add(-12, 'month').toDate(),
-                "end": moment().toDate()
+                'end': moment().toDate()
             }
         }
     });
@@ -617,7 +640,7 @@ function plotCharts(input_data) {
             },
             vAxes: {
                 0: {title: 'Yield'},
-                1: {title: 'Ratio', format:"#%"},
+                1: {title: 'Ratio', format: '#%'},
             },
             seriesType: 'bars',
         }
@@ -628,7 +651,7 @@ function plotCharts(input_data) {
         'view': {'columns': [0, 8, 9]},
         'options': {
             title: 'Number of samples sequenced',
-            vAxis: {title: 'Number of Samples'},
+            vAxis: {'title': 'Number of Samples'},
             'isStacked' : true
         }
     });
@@ -638,14 +661,14 @@ function plotCharts(input_data) {
         'view': {'columns': [0, 6, 7]},
         'options': {
             title: 'Cumulative run yield ',
-            vAxis: {title: 'Yield'},
+            vAxis: {'title': 'Yield'},
             legend:  {'position': 'none'},
         }
     });
     var yield_table = new google.visualization.ChartWrapper({
         'chartType': 'Table',
         'containerId': 'table_run_yield_by_date',
-        'options':{
+        'options': {
             'sortColumn': 0,
             'sortAscending': false,
             'page': 'enable',
@@ -660,9 +683,11 @@ function plotCharts(input_data) {
 
     dashboard.draw(run_yield_data_weeks);
 
-    var show_months_cumulative = document.getElementById("ShowRunMonths");
-    show_months_cumulative.onclick = function(){dashboard.draw(run_yield_data_months);}
-    var show_weeks_cumulative = document.getElementById("ShowRunWeeks");
-    show_weeks_cumulative.onclick = function(){dashboard.draw(run_yield_data_weeks);}
+    $('#ShowRunMonths').click(function() {
+        dashboard.draw(run_yield_data_months);
+    });
+    $('#ShowRunWeeks').click(function() {
+        dashboard.draw(run_yield_data_weeks);
+    });
 }
 

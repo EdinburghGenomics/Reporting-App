@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
-{% block body %}
+{% block reporting_deps %}{% endblock %}
+{% block navbar %}
 <div class="navbar navbar-inverse navbar-static-top" role="navigation">
     <div class="container">
         <div class="navbar-header">
@@ -16,7 +17,6 @@
         </div>
     </div>
 </div>
-{{ super() }}
 {% endblock %}
 
 {% block content %}

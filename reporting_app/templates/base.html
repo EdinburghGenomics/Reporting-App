@@ -5,7 +5,13 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% if title %}{{ title }} - {% endif %}{% endblock %}Edinburgh Genomics Analysis Driver Reporting App</title>
 
+    <!-- minimal styling -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/bootstrap-3.3.6-dist/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/reporting_app.css') }}">
+
+    {% block reporting_deps %}
     <!-- jQuery -->
     <script type="text/javascript" charset="utf8" src="//code.jquery.com/jquery-1.10.2.min.js"></script>
     <script type="text/javascript" charset="utf8" src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
@@ -19,21 +25,84 @@
     <![endif]-->
 
     <!-- Bootstrap/styling -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/bootstrap-3.3.6-dist/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/bootstrap-3.3.6-dist/css/bootstrap-theme.min.css') }}">
-    <!-- vis/styling -->
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.min.css" type="text/css" />
-    <!-- reporting app/styling -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/reporting_app.css') }}">
-
-    <title>{% block title %}{% if title %}{{ title }} - {% endif %}{% endblock %}Edinburgh Genomics Analysis Driver Reporting App</title>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    {% endblock %}
     {% endblock %}
 </head>
 
 <body>
     {% block body %}
+    {% block navbar %}
+    <div class="navbar navbar-inverse navbar-static-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle Navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a href="/" class="navbar-brand">
+                    <img style="height:28px;" src="{{ url_for('static', filename='img/EG_logo_final_version_colourwhite_cropped_white.svg') }}">
+                </a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav navbar-right" >
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Runs<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/runs/recent">Recent</a></li>
+                            <li><a href="/runs/current_year">Current year</a></li>
+                            <li><a href="/runs/year_to_date">Year to date</a></li>
+                            <li><a href="/runs/all">All</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Samples<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/samples/all">All</a></li>
+                            <li><a href="/samples/processing">Processing</a></li>
+                            <li><a href="/samples/toreview">To review</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#" class="dropdown=toggle" data-toggle="dropdown">Projects<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/projects">Summary</a></li>
+                            <li><a href="/projects/SGP">SGP Projects</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="/project_status/">Project Status - Open</a></li>
+                            <li><a href="/project_status/closed">Project Status - Closed</a></li>
+                            <li><a href="/project_status/all">Project Status - All</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="/charts">Charts</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown=toggle" data-toggle="dropdown">{{ current_user.username }}<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/change_password">Change password</a></li>
+                            <li><a href="/logout">Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
     <div id="content" class="page-content"><div>{% block content %}{% endblock %}</div></div>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" crossorigin="anonymous"></script>
     {% endblock %}
 </body>
+
+{% block footer %}
+<footer class="footer">
+    <div class="container">
+        <p class="text-muted">
+            Edinburgh Genomics Reporting App version <a href="https://github.com/EdinburghGenomics/Reporting-App/tree/v{{ version }}">{{ version }}</a>
+        </p>
+    </div>
+</footer>
+{% endblock %}
+
 </html>

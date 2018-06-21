@@ -12,17 +12,20 @@ cli = pymongo.MongoClient(cfg['db_host'], cfg['db_port'])
 db = cli[cfg['db_name']]
 
 
-def aggregate(endpoint, base_pipeline, app, post_processing=None):
-    before = datetime.now()
+def _aggregate(endpoint, base_pipeline, request_args, post_processing=None):
     collection = db[endpoint]
-    pipeline = queries.resolve_pipeline(endpoint, base_pipeline)
-    app.logger.debug(pipeline)
-    data = list(collection.aggregate(pipeline))
-    total_items = len(data)
+    pipeline = queries.resolve_pipeline(endpoint, base_pipeline, request_args)
+    data = list(collection.aggregate(pipeline, allowDiskUse=True))
     if post_processing:
         for p in post_processing:
             data = p(data)
+    return data
 
+
+def aggregate(endpoint, base_pipeline, app, post_processing=None):
+    before = datetime.now()
+    data = _aggregate(endpoint, base_pipeline, request.args, post_processing)
+    total_items = len(data)
     ret_dict = {}
     page_number = int(request.args.get(app.config['QUERY_PAGE'], '0'))
     page_size = int(request.args.get(app.config['QUERY_MAX_RESULTS'], '0'))

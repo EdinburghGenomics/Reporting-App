@@ -1,0 +1,26 @@
+{% extends 'untabbed_datatables.html' %}
+{% from 'datatable_macro.html' import datatable %}
+
+{% block content %}
+<button data-toggle="collapse" data-target="#description">Description</button>
+<div id="description" class="collapse">
+    The project status table shows the number sample in each project based on the workflow they completed and the step
+    they're queued. the steps involved are described below.
+
+    <table class="table">
+        <th>Status</th>
+        <th>Completed Steps</th>
+        <th>Queued in Steps</th>
+        {% for s in status_order %}
+        <tr>
+            <th>{{ s.name }}</th>
+            <td>{{ s.completed | join(', ') }}</td>
+            <td>{{ s.queued | join(', ') }}</td>
+        </tr>
+        {% endfor %}
+
+    </table>
+</div>
+
+{{ super() }}
+{% endblock %}

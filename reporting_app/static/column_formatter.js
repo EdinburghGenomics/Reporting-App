@@ -13,11 +13,11 @@ function render_data(data, type, row, meta, fmt) {
     if (fmt['name']) {
         data = function_map[fmt['name']](data, fmt)
     }
-    return string_formatter(data, fmt)
+    return string_formatter(data, fmt, row)
 }
 
 
-function string_formatter(data, fmt){
+function string_formatter(data, fmt, row){
     var formatted_data = data;
 
     if (fmt['type'] == 'percentage') {
@@ -30,8 +30,9 @@ function string_formatter(data, fmt){
         formatted_data = Humanize.formatNumber(formatted_data, 2);
     } else if (fmt['type'] == 'date') {
         formatted_data = moment(new Date(formatted_data)).format('YYYY-MM-DD');
+    } else if (fmt['type'] == 'datetime') {
+        formatted_data = moment(new Date(formatted_data)).format('YYYY-MM-DD HH:mm:ss');
     }
-
     if (fmt['link']) {
         if (fmt['link_format_function']){
             formatted_link = function_map[fmt['link_format_function']](data, fmt);
@@ -40,6 +41,7 @@ function string_formatter(data, fmt){
             formatted_link = data;
         }
         if (data instanceof Array && data.length > 1 || data != formatted_link) {
+            data.sort();
             formatted_data = '<div class="dropdown"><div class="dropbtn">' + formatted_link + '</div><div class="dropdown-content">';
             for (var i=0, tot=data.length; i < tot; i++){
                 formatted_data = formatted_data.concat('<a href=' + fmt['link'] + data[i] + '>' + data[i] + '</a>');
@@ -53,9 +55,18 @@ function string_formatter(data, fmt){
             formatted_data = '<a href=' + fmt['link'] + data + '>' + data + '</a>';
         }
     }
-    if (fmt['min'] && data < fmt['min']) {
+    var min, max;
+    if (fmt['min']){
+        min = resolve_min_max_value(row, fmt['min'])
+    }
+    if (fmt['max']){
+        max = resolve_min_max_value(row, fmt['max'])
+    }
+    if (min && data < min) {
         formatted_data = '<div style="color:red">' + formatted_data + '</div>';
-    } else if (fmt['max'] && data > fmt['max']) {
+    } else if (max && !isNaN(max) && data > max) {
+        formatted_data = '<div style="color:red">' + formatted_data + '</div>';
+    } else if (max && data > max) {
         formatted_data = '<div style="color:red">' + formatted_data + '</div>';
     }
 
@@ -63,6 +74,24 @@ function string_formatter(data, fmt){
     return formatted_data;
 }
 
+
+function resolve_min_max_value(row, value){
+    // find the value in row or return the original value;
+    if (typeof value === 'object'){
+        // object should be {field: "field_name", default: default_value}
+        if (value['field'] in row){
+            return row[value['field']];
+        } else {
+            return value['default'];
+        }
+    }
+    else if (value in row){
+        // If the value is in the row then it is field name
+        return row[value];
+    }
+    // Otherwise it is just a value
+    return value;
+}
 
 function merge_column(data, row){
     return data + '-' + row[1]
@@ -82,14 +111,24 @@ function count_entities_fmt(data, fmt){
     return data.length;
 }
 
-function coverage_15X_fmt(data, fmt){
-    if ("bases_at_coverage" in data && "bases_at_15X" in data['bases_at_coverage'] && "genome_size" in data ) {
-        return data['bases_at_coverage']['bases_at_15X']/data['genome_size']*100;
+function coverage_fmt(data, fmt, bases_at_X){
+    if ("bases_at_coverage" in data && bases_at_X in data['bases_at_coverage'] && "genome_size" in data ) {
+        return data['bases_at_coverage'][bases_at_X]/data['genome_size']*100;
     }
 }
+
+function coverage_15X_fmt(data, fmt){
+    return coverage_fmt(data, fmt, 'bases_at_15X')
+}
+
+function coverage_5X_fmt(data, fmt){
+    return coverage_fmt(data, fmt, 'bases_at_5X')
+}
+
 
 var function_map = {
     'species_contamination': species_contamination_fmt,
     'count_entities': count_entities_fmt,
-    'coverage_15X': coverage_15X_fmt
+    'coverage_15X': coverage_15X_fmt,
+    'coverage_5X': coverage_5X_fmt
 };

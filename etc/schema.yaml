@@ -10,7 +10,30 @@ lanes:
     run_id: {                   type: 'string',  required: False }
     lane_number: {              type: 'integer', required: False, min: 1, max: 8 }
     run_elements: {             type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
-
+    interop_metrics: {          type: 'dict',    required: False, schema: {
+        pc_clust_pf_r1:        {type: 'float'},
+        pc_clust_pf_stdev_r1:  {type: 'float'},
+        phasing_r1:            {type: 'float'},
+        prephasing_r1:         {type: 'float'},
+        pc_q30_r1:             {type: 'float'},
+        intensity_c1_r1:       {type: 'float'},
+        intensity_c1_stdev_r1: {type: 'float'},
+        pc_aligned_r1:         {type: 'float'},
+        pc_aligned_stdev_r1:   {type: 'float'},
+        pc_error_r1:           {type: 'float'},
+        pc_error_stdev_r1:     {type: 'float'},
+        pc_clust_pf_r2:        {type: 'float'},
+        pc_clust_pf_stdev_r2:  {type: 'float'},
+        phasing_r2:            {type: 'float'},
+        prephasing_r2:         {type: 'float'},
+        pc_q30_r2:             {type: 'float'},
+        intensity_c1_r2:       {type: 'float'},
+        intensity_c1_stdev_r2: {type: 'float'},
+        pc_aligned_r2:         {type: 'float'},
+        pc_aligned_stdev_r2:   {type: 'float'},
+        pc_error_r2:           {type: 'float'},
+        pc_error_stdev_r2:     {type: 'float'}
+    } }
 
 run_elements:
     run_element_id: {           type: 'string',  required: True,  unique: True }
@@ -38,6 +61,7 @@ run_elements:
 
     lane_pc_optical_dups:     { type: 'float',   required: False }
 
+    phix_reads: {               type: 'integer', required: False }
     clean_reads: {              type: 'integer', required: False }
     clean_bases_r1: {           type: 'integer', required: False }
     clean_q30_bases_r1: {       type: 'integer', required: False }
@@ -47,17 +71,57 @@ run_elements:
     fastqc_report_r1: {         type: 'string',  required: False }
     fastqc_report_r2: {         type: 'string',  required: False }
 
+    tiles_filtered: {           type: 'string',  required: False, nullable: True }
+    trim_r1: {                  type: 'integer', required: False, nullable: True }
+    trim_r2: {                  type: 'integer', required: False, nullable: True }
+
+    mapping_metrics: {          type: 'dict',    required: False, schema: {
+        bam_file_reads: {             type: 'integer' },
+        mapped_reads: {               type: 'integer' },
+        duplicate_reads: {            type: 'integer' },
+        properly_mapped_reads: {      type: 'integer' },
+        picard_dup_reads: {           type: 'integer' },
+        picard_opt_dup_reads: {       type: 'integer' },
+        picard_est_lib_size: {        type: 'integer' },
+        mean_insert_size: {           type: 'float' },
+        std_dev_insert_size: {        type: 'float' },
+        median_insert_size: {         type: 'float' },
+        median_abs_dev_insert_size: { type: 'float' },
+        pc_insert_size: {             type: 'float' },
+        non_fr_inserts: {             type: 'dict' }
+    } }
+
+    coverage: {                 type: 'dict',    required: False, schema: {
+        median: {type: 'float'},
+        mean: {type: 'float'},
+        std_dev: {type: 'float'},
+        coverage_percentiles: {type: 'dict', schema: {
+            percentile_5:  { type: 'integer' },
+            percentile_25: { type: 'integer' },
+            percentile_50: { type: 'integer' },
+            percentile_75: { type: 'integer' },
+            percentile_95: { type: 'integer'}
+        } },
+        bases_at_coverage: {type: 'dict', schema: {
+            bases_at_5X: {type: 'integer'},
+            bases_at_15X: {type: 'integer'},
+            bases_at_30X: {type: 'integer' }
+        } },
+        genome_size: { type: 'integer' },
+        evenness: { type: 'float' }
+    } }
+
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'], default: 'not reviewed' }
     review_comments: {          type: 'string',  required: False }
     review_date: {              type: 'datetime', required: False }
     useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ], default: 'not marked' }
-    useable_comments: {         type: 'multilinestring',  required: False }
-    useable_date: {              type: 'datetime', required: False }
+    useable_comments: {         type: 'string',  required: False }
+    useable_date: {             type: 'datetime', required: False }
+    useable_reviewer: {         type: 'string', required: False }
 
 
 unexpected_barcodes:
     run_element_id: {           type: 'string',  required: True,  unique: True }
-
     run_id: {                   type: 'string',  required: True }
     lane: {                     type: 'integer', required: True }
     barcode: {                  type: 'string',  required: True }
@@ -69,6 +133,8 @@ projects:
     project_id: {               type: 'string',  required: True,  unique: True }
     samples: {                  type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'samples', field: 'sample_id', embeddable: False } } }
     analysis_driver_procs: {    type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'analysis_driver_procs', field: 'proc_id', embeddable: True } } }
+    sample_pipeline: {          type: 'dict',    schema: { name: { type: 'string' }, toolset_type: { type: 'string' }, toolset_version: { type: 'integer' } } }
+
 
 samples:
     library_id: {               type: 'string',  required: False }
@@ -77,23 +143,43 @@ samples:
     sample_id: {                type: 'string',  required: True, unique: True }
     user_sample_id: {           type: 'string',  required: False }
     species_name: {             type: 'string',  required: False }
-    expected_coverage: {        type: 'integer', required: False }
-    expected_yield: {           type: 'integer', required: False }
+    required_coverage: {        type: 'integer', required: False }
+    required_yield: {           type: 'integer', required: False }
+    required_yield_q30: {       type: 'integer', required: False }
 
     # QC metrics
     bam_file_reads: {           type: 'integer', required: False }  # reads initially found in the bam file
     mapped_reads: {             type: 'integer', required: False }
     properly_mapped_reads: {    type: 'integer', required: False }
     duplicate_reads: {          type: 'integer', required: False }
+    picard_dup_reads: {         type: 'integer' }
+    picard_opt_dup_reads: {     type: 'integer' }
+    picard_est_lib_size: {      type: 'integer' }
+    mean_insert_size: {         type: 'float' }
+    std_dev_insert_size: {      type: 'float' }
+    median_insert_size: {       type: 'float' }
+    median_abs_dev_insert_size: { type: 'float' }
+    pc_insert_size: {           type: 'float' }
+    non_fr_inserts: {           type: 'dict',    required: False }
     median_coverage: {          type: 'float',   required: False }
     coverage: {                 type: 'dict',    required: False, schema: {
-        median: {type: 'float'},
-        mean: {type: 'float'},
-        std_dev: {type: 'float'},
-        coverage_percentiles: {type: 'dict', schema: { percentile_5: { type: 'integer' }, percentile_25: { type: 'integer' }, percentile_50: { type: 'integer' }, percentile_75: { type: 'integer' }, percentile_95: { type: 'integer'} } },
-        bases_at_coverage: {type: 'dict', schema: { bases_at_5X: {type: 'integer'}, bases_at_15X: {type: 'integer'}, bases_at_30X: {type: 'integer' } } },
-        genome_size: { type: 'integer' },
-        evenness: { type: 'float' }
+        median: {               type: 'float'},
+        mean: {                 type: 'float'},
+        std_dev: {              type: 'float'},
+        coverage_percentiles: { type: 'dict', schema: {
+            percentile_5: {     type: 'integer' },
+            percentile_25: {    type: 'integer' },
+            percentile_50: {    type: 'integer' },
+            percentile_75: {    type: 'integer' },
+            percentile_95: {    type: 'integer'}
+        } },
+        bases_at_coverage: {    type: 'dict', schema: {
+            bases_at_5X: {      type: 'integer'},
+            bases_at_15X: {     type: 'integer'},
+            bases_at_30X: {     type: 'integer' }
+        } },
+        genome_size: {          type: 'integer' },
+        evenness: {             type: 'float' }
     } }
     # TODO: remove pc_callable
     pc_callable: {              type: 'float',   required: False }
@@ -130,10 +216,13 @@ samples:
     review_comments: {          type: 'string',  required: False }
     review_date: {              type: 'datetime', required: False }
     useable: {                  type: 'string',  required: False, allowed: ['not marked', 'yes', 'no' ], default: 'not marked' }
-    useable_comments: {         type: 'multilinestring',  required: False }
+    useable_comments: {         type: 'string',  required: False }
     useable_date: {             type: 'datetime', required: False }
+    useable_reviewer: {         type: 'string', required: False }
     delivered: {                type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no' }
     delivery_date: {            type: 'datetime', required: False }
+    files_delivered: {          type: 'list', required: False, 'schema': { 'type': 'dict', 'schema': { 'file_path': { 'type': 'string' }, 'md5': { 'type': 'string' }, 'size': { 'type': 'integer' } } } }
+    files_downloaded: {         type: 'list', required: False, 'schema': { 'type': 'dict', 'schema': { 'file_path': { 'type': 'string' }, 'user': { 'type': 'string' }, 'date': { type: 'datetime' }, 'size': { 'type': 'integer' } } } }
     input_fastqs_deleted: {     type: 'string',  required: False, allowed: ['yes', 'no'], default: 'no'}
     data_deleted: {             type: 'string',  required: False, allowed: ['all', 'fastq', 'processed', 'on lustre', 'none'], default: 'none'}
 
@@ -146,17 +235,28 @@ analysis_driver_procs:
     proc_id: {                  type: 'string', required: True, unique: True }
     dataset_type: {             type: 'string', allowed: ['run', 'sample', 'project'], required: True }
     dataset_name: {             type: 'string', required: True }
+    pipeline_used: {            type: 'dict', schema: { name: { type: 'string' }, toolset_type: { type: 'string' }, toolset_version: { type: 'integer' } } }
     start_date: {               type: 'datetime' }
     end_date: {                 type: 'datetime' }
     pid: {                      type: 'integer', nullable: True }
-    status: {                   type: 'string', allowed: ['force_ready', 'processing', 'finished', 'failed', 'aborted', 'reprocess', 'deleted'] }
+    status: {                   type: 'string', allowed: ['force_ready', 'processing', 'finished', 'failed', 'aborted', 'reprocess', 'deleted', 'resume'] }
     stages: {                   type: 'list', schema: { type: 'string', data_relation: { resource: 'analysis_driver_stages', field: 'stage_id', embeddable: True } } }
-
+    data_source: {              type: 'list',  required: False, schema: { type: 'string' } }
 
 analysis_driver_stages:
     stage_id: {                 type: 'string', required: True, unique: True }
     analysis_driver_proc: {     type: 'string', required: True }
     stage_name: {               type: 'string', required: True }
     date_started: {             type: 'datetime', required: True }
+    date_finished: {            type: 'datetime', nullable: True }
+    exit_status: {              type: 'integer', nullable: True }
+
+actions:
+    action_id: {                type: 'string', required: True, unique: True }
+    action_type: {              type: 'string', required: True }
+    started_by: {               type: 'string', required: True }
+    date_started: {             type: 'datetime', required: True }
     date_finished: {            type: 'datetime' }
-    exit_status: {              type: 'integer' }
+    action_info: {              type: 'dict' }
+
+

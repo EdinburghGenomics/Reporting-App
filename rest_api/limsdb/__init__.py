@@ -1,22 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from genologics_sql.tables import Base
-from flask import jsonify, request
-from eve.utils import parse_request
-from eve.methods.get import _pagination_links, _meta_links
+from flask import jsonify
 from config import rest_config as cfg
-from rest_api.limsdb.queries import sample_status, run_status
+from rest_api.limsdb.queries import factories
 
 _session = None
-
-
-def get_engine(echo=False):
-    """
-    Generate a SQLAlchemy engine for PostGres with the CONF currently used
-    :returns: the SQLAlchemy engine
-    """
-    uri = "postgresql://{username}:{password}@{url}/{db}".format(**cfg.get('lims_database'))
-    return create_engine(uri, echo=echo)
 
 
 def get_session(echo=False):
@@ -26,18 +15,25 @@ def get_session(echo=False):
     """
     global _session
     if _session is None:
-        engine = get_engine(echo=echo)
+        if 'lims_database' in cfg:
+            uri = "postgresql://{username}:{password}@{url}/{db}".format(**cfg.get('lims_database'))
+            engine = create_engine(uri, echo=echo, isolation_level="AUTOCOMMIT")
+        else:
+            engine = create_engine('sqlite:///:memory:')
         Base.metadata.bind = engine
+        Base.metadata.create_all(engine)
         DBSession = sessionmaker(bind=engine)
         _session = DBSession()
     return _session
 
 
 function_mapping = {
-    'project_status': sample_status.sample_status_per_project,
-    'plate_status': sample_status.sample_status_per_plate,
-    'sample_status': sample_status.sample_status,
-    'run_status': run_status.run_status
+    'project_status': factories.sample_status_per_project,
+    'plate_status': factories.sample_status_per_plate,
+    'sample_status': factories.sample_status,
+    'run_status': factories.run_status,
+    'sample_info': factories.sample_info,
+    'project_info': factories.project_info
 }
 
 

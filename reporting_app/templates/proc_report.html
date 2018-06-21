@@ -1,91 +1,44 @@
+{% from 'tab_sets.html' import tabset %}
 
 {% macro proc_timeline(proc) -%}
-{# args:
-    proc (dict) - analysis_driver_proc from the Rest API.
-#}
     <br/>
-    <ul>
-        <li>Started: {{ proc._created }}</li>
-        <li>Ended:
+    <div>
+        <div>Started: {{ proc._created }}</div>
+        <div>
             {% if proc.end_date %}
-            {{ proc.end_date }}
+            Ended: {{ proc.end_date }}
             {% else %}
-            running with pid: {{ proc.pid }}
+            Running with pid: {{ proc.pid }}
             {% endif %}
-        </li>
-        <li>
+        </div>
+        <div>
             Status:
             {% if proc.status %}
             {{ proc.status }}
             {% else %}
             inactive
             {% endif %}
-        </li>
-    </ul>
+        </div>
+        {% if proc.pipeline_used %}
+        <div>Pipeline used: {{ proc.pipeline_used.name }}</div>
+        <div>Toolset used: {{ proc.pipeline_used.toolset_type }} {{ proc.pipeline_used.toolset_version }}</div>
+        {% endif %}
+    </div>
     <br/>
 
-    <div id="{{ proc.proc_id }}"></div>
+    <div id="timeline_{{ proc.proc_id }}"></div>
 
     <script type="text/javascript">
-        var container = document.getElementById('{{ proc.proc_id }}');
-        var stages = {{ proc.stages|list|safe }};
-        var stage_names = stages.map(function(p){
-            if (p.date_finished){
-                return {
-                    content: p.stage_name,
-                    'start': moment(p.date_started, "DD-MM-YYYY HH:mm:SS").format('YYYY-MM-DD HH:mm:SS'),
-                    'end': moment(p.date_finished, "DD-MM-YYYY HH:mm:SS").format('YYYY-MM-DD HH:mm:SS')
-                }
-            } else {
-                return {
-                    'start': moment(p.date_started, "DD-MM-YYYY HH:mm:SS").format('YYYY-MM-DD HH:mm:SS'),
-                    'style': "color: red; background-color: pink;"
-                }
-            }
-        });
-
-
-        var items = new vis.DataSet(stage_names);
-        startDate = (moment('{{ proc._created }}', "DD-MM-YYYY HH:mm:SS").format('YYYY-MM-DD HH:mm:SS'))
-        startMargin = moment(startDate).subtract(1, 'days')
-        endMargin = moment(startDate).add(6, 'days')
-        var options = {
-            min: startMargin,
-            max: endMargin
-        }
-        var timeline = new vis.Timeline(container, items, options);
+        stage_timeline("timeline_{{ proc.proc_id }}", {{ proc|tojson }});
     </script>
     <br/>
 {%- endmacro %}
 
 
 {% macro proc_report(procs) -%}
-{# args:
-    procs (list[dict]) - analysis_driver_procs from the Rest API.
-#}
-    <script src="//cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
-
-    <h2>
-        <a data-toggle="collapse" href="#analysis_driver_proc_tabs">
-            Analysis Driver processes
-        </a>
-    </h2>
-    <div id="analysis_driver_proc_tabs" class="tab-content collapse">
-        <p>Number of times processed: {{ procs|length }}</p>
-        {% if procs %}
-            <ul class="nav nav-tabs" id="analysis_driver_proc_ul">
-                <li class="nav active"><a data-target="#analysis_driver_proc_1_tab" data-toggle="tab">{{ procs[0]._created }}</a></li>
-                {% for proc in procs[1:] %}
-                    <li class="nav"><a data-target="#analysis_driver_proc_{{ loop.index + 1 }}_tab" data-toggle="tab">{{ proc._created }}</a></li>
-                {% endfor %}
-            </ul>
-
-            <div id="analysis_driver_proc_1_tab" class="tab-pane fade in active"> {{ proc_timeline(procs[0]) }} </div>
-            {% for proc in procs[1:] %}
-                <div id="analysis_driver_proc_{{ loop.index + 1 }}_tab" class="tab-pane fade"> {{ proc_timeline(proc) }} </div>
-            {% endfor %}
-        {% endif %}
-    </div>
-
+<br/>
+<p>Number of times processed: {{ procs|length }}</p>
+{% call(tab) tabset('analysis_driver_procs', 'Analysis Driver processes', procs, '_created') %}
+{{ proc_timeline(tab) }}
+{% endcall %}
 {%- endmacro %}

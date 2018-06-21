@@ -32,7 +32,7 @@ class FakeCollection:
     def __init__(self, data):
         self.data = data
 
-    def aggregate(self, pipeline):
+    def aggregate(self, pipeline, **kwargs):
         return self.data
 
 
@@ -151,19 +151,17 @@ class TestStages(TestAggregation):
 
 
 def test_resolve_pipeline():
-    fake_request = FakeRequest(
-        args={
-            'sort': '-this',
-            'match': '{"this":1,"other":2,"$or":[{"that":0},{"that":1}]}'
-        }
-    )
+    request_args = {
+        'sort': '-this',
+        'match': '{"this":1,"other":2,"$or":[{"that":0},{"that":1}]}'
+    }
+
     base_pipeline = [
         {'$project': {'this': '$sample_id', 'that': '$that'}},
         {'$project': {'this': '$this', 'that': '$that', 'other': {'$add': ['$this', '$that']}}}
     ]
-    with patch('rest_api.aggregation.database_side.queries.request', new=fake_request), \
-         patch('rest_api.aggregation.database_side.queries.app'):
-        obs = database_side.queries.resolve_pipeline('samples', base_pipeline)
+    with patch('rest_api.aggregation.database_side.queries.app'):
+        obs = database_side.queries.resolve_pipeline('samples', base_pipeline, request_args)
 
     exp = [
         {'$project': {'this': '$sample_id', 'that': '$that'}},
