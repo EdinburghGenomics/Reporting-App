@@ -443,5 +443,5 @@ def test_page():
         'test.html',
         #api_url=rest_api().api_url('lims/status/sample_status', match={'project_id': 'X15060'}),
         api_url=rest_api().api_url('lims/status/sample_status'),
-        ajax_token=get_token()
+        ajax_token=util.get_token()
     )
