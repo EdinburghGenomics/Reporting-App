@@ -1,9 +1,8 @@
 {% extends 'reporting_base.html' %}
-{% from 'datatable.html' import datatable, dt_header %}
+{% from 'datatable_macro.html' import datatable %}
 
 {% block head %}
     {{ super() }}
-    {{ dt_header() }}
     <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css"/>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>

@@ -441,7 +441,6 @@ def project_status_reports(prj_status):
 def test_page():
     return render_template(
         'test.html',
-        #api_url=rest_api().api_url('lims/status/sample_status', match={'project_id': 'X15060'}),
-        api_url=rest_api().api_url('lims/status/sample_status'),
+        api_url=util.construct_url('lims/sample_status', match={'project_status': 'all'}),
         ajax_token=util.get_token()
     )

@@ -114,7 +114,8 @@ function draw_highcharts_tat_graphs(data, field_name, time_period){
         field_name,
         ['tat', 'tat', ''],
         [average, boxplot_values_outliers, count],
-        ['tat', 'tat_box', 'count']
+        ['tat', 'tat_box', 'count'],
+        [0, [0], 0]
     );
     function compare_aggregate(a, b){
         return parseInt(a[field_name]) - parseInt(b[field_name]);

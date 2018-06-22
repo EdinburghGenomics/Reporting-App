@@ -44,6 +44,7 @@ class ProjectStatusConfig(Configuration):
         super().__init__(*cfg_search_path)
 
         self.started_steps = self.content.get('started_steps')
+        self.qc_finished_steps = self.content.get('qc_steps')
         self.status_names = self.content.get('status_names')
         # Replace variable names in a list
         self.status_order = [self.status_names.get(x) for x in self.content['status_order']]
@@ -59,6 +60,9 @@ class ProjectStatusConfig(Configuration):
                 [(k, self.status_names.get(v)) for k, v in self.content[section].items()]
             )
             setattr(self, section, transformed_section)
+        self.status_to_step_completed = dict((name, []) for name in self.status_names)
+        for k, v in self.content['step_completed_to_status'].items():
+            self.status_to_step_completed[v].append(k)
 
 
 def _cfg_file(cfg_path):

@@ -180,9 +180,20 @@ class Sample(SampleInfo):
                 return date
 
     @property
+    def qc_date(self):
+        """Date of the first completed QC step"""
+        for p in reversed(self.processes):
+            process, date, process_type, process_id = p
+            if process_type == 'complete' and process in status_cfg.status_to_step_completed['LIBRARY_QUEUE']:
+                return date
+
+    @property
     def finished_date(self):
-        if self.status == status_cfg.status_names['FINISHED']:
-            return self.status_date
+        """Date of the first completed FINISHED step"""
+        for p in reversed(self.processes):
+            process, date, process_type, process_id = p
+            if process_type == 'complete' and process in status_cfg.status_to_step_completed['FINISHED']:
+                return date
         return None
 
     def to_json(self):
@@ -192,6 +203,7 @@ class Sample(SampleInfo):
             'statuses': self.all_statuses(),
             'current_status': self.status,
             'started_date': format_date(self.started_date),
+            'qc_date': format_date(self.qc_date),
             'finished_date': format_date(self.finished_date),
             'library_type': self.library_type,
             'species': self.species
