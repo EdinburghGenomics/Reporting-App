@@ -50,7 +50,6 @@ column_def:
     nb_sequencing_queue:      { data: 'sequencing_queue',                     title: 'Sequencing Queue' ,        fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_sequencing:            { data: 'sequencing',                           title: 'Sequencing' ,              fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_bioinformatics:        { data: 'bioinformatics',                       title: 'Bioinformatics' ,          fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
-    nb_bioinfo_reviewed:      { data: 'bioinfo_reviewed',                     title: 'Bioinformatics Reviewed',  fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_delivery:              { data: 'delivery',                             title: 'Delivery' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_finished:              { data: 'finished',                             title: 'Finished' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_removed:               { data: 'removed',                              title: 'Removed' ,                 fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
@@ -178,7 +177,6 @@ project_status:
     - nb_sequencing_queue
     - nb_sequencing
     - nb_bioinformatics
-    - nb_bioinfo_reviewed
     - nb_delivery
     - nb_finished
 
@@ -200,7 +198,6 @@ plate_status:
     - nb_sequencing_queue
     - nb_sequencing
     - nb_bioinformatics
-    - nb_bioinfo_reviewed
     - nb_delivery
     - nb_finished
 
