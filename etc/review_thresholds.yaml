@@ -1,26 +1,39 @@
 
 run:
-    yield_in_gb:
+    aggregated.yield_in_gb:
+        name: Run Yield
+        value: 960
+        comparison: '>'
+    aggregated.pc_q30:
+        name: Run PC Q30
+        value: 75
+        comparison: '>'
+
+lane:
+    aggregated.yield_in_gb:
         name: Yield
         value: 120
         comparison: '>'
-    pc_q30:
+    aggregated.pc_q30:
         name: PC Q30
         value: 75
         comparison: '>'
-    lane_pc_optical_dups:
-        name: Est. Dup. rate
-        value: 20
+    aggregated.pc_adaptor:
+        name: PC Adapter
+        value: 10
         comparison: '<'
-
+    aggregated.pc_opt_duplicate_reads:
+        name: Optical duplicate rate
+        value: 30
+        comparison: '<'
 
 sample:
     default:
-        clean_yield_in_gb:
+        aggregated.clean_yield_in_gb:
             name: Yield
             # value: populated in automatic_review.sample_config
             comparison: '>'
-        clean_yield_q30:
+        aggregated.clean_yield_q30:
             name: Yield Q30
             # value: populated in automatic_review.sample_config
             comparison: '>'
@@ -28,7 +41,7 @@ sample:
             name: Mean coverage
             # value: populated in automatic_review.sample_config
             comparison: '>'
-        pc_duplicate_reads:
+        aggregated.pc_duplicate_reads:
             name: Dup. rate
             value: 35
             comparison: '<'
