@@ -1,4 +1,8 @@
 from unittest.mock import patch, Mock, PropertyMock
+
+import pytest
+import werkzeug
+
 from rest_api.actions import automatic_review as ar, AutomaticRunReviewer
 from rest_api.actions.automatic_review import AutomaticSampleReviewer, AutomaticLaneReviewer
 from tests.test_rest_api import TestBase
@@ -150,6 +154,11 @@ class TestRunReviewer(TestBase):
                     payload={'review_date': self.reviewer1.current_time, 'review_comments': 'failed due to Run PC Q30', 'reviewed': 'fail'}
                 )
 
+    def test_unknown_run(self):
+        with patch.object(AutomaticLaneReviewer, 'eve_get', return_value=[]):
+            with pytest.raises(werkzeug.exceptions.NotFound):
+                _ = AutomaticRunReviewer(Mock(form={'run_id': 'unknown_run'}))
+
 
 class TestLaneReviewer(TestBase):
     def setUp(self):
@@ -252,3 +261,9 @@ class TestSampleReviewer(TestBase):
                 payload={'reviewed': 'pass', 'review_comments': 'pass', 'review_date': self.reviewer.current_time},
                 sample_id='sample1'
             )
+
+    def test_unknown_sample(self):
+        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=[]):
+            with pytest.raises(werkzeug.exceptions.NotFound):
+                reviewer = AutomaticSampleReviewer(Mock(form={'sample_id': 'unknown_sample'}))
+                reviewer.reviewable_data
