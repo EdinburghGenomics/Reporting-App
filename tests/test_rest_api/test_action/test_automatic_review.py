@@ -1,6 +1,6 @@
 from unittest.mock import patch, Mock, PropertyMock
 from rest_api.actions import automatic_review as ar, AutomaticRunReviewer
-from rest_api.actions.automatic_review import AutomaticSampleReviewer
+from rest_api.actions.automatic_review import AutomaticSampleReviewer, AutomaticLaneReviewer
 from tests.test_rest_api import TestBase
 
 ppath = 'rest_api.actions.automatic_review.'
@@ -63,7 +63,7 @@ failing_runs = [
     }
 ]
 
-run_elements = [{'barcode': 'b1'}, {'barcode': 'b2'}]
+run_elements = [{'barcode': 'b1', 'lane': 1}, {'barcode': 'b2', 'lane': 1}]
 
 failing_sample = {
     'sample_id': 'sample1',
@@ -128,28 +128,27 @@ class TestRunReviewer(TestBase):
 
     def setUp(self):
         self.init_request = Mock(form={'run_id': 'run1'})
-        with patch(ppath + 'eve_get', return_value=[passing_lane]):
+        with patch.object(AutomaticLaneReviewer, 'eve_get', return_value=[passing_lane]):
             self.reviewer1 = ar.AutomaticRunReviewer(self.init_request)
-            self.reviewer2 = ar.AutomaticRunReviewer(self.init_request)
 
     def test_reviewable_data(self):
-        with patch(ppath + 'eve_get', return_value=(failing_runs[0],)) as patch_get:
+        with patch.object(AutomaticLaneReviewer, 'eve_get', return_value=(failing_runs[0],)) as patch_get:
             assert self.reviewer1.reviewable_data == failing_runs[0]
-            patch_get.assert_called_once_with(
-                'runs', request_args={'where': '{"run_id": "run1"}'}
-            )
+            patch_get.assert_called_once_with('runs', run_id='run1')
 
     def test_perform_action(self):
-        with patch.object(AutomaticRunReviewer, 'reviewable_data', return_value=PropertyMock(return_value=failing_runs[0])), patch.object(AutomaticRunReviewer, 'run_elements', return_value=PropertyMock(return_value=failing_runs[0])) as patch_get:
+        with patch.object(AutomaticRunReviewer, 'reviewable_data', new_callable=PropertyMock(return_value=failing_runs[0])), \
+             patch.object(AutomaticRunReviewer, 'run_elements', new_callable=PropertyMock(return_value=run_elements)), \
+             patch(ppath + 'patch_internal') as mocked_patch:
                 self.reviewer1._perform_action()
-
-
-    def test_summary(self):
-        pass
-
-    @patch(ppath + 'patch_internal')
-    def test_push_review(self, mocked_patch):
-        pass
+                mocked_patch.assert_any_call(
+                    'run_elements', lane=1, run_id='run1', barcode='b1',
+                    payload={'review_date': self.reviewer1.current_time, 'review_comments': 'failed due to Run PC Q30', 'reviewed': 'fail'}
+                )
+                mocked_patch.assert_called_with(
+                    'run_elements', lane=1, run_id='run1', barcode='b2',
+                    payload={'review_date': self.reviewer1.current_time, 'review_comments': 'failed due to Run PC Q30', 'reviewed': 'fail'}
+                )
 
 
 class TestLaneReviewer(TestBase):
@@ -159,23 +158,20 @@ class TestLaneReviewer(TestBase):
         self.failing_reviewer_2 = ar.AutomaticLaneReviewer(failing_lanes[1])
 
     def test_failing_metrics(self):
-        assert self.passing_reviewer.failing_metrics() == []
-        assert self.failing_reviewer_1.failing_metrics() == ['aggregated.pc_opt_duplicate_reads',
-                                                                 'aggregated.yield_in_gb']
-        assert self.failing_reviewer_2.failing_metrics() == ['aggregated.pc_q30', 'aggregated.yield_in_gb']
+        assert self.passing_reviewer.failing_metrics == []
+        assert self.failing_reviewer_1.failing_metrics == ['aggregated.pc_opt_duplicate_reads', 'aggregated.yield_in_gb']
+        assert self.failing_reviewer_2.failing_metrics == ['aggregated.pc_q30', 'aggregated.yield_in_gb']
 
-    @patch(ppath + 'AutomaticLaneReviewer.get_failing_metrics', return_value=[])
-    def test_summary_pass(self, mocked_get_failing_metrics):
+    def test_summary_pass(self):
         assert self.passing_reviewer._summary['reviewed'] == 'pass'
         assert 'review_date' in self.passing_reviewer._summary
 
-    @patch(ppath + 'AutomaticLaneReviewer.get_failing_metrics', return_value=['some', 'failing', 'metrics'])
-    def test_summary_fail(self, mocked_get_failing_metrics):
-        assert self.passing_reviewer._summary['reviewed'] == 'fail'
-        assert 'review_date' in self.passing_reviewer._summary
-        assert self.passing_reviewer._summary['review_comments'] == 'failed due to some, failing, metrics'
+    def test_summary_fail(self):
+        assert self.failing_reviewer_1._summary['reviewed'] == 'fail'
+        assert 'review_date' in self.failing_reviewer_1._summary
+        assert self.failing_reviewer_1._summary['review_comments'] == 'failed due to Optical duplicate rate, Yield'
 
-    @patch(ppath + 'eve_get', return_value=({'data': run_elements}, None, 'an_etag', 200, 'headers'))
+    @patch.object(AutomaticLaneReviewer, 'eve_get', return_value=run_elements)
     @patch(ppath + 'patch_internal')
     def test_push_review(self, mocked_patch, mocked_get):
         self.passing_reviewer.push_review()
@@ -213,35 +209,33 @@ class TestSampleReviewer(TestBase):
         self.reviewer1 = ar.AutomaticSampleReviewer(self.init_request)
 
     def test_reviewable_data(self):
-        with patch(ppath + 'eve_get', return_value=(passing_sample,)) as patch_get, \
+        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(passing_sample,)) as patch_get, \
              self.patch_lims_samples:
             _ = self.reviewer.reviewable_data
-            patch_get.assert_called_once_with(
-                'samples', request_args={'where': '{"sample_id": "sample1"}'}
-            )
+            patch_get.assert_called_once_with('samples', sample_id="sample1")
 
     def test_failing_metrics(self):
-        with patch(ppath + 'eve_get', return_value=(passing_sample,)), self.patch_lims_samples:
-            assert self.reviewer.failing_metrics() == []
+        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(passing_sample,)), self.patch_lims_samples:
+            assert self.reviewer.failing_metrics == []
 
-        with patch(ppath + 'eve_get', return_value=(failing_sample,)), self.patch_lims_samples:
-            assert self.reviewer1.failing_metrics() == ['aggregated.clean_yield_in_gb', 'aggregated.clean_yield_q30']
+        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(failing_sample,)), self.patch_lims_samples:
+            assert self.reviewer1.failing_metrics == ['aggregated.clean_yield_in_gb', 'aggregated.clean_yield_q30']
 
     def test_cfg(self):
-        with patch(ppath + 'eve_get', return_value=(sample_no_genotype,)), self.patch_lims_samples:
+        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(sample_no_genotype,)), self.patch_lims_samples:
             assert 'genotype_validation.no_call_seq' not in self.reviewer.cfg
             assert 'genotype_validation.mismatching_snps' not in self.reviewer.cfg
             assert self.reviewer.cfg['aggregated.clean_yield_in_gb']['value'] == 120
             assert self.reviewer.cfg['coverage.mean']['value'] == 30
 
-        with patch(ppath + 'eve_get', return_value=(passing_sample,)), self.patch_lims_samples:
+        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(passing_sample,)), self.patch_lims_samples:
             assert 'genotype_validation.no_call_seq' in self.reviewer1.cfg
             assert 'genotype_validation.mismatching_snps' in self.reviewer1.cfg
             assert self.reviewer1.cfg['aggregated.clean_yield_in_gb']['value'] == 120
             assert self.reviewer1.cfg['coverage.mean']['value'] == 30
 
     def test_summary(self):
-        with patch(ppath + 'eve_get', return_value=(failing_sample,)), self.patch_lims_samples:
+        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(failing_sample,)), self.patch_lims_samples:
             assert self.reviewer._summary == {
                 'reviewed': 'fail',
                 'review_comments': 'failed due to Yield, Yield Q30',
@@ -250,7 +244,7 @@ class TestSampleReviewer(TestBase):
 
     @patch(ppath + 'patch_internal')
     def test_push_review(self, mocked_patch):
-        with patch(ppath + 'eve_get', return_value=(passing_sample,)), self.patch_lims_samples:
+        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(passing_sample,)), self.patch_lims_samples:
             self.reviewer.push_review()
 
             mocked_patch.assert_called_with(
