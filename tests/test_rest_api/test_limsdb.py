@@ -162,6 +162,8 @@ class TestSample(TestCase):
             'current_status': 'sample_qc',
             'started_date': '2015-06-01T00:00:00',
             'project_id': 'X99999',
+            'required_yield': None,
+            'required_coverage': None,
             'statuses': [
                 {
                     'date': 'Jun 01 2015',
@@ -228,7 +230,9 @@ class TestContainer(TestCase):
             'plate_id': 'X99999P001',
             'sample_qc': ['X99999P001H05', 'X99999P001H06'],
             'species': '',
-            'nb_samples': 2
+            'nb_samples': 2,
+            'required_coverage': '',
+            'required_yield': ''
         }
 
 
@@ -256,7 +260,9 @@ class TestProject(TestCase):
             'researcher_name': 'Joe Bloggs',
             'nb_quoted_samples': 2,
             'finished_date': None,
-            'started_date': None
+            'started_date': None,
+            'required_coverage': '',
+            'required_yield': ''
         }
 
         self.sample1.species = 'Homo sapiens'
@@ -278,7 +284,9 @@ class TestProject(TestCase):
             'nb_quoted_samples': 2,
             'finished_date': '2015-09-01T00:00:00',
             'started_date': '2015-06-01T00:00:00',
-            'finished': ['X99999P001H05', 'X99999P001H06']
+            'finished': ['X99999P001H05', 'X99999P001H06'],
+            'required_coverage': '',
+            'required_yield': ''
         }
 
     def test_finished_date(self):
@@ -338,7 +346,10 @@ def test_sample_status(mock_retrieve_args, mocked_request, mocked_non_qc, mocked
             'current_status': 'sequencing_queue',
             'project_id': 'X99999',
             'library_type': 'pcr_free',
-            'finished_date': None, 'sample_id': 'X99999P001H05',
+            'finished_date': None,
+            'sample_id': 'X99999P001H05',
+            'required_coverage': None,
+            'required_yield': None,
             'statuses': [
                 {'processes': [{'name': 'Receive Sample EG 6.1', 'type': 'complete', 'date': 'Nov 11 2016', 'process_id': 39005}], 'name': 'sample_submission', 'date': 'Nov 11 2016'},
                 {'processes': [{'name': 'Sequencing Plate Preparation EG 2.0', 'type': 'complete', 'date': 'Nov 23 2016', 'process_id': 39917}], 'name': 'sample_qc', 'date': 'Nov 23 2016'},
@@ -372,7 +383,9 @@ def test_sample_status_per_project(m_retrieve_args, m_project_info, m_request, m
             'library_type': 'pcr_free',
             'nb_samples': 1,
             'species': 'Homo sapiens',
-            'project_id': 'X99999'
+            'project_id': 'X99999',
+            'required_coverage': '',
+            'required_yield': ''
         }
     ]
 
@@ -393,6 +406,8 @@ def test_sample_status_per_plate(m_retrieve_args, m_project_info, m_request, m_n
             'library_type': 'pcr_free',
             'plate_id': 'X99999P001',
             'species': 'Homo sapiens',
-            'project_id': 'X99999'
+            'project_id': 'X99999',
+            'required_coverage': '',
+            'required_yield': ''
         }
     ]

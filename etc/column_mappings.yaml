@@ -105,6 +105,7 @@ column_def:
     nb_reads:                 { data: 'nb_reads',                             title: 'Nb Reads',                 fmt: { type: 'int' },                  visible: 'false' }
     nb_cycles:                { data: 'nb_cycles',                            title: 'Nb Cycles',                fmt: { type: 'int' },                  visible: 'false' }
     current_lims_status:      { data: 'current_status',                       title: 'Lims Status' }
+    expected_coverage:        { data: 'required_coverage',                    title: 'Expected Coverage (X)',    fmt: { type: 'int' },                 visible: 'false'  }
     expected_yield:           { data: 'Required Yield (Gb)',                  title: 'Expected Yield (Gb)',      fmt: { type: 'float' },               visible: 'false'  }
     expected_yield_q30:       { data: 'Yield for Quoted Coverage (Gb)',       title: 'Expected Yield Q30 (Gb)',  fmt: { type: 'float' },               visible: 'false' }
     tissue_type:              { data: 'Sample Type',                          title: 'Tissue type',                                                    visible: 'false'}
@@ -161,6 +162,8 @@ project_status:
     - { column_def: 'nb_samples', title: 'Sample Received', visible: 'false', class_name: 'text-center' }
     - species
     - library_type
+    - { column_def: 'expected_yield', data: 'required_yield', fmt: { type: 'string' } }
+    - { column_def: 'expected_coverage', fmt: { type: 'string' } }
     - nb_invoiced
     - nb_genotyped
     - project_status
@@ -187,6 +190,8 @@ plate_status:
     - { column_def: 'nb_samples', title: 'Sample Received', visible: 'false', class_name: 'text-center' }
     - species
     - library_type
+    - { column_def: 'expected_yield', data: 'required_yield', fmt: { type: 'string' } }
+    - { column_def: 'expected_coverage', fmt: { type: 'string' } }
     - nb_invoiced
     - nb_genotyped
     - nb_removed
