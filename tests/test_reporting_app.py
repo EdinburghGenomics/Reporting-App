@@ -264,12 +264,13 @@ class TestReportingApp(Helper):
                 'func_name': 'merge_multi_sources_keep_first',
                 'merge_on': 'sample_id',
                 'api_urls': [
-                    '/api/0.1/samples?max_results=10000',
+                    '/api/0.1/samples?max_results=15000',
                     '/api/0.1/lims/sample_status?match={"project_status":"all"}',
                     '/api/0.1/lims/sample_info?match={"project_status":"all"}'
                 ]
             },
-            review={'entity_field': 'sample_id', 'button_name': 'samplereview'}
+            review={'entity_field': 'sample_id', 'button_name': 'samplereview'},
+            create_row='color_data_source'
         )
 
         mocked_render = self._test_render_template('/samples/toreview')
@@ -291,7 +292,8 @@ class TestReportingApp(Helper):
                     '/api/0.1/lims/sample_info?match={"createddate":"13_06_2017_00:00:00","project_status":"open"}'
                 ]
             },
-            review={'entity_field': 'sample_id', 'button_name': 'samplereview'}
+            review={'entity_field': 'sample_id', 'button_name': 'samplereview'},
+            create_row='color_data_source'
         )
 
     @patch('reporting_app.rest_api')
