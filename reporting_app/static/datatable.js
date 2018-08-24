@@ -115,8 +115,6 @@ var color_data_source = function( row, data, dataIndex ) {
         var list2 = _.get(data, 'aggregated.most_recent_proc.data_source');
         list1.sort()
         list2.sort()
-        console.log(list1)
-        console.log(list2)
         if (!_.isEqual(list1, list2)){
             $(row).addClass('data-source-error');
         }
