@@ -341,6 +341,7 @@ class Sample(DataRelation):
         },
         {
             'from_run_elements': {
+                'useable_run_elements': ToSet('run_elements.run_element_id'),
                 'mean_coverage': Total('run_elements.coverage.mean'),
                 'bam_file_reads': Total('run_elements.mapping_metrics.bam_file_reads'),
                 'mapped_reads': Total('run_elements.mapping_metrics.mapped_reads'),

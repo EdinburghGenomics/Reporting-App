@@ -106,6 +106,23 @@ var color_filter = function( row, data, dataIndex ) {
     }
 }
 
+var color_data_source = function( row, data, dataIndex ) {
+    if (
+        _.has(data, 'aggregated.most_recent_proc.data_source')
+        && _.has(data, 'aggregated.from_run_elements.useable_run_elements')
+    ) {
+        var list1 = _.get(data, 'aggregated.from_run_elements.useable_run_elements');
+        var list2 = _.get(data, 'aggregated.most_recent_proc.data_source');
+        list1.sort()
+        list2.sort()
+        console.log(list1)
+        console.log(list2)
+        if (!_.isEqual(list1, list2)){
+            $(row).addClass('data-source-error');
+        }
+    }
+}
+
 
 var lims_run_review = function(dt_config) {
     return _lims_review(
