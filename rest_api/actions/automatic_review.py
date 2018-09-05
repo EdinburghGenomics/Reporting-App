@@ -72,7 +72,7 @@ class AutomaticReviewer:
 
             passfails[metric] = 'pass' if check else 'fail'
 
-        return sorted(k for k, v in passfails.items() if v != 'pass')
+        return sorted(k for k, v in passfails.items() if v == 'fail')
 
     @property
     def failure_comment(self):
