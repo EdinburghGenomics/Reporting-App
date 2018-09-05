@@ -1,4 +1,6 @@
 import os
+import re
+
 import yaml
 import datetime
 from cached_property import cached_property
@@ -18,6 +20,7 @@ review_thresholds = yaml.safe_load(open(cfg_path, 'r'))
 
 class AutomaticReviewer:
     reviewable_data = None
+    opposite = {'>': '<', '<': '>'}
 
     @staticmethod
     def eve_get(*args, **kwargs):
@@ -32,12 +35,28 @@ class AutomaticReviewer:
     def cfg(self):
         raise NotImplementedError
 
+    @staticmethod
+    def resolve_formula(data, formula):
+        modif_formula = formula
+        for word in re.findall('[\w.]+', formula):
+            value = query_dict(data, word)
+            if value:
+                modif_formula = modif_formula.replace(word, str(value))
+        try:
+            return eval(modif_formula)
+        except NameError:
+            return None
+
     @cached_property
     def failing_metrics(self):
         passfails = {}
 
         for metric in self.cfg:
-            metric_value = query_dict(self.reviewable_data, metric)
+            # resolve the formula if it exist otherwise resolve from the name of the metric
+            if 'formula' in self.cfg[metric]:
+                metric_value = self.resolve_formula(self.reviewable_data, self.cfg[metric]['formula'])
+            else:
+                metric_value = query_dict(self.reviewable_data, metric)
             comparison = self.cfg[metric]['comparison']
             compare_value = self.cfg[metric]['value']
 
@@ -51,20 +70,24 @@ class AutomaticReviewer:
             elif comparison == '<':
                 check = metric_value <= compare_value
 
-            elif comparison == 'agreeswith':
-                check = metric_value in (self.reviewable_data[compare_value['key']], compare_value['fallback'])
-
             passfails[metric] = 'pass' if check else 'fail'
 
-        return sorted(k for k, v in passfails.items() if v == 'fail')
+        return sorted(k for k, v in passfails.items() if v != 'pass')
+
+    @property
+    def failure_comment(self):
+        return 'Failed due to ' + ', '.join(['%s %s %s' % (
+            self.cfg.get(f, {}).get('name', f),
+            self.opposite.get((self.cfg.get(f, {}).get('comparison'))),
+            self.cfg.get(f, {}).get('value')
+        ) for f in self.failing_metrics ])
 
     @cached_property
     def _summary(self):
         if self.failing_metrics:
             return {
                 ELEMENT_REVIEWED: 'fail',
-                ELEMENT_REVIEW_COMMENTS: 'failed due to ' + ', '.join(
-                    [self.cfg.get(f, {}).get('name', f) for f in self.failing_metrics]),
+                ELEMENT_REVIEW_COMMENTS: self.failure_comment,
                 ELEMENT_REVIEW_DATE: self.current_time,
             }
         else:
@@ -212,12 +235,13 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
         cfg['coverage.mean']['value'] = coverage
         return cfg
 
+
     @cached_property
     def _summary(self):
         summary = super()._summary
         if self.species == 'Homo sapiens' and self.sample_genotype is None:
             summary[ELEMENT_REVIEWED] = 'genotype missing'
-            summary[ELEMENT_REVIEW_COMMENTS] = 'failed due to missing genotype'
+            summary[ELEMENT_REVIEW_COMMENTS] = 'Failed due to missing genotype'
         return summary
 
     def push_review(self):

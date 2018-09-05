@@ -16,6 +16,8 @@ passing_lane = {
         'pc_pass_filter': 75.27,
         'yield_in_gb': 140.29,
         'pc_q30': 83.01,
+        'pc_q30_r1': 89.21,
+        'pc_q30_r2': 78.14,
         'pc_opt_duplicate_reads': 21.1,
         'pc_adaptor': 0.5
     }
@@ -27,6 +29,8 @@ failing_lanes = [
         'lane_number': 2,
         'aggregated': {
             'pc_q30': 77.14,
+            'pc_q30_r1': 80.12,
+            'pc_q30_r2': 74.9,
             'pc_pass_filter': 39.87,
             'yield_in_gb': 74.30,
             'pc_opt_duplicate_reads': 30.1,
@@ -38,6 +42,8 @@ failing_lanes = [
         'lane_number': 3,
         'aggregated': {
             'pc_q30': 74.97,
+            'pc_q30_r1': 79.12,
+            'pc_q30_r2': 71.2,
             'pc_pass_filter': 40.17,
             'yield_in_gb': 74.86,
             'pc_opt_duplicate_reads': 21.1,
@@ -51,6 +57,8 @@ failing_runs = [
         'run_id': 'run1',
         'aggregated': {
             'pc_q30': 73.4,
+            'pc_q30_r1': 76.1,
+            'pc_q30_r2': 70.6,
             "yield_in_gb": 1096.2,
             "pc_opt_duplicate_reads": 22.59,
             'pc_adaptor': 1.3
@@ -84,6 +92,7 @@ failing_sample = {
     }
 }
 
+
 passing_sample = {
     'sample_id': 'sample1',
     'expected_yield_q30': 95,
@@ -100,13 +109,28 @@ passing_sample = {
     }
 }
 
+sample_failing_genotype = {
+    'sample_id': 'sample1',
+    'expected_yield_q30': 95,
+    'species_name': 'Homo sapiens',
+    'genotype_validation': {'mismatching_snps': 12, 'no_call_seq': 0, 'no_call_chip': 3, 'matching_snps': 16},
+    'provided_gender': 'female',
+    'called_gender': 'female',
+    'coverage': {'mean': 30.34},
+    'aggregated': {
+        'clean_yield_in_gb': 120.17,
+        'clean_yield_q30': 95.82,
+        'pc_mapped_reads': 95.62,
+        'pc_duplicate_reads': 20
+    }
+}
 sample_no_genotype = {
     'sample_id': 'sample1',
     'species_name': 'Homo sapiens',
     'expected_yield_q30': 95,
     'provided_gender': 'female',
     'called_gender': 'female',
-    'median_coverage': 30.34,
+    'coverage': {'mean': 30.34},
     'aggregated': {
         'pc_mapped_reads': 95.62,
         'pc_duplicate_reads': 20,
@@ -147,17 +171,35 @@ class TestRunReviewer(TestBase):
                 self.reviewer1._perform_action()
                 mocked_patch.assert_any_call(
                     'run_elements', lane=1, run_id='run1', barcode='b1',
-                    payload={'review_date': self.reviewer1.current_time, 'review_comments': 'failed due to Run PC Q30', 'reviewed': 'fail'}
+                    payload={
+                        'review_date': self.reviewer1.current_time,
+                        'review_comments': 'Failed due to Run PC Q30 < 75',
+                        'reviewed': 'fail'
+                    }
                 )
                 mocked_patch.assert_called_with(
                     'run_elements', lane=1, run_id='run1', barcode='b2',
-                    payload={'review_date': self.reviewer1.current_time, 'review_comments': 'failed due to Run PC Q30', 'reviewed': 'fail'}
+                    payload={
+                        'review_date': self.reviewer1.current_time,
+                        'review_comments': 'Failed due to Run PC Q30 < 75',
+                        'reviewed': 'fail'}
                 )
 
     def test_unknown_run(self):
         with patch.object(AutomaticLaneReviewer, 'eve_get', return_value=[]):
             with pytest.raises(werkzeug.exceptions.NotFound):
                 _ = AutomaticRunReviewer(Mock(form={'run_id': 'unknown_run'}))
+
+    def test_resolve_formula(self):
+        data = {'this': {
+            'value': 3,
+            'other_value': 5
+        }}
+        formula = 'this.value * (10 - this.other_value) + 1'
+        assert self.reviewer1.resolve_formula(data, formula) == 16
+
+        formula = 'this.non_existing_value * (10 - this.other_value) + 1'
+        assert self.reviewer1.resolve_formula(data, formula) is None
 
 
 class TestLaneReviewer(TestBase):
@@ -168,8 +210,12 @@ class TestLaneReviewer(TestBase):
 
     def test_failing_metrics(self):
         assert self.passing_reviewer.failing_metrics == []
-        assert self.failing_reviewer_1.failing_metrics == ['aggregated.pc_opt_duplicate_reads', 'aggregated.yield_in_gb']
-        assert self.failing_reviewer_2.failing_metrics == ['aggregated.pc_q30', 'aggregated.yield_in_gb']
+        assert self.failing_reviewer_1.failing_metrics == [
+            'aggregated.pc_opt_duplicate_reads', 'aggregated.yield_in_gb', 'compound_yield_adapter_duplicates'
+        ]
+        assert self.failing_reviewer_2.failing_metrics == [
+            'aggregated.pc_q30', 'aggregated.yield_in_gb', 'compound_yield_adapter_duplicates'
+        ]
 
     def test_summary_pass(self):
         assert self.passing_reviewer._summary['reviewed'] == 'pass'
@@ -178,7 +224,12 @@ class TestLaneReviewer(TestBase):
     def test_summary_fail(self):
         assert self.failing_reviewer_1._summary['reviewed'] == 'fail'
         assert 'review_date' in self.failing_reviewer_1._summary
-        assert self.failing_reviewer_1._summary['review_comments'] == 'failed due to Optical duplicate rate, Yield'
+        assert self.failing_reviewer_1._summary['review_comments'] == \
+               'Failed due to Optical duplicate rate > 30, Yield < 120, Yield with no adapters and no duplicates < 95'
+
+    def test_get_failure_comment(self):
+        assert self.failing_reviewer_1.failure_comment == \
+               'Failed due to Optical duplicate rate > 30, Yield < 120, Yield with no adapters and no duplicates < 95'
 
     @patch.object(AutomaticLaneReviewer, 'eve_get', return_value=run_elements)
     @patch(ppath + 'patch_internal')
@@ -247,9 +298,14 @@ class TestSampleReviewer(TestBase):
         with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(failing_sample,)), self.patch_lims_samples:
             assert self.reviewer._summary == {
                 'reviewed': 'fail',
-                'review_comments': 'failed due to Yield, Yield Q30',
+                'review_comments': 'Failed due to Yield < 120, Yield Q30 < 95',
                 'review_date': self.reviewer.current_time
             }
+
+    def test_get_failure_comment(self):
+        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(sample_failing_genotype,)), \
+             self.patch_lims_samples:
+            assert self.reviewer.failure_comment == 'Failed due to Genotyping error > 5'
 
     @patch(ppath + 'patch_internal')
     def test_push_review(self, mocked_patch):
