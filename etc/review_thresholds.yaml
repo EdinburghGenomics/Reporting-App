@@ -4,7 +4,7 @@
 #  * value -- use to provide the threshold
 #  * comparison -- the comparator used
 #  * [optional] a formula that replace the metric key as the source of the data.
-#    formula can have nuerics or existing metric name
+#    formula can have numeric or existing metric name
 
 run:
     aggregated.yield_in_gb:

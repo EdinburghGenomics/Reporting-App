@@ -2,7 +2,7 @@ from unittest.mock import patch, Mock, PropertyMock
 
 import pytest
 import werkzeug
-
+from rest_api import app
 from rest_api.actions import automatic_review as ar, AutomaticRunReviewer
 from rest_api.actions.automatic_review import AutomaticSampleReviewer, AutomaticLaneReviewer
 from tests.test_rest_api import TestBase
@@ -158,6 +158,17 @@ class TestRunReviewer(TestBase):
         self.init_request = Mock(form={'run_id': 'run1'})
         with patch.object(AutomaticLaneReviewer, 'eve_get', return_value=[passing_lane]):
             self.reviewer1 = ar.AutomaticRunReviewer(self.init_request)
+
+    def test_eve_get(self):
+        page1 = {'data': ['test1'], '_links': {'next': {'href': 'endpoint?page=2'}}}
+        page2 = {'data': ['test2'], '_links': {'next': {'href': 'endpoint?page=3'}}}
+        page3 = {'data': ['test3'], '_links': {}}
+
+        with patch('rest_api.actions.automatic_review.get', side_effect=[(page1,), (page2,), (page3,)]) as mock_get:
+            with app.test_request_context():
+                assert self.reviewer1.eve_get('endpoint', param1='this') == ['test1', 'test2', 'test3']
+                mock_get.call_count == 3
+                mock_get.assert_called_with('endpoint', param1='this')
 
     def test_reviewable_data(self):
         with patch.object(AutomaticLaneReviewer, 'eve_get', return_value=(failing_runs[0],)) as patch_get:

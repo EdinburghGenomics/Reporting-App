@@ -9,7 +9,9 @@ from egcg_core.constants import ELEMENT_REVIEW_COMMENTS, ELEMENT_REVIEW_DATE, EL
 from egcg_core.util import query_dict
 from eve.methods.patch import patch_internal
 from eve.methods.get import get
+from werkzeug.datastructures import ImmutableMultiDict
 from werkzeug.exceptions import abort
+from flask import request
 from config import rest_config
 from rest_api import settings
 from rest_api.actions.reviews import Action
@@ -25,7 +27,18 @@ class AutomaticReviewer:
     @staticmethod
     def eve_get(*args, **kwargs):
         res = get(*args, **kwargs)
-        return res[0].get('data')
+        data = res[0].get('data')
+        next_page = query_dict(res[0], '_links.next')
+        # depaginate recursively
+        if next_page:
+            match = re.match('\w+\?page=(\d+)', next_page.get('href'))
+            previous_args = request.args
+            # inject page number in the args of the request to allow eve to pick it up
+            request.args = ImmutableMultiDict({'page': int(match.group(1))})
+            data.extend(AutomaticReviewer.eve_get(*args, **kwargs))
+            # restore the args that was there previously
+            request.args = previous_args
+        return data
 
     @cached_property
     def current_time(self):
