@@ -44,5 +44,16 @@ def retrigger_aggregation_projects(communicator, **params):
         communicator.patch_entry('projects', {}, 'project_id', p['project_id'])
 
 
+def retrigger_aggregation_samples(communicator, **params):
+    all_samples= communicator.get_documents('samples', all_pages=True, **params)
+    app_logger.info('%s samples to process', len(all_samples))
+    count = 0
+    for s in all_samples:
+        count += 1
+        if count % 100 == 0:
+            app_logger.info('%s samples processed', count)
+        communicator.patch_entry('samples', {}, 'sample_id', s['sample_id'])
+
+
 if __name__ == '__main__':
     main()

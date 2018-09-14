@@ -240,7 +240,7 @@ def report_samples(view_type):
     if view_type == 'all':
         title = 'All samples'
         ajax_call['api_urls'] = [
-            util.construct_url('samples', max_results=10000),
+            util.construct_url('samples', max_results=15000),
             util.construct_url('lims/sample_status', match={'project_status': 'all'}),
             util.construct_url('lims/sample_info', match={'project_status': 'all'})
         ]
@@ -270,7 +270,8 @@ def report_samples(view_type):
             title,
             'samples',
             ajax_call=ajax_call,
-            review={'entity_field': 'sample_id', 'button_name': 'samplereview'}
+            review={'entity_field': 'sample_id', 'button_name': 'samplereview'},
+            create_row='color_data_source'
         )
     )
 
@@ -359,7 +360,8 @@ def report_project(project_ids):
                     'merge_on': 'sample_id'
                 },
                 fixed_header=True,
-                review={'entity_field': 'sample_id', 'button_name': 'samplereview'}
+                review={'entity_field': 'sample_id', 'button_name': 'samplereview'},
+                create_row='color_data_source'
             )
         ],
         procs=procs
@@ -387,7 +389,8 @@ def report_sample(sample_id):
                     ]
                 },
                 minimal=True,
-                review={'entity_field': 'sample_id', 'button_name': 'samplereview'}
+                review={'entity_field': 'sample_id', 'button_name': 'samplereview'},
+                create_row='color_data_source'
             ),
             util.datatable_cfg(
                 'Run elements generated for ' + sample_id,

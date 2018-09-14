@@ -325,6 +325,7 @@ class TestDatabaseHooks(TestCase):
             'coverage_at_15X': 66.66666666666666, 'most_recent_proc': None, 'clean_yield_in_gb': 5.000000002,
             'clean_pc_q30_r1': 92.30769231065089, 'clean_pc_q30': 92.0000000032, 'clean_yield_q30_in_gb': 4.600000002,
             'from_run_elements': {
+                'useable_run_elements': ['150724_test_1_ATGA', '150724_test_1_ATGC'],
                 'mapped_reads': 16500, 'duplicate_reads': 2100, 'bam_file_reads': 17040,
                 'pc_mapped_reads': 96.83098591549296, 'picard_opt_dup_reads': 1100,
                 'pc_duplicate_reads': 12.323943661971832, 'pc_opt_duplicate_reads': 6.455399061032864,
@@ -360,6 +361,7 @@ class TestDatabaseHooks(TestCase):
              'clean_pc_q30': 91.80327869255576, 'clean_yield_q30_in_gb': 5.600000003}
         )
         exp['from_run_elements'].update({'mean_coverage': 6.5})
+        exp['from_run_elements']['useable_run_elements'].append('150724_test_2_ATGG')
 
         self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])
 
