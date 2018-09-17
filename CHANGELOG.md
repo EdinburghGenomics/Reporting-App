@@ -1,10 +1,19 @@
 Changelog for Reporting-App
 ===========================
 
-0.19 (unreleased)
+0.19 (2018-09-17)
 -----------------
 
-- Nothing changed yet.
+- Added expected yield/coverage columns to project and plate status tables
+- Added Data Release Trigger to `DELIVERY` status
+- New review thresholds
+    - Overall run: total yield, %Q30, %Q30 R1/2
+    - Lane: %Q30 R1/2, adaptors and duplicates
+    - Adding `formula` logic
+- Added commit hash to dev instances
+- Highlighting samples which have different usable data from processed data
+- Adding usable run elements to sample aggregation
+- Adding required yield and species to Lims queries
 
 
 0.18.2 (2018-06-01)
