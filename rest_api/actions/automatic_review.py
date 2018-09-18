@@ -235,7 +235,7 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
             required_yield_q30 = self.lims_sample.udf.get('Yield for Quoted Coverage (Gb)')
         else:
             # Convert in Gb
-            required_yield_q30 = required_yield_q30 / 1000000000
+            required_yield_q30 = int(required_yield_q30 / 1000000000)
         if not required_yield_q30:
             abort(404, 'Sample %s does not have a expected yield Q30' % self.sample_id)
 
@@ -244,7 +244,7 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
             required_yield = self.lims_sample.udf.get('Required Yield (Gb)')
         else:
             # Convert in Gb
-            required_yield = required_yield / 1000000000
+            required_yield = int(required_yield / 1000000000)
         if not required_yield:
             abort(404, 'Sample %s does not have a expected yield' % self.sample_id)
 
