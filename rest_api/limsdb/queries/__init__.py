@@ -236,24 +236,3 @@ def runs_cst(session, time_since=None, run_ids=None, run_status=None):
 
     results = q.all()
     return results
-
-
-
-def get_processes(session, artifact_id):
-    q = session.query(t.Process.createddate, t.Process.processid) \
-        .join(t.Process.type) \
-        .join(t.Process.udfs) \
-        .join(t.Process.processiotrackers) \
-        .join(t.ProcessIOTracker.artifact) \
-        .filter(t.Artifact.luid == artifact_id)
-    return q.all()
-
-
-if __name__ == '__main__':
-    import datetime
-    from rest_api.limsdb import get_session
-    session = get_session()
-    time_since = datetime.datetime.now() - datetime.timedelta(days=365)
-    res = get_processes(session, artifact_id='2-936832')
-    for r in res:
-        print(r)
