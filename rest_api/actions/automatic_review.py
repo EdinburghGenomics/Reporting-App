@@ -252,7 +252,7 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
         if not coverage:
             abort(404, 'Sample %s does not have a target coverage' % self.sample_id)
 
-        cfg['aggregated.clean_yield_q30']['value'] = required_yield_q30
+        cfg['aggregated.clean_yield_q30_in_gb']['value'] = required_yield_q30
         cfg['aggregated.clean_yield_in_gb']['value'] = required_yield
         cfg['coverage.mean']['value'] = coverage
         return cfg

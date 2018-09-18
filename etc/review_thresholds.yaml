@@ -62,7 +62,7 @@ sample:
             name: Yield
             # value: populated in automatic_review.sample_config
             comparison: '>'
-        aggregated.clean_yield_q30:
+        aggregated.clean_yield_q30_in_gb:
             name: Yield Q30
             # value: populated in automatic_review.sample_config
             comparison: '>'

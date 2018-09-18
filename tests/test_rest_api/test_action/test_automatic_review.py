@@ -90,7 +90,7 @@ failing_sample = {
         'pc_mapped_reads': 97.18,
         'clean_yield_in_gb': 114.31,
         'pc_duplicate_reads': 16.20,
-        'clean_yield_q30': 89.33
+        'clean_yield_q30_in_gb': 89.33
     }
 }
 
@@ -107,7 +107,7 @@ passing_sample = {
     'coverage': {'mean': 30.34},
     'aggregated': {
         'clean_yield_in_gb': 120.17,
-        'clean_yield_q30': 95.82,
+        'clean_yield_q30_in_gb': 95.82,
         'pc_mapped_reads': 95.62,
         'pc_duplicate_reads': 20
     }
@@ -125,7 +125,7 @@ sample_failing_genotype = {
     'coverage': {'mean': 30.34},
     'aggregated': {
         'clean_yield_in_gb': 120.17,
-        'clean_yield_q30': 95.82,
+        'clean_yield_q30_in_gb': 95.82,
         'pc_mapped_reads': 95.62,
         'pc_duplicate_reads': 20
     }
@@ -143,7 +143,7 @@ sample_no_genotype = {
         'pc_mapped_reads': 95.62,
         'pc_duplicate_reads': 20,
         'clean_yield_in_gb': 120.17,
-        'clean_yield_q30': 95.82
+        'clean_yield_q30_in_gb': 95.82
     }
 }
 
@@ -153,7 +153,7 @@ non_human_sample = {
     'median_coverage': 30.34,
     'aggregated': {
         'clean_yield_in_gb': 120.17,
-        'clean_yield_q30': 95.82,
+        'clean_yield_q30_in_gb': 95.82,
         'pc_mapped_reads': 95.62,
         'pc_duplicate_reads': 20
     }
@@ -298,7 +298,7 @@ class TestSampleReviewer(TestBase):
             assert self.reviewer.failing_metrics == []
 
         with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(failing_sample,)), self.patch_lims_samples:
-            assert self.reviewer1.failing_metrics == ['aggregated.clean_yield_in_gb', 'aggregated.clean_yield_q30']
+            assert self.reviewer1.failing_metrics == ['aggregated.clean_yield_in_gb', 'aggregated.clean_yield_q30_in_gb']
 
     def test_cfg(self):
         with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(sample_no_genotype,)), self.patch_lims_samples:
