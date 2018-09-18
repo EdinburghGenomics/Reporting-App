@@ -230,16 +230,25 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
             cfg.pop('genotype_validation.mismatching_snps', None)
             cfg.pop('genotype_validation.no_call_seq', None)
 
-        required_yield_q30 = self.find_value('required_yield_q30', 'Yield for Quoted Coverage (Gb)')
-
+        required_yield_q30 = self.reviewable_data.get('required_yield_q30')
+        if not required_yield_q30:
+            required_yield_q30 = self.lims_sample.udf.get('Yield for Quoted Coverage (Gb)')
+        else:
+            # Convert in Gb
+            required_yield_q30 = int(required_yield_q30 / 1000000000)
         if not required_yield_q30:
             abort(404, 'Sample %s does not have a expected yield Q30' % self.sample_id)
 
-        coverage = self.find_value('required_coverage', 'Coverage (X)')
-        required_yield = self.find_value('required_yield', 'Required Yield (Gb)')
-
+        required_yield = self.reviewable_data.get('required_yield')
+        if not required_yield:
+            required_yield = self.lims_sample.udf.get('Required Yield (Gb)')
+        else:
+            # Convert in Gb
+            required_yield = int(required_yield / 1000000000)
         if not required_yield:
             abort(404, 'Sample %s does not have a expected yield' % self.sample_id)
+
+        coverage = self.find_value('required_coverage', 'Coverage (X)')
         if not coverage:
             abort(404, 'Sample %s does not have a target coverage' % self.sample_id)
 

@@ -79,7 +79,9 @@ run_elements = [{'barcode': 'b1', 'lane': 1}, {'barcode': 'b2', 'lane': 1}]
 
 failing_sample = {
     'sample_id': 'sample1',
-    'expected_yield_q30': 95,
+    'required_yield_q30': 95000000000,
+    'required_coverage': 30,
+    'required_yield': 120000000000,
     'provided_gender': 'female',
     'called_gender': 'male',
     'genotype_validation': {'mismatching_snps': 3, 'no_call_chip': 1, 'no_call_seq': 0, 'matching_snps': 28},
@@ -95,7 +97,9 @@ failing_sample = {
 
 passing_sample = {
     'sample_id': 'sample1',
-    'expected_yield_q30': 95,
+    'required_yield_q30': 95000000000,
+    'required_coverage': 30,
+    'required_yield': 120000000000,
     'species_name': 'Homo sapiens',
     'genotype_validation': {'mismatching_snps': 1, 'no_call_seq': 0, 'no_call_chip': 3, 'matching_snps': 28},
     'provided_gender': 'female',
@@ -111,7 +115,9 @@ passing_sample = {
 
 sample_failing_genotype = {
     'sample_id': 'sample1',
-    'expected_yield_q30': 95,
+    'required_yield_q30': 95000000000,
+    'required_coverage': 30,
+    'required_yield': 120000000000,
     'species_name': 'Homo sapiens',
     'genotype_validation': {'mismatching_snps': 12, 'no_call_seq': 0, 'no_call_chip': 3, 'matching_snps': 16},
     'provided_gender': 'female',
@@ -127,7 +133,9 @@ sample_failing_genotype = {
 sample_no_genotype = {
     'sample_id': 'sample1',
     'species_name': 'Homo sapiens',
-    'expected_yield_q30': 95,
+    'required_yield_q30': 95000000000,
+    'required_coverage': 30,
+    'required_yield': 120000000000,
     'provided_gender': 'female',
     'called_gender': 'female',
     'coverage': {'mean': 30.34},
