@@ -1,10 +1,10 @@
 Changelog for Reporting-App
 ===========================
 
-0.20 (unreleased)
------------------
+0.19.1 (2018-09-18)
+-------------------
 
-- Nothing changed yet.
+- Bug fix in Automatic Sample Review where yield in gb were compared with required yield in base
 
 
 0.19 (2018-09-17)
