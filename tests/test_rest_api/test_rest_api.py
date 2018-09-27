@@ -48,7 +48,7 @@ class TestLIMSRestAPI(TestBase):
 
         # Add stuff to the database
         cls.session = get_session()
-        p1 = cls._create_project('testproject1', udfs={'Number of Quoted Samples': 9})
+        p1 = cls._create_project('testproject1', udfs={'Number of Quoted Samples': 9, 'Enquiry Number': 'E999'})
         p2 = cls._create_project('testproject2', udfs={'Number of Quoted Samples': 9}, closed=True)
         udfs = {'Required Yield (Gb)': 30, 'Coverage (X)': 15, 'Species': 'Gallus gallus'}
         s1 = cls._create_sample('sample1', p1, udfs=udfs)
@@ -183,7 +183,8 @@ class TestLIMSRestAPI(TestBase):
                 'open_date': '2018-01-23T00:00:00',
                 'project_id': 'testproject1',
                 'project_status': 'open',
-                'researcher_name': 'Jane Doe'
+                'researcher_name': 'Jane Doe',
+                'enquiry_number': 'E999'
             }]
         })
         response = self.client.get('/api/0.1/lims/project_info?match={"project_status": "closed"}')
@@ -196,7 +197,8 @@ class TestLIMSRestAPI(TestBase):
                 'open_date': '2018-01-23T00:00:00',
                 'project_id': 'testproject2',
                 'project_status': 'closed',
-                'researcher_name': 'Jane Doe'
+                'researcher_name': 'Jane Doe',
+                'enquiry_number': None
             }]
         })
         response = self.client.get('/api/0.1/lims/project_info?match={"project_status": "all"}')
@@ -240,7 +242,8 @@ class TestLIMSRestAPI(TestBase):
                 'species': 'Gallus gallus',
                 'started_date': None,
                 'required_yield': '30',
-                'required_coverage': '15'
+                'required_coverage': '15',
+                'enquiry_number': 'E999'
             }]
         }
         assert_json_equal(json_of_response(response), exp)

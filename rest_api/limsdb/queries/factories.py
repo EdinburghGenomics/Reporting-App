@@ -95,14 +95,17 @@ def sample_status_per_project(session):
     project_name = match.get('project_id')
     project_status = match.get('project_status', 'open')
     all_projects = defaultdict(Project)
-    for project_info in queries.get_project_info(session, project_name, udfs=['Number of Quoted Samples'],
-                                                 project_status=project_status):
-        pjct_name, open_date, close_date, firstname, lastname, udf_name, nb_quoted_samples = project_info
+    for info in queries.get_project_info(session, project_name, udfs=['Number of Quoted Samples', 'Enquiry Number'],
+                                         project_status=project_status):
+        pjct_name, open_date, close_date, firstname, lastname, udf_name, udf_value = info
         all_projects[pjct_name].project_id = pjct_name
         all_projects[pjct_name].open_date = open_date
         all_projects[pjct_name].close_date = close_date
         all_projects[pjct_name].researcher_name = '%s %s' % (firstname, lastname)
-        all_projects[pjct_name].nb_quoted_samples = nb_quoted_samples
+        if udf_name == 'Number of Quoted Samples':
+            all_projects[pjct_name].nb_quoted_samples = udf_value
+        if udf_name == 'Enquiry Number':
+            all_projects[pjct_name].enquiry_number = udf_value
 
     for sample in samples:
         all_projects[sample.project_name].samples.append(sample)
@@ -138,14 +141,17 @@ def project_info(session):
     project_name = match.get('project_id')
     project_status = match.get('project_status', 'open')
     all_projects = defaultdict(ProjectInfo)
-    for info in queries.get_project_info(session, project_name, udfs=['Number of Quoted Samples'],
+    for info in queries.get_project_info(session, project_name, udfs=['Number of Quoted Samples', 'Enquiry Number'],
                                          project_status=project_status):
-        pjct_name, open_date, close_date, firstname, lastname, udf_name, nb_quoted_samples = info
+        pjct_name, open_date, close_date, firstname, lastname, udf_name, udf_value = info
         all_projects[pjct_name].project_id = pjct_name
         all_projects[pjct_name].open_date = open_date
         all_projects[pjct_name].close_date = close_date
         all_projects[pjct_name].researcher_name = '%s %s' % (firstname, lastname)
-        all_projects[pjct_name].nb_quoted_samples = nb_quoted_samples
+        if udf_name == 'Number of Quoted Samples':
+            all_projects[pjct_name].nb_quoted_samples = udf_value
+        if udf_name == 'Enquiry Number':
+            all_projects[pjct_name].enquiry_number = udf_value
 
     return [p.to_json() for p in all_projects.values()]
 

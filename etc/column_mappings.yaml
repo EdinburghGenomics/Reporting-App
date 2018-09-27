@@ -24,6 +24,7 @@ column_def:
     cv:                       { data: 'aggregated.cv',                        title: 'Coefficient of variance',  fmt: { type: 'float' }, visible: 'false' }
     delivered:                { data: 'delivered',                            title: 'Delivered'}
     duplicate_reads:          { data: 'duplicate_reads',                      title: '# duplicate reads',        fmt: { type: 'int' },    visible: 'false',         }
+    enquiry_number:           { data: 'enquiry_number',                       title: 'Enquiry Number',                                    visible: 'false'}
     lane_pc_optical_dups:     { data: 'lane_pc_optical_dups',                 title: 'Estimated dupl rate',      fmt: { type: 'float', max: 20 } }
     lane_number:              { data: 'lane_number',                          title: 'Lane' }
     library_id:               { data: 'library_id',                           title: 'Library ID' }
@@ -145,6 +146,7 @@ runs:
 projects:
     - project_id
     - { column_def: 'reseacher', visible: 'true' }
+    - { column_def: 'enquiry_number', visible: 'true' }
     - nb_quoted_samples
     - { column_def: 'project_status', visible: 'true' }
     - open_date
@@ -158,6 +160,7 @@ projects:
 project_status:
     - project_id
     - reseacher
+    - enquiry_number
     - nb_quoted_samples
     - { column_def: 'nb_samples', title: 'Sample Received', visible: 'false', class_name: 'text-center' }
     - species

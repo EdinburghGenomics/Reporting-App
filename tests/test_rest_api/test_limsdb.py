@@ -26,7 +26,8 @@ mocked_retrieve_args = patch(
 
 mocked_get_project_info = patch(
     'rest_api.limsdb.queries.get_project_info',
-    return_value=[('X99999', datetime(2016, 9, 1, 13, 0), None, 'Jane', 'Doe', 'Number of Quoted Samples', '2')]
+    return_value=[('X99999', datetime(2016, 9, 1, 13, 0), None, 'Jane', 'Doe', 'Number of Quoted Samples', '2'),
+                  ('X99999', datetime(2016, 9, 1, 13, 0), None, 'Jane', 'Doe', 'Enquiry Number', 'E999')]
 )
 
 mocked_get_sample_info = patch(
@@ -245,6 +246,7 @@ class TestProject(TestCase):
         self.project.open_date = datetime(2015, 4, 1, 11, 45, 3, 367000)
         self.project.researcher_name = 'Joe Bloggs'
         self.project.nb_quoted_samples = 2
+        self.project.enquiry_number = 'E99999'
         self.project.project_id = 'X99999'
 
     def test_to_json(self):
@@ -262,7 +264,8 @@ class TestProject(TestCase):
             'finished_date': None,
             'started_date': None,
             'required_coverage': '',
-            'required_yield': ''
+            'required_yield': '',
+            'enquiry_number': 'E99999'
         }
 
         self.sample1.species = 'Homo sapiens'
@@ -286,7 +289,8 @@ class TestProject(TestCase):
             'started_date': '2015-06-01T00:00:00',
             'finished': ['X99999P001H05', 'X99999P001H06'],
             'required_coverage': '',
-            'required_yield': ''
+            'required_yield': '',
+            'enquiry_number': 'E99999'
         }
 
     def test_finished_date(self):
@@ -385,7 +389,8 @@ def test_sample_status_per_project(m_retrieve_args, m_project_info, m_request, m
             'species': 'Homo sapiens',
             'project_id': 'X99999',
             'required_coverage': '',
-            'required_yield': ''
+            'required_yield': '',
+            'enquiry_number': 'E999'
         }
     ]
 

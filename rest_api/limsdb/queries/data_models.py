@@ -31,6 +31,7 @@ class ProjectInfo:
         self.close_date = None
         self.researcher_name = None
         self.nb_quoted_samples = None
+        self.enquiry_number = None
 
     @property
     def status(self):
@@ -47,6 +48,7 @@ class ProjectInfo:
             'project_status': self.status,
             'researcher_name': self.researcher_name,
             'nb_quoted_samples': self.nb_quoted_samples,
+            'enquiry_number': self.enquiry_number
         }
         return ret
 
@@ -269,7 +271,8 @@ class Project(Container, ProjectInfo):
             'researcher_name': self.researcher_name,
             'nb_quoted_samples': self.nb_quoted_samples,
             'finished_date': format_date(self.finished_date),
-            'started_date': format_date(self.started_date)
+            'started_date': format_date(self.started_date),
+            'enquiry_number': self.enquiry_number
         }
         ret.update(self.samples_per_status())
         return ret
