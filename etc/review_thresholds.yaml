@@ -50,9 +50,9 @@ lane:
         value: 30
         comparison: '<'
     compound_yield_adapter_duplicates:
-        formula: 'aggregated.yield_in_gb * (100 - aggregated.pc_adaptor)/100 * (100 - aggregated.pc_opt_duplicate_reads)/100'
+        formula: 'aggregated.yield_in_gb * (100 - aggregated.pc_adaptor)/100 * (100 - aggregated.pc_duplicate_reads)/100'
         name: Yield with no adapters and no duplicates
-        value: 95
+        value: 96    # This is the amount of data required for 30X human genome
         comparison: '>'
 
 
