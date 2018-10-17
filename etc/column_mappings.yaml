@@ -114,6 +114,20 @@ column_def:
     trim_r2:                  { data: 'aggregated.trim_r2',                   title: 'Read 2 Max length',                                              visible: 'false'}
     tiles_filtered:           { data: 'aggregated.tiles_filtered',            title: 'Tile removed',                                                   visible: 'false'}
     family_id:                { data: 'Family ID',                            title: 'Family ID (SGP)',                                                visible: 'false'}
+    species_name:             { data: 'name',                                 title: 'Name' }
+    species_default_genome:   { data: 'default_version',                      title: 'Default genome version' }
+    species_taxid:            { data: 'taxid',                                title: 'Taxid' }
+    genome_assembly:          { data: 'assembly_name',                        title: 'Assembly name' }
+    genome_species:           { data: 'species',                              title: 'Species' }
+    genome_data_source:       { data: 'data_source',                          title: 'Data source' }
+    genome_tools_used:        { data: 'tools_used',                           title: 'Tools used', visible: 'false' }
+    genome_chromosome_count:  { data: 'chromosome_count',                     title: 'Chromosomes' }
+    genome_size:              { data: 'genome_size',                          title: 'Genome size' }
+    genome_goldenpath:        { data: 'goldenpath',                           title: 'GoldenPath' }
+    genome_projects:          { data: 'project_whitelist',                    title: 'Allowed projects', visible: 'false' }
+    genome_comments:          { data: 'comments',                             title: 'Comments', visible: 'false' }
+    genome_analyses:          { data: 'analyses_supported',                   title: 'Analyses supported' }
+
 
 # Datatables tables definition
 # the remaining top level entries each define a table with a list of column
@@ -343,10 +357,29 @@ sample_run_elements:
 
 
 active_runs:
-  - run_id
-  - instrument_id
-  - run_status
-  - created_date
-  - cst_date
-  - project_ids
-  - sample_ids
+    - run_id
+    - instrument_id
+    - run_status
+    - created_date
+    - cst_date
+    - project_ids
+    - sample_ids
+
+
+species:
+    - species_name
+    - species_default_genome
+    - species_taxid
+
+
+genomes:
+    - genome_assembly
+    - genome_species
+    - genome_data_source
+    - genome_chromosome_count
+    - genome_size
+    - genome_goldenpath
+    - genome_analyses
+    - genome_tools_used
+    - genome_projects
+    - genome_comments

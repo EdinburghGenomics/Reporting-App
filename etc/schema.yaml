@@ -251,6 +251,7 @@ analysis_driver_stages:
     date_finished: {            type: 'datetime', nullable: True }
     exit_status: {              type: 'integer', nullable: True }
 
+
 actions:
     action_id: {                type: 'string', required: True, unique: True }
     action_type: {              type: 'string', required: True }
@@ -260,3 +261,22 @@ actions:
     action_info: {              type: 'dict' }
 
 
+species:
+    name: { type: 'string', required: True, unique: True }
+    genomes: { type: 'list', schema: { type: 'string', data_relation: { resource: 'genomes', field: 'assembly_name', embeddable: True } } }
+    default_version: { type: 'string' }
+    taxid: { type: 'string' }
+
+
+genomes:
+    assembly_name: { type: 'string', required: True, unique: True }
+    species: { type: 'string' }
+    data_files: { type: 'dict', schema: { fasta: { type: 'string' }, variation: { type: 'string' } } }
+    data_source: { type: 'string' }
+    tools_used: { type: 'dict' }
+    chromosome_count: { type: 'integer' }
+    genome_size: { type: 'integer' }
+    goldenpath: { type: 'integer' }
+    project_whitelist: { type: 'list', schema: { type: 'string' } }
+    comments: { type: 'string' }
+    analyses_supported: { type: 'list', schema: { type: 'string', allowed: ['qc', 'variant_calling', 'bcbio'] } }

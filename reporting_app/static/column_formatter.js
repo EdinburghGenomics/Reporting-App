@@ -8,7 +8,7 @@ function render_data(data, type, row, meta, fmt) {
         return null;
     }
     if (!fmt) {
-        return '<div class="dt_cell">' + data + '</div>';
+        fmt = {};
     }
     if (fmt['name']) {
         data = function_map[fmt['name']](data, fmt)
@@ -17,61 +17,96 @@ function render_data(data, type, row, meta, fmt) {
 }
 
 
-function string_formatter(data, fmt, row){
-    var formatted_data = data;
+function string_formatter(cell_data, fmt, row){
+    if (cell_data instanceof Array) {
+        cell_data.sort();
+    } else if (cell_data instanceof Object) {
+        var _cell_data = [];
+        for (k in cell_data) {
+            _cell_data.push(k + ': ' + cell_data[k]);
+        }
+        cell_data = _cell_data;
+    } else {
+        cell_data = [cell_data];
+    }
 
-    if (fmt['type'] == 'percentage') {
-        formatted_data = Humanize.toFixed(formatted_data, 1) + '%';
-    }if (fmt['type'] == 'ratio_percentage') {
-        formatted_data = Humanize.toFixed(formatted_data * 100, 1) + '%';
-    } else if (fmt['type'] == 'int') {
-        formatted_data = Humanize.intComma(formatted_data);
-    } else if (fmt['type'] == 'float') {
-        formatted_data = Humanize.formatNumber(formatted_data, 2);
-    } else if (fmt['type'] == 'date') {
-        formatted_data = moment(new Date(formatted_data)).format('YYYY-MM-DD');
-    } else if (fmt['type'] == 'datetime') {
-        formatted_data = moment(new Date(formatted_data)).format('YYYY-MM-DD HH:mm:ss');
+    var use_dropdown = false;
+    if (cell_data.length > 1) {
+        use_dropdown = true;
     }
+    var formatted_data = [];
+
+    for (var i=0, tot=cell_data.length; i<tot; i++) {
+        var data = cell_data[i];
+        var _formatted_data;
+
+        if (fmt['type'] == 'percentage') {
+            _formatted_data = Humanize.toFixed(data, 1) + '%';
+        } else if (fmt['type'] == 'ratio_percentage') {
+            _formatted_data = Humanize.toFixed(data * 100, 1) + '%';
+        } else if (fmt['type'] == 'int') {
+            _formatted_data = Humanize.intComma(data);
+        } else if (fmt['type'] == 'float') {
+            _formatted_data = Humanize.formatNumber(data, 2);
+        } else if (fmt['type'] == 'date') {
+            _formatted_data = moment(new Date(data)).format('YYYY-MM-DD');
+        } else if (fmt['type'] == 'datetime') {
+            _formatted_data = moment(new Date(data)).format('YYYY-MM-DD HH:mm:ss');
+        } else {
+            _formatted_data = data;
+        }
+
     if (fmt['link']) {
-        if (fmt['link_format_function']){
-            formatted_link = function_map[fmt['link_format_function']](data, fmt);
-        }
-        else{
-            formatted_link = data;
-        }
-        if (data instanceof Array && data.length > 1 || data != formatted_link) {
-            data.sort();
-            formatted_data = '<div class="dropdown"><div class="dropbtn">' + formatted_link + '</div><div class="dropdown-content">';
-            for (var i=0, tot=data.length; i < tot; i++){
-                formatted_data = formatted_data.concat('<a href=' + fmt['link'] + data[i] + '>' + data[i] + '</a>');
-            }
-            formatted_data = formatted_data.concat('</div></div>')
-        }
-        else if (data instanceof Array && data.length == 1){
-            formatted_data = '<a href=' + fmt['link'] + data[0] + '>' + data[0] + '</a>';
-        }
-        else {
-            formatted_data = '<a href=' + fmt['link'] + data + '>' + data + '</a>';
-        }
+        _formatted_data = '<a href=' + fmt['link'] + data + '>' + data + '</a>';
     }
+
     var min, max;
-    if (fmt['min']){
+    if (fmt['min']) {
         min = resolve_min_max_value(row, fmt['min'])
     }
-    if (fmt['max']){
+    if (fmt['max']) {
         max = resolve_min_max_value(row, fmt['max'])
     }
     if (min && data < min) {
-        formatted_data = '<div style="color:red">' + formatted_data + '</div>';
+        _formatted_data = '<div style="color:red">' + _formatted_data + '</div>';
     } else if (max && !isNaN(max) && data > max) {
-        formatted_data = '<div style="color:red">' + formatted_data + '</div>';
+        _formatted_data = '<div style="color:red">' + _formatted_data + '</div>';
     } else if (max && data > max) {
-        formatted_data = '<div style="color:red">' + formatted_data + '</div>';
+        _formatted_data = '<div style="color:red">' + _formatted_data + '</div>';
     }
 
-    formatted_data = '<div class="dt_cell">' + formatted_data + '</div>';
-    return formatted_data;
+    formatted_data.push(_formatted_data);
+
+    }
+
+    if (use_dropdown) {
+        var dropdown = document.createElement('div');
+        dropdown.className = 'dropdown';
+
+        var dropbtn = document.createElement('div');
+        dropbtn.className = 'dropbtn';
+        if (fmt['link_format_function']) {
+            dropbtn.innerHTML = function_map[fmt['link_format_function']](cell_data, fmt);
+        } else {
+            dropbtn.innerHTML = cell_data;
+        }
+
+        var dropdown_content = document.createElement('div');
+        dropdown_content.className = 'dropdown-content';
+
+        var div;
+        for (var i=0, tot=formatted_data.length; i<tot; i++) {
+            div = document.createElement('div');
+            div.innerHTML = formatted_data[i];
+            dropdown_content.appendChild(div);
+        }
+
+        dropdown.appendChild(dropbtn);
+        dropdown.appendChild(dropdown_content);
+        formatted_data = dropdown.outerHTML;
+    }
+
+    return '<div class="dt_cell">' + formatted_data + '</div>';
 }
 
 

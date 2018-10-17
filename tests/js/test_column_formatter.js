@@ -77,4 +77,14 @@ QUnit.test('string_formatter', function(assert) {
         '<div class="dt_cell">6</div>'
     );
 
+    assert.equal(
+        string_formatter(['this', 'that'], {}, row),
+        '<div class="dt_cell"><div class="dropdown"><div class="dropbtn">that,this</div><div class="dropdown-content"><div>that</div><div>this</div></div></div></div>'
+    );
+
+    assert.equal(
+        string_formatter(['1', '2'], {'link': '/a_local_page/'}, row),
+        '<div class="dt_cell"><div class="dropdown"><div class="dropbtn">1,2</div><div class="dropdown-content"><div><a href="/a_local_page/1">1</a></div><div><a href="/a_local_page/2">2</a></div></div></div></div>'
+    );
+
 });

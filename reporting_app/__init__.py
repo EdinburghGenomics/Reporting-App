@@ -453,3 +453,24 @@ def project_status_reports(prj_status):
             table_foot='sum_row_per_column'
         )
     )
+
+
+@app.route('/genomes')
+@flask_login.login_required
+def genome_page():
+    return render_template(
+        'untabbed_datatables.html',
+        'Genomes',
+        tables=[
+            util.datatable_cfg(
+                'Available species',
+                'species',
+                util.construct_url('species', all_pages=True)
+            ),
+            util.datatable_cfg(
+                'Installed genomes',
+                'genomes',
+                util.construct_url('genomes', all_pages=True)
+            )
+        ]
+    )

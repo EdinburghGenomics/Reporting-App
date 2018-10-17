@@ -330,3 +330,6 @@ class TestReportingApp(Helper):
 
     def test_project_status_report(self):
         self._test_render_template('/project_status/')
+
+    def test_genome_page(self):
+        self._test_render_template('/genomes')
