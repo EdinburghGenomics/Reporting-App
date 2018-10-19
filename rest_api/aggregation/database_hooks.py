@@ -1,6 +1,7 @@
 import statistics
 from rest_api.aggregation.server_side.expressions import *
 from rest_api.aggregation.database_side import db
+from rest_api import cfg
 
 
 def deep_dict_update(d, u):
@@ -119,6 +120,32 @@ class SexCheck(Calculation):
 class MatchingSpecies(Calculation):
     def _expression(self, species_contam):
         return sorted(k for k, v in species_contam['contaminant_unique_mapped'].items() if v > 500)
+
+
+class RequiredYield(Calculation):
+    quantised_yields = cfg['available_yields']
+
+    def _expression(self, genome_size):
+        return {
+            required_coverage: self._get_yield(genome_size, required_coverage)
+            for required_coverage in cfg['available_coverages']
+        }
+
+    def _get_yield(self, genome_size, required_coverage):
+        exact_yield = genome_size * required_coverage
+        for y in sorted(self.quantised_yields):
+            if y >= exact_yield:
+                return y
+
+        raise ValueError(
+            'Could not resolve a required yield for %sX coverage and genome size %s' % (required_coverage, genome_size)
+        )
+
+
+class RequiredYieldQ30(RequiredYield):
+    def _get_yield(self, genome_size, required_coverage):
+        required_yield = super()._get_yield(genome_size, required_coverage)
+        return self.quantised_yields[required_yield]
 
 
 class MostRecent(Calculation):  # TODO: Should replace server_side.MostRecent
@@ -384,6 +411,15 @@ class AnalysisDriverProc(DataRelation):
     def superelements(self):
         endpoint, id_field = self.superendpoints[self.data['dataset_type']]
         return {endpoint: {id_field: self.data['dataset_name']}}
+
+
+class Species(DataRelation):
+    endpoint = 'species'
+    id_field = 'name'
+    aggregated_fields = {
+        'required_yield': RequiredYield('approximate_genome_size'),
+        'required_yield_q30': RequiredYieldQ30('approximate_genome_size')
+    }
 
 
 data_relations = {
