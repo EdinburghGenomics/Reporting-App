@@ -64,6 +64,12 @@ class TestLIMSRestAPI(TestBase):
         step1 = cls._create_completed_process([a1], 'Awaiting User Response EG 2.0')
         step2 = cls._create_completed_process([a1], 'Random Step Name', create_date=datetime(2018, 1, 1))
 
+        # Sample2 finishes once then get sequenced again then finishes again
+        step3 = cls._create_completed_process([a2], 'AUTOMATED - Sequence', create_date=datetime(2018, 1, 1))
+        step3 = cls._create_completed_process([a2], 'Data Release EG 2.0 ST', create_date=datetime(2018, 1, 15))
+        step4 = cls._create_completed_process([a2], 'AUTOMATED - Sequence', create_date=datetime(2018, 2, 1))
+        step5 = cls._create_completed_process([a2], 'Finish Processing EG 1.0 ST', create_date=datetime(2018, 2, 15))
+
         l1 = cls._create_input_artifact(p2s1, 'FLOWCELL1', '1', '1')
         l2 = cls._create_input_artifact(p2s2, 'FLOWCELL1', '1', '2')
         l3 = cls._create_input_artifact(p2s3, 'FLOWCELL1', '1', '3')
@@ -229,7 +235,7 @@ class TestLIMSRestAPI(TestBase):
                 'close_date': None,
                 'finished_date': None,
                 'library_queue': ['sample1'],
-                'sample_submission': ['sample2'],
+                'finished': ['sample2'],
                 'library_type': '',
                 'nb_quoted_samples': '9',
                 'nb_samples': 2,
@@ -262,7 +268,7 @@ class TestLIMSRestAPI(TestBase):
             '_meta': {'total': 1},
             'data': [{
                 'library_queue': ['sample1'],
-                'sample_submission': ['sample2'],
+                'finished': ['sample2'],
                 'library_type': '',
                 'nb_samples': 2,
                 'plate_id': 'plate1',
@@ -305,6 +311,13 @@ class TestLIMSRestAPI(TestBase):
         response = self.client.get('/api/0.1/lims/sample_status?match={"sample_id":"sample1"}&detailed=true')
         assert json_of_response(response)['_meta']['total'] == 1
         assert len(json_of_response(response)['data'][0]['statuses'][0]['processes']) == 2
+
+    def test_lims_sample_finish_date(self):
+        response = self.client.get('/api/0.1/lims/sample_status?match={"sample_id":"sample2"}')
+        assert response.status_code == 200
+
+        # finished data for sample2 is the first time it went through the finished status
+        assert json_of_response(response)['data'][0]['finished_date'] == '2018-01-15T00:00:00'
 
     def test_lims_run_status(self):
         response = self.client.get('/api/0.1/lims/run_status')
