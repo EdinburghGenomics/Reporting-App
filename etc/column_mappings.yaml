@@ -117,6 +117,8 @@ column_def:
     species_name:             { data: 'name',                                 title: 'Name' }
     species_default_genome:   { data: 'default_version',                      title: 'Default genome version' }
     species_taxid:            { data: 'taxid',                                title: 'Taxid' }
+    species_yields:           { data: 'aggregated.required_yield',            title: 'Required yield per coverage' }
+    species_yield_q30s:       { data: 'aggregated.required_yield_q30',        title: 'Required yield Q30 per coverage' }
     genome_assembly:          { data: 'assembly_name',                        title: 'Assembly name' }
     genome_species:           { data: 'species',                              title: 'Species' }
     genome_data_source:       { data: 'data_source',                          title: 'Data source' }
@@ -370,6 +372,8 @@ species:
     - species_name
     - species_default_genome
     - species_taxid
+    - species_yields
+    - species_yield_q30s
 
 
 genomes:

@@ -1,4 +1,5 @@
 import statistics
+from cached_property import cached_property
 from rest_api.aggregation.server_side.expressions import *
 from rest_api.aggregation.database_side import db
 from rest_api import cfg
@@ -123,11 +124,14 @@ class MatchingSpecies(Calculation):
 
 
 class RequiredYield(Calculation):
-    quantised_yields = cfg['available_yields']
+    @cached_property
+    def quantised_yields(self):
+        return cfg['available_yields']
 
     def _expression(self, genome_size):
         return {
-            required_coverage: self._get_yield(genome_size, required_coverage)
+            # keys have to be strings to be valid BSON
+            str(required_coverage) + 'X': self._get_yield(genome_size, required_coverage)
             for required_coverage in cfg['available_coverages']
         }
 
@@ -416,15 +420,17 @@ class AnalysisDriverProc(DataRelation):
 class Species(DataRelation):
     endpoint = 'species'
     id_field = 'name'
-    aggregated_fields = {
-        'required_yield': RequiredYield('approximate_genome_size'),
-        'required_yield_q30': RequiredYieldQ30('approximate_genome_size')
-    }
+    aggregated_fields = [
+        {
+            'required_yield': RequiredYield('approximate_genome_size'),
+            'required_yield_q30': RequiredYieldQ30('approximate_genome_size')
+        }
+    ]
 
 
 data_relations = {
     cls.endpoint: cls
-    for cls in (Run, Lane, RunElement, Sample, Project, AnalysisDriverProc)
+    for cls in (Run, Lane, RunElement, Sample, Project, AnalysisDriverProc, Species)
 }
 
 
