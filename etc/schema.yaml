@@ -267,7 +267,7 @@ species:
     genomes: {                  type: 'list',   schema: { type: 'string', data_relation: { resource: 'genomes', field: 'assembly_name', embeddable: True } } }
     default_version: {          type: 'string' }
     taxid: {                    type: 'string' }
-    approximate_genome_size: {  type: 'integer' }
+    approximate_genome_size: {  type: 'float' }  # genome size in Mb
 
 
 genomes:

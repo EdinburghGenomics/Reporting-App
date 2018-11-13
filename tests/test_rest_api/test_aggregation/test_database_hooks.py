@@ -481,20 +481,20 @@ def test_nb_unique_mutable_elements():
 def test_required_yield():
     e = database_hooks.RequiredYield('approximate_genome_size')
     assert e.evaluate({'approximate_genome_size': 2}) == {
-        1: 5,
-        2: 5,
-        5: 10,
-        10: 20,
-        20: 40
+        '1X': 5,
+        '2X': 5,
+        '5X': 10,
+        '10X': 20,
+        '20X': 40
     }
 
 
 def test_yield_for_quoted_coverage():
     e = database_hooks.RequiredYieldQ30('approximate_genome_size')
     assert e.evaluate({'approximate_genome_size': 2}) == {
-        1: 4,
-        2: 4,
-        5: 8,
-        10: 16,
-        20: 32
+        '1X': 4,
+        '2X': 4,
+        '5X': 8,
+        '10X': 16,
+        '20X': 32
     }

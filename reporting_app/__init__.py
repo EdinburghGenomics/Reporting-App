@@ -455,12 +455,12 @@ def project_status_reports(prj_status):
     )
 
 
-@app.route('/genomes')
+@app.route('/species')
 @flask_login.login_required
-def genome_page():
+def all_species():
     return render_template(
         'untabbed_datatables.html',
-        'Genomes',
+        'Species',
         tables=[
             util.datatable_cfg(
                 'Available species',
@@ -471,6 +471,31 @@ def genome_page():
                 'Installed genomes',
                 'genomes',
                 util.construct_url('genomes', all_pages=True)
+            )
+        ]
+    )
+
+
+@app.route('/species/<species>')
+def species_page(species):
+    return render_template(
+        'untabbed_datatables.html',
+        species,
+        tables=[
+            util.datatable_cfg(
+                'Summary',
+                'species',
+                util.construct_url('species', all_pages=True, where={'name': species}),
+                minimal=True
+            ),
+            util.datatable_cfg(
+                'Yield requirements',
+                'yields',
+                ajax_call={
+                    'func_name': 'required_yields',
+                    'api_url': util.construct_url('species', all_pages=True)
+                },
+                minimal=True
             )
         ]
     )
