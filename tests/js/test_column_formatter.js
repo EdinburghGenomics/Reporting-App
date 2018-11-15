@@ -83,8 +83,8 @@ QUnit.test('string_formatter', function(assert) {
     );
 
     assert.equal(
-        string_formatter(['1', '2'], {'link': '/a_local_page/'}, row),
-        '<div class="dt_cell"><div class="dropdown"><div class="dropbtn">1,2</div><div class="dropdown-content"><div><a href="/a_local_page/1">1</a></div><div><a href="/a_local_page/2">2</a></div></div></div></div>'
+        string_formatter(['a_page', 'another page'], {'link': '/to/'}, row),
+        '<div class="dt_cell"><div class="dropdown"><div class="dropbtn">a_page,another page</div><div class="dropdown-content"><div><a href="/to/a_page">a_page</a></div><div><a href="/to/another+page">another page</a></div></div></div></div>'
     );
 
 });

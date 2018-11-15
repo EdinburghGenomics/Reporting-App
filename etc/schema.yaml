@@ -276,6 +276,7 @@ genomes:
     data_files: {               type: 'dict', schema: { fasta: { type: 'string' }, variation: { type: 'string' } } }
     data_source: {              type: 'string' }
     tools_used: {               type: 'dict' }
+    date_added: {               type: 'datetime' }
     chromosome_count: {         type: 'integer' }
     genome_size: {              type: 'integer' }
     goldenpath: {               type: 'integer' }

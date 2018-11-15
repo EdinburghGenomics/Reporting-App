@@ -33,7 +33,7 @@ class TestSchema(Helper):
         expected_not_in_constant = [
             'action_id', 'action_info', 'action_type', 'analyses_supported', 'analysis_driver_proc',
             'approximate_genome_size', 'assembly_name', 'best_matching_samples', 'chromosome_count', 'comments',
-            'data_deleted', 'data_files', 'data_source', 'dataset_name', 'dataset_type', 'date_finished',
+            'data_deleted', 'data_files', 'data_source', 'dataset_name', 'dataset_type', 'date_added', 'date_finished',
             'date_started', 'default_version', 'end_date', 'exit_status', 'fasta', 'files_delivered',
             'files_downloaded', 'gender_genotype', 'genome_used', 'genomes', 'goldenpath', 'name', 'pid',
             'pipeline_used', 'project_whitelist', 'sample_pipeline', 'species', 'stage_id', 'stage_name', 'stages',

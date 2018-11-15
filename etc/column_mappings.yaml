@@ -114,7 +114,7 @@ column_def:
     trim_r2:                  { data: 'aggregated.trim_r2',                   title: 'Read 2 Max length',                                              visible: 'false'}
     tiles_filtered:           { data: 'aggregated.tiles_filtered',            title: 'Tile removed',                                                   visible: 'false'}
     family_id:                { data: 'Family ID',                            title: 'Family ID (SGP)',                                                visible: 'false'}
-    species_name:             { data: 'name',                                 title: 'Name' }
+    species_name:             { data: 'name',                                 title: 'Name',                     fmt: { link: '/species/' } }
     species_default_genome:   { data: 'default_version',                      title: 'Default genome version' }
     species_taxid:            { data: 'taxid',                                title: 'Taxid' }
     genome_assembly:          { data: 'assembly_name',                        title: 'Assembly name' }
@@ -127,7 +127,7 @@ column_def:
     genome_projects:          { data: 'project_whitelist',                    title: 'Allowed projects', visible: 'false' }
     genome_comments:          { data: 'comments',                             title: 'Comments', visible: 'false' }
     genome_analyses:          { data: 'analyses_supported',                   title: 'Analyses supported' }
-    yield_x_coverage:         { data: { display: 'coverage.disp', sort: 'coverage.sort' }, title: 'Coverage (X)' }
+    yield_x_coverage:         { data: { display: 'coverage.disp', _: 'coverage.order' }, title: 'Coverage (X)' }
     yield_required:           { data: 'required_yield',                       title: 'Required yield' }
     yield_required_q30:       { data: 'required_yield_q30',                   title: 'Required yield Q30' }
 

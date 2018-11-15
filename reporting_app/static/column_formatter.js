@@ -57,7 +57,7 @@ function string_formatter(cell_data, fmt, row){
         }
 
     if (fmt['link']) {
-        _formatted_data = '<a href=' + fmt['link'] + data + '>' + data + '</a>';
+        _formatted_data = '<a href=' + fmt['link'] + data.replace(/ /g, "+") + '>' + data + '</a>';
     }
 
     var min, max;
