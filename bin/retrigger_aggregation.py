@@ -33,6 +33,17 @@ def retrigger_aggregation_run_elements(communicator, **params):
         communicator.patch_entries('run_elements', {}, where={'run_id': r['run_id']})
 
 
+def retrigger_aggregation_lanes(communicator, **params):
+    all_runs = communicator.get_documents('runs', all_pages=True, **params)
+    app_logger.info('%s runs to process', len(all_runs))
+    count = 0
+    for r in all_runs:
+        count += 1
+        if count % 100 == 0:
+            app_logger.info('%s runs processed', count)
+        communicator.patch_entries('lanes', {}, where={'run_id': r['run_id']})
+
+
 def retrigger_aggregation_projects(communicator, **params):
     all_projects = communicator.get_documents('projects', all_pages=True, **params)
     app_logger.info('%s project to process', len(all_projects))

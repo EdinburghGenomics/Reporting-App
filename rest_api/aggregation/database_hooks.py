@@ -285,7 +285,10 @@ class Lane(DataRelation):
                 Add('aggregated.bases_r1', 'aggregated.bases_r2')
             ),
             'lane_pc_optical_dups': FirstElement('run_elements.lane_pc_optical_dups'),  # TODO: fix this in the schema
-            'pc_duplicate_reads': Percentage('mapping_metrics.duplicate_reads', 'mapping_metrics.bam_file_reads'),
+            'pc_duplicate_reads': Percentage(
+                Total('run_elements.mapping_metrics.duplicate_reads'),
+                Total('run_elements.mapping_metrics.bam_file_reads')
+            ),
             'pc_opt_duplicate_reads': Percentage(
                 Total('run_elements.mapping_metrics.picard_opt_dup_reads'),
                 Total('run_elements.mapping_metrics.bam_file_reads')

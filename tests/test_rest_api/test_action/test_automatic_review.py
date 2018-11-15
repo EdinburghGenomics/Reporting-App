@@ -18,6 +18,7 @@ passing_lane = {
         'pc_q30': 83.01,
         'pc_q30_r1': 89.21,
         'pc_q30_r2': 78.14,
+        'pc_duplicate_reads': 22.1,
         'pc_opt_duplicate_reads': 21.1,
         'pc_adaptor': 0.5
     }
@@ -33,6 +34,7 @@ failing_lanes = [
             'pc_q30_r2': 74.9,
             'pc_pass_filter': 39.87,
             'yield_in_gb': 74.30,
+            'pc_duplicate_reads': 31.5,
             'pc_opt_duplicate_reads': 30.1,
             'pc_adaptor': 2.3
         }
@@ -46,6 +48,7 @@ failing_lanes = [
             'pc_q30_r2': 71.2,
             'pc_pass_filter': 40.17,
             'yield_in_gb': 74.86,
+            'pc_duplicate_reads': 22.9,
             'pc_opt_duplicate_reads': 21.1,
             'pc_adaptor': 0.3
         }
@@ -60,7 +63,8 @@ failing_runs = [
             'pc_q30_r1': 76.1,
             'pc_q30_r2': 70.6,
             "yield_in_gb": 1096.2,
-            "pc_opt_duplicate_reads": 22.59,
+            "pc_duplicate_reads": 22.59,
+            'pc_opt_duplicate_reads': 21.1,
             'pc_adaptor': 1.3
         }
     },
@@ -69,7 +73,8 @@ failing_runs = [
         'aggregated': {
             'pc_q30': 81.5,
             "yield_in_gb": 920.12,
-            "pc_opt_duplicate_reads": 30.59,
+            "pc_duplicate_reads": 30.59,
+            'pc_opt_duplicate_reads': 21.1,
             'pc_adaptor': 0.8
         }
     }
@@ -244,11 +249,11 @@ class TestLaneReviewer(TestBase):
         assert self.failing_reviewer_1._summary['reviewed'] == 'fail'
         assert 'review_date' in self.failing_reviewer_1._summary
         assert self.failing_reviewer_1._summary['review_comments'] == \
-               'Failed due to Optical duplicate rate > 30, Yield < 120, Yield with no adapters and no duplicates < 95'
+               'Failed due to Optical duplicate rate > 30, Yield < 120, Yield with no adapters and no duplicates < 96'
 
     def test_get_failure_comment(self):
         assert self.failing_reviewer_1.failure_comment == \
-               'Failed due to Optical duplicate rate > 30, Yield < 120, Yield with no adapters and no duplicates < 95'
+               'Failed due to Optical duplicate rate > 30, Yield < 120, Yield with no adapters and no duplicates < 96'
 
     @patch.object(AutomaticLaneReviewer, 'eve_get', return_value=run_elements)
     @patch(ppath + 'patch_internal')
