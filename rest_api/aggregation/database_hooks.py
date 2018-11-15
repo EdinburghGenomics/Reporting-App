@@ -136,18 +136,25 @@ class RequiredYield(Calculation):
         }
 
     def _get_yield(self, genome_size, required_coverage):
-        exact_yield = genome_size * required_coverage
+        """
+        Obtain a required yield, given a particular genome and required X coverage, using the keys of the
+        'available_yields' config for candidate yield values.
+        :param float genome_size: Genome size in Mb
+        :param int required_coverage: X coverage
+        :return: required yield in Gb
+        """
+        exact_yield = genome_size / 1000 * required_coverage
         for y in sorted(self.quantised_yields):
             if y >= exact_yield:
                 return y
 
-        raise ValueError(
-            'Could not resolve a required yield for %sX coverage and genome size %s' % (required_coverage, genome_size)
-        )
-
 
 class RequiredYieldQ30(RequiredYield):
     def _get_yield(self, genome_size, required_coverage):
+        """
+        Obtain a required yield as per RequiredYield._get_yield, and use the 'available_yields' config to translate it
+        into a required yield q30.
+        """
         required_yield = super()._get_yield(genome_size, required_coverage)
         return self.quantised_yields[required_yield]
 
