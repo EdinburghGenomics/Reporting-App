@@ -59,6 +59,8 @@ class ProjectStatusConfig(Configuration):
                 [(k, self.status_names.get(v)) for k, v in self.content[section].items()]
             )
             setattr(self, section, transformed_section)
+        # finished steps contains the name of all steps that provided status finished
+        self.finished_steps = [k for k, v in self.step_completed_to_status.items() if v == 'finished']
 
 
 def _cfg_file(cfg_path):

@@ -183,9 +183,11 @@ class Sample(SampleInfo):
 
     @property
     def finished_date(self):
-        if self.status == status_cfg.status_names['FINISHED']:
-            return self.status_date
-        return None
+        """Date of the first step marking as finished"""
+        for p in reversed(self.processes):
+            process, date, process_type, process_id = p
+            if process_type == 'complete' and process in status_cfg.finished_steps:
+                return date
 
     def to_json(self):
         return {
