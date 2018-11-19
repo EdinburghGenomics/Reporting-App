@@ -76,10 +76,10 @@ class TestReportingApp(Helper):
 
     def test_format_order(self):
         cols = (
-            {'data': 'this', 'title': 'This'},
-            {'data': 'that', 'title': 'That'},
-            {'data': 'other', 'title': 'Other'},
-            {'data': 'another', 'title': 'Another'}
+            {'name': 'this', 'title': 'This'},
+            {'name': 'that', 'title': 'That'},
+            {'name': 'other', 'title': 'Other'},
+            {'name': 'another', 'title': 'Another'}
         )
         assert reporting_app.util._format_order('this', cols) == [0, 'asc']
         assert reporting_app.util._format_order('-other', cols) == [2, 'desc']

@@ -18,24 +18,22 @@ function render_data(data, type, row, meta, fmt) {
 
 
 function string_formatter(cell_data, fmt, row){
+    // cast the cell data to a list, whether it's a single value, an object or already a list
+    // this allows subsequent logic to safely assume it's handling a list
     if (cell_data instanceof Array) {
         cell_data.sort();
     } else if (cell_data instanceof Object) {
+        // convert, e.g, {'this': 0, 'that': 1, 'other': 2} to ['this: 0', 'that: 1', 'other: 2']
         var _cell_data = [];
         for (k in cell_data) {
             _cell_data.push(k + ': ' + cell_data[k]);
         }
         cell_data = _cell_data;
     } else {
-        cell_data = [cell_data];
+        cell_data = [cell_data];  // cast a single value to a list of length 1
     }
 
-    var use_dropdown = false;
-    if (cell_data.length > 1) {
-        use_dropdown = true;
-    }
     var formatted_data = [];
-
     for (var i=0, tot=cell_data.length; i<tot; i++) {
         var data = cell_data[i];
         var _formatted_data;
@@ -56,30 +54,32 @@ function string_formatter(cell_data, fmt, row){
             _formatted_data = data;
         }
 
-    if (fmt['link']) {
-        _formatted_data = '<a href=' + fmt['link'] + data.replace(/ /g, "+") + '>' + data + '</a>';
+        if (fmt['link']) {  // convert the link to an html <a/>, replacing ' ' with '+'
+            _formatted_data = '<a href=' + fmt['link'] + data.replace(/ /g, "+") + '>' + data + '</a>';
+        }
+
+        var min, max;
+        if (fmt['min']) {
+            min = resolve_min_max_value(row, fmt['min'])
+        }
+        if (fmt['max']) {
+            max = resolve_min_max_value(row, fmt['max'])
+        }
+        if (min && data < min) {
+            _formatted_data = '<div style="color:red">' + _formatted_data + '</div>';
+        } else if (max && !isNaN(max) && data > max) {
+            _formatted_data = '<div style="color:red">' + _formatted_data + '</div>';
+        } else if (max && data > max) {
+            _formatted_data = '<div style="color:red">' + _formatted_data + '</div>';
+        }
+
+        formatted_data.push(_formatted_data);
+
     }
 
-    var min, max;
-    if (fmt['min']) {
-        min = resolve_min_max_value(row, fmt['min'])
-    }
-    if (fmt['max']) {
-        max = resolve_min_max_value(row, fmt['max'])
-    }
-    if (min && data < min) {
-        _formatted_data = '<div style="color:red">' + _formatted_data + '</div>';
-    } else if (max && !isNaN(max) && data > max) {
-        _formatted_data = '<div style="color:red">' + _formatted_data + '</div>';
-    } else if (max && data > max) {
-        _formatted_data = '<div style="color:red">' + _formatted_data + '</div>';
-    }
-
-    formatted_data.push(_formatted_data);
-
-    }
-
-    if (use_dropdown) {
+    // if the list is longer than 1, then it should be rendered as a dropdown
+    if (formatted_data.length > 1) {
+        // build a <div class="dropdown"><div class="dropbtn">text or link</div></div>
         var dropdown = document.createElement('div');
         dropdown.className = 'dropdown';
 
@@ -104,6 +104,8 @@ function string_formatter(cell_data, fmt, row){
         dropdown.appendChild(dropbtn);
         dropdown.appendChild(dropdown_content);
         formatted_data = dropdown.outerHTML;
+    } else {
+        formatted_data = formatted_data[0];
     }
 
     return '<div class="dt_cell">' + formatted_data + '</div>';

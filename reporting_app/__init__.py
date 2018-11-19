@@ -465,18 +465,19 @@ def all_species():
             util.datatable_cfg(
                 'Available species',
                 'species',
-                util.construct_url('species', all_pages=True)
+                util.construct_url('species', max_results=1000)
             ),
             util.datatable_cfg(
                 'Installed genomes',
                 'genomes',
-                util.construct_url('genomes', all_pages=True)
+                util.construct_url('genomes', max_results=10000)
             )
         ]
     )
 
 
 @app.route('/species/<species>')
+@flask_login.login_required
 def species_page(species):
     return render_template(
         'untabbed_datatables.html',
@@ -485,7 +486,7 @@ def species_page(species):
             util.datatable_cfg(
                 'Summary',
                 'species',
-                util.construct_url('species', all_pages=True, where={'name': species}),
+                util.construct_url('species', where={'name': species}),
                 minimal=True
             ),
             util.datatable_cfg(
@@ -493,8 +494,9 @@ def species_page(species):
                 'yields',
                 ajax_call={
                     'func_name': 'required_yields',
-                    'api_url': util.construct_url('species', all_pages=True)
+                    'api_url': util.construct_url('species', where={'name': species})
                 },
+                default_sort_col='yield_x_coverage',
                 minimal=True
             )
         ]
