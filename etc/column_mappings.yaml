@@ -159,7 +159,7 @@ project_status:
     - project_id
     - reseacher
     - nb_quoted_samples
-    - { column_def: 'nb_samples', title: 'Sample Received', visible: 'false', class_name: 'text-center' }
+    - { column_def: 'nb_samples', data: 'nb_samples', title: 'Sample Received', visible: 'false', fmt: { type: 'int' }, class_name: 'text-center' }
     - species
     - library_type
     - { column_def: 'expected_yield', data: 'required_yield', fmt: { type: 'string' } }
@@ -187,7 +187,7 @@ project_status:
 plate_status:
     - project_id
     - plate_id
-    - { column_def: 'nb_samples', title: 'Sample Received', visible: 'false', class_name: 'text-center' }
+    - { column_def: 'nb_samples', data: 'nb_samples', title: 'Sample Received', visible: 'false', fmt: { type: 'int' }, class_name: 'text-center' }
     - species
     - library_type
     - { column_def: 'expected_yield', data: 'required_yield', fmt: { type: 'string' } }
