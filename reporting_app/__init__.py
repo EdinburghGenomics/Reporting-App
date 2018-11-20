@@ -490,6 +490,12 @@ def species_page(species):
                 minimal=True
             ),
             util.datatable_cfg(
+                'Supported genomes',
+                'genomes',
+                util.construct_url('genomes', where={'species': species}, max_results=1000),
+                minimal=True
+            ),
+            util.datatable_cfg(
                 'Yield requirements',
                 'yields',
                 ajax_call={

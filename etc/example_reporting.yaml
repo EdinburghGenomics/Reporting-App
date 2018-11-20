@@ -51,7 +51,7 @@ rest_app:
         username: user
         password: pass
 
-    available_coverages: [1, 2, 5, 10, 20]
+    available_coverages: [1, 2, 4, 5, 10, 20]
     available_yields:  # keys are required yields, and values are associated required yield q30s
         5: 4
         10: 8

@@ -333,3 +333,4 @@ class TestReportingApp(Helper):
 
     def test_genome_page(self):
         self._test_render_template('/species')
+        self._test_render_template('/species/a_species')

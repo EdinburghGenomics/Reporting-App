@@ -156,7 +156,8 @@ class RequiredYieldQ30(RequiredYield):
         into a required yield q30.
         """
         required_yield = super()._get_yield(genome_size, required_coverage)
-        return self.quantised_yields[required_yield]
+        if required_yield:
+            return self.quantised_yields[required_yield]
 
 
 class MostRecent(Calculation):  # TODO: Should replace server_side.MostRecent
