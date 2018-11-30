@@ -1,13 +1,15 @@
 Changelog for Reporting-App
 ===========================
 
-0.20 (unreleased)
+0.20 (2018-11-30)
 -----------------
 
-- Nothing changed yet.
-
-
-0.19.1 (2018-09-18)
+- New Species and Genome Page describing the currently supported species and the yield values
+- In Automatic Run review: compound formula now use read duplicates and 96G
+- Sample finished date now points to first finished status rather than the last
+- Nb samples received added back to Project status lines
+ 
+ 0.19.1 (2018-09-18)
 -------------------
 
 - Bug fix in Automatic Sample Review where yield in gb were compared with required yield in base
