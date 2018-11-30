@@ -1,10 +1,10 @@
 Changelog for Reporting-App
 ===========================
 
-0.21 (unreleased)
------------------
+0.20.1 (2018-11-30)
+-------------------
 
-- Nothing changed yet.
+- Fix bug in the display single sample cells in project status page
 
 
 0.20 (2018-11-30)
