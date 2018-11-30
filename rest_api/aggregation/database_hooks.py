@@ -1,6 +1,8 @@
 import statistics
+from cached_property import cached_property
 from rest_api.aggregation.server_side.expressions import *
 from rest_api.aggregation.database_side import db
+from rest_api import cfg
 
 
 def deep_dict_update(d, u):
@@ -119,6 +121,43 @@ class SexCheck(Calculation):
 class MatchingSpecies(Calculation):
     def _expression(self, species_contam):
         return sorted(k for k, v in species_contam['contaminant_unique_mapped'].items() if v > 500)
+
+
+class RequiredYield(Calculation):
+    @cached_property
+    def quantised_yields(self):
+        return cfg['available_yields']
+
+    def _expression(self, genome_size):
+        return {
+            # keys have to be strings to be valid BSON
+            str(required_coverage) + 'X': self._get_yield(genome_size, required_coverage)
+            for required_coverage in cfg['available_coverages']
+        }
+
+    def _get_yield(self, genome_size, required_coverage):
+        """
+        Obtain a required yield, given a particular genome and required X coverage, using the keys of the
+        'available_yields' config for candidate yield values.
+        :param float genome_size: Genome size in Mb
+        :param int required_coverage: X coverage
+        :return: required yield in Gb
+        """
+        exact_yield = genome_size / 1000 * required_coverage
+        for y in sorted(self.quantised_yields):
+            if y >= exact_yield:
+                return y
+
+
+class RequiredYieldQ30(RequiredYield):
+    def _get_yield(self, genome_size, required_coverage):
+        """
+        Obtain a required yield as per RequiredYield._get_yield, and use the 'available_yields' config to translate it
+        into a required yield q30.
+        """
+        required_yield = super()._get_yield(genome_size, required_coverage)
+        if required_yield:
+            return self.quantised_yields[required_yield]
 
 
 class MostRecent(Calculation):  # TODO: Should replace server_side.MostRecent
@@ -389,9 +428,20 @@ class AnalysisDriverProc(DataRelation):
         return {endpoint: {id_field: self.data['dataset_name']}}
 
 
+class Species(DataRelation):
+    endpoint = 'species'
+    id_field = 'name'
+    aggregated_fields = [
+        {
+            'required_yield': RequiredYield('approximate_genome_size'),
+            'required_yield_q30': RequiredYieldQ30('approximate_genome_size')
+        }
+    ]
+
+
 data_relations = {
     cls.endpoint: cls
-    for cls in (Run, Lane, RunElement, Sample, Project, AnalysisDriverProc)
+    for cls in (Run, Lane, RunElement, Sample, Project, AnalysisDriverProc, Species)
 }
 
 

@@ -117,9 +117,47 @@ QUnit.test('get_run_review', function(assert) {
 
 QUnit.test('configure_buttons', function(assert) {
     assert.deepEqual(
-        configure_buttons({'buttons':['colvis']}),
+        configure_buttons({'buttons': ['colvis']}),
         [{extend: 'colvis', text: '<i class="fa fa-filter"></i>', titleAttr: 'Filter Columns'}]
     );
+});
+
+
+QUnit.test('required_yields', function(assert) {
+    var test_data = {};
+
+    // patching ajax
+    var original_ajax = $.ajax;
+    var fake_ajax = function(config) {
+        config.success(
+            {
+                'data': [{'aggregated': {
+                    'required_yield': {'15X': 10, '30X': 20},
+                    'required_yield_q30': {'15X': 8, '30X': 16}
+                }}]
+            }
+        );
+    };
+    $.ajax = fake_ajax;
+    // patching complete
+
+    var captured_result;
+    var fake_callback = function(cfg) {
+        captured_result = cfg;
+    };
+
+    var _required_yields = required_yields({'ajax_call': {'api_url': 'a_url'}, 'token': 'a_token'});
+    _required_yields(undefined, fake_callback, undefined);
+
+    assert.deepEqual(
+        captured_result.data,
+        [
+            {'coverage': {'order': '15', 'disp': '15X'}, 'required_yield': 10, 'required_yield_q30': 8},
+            {'coverage': {'order': '30', 'disp': '30X'}, 'required_yield': 20, 'required_yield_q30': 16}
+        ]
+    )
+
+    $.ajax = original_ajax;  // end patch
 });
 
 // TODO: test sum_row_per_column

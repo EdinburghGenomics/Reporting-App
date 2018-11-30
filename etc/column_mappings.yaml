@@ -1,13 +1,15 @@
 # Datatables column definitions for the reporting app
 # Each column definition has a key and a dict with the following options:
-#  - data: the field in the javascript object where the data is found (support dot notation)
+#  - data: the field in the javascript object where the data is found (supports dot notation)
+#      * this can be an object for rendering/sorting/searching data in different ways - see orthogonal data and
+#        columns.data in the Datatable docs
 #  - title: header of that column in the datatable
 #  - visible: specify if the column will be visible by default (default is true if not set)
 #  - class_name: space separated list of css class for the column
 #  - fmt: reference and paramters to the cell formatter (see column_formatter.js for detail)
 #      * type: formatter type (int, float, percentage, ratio_percentage, date, datetime)
-#      * min: minimum bellow which the value is highlighted
-#      * max: maximum bellow which the value is highlighted
+#      * min: minimum below which the value is highlighted
+#      * max: maximum above which the value is highlighted
 #      * link: relative link formatted as baseurl/<link>/data
 #      * link_format_function: javascript function name formatting the link's text
 #      * name: javascript function name that will modify the data before the formating
@@ -114,6 +116,26 @@ column_def:
     trim_r2:                  { data: 'aggregated.trim_r2',                   title: 'Read 2 Max length',                                              visible: 'false'}
     tiles_filtered:           { data: 'aggregated.tiles_filtered',            title: 'Tile removed',                                                   visible: 'false'}
     family_id:                { data: 'Family ID',                            title: 'Family ID (SGP)',                                                visible: 'false'}
+    species_name:             { data: 'name',                                 title: 'Name',                     fmt: { link: '/species/' } }
+    species_default_genome:   { data: 'default_version',                      title: 'Default genome version' }
+    species_taxid:            { data: 'taxid',                                title: 'Taxid' }
+    species_genome_size:      { data: 'approximate_genome_size',              title: 'Genome size (Mb)' }
+    genome_assembly:          { data: 'assembly_name',                        title: 'Assembly name' }
+    genome_species:           { data: 'species',                              title: 'Species' }
+    genome_data_source:       { data: 'data_source',                          title: 'Data source' }
+    genome_tools_used:        { data: 'tools_used',                           title: 'Tools used', visible: 'false' }
+    genome_date_added:        { data: 'date_added',                           title: 'Date added' }
+    genome_chromosome_count:  { data: 'chromosome_count',                     title: 'Chromosomes' }
+    genome_size:              { data: 'genome_size',                          title: 'Genome size' }
+    genome_goldenpath:        { data: 'goldenpath',                           title: 'GoldenPath' }
+    genome_projects:          { data: 'project_whitelist',                    title: 'Allowed projects', visible: 'false' }
+    genome_comments:          { data: 'comments',                             title: 'Comments', visible: 'false' }
+    genome_analyses:          { data: 'analyses_supported',                   title: 'Analyses supported' }
+    yield_x_coverage:         { data: { display: 'coverage.disp', _: 'coverage.order' }, title: 'Coverage' }  # e.g, render as '30X' but sort, search, etc. as '30'
+    yield_required:           { data: 'required_yield',                       title: 'Required yield' }
+    yield_required_q30:       { data: 'required_yield_q30',                   title: 'Required yield Q30' }
+
+
 
 # Datatables tables definition
 # the remaining top level entries each define a table with a list of column
@@ -342,11 +364,28 @@ sample_run_elements:
     - useable
 
 
-active_runs:
-  - run_id
-  - instrument_id
-  - run_status
-  - created_date
-  - cst_date
-  - project_ids
-  - sample_ids
+species:
+    - species_name
+    - species_default_genome
+    - species_taxid
+    - species_genome_size
+
+
+genomes:
+    - genome_assembly
+    - genome_species
+    - genome_data_source
+    - genome_chromosome_count
+    - genome_size
+    - genome_goldenpath
+    - genome_analyses
+    - genome_tools_used
+    - genome_projects
+    - genome_date_added
+    - genome_comments
+
+
+yields:
+    - yield_x_coverage
+    - yield_required
+    - yield_required_q30

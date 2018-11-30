@@ -453,3 +453,57 @@ def project_status_reports(prj_status):
             table_foot='sum_row_per_column'
         )
     )
+
+
+@app.route('/species')
+@flask_login.login_required
+def all_species():
+    return render_template(
+        'untabbed_datatables.html',
+        'Species',
+        tables=[
+            util.datatable_cfg(
+                'Available species',
+                'species',
+                util.construct_url('species', max_results=1000)
+            ),
+            util.datatable_cfg(
+                'Installed genomes',
+                'genomes',
+                util.construct_url('genomes', max_results=10000)
+            )
+        ]
+    )
+
+
+@app.route('/species/<species>')
+@flask_login.login_required
+def species_page(species):
+    return render_template(
+        'untabbed_datatables.html',
+        species,
+        tables=[
+            util.datatable_cfg(
+                'Summary',
+                'species',
+                util.construct_url('species', where={'name': species}),
+                minimal=True
+            ),
+            util.datatable_cfg(
+                'Supported genomes',
+                'genomes',
+                util.construct_url('genomes', where={'species': species}, max_results=1000),
+                minimal=True
+            ),
+            util.datatable_cfg(
+                'Yield requirements',
+                'yields',
+                ajax_call={
+                    'func_name': 'required_yields',
+                    'api_url': util.construct_url('species', where={'name': species})
+                },
+                default_sort_col='yield_x_coverage',
+                minimal=True
+            )
+        ]
+    )

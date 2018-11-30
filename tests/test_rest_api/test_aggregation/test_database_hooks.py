@@ -476,3 +476,27 @@ def test_nb_unique_mutable_elements():
 
     e = database_hooks.NbUniqueDicts('things', key='this', filter_func=lambda x: x['that'] > 1)
     assert e.evaluate({'things': data}) == 2
+
+
+def test_required_yield():
+    e = database_hooks.RequiredYield('approximate_genome_size')
+    assert e.evaluate({'approximate_genome_size': 2100.6}) == {
+        '1X': 5,
+        '2X': 5,
+        '4X': 10,
+        '5X': 20,
+        '10X': 40,
+        '20X': None
+    }
+
+
+def test_yield_for_quoted_coverage():
+    e = database_hooks.RequiredYieldQ30('approximate_genome_size')
+    assert e.evaluate({'approximate_genome_size': 2100.6}) == {
+        '1X': 4,
+        '2X': 4,
+        '4X': 8,
+        '5X': 16,
+        '10X': 32,
+        '20X': None
+    }

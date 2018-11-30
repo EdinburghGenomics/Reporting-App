@@ -15,7 +15,7 @@ DOMAIN = {
 
     for endpoint in (
         'runs', 'lanes', 'run_elements', 'unexpected_barcodes', 'projects', 'samples', 'analysis_driver_procs',
-        'analysis_driver_stages', 'actions'
+        'analysis_driver_stages', 'actions', 'species', 'genomes'
     )
 
 }
@@ -26,7 +26,9 @@ for endpoint, id_field in (
     ('samples', 'sample_id'),
     ('analysis_driver_procs', 'proc_id'),
     ('analysis_driver_stages', 'stage_id'),
-    ('actions', 'action_id')
+    ('actions', 'action_id'),
+    ('species', 'name'),
+    ('genomes', 'assembly_name')
 ):
     DOMAIN[endpoint]['id_field'] = id_field
 
@@ -36,7 +38,7 @@ MONGO_PORT = cfg['db_port']
 MONGO_DBNAME = cfg['db_name']
 ITEMS = 'data'
 
-XML = False
+RENDERERS = ['eve.render.JSONRenderer']
 
 PAGINATION = True
 PAGINATION_LIMIT = 100000
