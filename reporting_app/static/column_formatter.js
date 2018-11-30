@@ -77,8 +77,8 @@ function string_formatter(cell_data, fmt, row){
 
     }
 
-    // if the list is longer than 1, then it should be rendered as a dropdown
-    if (formatted_data.length > 1) {
+    // if the list is longer than 1 or if it has special formatting, then it should be rendered as a dropdown
+    if (formatted_data.length > 1 || fmt['link_format_function']) {
         // build a <div class="dropdown"><div class="dropbtn">text or link</div></div>
         var dropdown = document.createElement('div');
         dropdown.className = 'dropdown';
