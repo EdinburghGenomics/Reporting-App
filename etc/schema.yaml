@@ -111,6 +111,8 @@ run_elements:
         evenness: { type: 'float' }
     } }
 
+    gc_bias: {                  type: 'dict', schema: { slope: { type: 'float' }, mean_deviation: { type: 'float' } } }
+
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'pass', 'fail'], default: 'not reviewed' }
     review_comments: {          type: 'string',  required: False }
     review_date: {              type: 'datetime', required: False }
