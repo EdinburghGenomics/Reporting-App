@@ -74,7 +74,6 @@ function string_formatter(cell_data, fmt, row){
         }
 
         formatted_data.push(_formatted_data);
-
     }
 
     // if the list is longer than 1 or if it has special formatting, then it should be rendered as a dropdown
@@ -102,9 +101,11 @@ function string_formatter(cell_data, fmt, row){
         }
 
         dropdown.appendChild(dropbtn);
-        dropdown.appendChild(dropdown_content);
+        if (formatted_data.length) {
+            dropdown.appendChild(dropdown_content);
+        }
         formatted_data = dropdown.outerHTML;
-    } else {
+    } else if (formatted_data.length == 1) {
         formatted_data = formatted_data[0];
     }
 
