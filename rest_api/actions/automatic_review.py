@@ -144,7 +144,7 @@ class AutomaticLaneReviewer(AutomaticReviewer):
                 )
 
 
-class AutomaticRunReviewer(Action, AutomaticLaneReviewer):
+class AutomaticRunReviewer(Action, AutomaticReviewer):
     def __init__(self, request):
         super().__init__(request)
         self.run_id = self.request.form.get('run_id')
@@ -154,29 +154,9 @@ class AutomaticRunReviewer(Action, AutomaticLaneReviewer):
             abort(404, 'No data found for run id %s.' % self.run_id)
         self.lane_reviewers = [AutomaticLaneReviewer(lane) for lane in lanes]
 
-    @property
-    def run_elements(self):
-        return self.eve_get('run_elements', run_id=self.run_id)
-
-    @property
-    def cfg(self):
-        return review_thresholds['run']
-
-    @cached_property
-    def reviewable_data(self):
-        data = self.eve_get('runs', run_id=self.run_id)
-        if data:
-            return data[0]
-        else:
-            abort(404, 'No data found for run id %s.' % self.run_id)
-
     def _perform_action(self):
-        # Test the run first and only test the lanes if the run pass
-        if self.failing_metrics:
-            self.push_review()
-        else:
-            for reviewer in self.lane_reviewers:
-                reviewer.push_review()
+        for reviewer in self.lane_reviewers:
+            reviewer.push_review()
         return {
             'action_id': self.run_id + self.date_started,
             'date_finished': self.now(),
