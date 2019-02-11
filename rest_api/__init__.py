@@ -8,7 +8,7 @@ from os.path import join, abspath, dirname
 from config import rest_config as cfg
 from rest_api import actions
 from rest_api.limsdb import lims_extract
-from rest_api.aggregation import server_side, database_hooks
+from rest_api.aggregation import database_hooks
 
 app = eve.Eve(settings=join(dirname(abspath(__file__)), 'settings.py'), auth=auth.DualAuth)
 app.secret_key = cfg['key'].encode()
