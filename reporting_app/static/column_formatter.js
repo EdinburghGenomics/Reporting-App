@@ -23,9 +23,15 @@ function string_formatter(cell_data, fmt, row){
     if (cell_data instanceof Array) {
         cell_data.sort();
     } else if (cell_data instanceof Object) {
-        // convert, e.g, {'this': 0, 'that': 1, 'other': 2} to ['this: 0', 'that: 1', 'other: 2']
+        // convert, e.g, {'this': 0, 'that': 1, 'other': 2} to ['other: 2', 'that: 1', 'this: 0']
         var _cell_data = [];
-        for (k in cell_data) {
+        var keys = Object.keys(cell_data);
+        keys.sort();
+
+        var i;
+        var nkeys = keys.length;
+        for (i=0; i<nkeys; i++) {
+            var k = keys[i];
             _cell_data.push(k + ': ' + cell_data[k]);
         }
         cell_data = _cell_data;
@@ -34,7 +40,8 @@ function string_formatter(cell_data, fmt, row){
     }
 
     var formatted_data = [];
-    for (var i=0, tot=cell_data.length; i<tot; i++) {
+    var i, tot;
+    for (i=0, tot=cell_data.length; i<tot; i++) {
         var data = cell_data[i];
         var _formatted_data;
 
