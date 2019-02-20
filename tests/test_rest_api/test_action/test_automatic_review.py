@@ -303,7 +303,7 @@ class TestSampleReviewer(TestBase):
             assert self.reviewer.failing_metrics == []
 
         with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(failing_sample,)), self.patch_lims_samples:
-            assert self.reviewer1.failing_metrics == ['aggregated.clean_yield_in_gb', 'aggregated.clean_yield_q30_in_gb']
+            assert self.reviewer1.failing_metrics == ['aggregated.clean_yield_in_gb']
 
     def test_cfg(self):
         with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(sample_no_genotype,)), self.patch_lims_samples:
@@ -322,7 +322,7 @@ class TestSampleReviewer(TestBase):
         with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(failing_sample,)), self.patch_lims_samples:
             assert self.reviewer._summary == {
                 'reviewed': 'fail',
-                'review_comments': 'Failed due to Yield < 120, Yield Q30 < 95',
+                'review_comments': 'Failed due to Yield < 120',
                 'review_date': self.reviewer.current_time
             }
 
