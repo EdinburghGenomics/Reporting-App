@@ -1,11 +1,18 @@
 Changelog for Reporting-App
 ===========================
 
-0.21 (unreleased)
------------------
+0.20.2 (2019-02-20)
+-------------------
 
-- Nothing changed yet.
+- Removal of required_yield_q30 from automatic sample review
+- GC bias storage metrics
+- Empty list formatting bug fix
 
+
+0.20.1 (2018-11-30)
+-------------------
+
+- Fix bug in the display single sample cells in project status page
 
 0.20 (2018-11-30)
 -----------------
