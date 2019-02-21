@@ -1,5 +1,4 @@
 import eve
-import pymongo
 
 import auth
 import flask_cors
