@@ -116,3 +116,72 @@ QUnit.test('empty data', function(assert) {
         '<div class="dt_cell"><div class="dropdown"><div class="dropbtn">0</div></div></div>'
     );
 });
+
+
+QUnit.test('resolve_min_max_value', function(assert) {
+    var row = {'x': 1, 'y': 2};
+
+    assert.equal(
+        resolve_min_max_value(
+            row,
+            {'field': 'z', 'default': 4}
+        ),
+        4
+    );
+
+    assert.equal(
+        resolve_min_max_value(
+            row,
+            {'field': 'y', 'default': 4}
+        ),
+        2
+    );
+
+    assert.equal(
+        resolve_min_max_value(
+            row,
+            'y'
+        ),
+        2
+    );
+
+    assert.equal(
+        resolve_min_max_value(
+            row,
+            'z'
+        ),
+        'z'
+    );
+});
+
+
+QUnit.test('species_contamination_fmt', function(assert) {
+    assert.equal(
+        species_contamination_fmt(
+            {'contaminant_unique_mapped': {'Thingius thingy': 501, 'Thangius thangy': 499, 'Homo sapiens': 1000}},
+            null
+        ),
+        'Thingius thingy,Homo sapiens'
+    );
+});
+
+
+QUnit.test('coverage_fmt', function(assert) {
+    assert.equal(
+        coverage_fmt({'bases_at_coverage': {'bases_at_15X': 1337}, 'genome_size': 1000}, null, 'bases_at_15X'),
+        133.7
+    );
+
+    assert.equal(
+        coverage_fmt({}, null, 'bases_at_15X'),
+        null
+    );
+});
+
+
+QUnit.test('pipeline_used_fmt', function(assert) {
+    assert.equal(
+        pipeline_used_fmt({'name': 'a_pipeline', 'toolset_type': 'a_toolset', 'toolset_version': 1}, null),
+        'a_pipeline (a_toolset v1)'
+    );
+});
