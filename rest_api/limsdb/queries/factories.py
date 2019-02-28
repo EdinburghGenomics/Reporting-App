@@ -35,6 +35,7 @@ def _create_samples(session, match):
     project_status = match.get('project_status', 'open')
     sample_id = match.get('sample_id')
     sample_time_since = match.get('createddate')
+    limit_date = match.get('limit_date')
     detailed = request.args.get('detailed') in ['true', 'True',  True]
     if detailed:
         list_process_complete = None
@@ -64,7 +65,7 @@ def _create_samples(session, match):
 
     for result in queries.get_samples_and_processes(session,  project_id, sample_id, project_status=project_status,
                                                     workstatus='COMPLETE', list_process=list_process_complete,
-                                                    time_since=sample_time_since):
+                                                    time_since=sample_time_since, limit_date=limit_date):
         (pjct_name, sample_name, process_name, process_status, date_run, process_id) = result
         all_samples[sanitize_user_id(sample_name)].add_completed_process(process_name, date_run, process_id)
 

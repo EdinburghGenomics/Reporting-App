@@ -30,6 +30,8 @@ def add_filters(q, **kwargs):
         q = q.filter(t.Process.workstatus == kwargs.get('workstatus'))
     if kwargs.get('time_since'):
         q = q.filter(func.date(t.Sample.datereceived) > func.date(kwargs.get('time_since')))
+    if kwargs.get('limit_date'):
+        q = q.filter(func.date(t.Process.createddate) < func.date(kwargs.get('limit_date')))
     return q
 
 
@@ -71,8 +73,8 @@ def get_sample_info(session, project_name=None, sample_name=None, project_status
 
 
 def get_samples_and_processes(session, project_name=None, sample_name=None, list_process=None, workstatus=None,
-                              time_since=None, project_status='open'):
-    """Run a query that returns samples and the processeses they went through"""
+                              time_since=None, limit_date=None, project_status='open'):
+    """Run a query that returns samples and the processeses they went through, returning the results up to limit_date"""
     q = session.query(t.Project.name, t.Sample.name, t.ProcessType.displayname,
                       t.Process.workstatus, t.Process.createddate, t.Process.processid) \
         .distinct(t.Sample.name, t.Process.processid) \
@@ -82,7 +84,8 @@ def get_samples_and_processes(session, project_name=None, sample_name=None, list
         .join(t.ProcessIOTracker.process) \
         .join(t.Process.type)
     q = add_filters(q, project_name=project_name, sample_name=sample_name, list_process=list_process,
-                    workstatus=workstatus, project_status=project_status, time_since=time_since)
+                    workstatus=workstatus, project_status=project_status, time_since=time_since,
+                    limit_date=limit_date)
     return q.all()
 
 
