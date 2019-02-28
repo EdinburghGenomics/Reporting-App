@@ -213,6 +213,37 @@ samples:
         ti_tv_ratio: { type: 'float' }
     } }
 
+    rapid_metrics: { type: 'dict', schema: {
+        var_calling: { type: 'dict', schema: {
+            ti_tv_ratio: { type: 'float'},
+            het_hom_ratio: { type: 'float'}
+        } },
+        mapping: { type: 'dict', schema: {
+            total_reads: { type: 'integer' },
+            duplicate_reads: { type: 'integer' },
+            pc_duplicates: { type: 'float' },
+            mapped_reads: { type: 'integer' },
+            pc_mapped: { type: 'float' },
+            unique_mapped_reads: { type: 'integer' },
+            pc_unique_mapped: { type: 'float' },
+            mean_coverage: { type: 'float' },
+            median_coverage: { type: 'float' },
+            genome_size: { type: 'integer' },
+            pc_genome_with_coverage: { type: 'dict', schema: {
+                100+: { type: 'float' },
+                50-100: { type: 'float' },
+                40-50: { type: 'float' },
+                30-40: { type: 'float' },
+                20-30: { type: 'float' },
+                10-20: { type: 'float' },
+                5-10: { type: 'float' },
+                2-5: { type: 'float' },
+                1-2: { type: 'float' },
+                0-1: { type: 'float' }
+            } }
+        } }
+    } }
+
     # Events
     reviewed: {                 type: 'string',  required: False, allowed: ['not reviewed', 'genotype missing', 'pass', 'fail'], default: 'not reviewed' }
     review_comments: {          type: 'string',  required: False }
