@@ -31,7 +31,7 @@ def add_filters(q, **kwargs):
     if kwargs.get('time_since'):
         q = q.filter(func.date(t.Sample.datereceived) > func.date(kwargs.get('time_since')))
     if kwargs.get('limit_date'):
-        q = q.filter(func.date(t.Process.createddate) < func.date(kwargs.get('limit_date')))
+        q = q.filter(func.date(t.Process.createddate) <= func.date(kwargs.get('limit_date')))
     return q
 
 
