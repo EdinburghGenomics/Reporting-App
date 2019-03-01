@@ -74,7 +74,7 @@ def get_sample_info(session, project_name=None, sample_name=None, project_status
 
 def get_samples_and_processes(session, project_name=None, sample_name=None, list_process=None, workstatus=None,
                               time_since=None, limit_date=None, project_status='open'):
-    """Run a query that returns samples and the processeses they went through, returning the results up to limit_date"""
+    """Run a query that returns samples and the processeses they went through up to limit_date"""
     q = session.query(t.Project.name, t.Sample.name, t.ProcessType.displayname,
                       t.Process.workstatus, t.Process.createddate, t.Process.processid) \
         .distinct(t.Sample.name, t.Process.processid) \
@@ -90,9 +90,9 @@ def get_samples_and_processes(session, project_name=None, sample_name=None, list
 
 
 def get_sample_in_queues_or_progress(session, project_name=None, sample_name=None, list_process=None, time_since=None,
-                                     project_status='open'):
+                                     limit_date=None, project_status='open'):
     """
-    Get all samples sitting in the queue of an allegedly non-QC step. See explanation at
+    Get all samples sitting in the queue of an allegedly non-QC step up to a limit_date. See explanation at
     https://genologics.zendesk.com/hc/en-us/articles/213982003-Reporting-the-contents-of-a-Queue
     """
 
@@ -125,7 +125,7 @@ def get_sample_in_queues_or_progress(session, project_name=None, sample_name=Non
 
     q = q.order_by(t.Project.name, t.Sample.name, t.ProcessType.displayname)
     q = add_filters(q, project_name=project_name, sample_name=sample_name, list_process=list_process,
-                    project_status=project_status, time_since=time_since)
+                    project_status=project_status, time_since=time_since, limit_date=limit_date)
     # StageTransition.workflowrunid is positive when the transition is not
     # complete and negative when the transition is completed
     q = q.filter(t.StageTransition.workflowrunid > 0)
