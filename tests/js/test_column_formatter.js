@@ -76,13 +76,13 @@ QUnit.test('threshold highlighting', function(assert) {
     );
 
     // when required_yield is present, treat as normal min/max
-    var row = {'required_yield': 5}
+    var populated_row = {'required_yield': 5};
     assert.equal(
-        string_formatter(4, {'min': {'field': 'required_yield', 'default': 4}}, row),
+        string_formatter(4, {'min': {'field': 'required_yield', 'default': 4}}, populated_row),
         '<div class="dt_cell"><div style="color:red">4</div></div>'
     );
     assert.equal(
-        string_formatter(6, {'min': {'field': 'required_yield', 'default': 6}}, row),
+        string_formatter(6, {'min': {'field': 'required_yield', 'default': 6}}, populated_row),
         '<div class="dt_cell">6</div>'
     );
 });
@@ -114,7 +114,7 @@ QUnit.test('empty data', function(assert) {
 
     // empty dropdown with '0' as displayed total
     assert.equal(
-        string_formatter([], {'link_format_function': 'count_entities'}),
+        string_formatter([], {'link_format_function': 'count_entities'}, row),
         '<div class="dt_cell"><div class="dropdown"><div class="dropbtn">0</div></div></div>'
     );
 });
