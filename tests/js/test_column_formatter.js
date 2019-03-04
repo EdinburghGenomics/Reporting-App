@@ -49,39 +49,40 @@ QUnit.test('date formatting', function(assert) {
 
 
 QUnit.test('threshold highlighting', function(assert) {
+    // 1-3 inclusive are normal
     assert.equal(
         string_formatter(1, {'min': 1, 'max': 3}, row),
         '<div class="dt_cell">1</div>'
     );
-
     assert.equal(
         string_formatter(3, {'min': 1, 'max': 3}, row),
         '<div class="dt_cell">3</div>'
     );
 
+    // anything outside 1-3 is highlighted red
     assert.equal(
         string_formatter(0, {'min': 1, 'max': 3}, row),
         '<div class="dt_cell"><div style="color:red">0</div></div>'
     );
-
     assert.equal(
         string_formatter(4, {'min': 1, 'max': 3}, row),
         '<div class="dt_cell"><div style="color:red">4</div></div>'
     );
 
+    // required_yield not present in row, but min defaults to 5 so highlight 4 in red
     assert.equal(
-        string_formatter(4, {'min': {'field': 'nothere', 'default': 5}}, row),
+        string_formatter(4, {'min': {'field': 'required_yield', 'default': 5}}, row),
         '<div class="dt_cell"><div style="color:red">4</div></div>'
     );
 
-    row = {'real_field': 5}
+    // when required_yield is present, treat as normal min/max
+    var row = {'required_yield': 5}
     assert.equal(
-        string_formatter(4, {'min': {'field': 'real_field', 'default': 4}}, row),
+        string_formatter(4, {'min': {'field': 'required_yield', 'default': 4}}, row),
         '<div class="dt_cell"><div style="color:red">4</div></div>'
     );
-
     assert.equal(
-        string_formatter(6, {'min': {'field': 'real_field', 'default': 6}}, row),
+        string_formatter(6, {'min': {'field': 'required_yield', 'default': 6}}, row),
         '<div class="dt_cell">6</div>'
     );
 });
@@ -111,6 +112,7 @@ QUnit.test('empty data', function(assert) {
         '<div class="dt_cell"></div>'
     );
 
+    // empty dropdown with '0' as displayed total
     assert.equal(
         string_formatter([], {'link_format_function': 'count_entities'}),
         '<div class="dt_cell"><div class="dropdown"><div class="dropbtn">0</div></div></div>'
@@ -122,34 +124,23 @@ QUnit.test('resolve_min_max_value', function(assert) {
     var row = {'x': 1, 'y': 2};
 
     assert.equal(
-        resolve_min_max_value(
-            row,
-            {'field': 'z', 'default': 4}
-        ),
+        resolve_min_max_value(row, {'field': 'z', 'default': 4}),  // z not present, so default to 4
         4
     );
 
     assert.equal(
-        resolve_min_max_value(
-            row,
-            {'field': 'y', 'default': 4}
-        ),
+        resolve_min_max_value(row, {'field': 'y', 'default': 4}),  // y present, so override default
         2
     );
 
     assert.equal(
-        resolve_min_max_value(
-            row,
-            'y'
-        ),
+        resolve_min_max_value(row, 'y'),  // simple referencing
         2
     );
 
+    // simple referencing for a non-existing key just spits back the key
     assert.equal(
-        resolve_min_max_value(
-            row,
-            'z'
-        ),
+        resolve_min_max_value(row, 'z'),
         'z'
     );
 });
