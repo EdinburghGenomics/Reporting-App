@@ -40,10 +40,10 @@ connections and url prefixes if the running platform is Tornado.
 - __Lims queries:__ Uses SQLAlchemy to query the Clarity database directly and generate predetermined views of the Lims.
   A request gets passed to a SQLAlchemy expression depending on its endpoint, and the unprocessed SQL joins are rolled
   into sensibly-formed JSON data.
-  - project_status: Samples aggregated by project.
+  - project_status: Samples aggregated by project, filters by limit_date.
   - plate_status: Samples aggregated by plate.
   - sample_status: Displays samples with 'Prep Workflow' and 'Species' UDFs. Request args `?match={"project_id":<project_id>}`
-    filters by project id, `?match={"sample_id":<sample_id>}` filters by sample name, and `?detailed=True/False`
+    filters by project id, `?match={"sample_id":<sample_id>}` filters by sample name, filters by limit_date and `?detailed=True/False`
     specifies whether to limit information returned for processes the sample is queued in.
   - run_status: Finds recent sequencing runs and displays their status, instrument ID and associated projects/samples.
     Request args `?status=current` displays currently running sequencers, `?status=recent`
