@@ -37,7 +37,7 @@ def _create_samples(session, match):
     sample_id = match.get('sample_id')
     sample_time_since = match.get('createddate')
     limit_date = match.get('limit_date')
-    limit_datetime = datetime.strptime(limit_date, '%Y-%m-%d') + timedelta(days=1) # adding one day to include all the hours of that particular day
+    limit_datetime = datetime.strptime(limit_date, '%Y-%m-%d') + timedelta(days=1) if limit_date else None # adding one day to include all the hours of that particular day
     detailed = request.args.get('detailed') in ['true', 'True',  True]
     if detailed:
         list_process_complete = None
@@ -75,9 +75,9 @@ def _create_samples(session, match):
             session, project_id, sample_id, list_process=list_process_queued,
             time_since=sample_time_since, project_status=project_status, limit_date=limit_date):
         pjct_name, sample_name, process_name, queued_date, queue_id, process_id, process_date = result
-        if not process_id and queued_date < limit_datetime:
+        if not process_id and (not limit_datetime or limit_datetime and queued_date < limit_datetime):
             all_samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date, queue_id)
-        elif process_date and process_date < limit_datetime:
+        elif not limit_datetime or (limit_datetime and process_date and process_date < limit_datetime):
                 all_samples[sanitize_user_id(sample_name)].add_inprogress(process_name, process_date, process_id)
 
     return all_samples.values()
