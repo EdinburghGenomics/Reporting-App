@@ -23,9 +23,15 @@ function string_formatter(cell_data, fmt, row){
     if (cell_data instanceof Array) {
         cell_data.sort();
     } else if (cell_data instanceof Object) {
-        // convert, e.g, {'this': 0, 'that': 1, 'other': 2} to ['this: 0', 'that: 1', 'other: 2']
+        // convert, e.g, {'this': 0, 'that': 1, 'other': 2} to ['other: 2', 'that: 1', 'this: 0']
         var _cell_data = [];
-        for (k in cell_data) {
+        var keys = Object.keys(cell_data);
+        keys.sort();
+
+        var i;
+        var nkeys = keys.length;
+        for (i=0; i<nkeys; i++) {
+            var k = keys[i];
             _cell_data.push(k + ': ' + cell_data[k]);
         }
         cell_data = _cell_data;
@@ -34,7 +40,8 @@ function string_formatter(cell_data, fmt, row){
     }
 
     var formatted_data = [];
-    for (var i=0, tot=cell_data.length; i<tot; i++) {
+    var i, tot;
+    for (i=0, tot=cell_data.length; i<tot; i++) {
         var data = cell_data[i];
         var _formatted_data;
 
@@ -150,7 +157,7 @@ function count_entities_fmt(data, fmt){
 }
 
 function coverage_fmt(data, fmt, bases_at_X){
-    if ("bases_at_coverage" in data && bases_at_X in data['bases_at_coverage'] && "genome_size" in data ) {
+    if ('bases_at_coverage' in data && bases_at_X in data['bases_at_coverage'] && 'genome_size' in data ) {
         return data['bases_at_coverage'][bases_at_X]/data['genome_size']*100;
     }
 }
@@ -164,9 +171,15 @@ function coverage_5X_fmt(data, fmt){
 }
 
 
+function pipeline_used_fmt(data, fmt) {
+    return data['name'] + ' (' + data['toolset_type'] + ' v' + data['toolset_version'] + ')'
+}
+
+
 var function_map = {
     'species_contamination': species_contamination_fmt,
     'count_entities': count_entities_fmt,
     'coverage_15X': coverage_15X_fmt,
-    'coverage_5X': coverage_5X_fmt
+    'coverage_5X': coverage_5X_fmt,
+    'pipeline_used': pipeline_used_fmt
 };

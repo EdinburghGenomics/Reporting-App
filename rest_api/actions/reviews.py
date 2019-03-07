@@ -6,7 +6,7 @@ from cached_property import cached_property
 from pyclarity_lims.entities import Queue, Step
 from egcg_core import clarity
 from rest_api import settings
-from rest_api.aggregation.database_side import db
+from rest_api.aggregation.database_hooks import db
 from config import rest_config as cfg
 
 
