@@ -2,6 +2,7 @@ from collections import defaultdict
 from egcg_core.clarity import sanitize_user_id
 from flask import request
 from config import project_status as status_cfg
+from datetime import datetime
 from rest_api.common import retrieve_args
 from rest_api.limsdb import queries
 from rest_api.limsdb.queries.data_models import ProjectInfo, SampleInfo, Container, Run, Sample, Project
@@ -36,6 +37,7 @@ def _create_samples(session, match):
     sample_id = match.get('sample_id')
     sample_time_since = match.get('createddate')
     limit_date = match.get('limit_date')
+    limit_datetime = datetime.strptime(limit_date, '%Y-%m-%d')
     detailed = request.args.get('detailed') in ['true', 'True',  True]
     if detailed:
         list_process_complete = None
@@ -73,7 +75,7 @@ def _create_samples(session, match):
             session, project_id, sample_id, list_process=list_process_queued,
             time_since=sample_time_since, project_status=project_status):
         pjct_name, sample_name, process_name, queued_date, queue_id, process_id, process_date = result
-        if not process_id:
+        if not process_id and queued_date <= limit_datetime:
             all_samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date, queue_id)
         else:
             all_samples[sanitize_user_id(sample_name)].add_inprogress(process_name, process_date, process_id)
