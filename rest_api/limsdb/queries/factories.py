@@ -36,8 +36,7 @@ def _create_samples(session, match):
     project_status = match.get('project_status', 'open')
     sample_id = match.get('sample_id')
     sample_time_since = match.get('createddate')
-    limit_date = match.get('limit_date')
-    limit_datetime = datetime.strptime(limit_date, '%Y-%m-%d') + timedelta(days=1) if limit_date else None # adding one day to include all the hours of that particular day
+    process_limit_date = match.get('process_limit_date')
     detailed = request.args.get('detailed') in ['true', 'True',  True]
     if detailed:
         list_process_complete = None
@@ -67,17 +66,17 @@ def _create_samples(session, match):
 
     for result in queries.get_samples_and_processes(session,  project_id, sample_id, project_status=project_status,
                                                     workstatus='COMPLETE', list_process=list_process_complete,
-                                                    time_since=sample_time_since, limit_date=limit_date):
+                                                    time_since=sample_time_since, process_limit_date=process_limit_date):
         (pjct_name, sample_name, process_name, process_status, date_run, process_id) = result
         all_samples[sanitize_user_id(sample_name)].add_completed_process(process_name, date_run, process_id)
 
     for result in queries.get_sample_in_queues_or_progress(
             session, project_id, sample_id, list_process=list_process_queued,
-            time_since=sample_time_since, project_status=project_status, limit_date=limit_date):
+            time_since=sample_time_since, project_status=project_status, process_limit_date=process_limit_date):
         pjct_name, sample_name, process_name, queued_date, queue_id, process_id, process_date = result
-        if not process_id and (not limit_datetime or limit_datetime and queued_date < limit_datetime):
+        if not process_id and (not process_limit_date or process_limit_date and queued_date < process_limit_date):
             all_samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date, queue_id)
-        elif not limit_datetime or (limit_datetime and process_date and process_date < limit_datetime):
+        elif not process_limit_date or (process_limit_date and process_date and process_date < process_limit_date):
                 all_samples[sanitize_user_id(sample_name)].add_inprogress(process_name, process_date, process_id)
 
     return all_samples.values()
