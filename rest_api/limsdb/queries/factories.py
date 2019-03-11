@@ -74,10 +74,10 @@ def _create_samples(session, match):
             session, project_id, sample_id, list_process=list_process_queued,
             time_since=sample_time_since, project_status=project_status, process_limit_date=process_limit_date):
         pjct_name, sample_name, process_name, queued_date, queue_id, process_id, process_date = result
-        if not process_id and (not process_limit_date or process_limit_date and queued_date < process_limit_date):
+        if not process_id:
             all_samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date, queue_id)
-        elif not process_limit_date or (process_limit_date and process_date and process_date < process_limit_date):
-                all_samples[sanitize_user_id(sample_name)].add_inprogress(process_name, process_date, process_id)
+        else:
+            all_samples[sanitize_user_id(sample_name)].add_inprogress(process_name, process_date, process_id)
 
     return all_samples.values()
 

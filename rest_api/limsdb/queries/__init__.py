@@ -101,6 +101,9 @@ def get_sample_in_queues_or_progress(session, project_name=None, sample_name=Non
     subq = session.query(t.ProcessIOTracker.inputartifactid, t.Process.processid, t.Process.typeid, t.Process.lastmodifieddate)
     subq = subq.join(t.ProcessIOTracker.process)
     subq = subq.filter(t.Process.workstatus != 'COMPLETE')
+    # Filter Process.createddate (in progress dates) to ensure they are < process_limit_date, if provided
+    subq = add_filters(subq, process_limit_date=process_limit_date)
+
     subq = subq.subquery()
 
     q = session.query(
@@ -125,7 +128,11 @@ def get_sample_in_queues_or_progress(session, project_name=None, sample_name=Non
 
     q = q.order_by(t.Project.name, t.Sample.name, t.ProcessType.displayname)
     q = add_filters(q, project_name=project_name, sample_name=sample_name, list_process=list_process,
-                    project_status=project_status, time_since=time_since, process_limit_date=process_limit_date)
+                    project_status=project_status, time_since=time_since)
+    # Filter StageTransition.createddate (queued dates), to ensure it they are < process_limit_date, if provided
+    if process_limit_date:
+        q = q.filter(t.StageTransition.createddate <= process_limit_date)
+
     # StageTransition.workflowrunid is positive when the transition is not
     # complete and negative when the transition is completed
     q = q.filter(t.StageTransition.workflowrunid > 0)
