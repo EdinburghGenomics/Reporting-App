@@ -440,14 +440,26 @@ def project_status_reports(prj_status):
             }
         )
 
+    # Last week project status page is a special case and needs to be rendered slightly differently.
+    if prj_status == 'lastweek':
+        seven_days_ago = datetime.datetime.now() - datetime.timedelta(days=7)
+        page_title = 'Project status last week'
+        page_header = 'Status of Projects Last Week'
+        api_url = util.construct_url('lims/project_status',
+                                     match={'process_limit_date': seven_days_ago.strftime(settings.DATE_FORMAT)})
+    else:
+        page_title = prj_status.capitalize() + ' Project Status'
+        page_header = 'Status of ' + prj_status.capitalize() + ' Projects'
+        api_url = util.construct_url('lims/project_status', match={'project_status': prj_status})
+
     return render_template(
         'project_status.html',
-        prj_status.capitalize() + ' Project Status',
+        page_title,
         status_order=status_order,
         table=util.datatable_cfg(
-            'Status of ' + prj_status.capitalize() + ' Projects',
+            page_header,
             'project_status',
-            api_url=util.construct_url('lims/project_status', match={'project_status': prj_status}),
+            api_url=api_url,
             state_save=True,
             fixed_header=True,
             table_foot='sum_row_per_column'
