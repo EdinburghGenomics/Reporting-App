@@ -8,7 +8,7 @@ function render_data(data, type, row, meta, fmt) {
         return null;
     }
     if (!fmt) {
-        return '<div class="dt_cell">' + data + '</div>';
+        fmt = {};
     }
     if (fmt['name']) {
         data = function_map[fmt['name']](data, fmt)
@@ -17,61 +17,106 @@ function render_data(data, type, row, meta, fmt) {
 }
 
 
-function string_formatter(data, fmt, row){
-    var formatted_data = data;
+function string_formatter(cell_data, fmt, row){
+    // cast the cell data to a list, whether it's a single value, an object or already a list
+    // this allows subsequent logic to safely assume it's handling a list
+    if (cell_data instanceof Array) {
+        cell_data.sort();
+    } else if (cell_data instanceof Object) {
+        // convert, e.g, {'this': 0, 'that': 1, 'other': 2} to ['other: 2', 'that: 1', 'this: 0']
+        var _cell_data = [];
+        var keys = Object.keys(cell_data);
+        keys.sort();
 
-    if (fmt['type'] == 'percentage') {
-        formatted_data = Humanize.toFixed(formatted_data, 1) + '%';
-    }if (fmt['type'] == 'ratio_percentage') {
-        formatted_data = Humanize.toFixed(formatted_data * 100, 1) + '%';
-    } else if (fmt['type'] == 'int') {
-        formatted_data = Humanize.intComma(formatted_data);
-    } else if (fmt['type'] == 'float') {
-        formatted_data = Humanize.formatNumber(formatted_data, 2);
-    } else if (fmt['type'] == 'date') {
-        formatted_data = moment(new Date(formatted_data)).format('YYYY-MM-DD');
-    } else if (fmt['type'] == 'datetime') {
-        formatted_data = moment(new Date(formatted_data)).format('YYYY-MM-DD HH:mm:ss');
-    }
-    if (fmt['link']) {
-        if (fmt['link_format_function']){
-            formatted_link = function_map[fmt['link_format_function']](data, fmt);
+        var i;
+        var nkeys = keys.length;
+        for (i=0; i<nkeys; i++) {
+            var k = keys[i];
+            _cell_data.push(k + ': ' + cell_data[k]);
         }
-        else{
-            formatted_link = data;
-        }
-        if (data instanceof Array && data.length > 1 || data != formatted_link) {
-            data.sort();
-            formatted_data = '<div class="dropdown"><div class="dropbtn">' + formatted_link + '</div><div class="dropdown-content">';
-            for (var i=0, tot=data.length; i < tot; i++){
-                formatted_data = formatted_data.concat('<a href=' + fmt['link'] + data[i] + '>' + data[i] + '</a>');
-            }
-            formatted_data = formatted_data.concat('</div></div>')
-        }
-        else if (data instanceof Array && data.length == 1){
-            formatted_data = '<a href=' + fmt['link'] + data[0] + '>' + data[0] + '</a>';
-        }
-        else {
-            formatted_data = '<a href=' + fmt['link'] + data + '>' + data + '</a>';
-        }
-    }
-    var min, max;
-    if (fmt['min']){
-        min = resolve_min_max_value(row, fmt['min'])
-    }
-    if (fmt['max']){
-        max = resolve_min_max_value(row, fmt['max'])
-    }
-    if (min && data < min) {
-        formatted_data = '<div style="color:red">' + formatted_data + '</div>';
-    } else if (max && !isNaN(max) && data > max) {
-        formatted_data = '<div style="color:red">' + formatted_data + '</div>';
-    } else if (max && data > max) {
-        formatted_data = '<div style="color:red">' + formatted_data + '</div>';
+        cell_data = _cell_data;
+    } else {
+        cell_data = [cell_data];  // cast a single value to a list of length 1
     }
 
-    formatted_data = '<div class="dt_cell">' + formatted_data + '</div>';
-    return formatted_data;
+    var formatted_data = [];
+    var i, tot;
+    for (i=0, tot=cell_data.length; i<tot; i++) {
+        var data = cell_data[i];
+        var _formatted_data;
+
+        if (fmt['type'] == 'percentage') {
+            _formatted_data = Humanize.toFixed(data, 1) + '%';
+        } else if (fmt['type'] == 'ratio_percentage') {
+            _formatted_data = Humanize.toFixed(data * 100, 1) + '%';
+        } else if (fmt['type'] == 'int') {
+            _formatted_data = Humanize.intComma(data);
+        } else if (fmt['type'] == 'float') {
+            _formatted_data = Humanize.formatNumber(data, 2);
+        } else if (fmt['type'] == 'date') {
+            _formatted_data = moment(new Date(data)).format('YYYY-MM-DD');
+        } else if (fmt['type'] == 'datetime') {
+            _formatted_data = moment(new Date(data)).format('YYYY-MM-DD HH:mm:ss');
+        } else {
+            _formatted_data = data;
+        }
+
+        if (fmt['link']) {  // convert the link to an html <a/>, replacing ' ' with '+'
+            _formatted_data = '<a href=' + fmt['link'] + data.replace(/ /g, "+") + '>' + data + '</a>';
+        }
+
+        var min, max;
+        if (fmt['min']) {
+            min = resolve_min_max_value(row, fmt['min'])
+        }
+        if (fmt['max']) {
+            max = resolve_min_max_value(row, fmt['max'])
+        }
+        if (min && data < min) {
+            _formatted_data = '<div style="color:red">' + _formatted_data + '</div>';
+        } else if (max && !isNaN(max) && data > max) {
+            _formatted_data = '<div style="color:red">' + _formatted_data + '</div>';
+        } else if (max && data > max) {
+            _formatted_data = '<div style="color:red">' + _formatted_data + '</div>';
+        }
+
+        formatted_data.push(_formatted_data);
+    }
+
+    // if the list is longer than 1 or if it has special formatting, then it should be rendered as a dropdown
+    if (formatted_data.length > 1 || fmt['link_format_function']) {
+        // build a <div class="dropdown"><div class="dropbtn">text or link</div></div>
+        var dropdown = document.createElement('div');
+        dropdown.className = 'dropdown';
+
+        var dropbtn = document.createElement('div');
+        dropbtn.className = 'dropbtn';
+        if (fmt['link_format_function']) {
+            dropbtn.innerHTML = function_map[fmt['link_format_function']](cell_data, fmt);
+        } else {
+            dropbtn.innerHTML = cell_data;
+        }
+
+        var dropdown_content = document.createElement('div');
+        dropdown_content.className = 'dropdown-content';
+
+        var div;
+        for (var i=0, tot=formatted_data.length; i<tot; i++) {
+            div = document.createElement('div');
+            div.innerHTML = formatted_data[i];
+            dropdown_content.appendChild(div);
+        }
+
+        dropdown.appendChild(dropbtn);
+        if (formatted_data.length) {
+            dropdown.appendChild(dropdown_content);
+        }
+        formatted_data = dropdown.outerHTML;
+    } else if (formatted_data.length == 1) {
+        formatted_data = formatted_data[0];
+    }
+
+    return '<div class="dt_cell">' + formatted_data + '</div>';
 }
 
 
@@ -112,7 +157,7 @@ function count_entities_fmt(data, fmt){
 }
 
 function coverage_fmt(data, fmt, bases_at_X){
-    if ("bases_at_coverage" in data && bases_at_X in data['bases_at_coverage'] && "genome_size" in data ) {
+    if ('bases_at_coverage' in data && bases_at_X in data['bases_at_coverage'] && 'genome_size' in data ) {
         return data['bases_at_coverage'][bases_at_X]/data['genome_size']*100;
     }
 }
@@ -126,9 +171,15 @@ function coverage_5X_fmt(data, fmt){
 }
 
 
+function pipeline_used_fmt(data, fmt) {
+    return data['name'] + ' (' + data['toolset_type'] + ' v' + data['toolset_version'] + ')'
+}
+
+
 var function_map = {
     'species_contamination': species_contamination_fmt,
     'count_entities': count_entities_fmt,
     'coverage_15X': coverage_15X_fmt,
-    'coverage_5X': coverage_5X_fmt
+    'coverage_5X': coverage_5X_fmt,
+    'pipeline_used': pipeline_used_fmt
 };

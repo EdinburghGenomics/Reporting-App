@@ -4,12 +4,10 @@ import json
 import pymongo
 from unittest import TestCase
 from time import sleep
-from math import sqrt
 from rest_api import app
 from config import schema
 from config import rest_config as cfg
 from tests import Helper
-from datetime import datetime
 from rest_api.aggregation import database_hooks
 from unittest.mock import patch
 
@@ -325,6 +323,7 @@ class TestDatabaseHooks(TestCase):
             'coverage_at_15X': 66.66666666666666, 'most_recent_proc': None, 'clean_yield_in_gb': 5.000000002,
             'clean_pc_q30_r1': 92.30769231065089, 'clean_pc_q30': 92.0000000032, 'clean_yield_q30_in_gb': 4.600000002,
             'from_run_elements': {
+                'useable_run_elements': ['150724_test_1_ATGA', '150724_test_1_ATGC'],
                 'mapped_reads': 16500, 'duplicate_reads': 2100, 'bam_file_reads': 17040,
                 'pc_mapped_reads': 96.83098591549296, 'picard_opt_dup_reads': 1100,
                 'pc_duplicate_reads': 12.323943661971832, 'pc_opt_duplicate_reads': 6.455399061032864,
@@ -360,6 +359,7 @@ class TestDatabaseHooks(TestCase):
              'clean_pc_q30': 91.80327869255576, 'clean_yield_q30_in_gb': 5.600000003}
         )
         exp['from_run_elements'].update({'mean_coverage': 6.5})
+        exp['from_run_elements']['useable_run_elements'].append('150724_test_2_ATGG')
 
         self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])
 
@@ -395,82 +395,3 @@ class TestDatabaseHooks(TestCase):
                 'stage_name': 'stage_1', 'date_started': '01_01_2017_13:00:00'
             }
         )
-
-
-# TODO: move these alongside the tests in test_aggregation.test_server_side
-def test_reference():
-    e = database_hooks.Reference('this.that')
-    assert e.evaluate({'this': {'that': 'other'}}) == 'other'
-
-
-def test_mean():
-    e = database_hooks.Mean('things.x')
-    assert e.evaluate({'things': [{'x': x} for x in range(12)]}) == 5.5
-
-
-def test_first_element():
-    e = database_hooks.FirstElement('things.x')
-    assert e.evaluate({'things': [{'x': x} for x in range(12)]}) == 0
-
-
-def test_stdev_pop():
-    e = database_hooks.StDevPop('things.x')
-    vals = list(range(12))
-    mean = sum(vals) / len(vals)  # 5.5
-    devs = [(v - mean) * (v - mean) for v in vals]
-    var = sum(devs) / len(devs)  # 11.91666...
-    stdev_pop = sqrt(var)  # 3.452052529534663
-
-    assert e.evaluate({'things': [{'x': x} for x in vals]}) == stdev_pop
-
-
-def test_genotype_match():
-    e = database_hooks.GenotypeMatch('genotyping')
-    assert e.evaluate({'genotyping': {}}) is None
-    assert e.evaluate({'genotyping': {'no_call_chip': 7, 'no_call_seq': 7, 'mismatching_snps': 5}}) == 'Match'
-    assert e.evaluate({'genotyping': {'no_call_chip': 7, 'no_call_seq': 7, 'mismatching_snps': 6}}) == 'Mismatch'
-    assert e.evaluate({'genotyping': {'no_call_chip': 7, 'no_call_seq': 8}}) == 'Unknown'
-
-
-def test_sex_check():
-    e = database_hooks.SexCheck('called', 'provided')
-    assert e.evaluate({'called': 'Male'}) is None
-    assert e.evaluate({'called': 'Male', 'provided': 'Male'}) == 'Male'
-    assert e.evaluate({'called': 'Male', 'provided': 'Female'}) == 'Mismatch'
-
-
-def test_matching_species():
-    e = database_hooks.MatchingSpecies('species_contam')
-    data = {
-        'species_contam': {
-            'contaminant_unique_mapped': {'Homo sapiens': 501, 'Thingius thingy': 501, 'Thingius thangy': 500}
-        }
-    }
-    obs = e.evaluate(data)
-    assert obs == ['Homo sapiens', 'Thingius thingy']
-
-
-def test_most_recent():
-    e = database_hooks.MostRecent('procs')
-    obs = e.evaluate(
-        {
-            'procs': [
-                {'_created': datetime(2017, 1, 1, 13, 0, 0), 'this': 'that'},
-                {'_created': datetime(2017, 1, 1, 13, 30, 0), 'this': 'other'}
-            ]
-        }
-    )
-    assert obs['this'] == 'other'
-
-
-def test_nb_unique_mutable_elements():
-    data = [
-        {'this': 'other', 'that': 2},
-        {'this': 'another', 'that': 1},
-        {'this': 'more', 'that': 3}
-    ]
-    e = database_hooks.NbUniqueDicts('things', key='this')
-    assert e.evaluate({'things': data}) == 3
-
-    e = database_hooks.NbUniqueDicts('things', key='this', filter_func=lambda x: x['that'] > 1)
-    assert e.evaluate({'things': data}) == 2

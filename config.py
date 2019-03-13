@@ -24,11 +24,13 @@ class ColumnMappingConfig(Configuration):
             # self.content[key] needs to be a list of strings or dicts
             for i in range(len(self.content[key])):
                 if isinstance(self.content[key][i], str):
+                    column_name = self.content[key][i]
                     if self.content[key][i] in self.column_def:
                         self.content[key][i] = self.column_def[self.content[key][i]]
                     else:
                         raise ConfigError('No column definition for %s' % self.content[key][i])
                 elif isinstance(self.content[key][i], dict):
+                    column_name = self.content[key][i]['column_def']
                     if self.content[key][i]['column_def'] in self.column_def:
                         # take a copy of the column def and update it with the specific info
                         tmp = copy.copy(self.column_def[self.content[key][i]['column_def']])
@@ -37,6 +39,10 @@ class ColumnMappingConfig(Configuration):
                     else:
                         # leave the definition as it is
                         pass
+                else:
+                    raise ConfigError('Invalid column definition %s' % self.content[key][i])
+
+                self.content[key][i]['name'] = column_name
 
 
 class ProjectStatusConfig(Configuration):
@@ -60,10 +66,12 @@ class ProjectStatusConfig(Configuration):
                 [(k, self.status_names.get(v)) for k, v in self.content[section].items()]
             )
             setattr(self, section, transformed_section)
+        # finished steps contains the name of all steps that provided status finished
+        self.finished_steps = [k for k, v in self.step_completed_to_status.items() if v == 'finished']
+        # reverse from step_completed_to_status
         self.status_to_step_completed = dict((name, []) for name in self.status_names)
         for k, v in self.content['step_completed_to_status'].items():
             self.status_to_step_completed[v].append(k)
-
 
 def _cfg_file(cfg_path):
     if cfg_path == cfg_path.upper():

@@ -1,6 +1,11 @@
-import statistics
-from rest_api.aggregation.server_side.expressions import *
-from rest_api.aggregation.database_side import db
+import pymongo
+from rest_api.aggregation.expressions import *
+from rest_api import cfg
+
+
+# Connection to mongodb
+cli = pymongo.MongoClient(cfg['db_host'], cfg['db_port'])
+db = cli[cfg['db_name']]
 
 
 def deep_dict_update(d, u):
@@ -10,6 +15,19 @@ def deep_dict_update(d, u):
         else:
             d[k] = v
     return d
+
+
+def resolve(query, element):
+    q = {}
+    for k, v in query.items():
+        if isinstance(v, Expression):
+            q[k] = v.evaluate(element)
+        elif isinstance(v, dict):
+            # recurse for dictionaries
+            q[k] = resolve(v, element)
+        else:
+            raise ValueError('Unsupported type %s for key %s' % (type(v), k))
+    return q
 
 
 class DataRelation:
@@ -67,97 +85,6 @@ class DataRelation:
             )
 
         self._trigger_superelement_aggregation()
-
-
-# TODO: move these alongside the rest of the expressions in aggregation.server_side
-class Reference(Calculation):
-    def _expression(self, field):
-        return field
-
-
-class Mean(Accumulation):
-    def _expression(self, elements):
-        if elements:
-            return sum(elements) / len(elements)
-
-
-class FirstElement(Accumulation):
-    def _expression(self, elements):
-        if elements:
-            return elements[0]
-
-
-class StDevPop(Accumulation):
-    def _expression(self, elements):
-        if elements:
-            return statistics.pstdev(elements)
-
-
-class GenotypeMatch(Calculation):
-    def _expression(self, geno_val):
-        if not geno_val:
-            return None
-        elif geno_val['no_call_chip'] + geno_val['no_call_seq'] < 15:
-            if geno_val['mismatching_snps'] < 6:
-                return 'Match'
-            elif geno_val['mismatching_snps'] > 5:
-                return 'Mismatch'
-        else:
-            return 'Unknown'
-
-
-class SexCheck(Calculation):
-    def _expression(self, called, provided):
-        if not called or not provided:
-            return None
-        elif called == provided:
-            return called
-        else:
-            return 'Mismatch'
-
-
-class MatchingSpecies(Calculation):
-    def _expression(self, species_contam):
-        return sorted(k for k, v in species_contam['contaminant_unique_mapped'].items() if v > 500)
-
-
-class MostRecent(Calculation):  # TODO: Should replace server_side.MostRecent
-    def __init__(self, *args, date_field='_created'):
-        self.date_field = date_field
-        super().__init__(*args)
-
-    def _expression(self, elements):
-        procs = sorted(elements, key=lambda x: x.get(self.date_field))
-        if procs:
-            return procs[-1]
-
-
-class UniqDict(Calculation):
-    def __init__(self, *args, filter_func=None, key=None):
-        super().__init__(*args, filter_func=filter_func)
-        self.key = key
-
-    def _expression(self, elements):
-        if self.filter_func:
-            elements = [e[self.key] for e in elements if self.filter_func(e)]
-        else:
-            elements = [e[self.key] for e in elements if e]
-
-        return sorted(set(elements))
-
-
-class NbUniqueDicts(Calculation):  # TODO: Should replace server_side.NbUniqueElements
-    def __init__(self, *args, filter_func=None, key=None):
-        super().__init__(*args, filter_func=filter_func)
-        self.key = key
-
-    def _expression(self, elements):
-        if self.filter_func:
-            elements = [e[self.key] for e in elements if self.filter_func(e)]
-        else:
-            elements = [e[self.key] for e in elements if e]
-
-        return len(set(elements))
 
 
 base_and_read_counts = {
@@ -285,7 +212,10 @@ class Lane(DataRelation):
                 Add('aggregated.bases_r1', 'aggregated.bases_r2')
             ),
             'lane_pc_optical_dups': FirstElement('run_elements.lane_pc_optical_dups'),  # TODO: fix this in the schema
-            'pc_duplicate_reads': Percentage('mapping_metrics.duplicate_reads', 'mapping_metrics.bam_file_reads'),
+            'pc_duplicate_reads': Percentage(
+                Total('run_elements.mapping_metrics.duplicate_reads'),
+                Total('run_elements.mapping_metrics.bam_file_reads')
+            ),
             'pc_opt_duplicate_reads': Percentage(
                 Total('run_elements.mapping_metrics.picard_opt_dup_reads'),
                 Total('run_elements.mapping_metrics.bam_file_reads')
@@ -341,6 +271,7 @@ class Sample(DataRelation):
         },
         {
             'from_run_elements': {
+                'useable_run_elements': ToSet('run_elements.run_element_id'),
                 'mean_coverage': Total('run_elements.coverage.mean'),
                 'bam_file_reads': Total('run_elements.mapping_metrics.bam_file_reads'),
                 'mapped_reads': Total('run_elements.mapping_metrics.mapped_reads'),
@@ -385,9 +316,20 @@ class AnalysisDriverProc(DataRelation):
         return {endpoint: {id_field: self.data['dataset_name']}}
 
 
+class Species(DataRelation):
+    endpoint = 'species'
+    id_field = 'name'
+    aggregated_fields = [
+        {
+            'required_yield': RequiredYield('approximate_genome_size'),
+            'required_yield_q30': RequiredYieldQ30('approximate_genome_size')
+        }
+    ]
+
+
 data_relations = {
     cls.endpoint: cls
-    for cls in (Run, Lane, RunElement, Sample, Project, AnalysisDriverProc)
+    for cls in (Run, Lane, RunElement, Sample, Project, AnalysisDriverProc, Species)
 }
 
 

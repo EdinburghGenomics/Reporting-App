@@ -1,34 +1,72 @@
+# This file specify the thresholds used in the Automatic review process for runs lanes and samples
+# Each entry is a metric and needs a
+#  * name -- text use to describe the metric
+#  * value -- use to provide the threshold
+#  * comparison -- the comparator used
+#  * [optional] a formula that replace the metric key as the source of the data.
+#    formula can have numeric or existing metric name
 
 run:
-    yield_in_gb:
+    aggregated.yield_in_gb:
+        name: Run Yield
+        value: 960
+        comparison: '>'
+    aggregated.pc_q30:
+        name: Run PC Q30
+        value: 75
+        comparison: '>'
+    aggregated.pc_q30_r1:
+        name: Run PC Q30 R1
+        value: 70
+        comparison: '>'
+    aggregated.pc_q30_r2:
+        name: Run PC Q30 R2
+        value: 70
+        comparison: '>'
+
+lane:
+    aggregated.yield_in_gb:
         name: Yield
         value: 120
         comparison: '>'
-    pc_q30:
+    aggregated.pc_q30:
         name: PC Q30
         value: 75
         comparison: '>'
-    lane_pc_optical_dups:
-        name: Est. Dup. rate
-        value: 20
+    aggregated.pc_q30_r1:
+        name: PC Q30 R1
+        value: 70
+        comparison: '>'
+    aggregated.pc_q30_r2:
+        name: PC Q30 R2
+        value: 70
+        comparison: '>'
+    aggregated.pc_adaptor:
+        name: PC Adapter
+        value: 10
         comparison: '<'
+    aggregated.pc_opt_duplicate_reads:
+        name: Optical duplicate rate
+        value: 30
+        comparison: '<'
+    compound_yield_adapter_duplicates:
+        formula: 'aggregated.yield_in_gb * (100 - aggregated.pc_adaptor)/100 * (100 - aggregated.pc_duplicate_reads)/100'
+        name: Yield with no adapters and no duplicates
+        value: 96    # This is the amount of data required for 30X human genome
+        comparison: '>'
 
 
 sample:
     default:
-        clean_yield_in_gb:
+        aggregated.clean_yield_in_gb:
             name: Yield
-            # value: populated in automatic_review.sample_config
-            comparison: '>'
-        clean_yield_q30:
-            name: Yield Q30
             # value: populated in automatic_review.sample_config
             comparison: '>'
         coverage.mean:
             name: Mean coverage
             # value: populated in automatic_review.sample_config
             comparison: '>'
-        pc_duplicate_reads:
+        aggregated.pc_duplicate_reads:
             name: Dup. rate
             value: 35
             comparison: '<'

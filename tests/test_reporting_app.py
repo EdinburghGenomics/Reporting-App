@@ -76,10 +76,10 @@ class TestReportingApp(Helper):
 
     def test_format_order(self):
         cols = (
-            {'data': 'this', 'title': 'This'},
-            {'data': 'that', 'title': 'That'},
-            {'data': 'other', 'title': 'Other'},
-            {'data': 'another', 'title': 'Another'}
+            {'name': 'this', 'title': 'This'},
+            {'name': 'that', 'title': 'That'},
+            {'name': 'other', 'title': 'Other'},
+            {'name': 'another', 'title': 'Another'}
         )
         assert reporting_app.util._format_order('this', cols) == [0, 'asc']
         assert reporting_app.util._format_order('-other', cols) == [2, 'desc']
@@ -264,12 +264,13 @@ class TestReportingApp(Helper):
                 'func_name': 'merge_multi_sources_keep_first',
                 'merge_on': 'sample_id',
                 'api_urls': [
-                    '/api/0.1/samples?max_results=10000',
+                    '/api/0.1/samples?max_results=15000',
                     '/api/0.1/lims/sample_status?match={"project_status":"all"}',
                     '/api/0.1/lims/sample_info?match={"project_status":"all"}'
                 ]
             },
-            review={'entity_field': 'sample_id', 'button_name': 'samplereview'}
+            review={'entity_field': 'sample_id', 'button_name': 'samplereview'},
+            create_row='color_data_source'
         )
 
         mocked_render = self._test_render_template('/samples/toreview')
@@ -291,7 +292,8 @@ class TestReportingApp(Helper):
                     '/api/0.1/lims/sample_info?match={"createddate":"13_06_2017_00:00:00","project_status":"open"}'
                 ]
             },
-            review={'entity_field': 'sample_id', 'button_name': 'samplereview'}
+            review={'entity_field': 'sample_id', 'button_name': 'samplereview'},
+            create_row='color_data_source'
         )
 
     @patch('reporting_app.rest_api')
@@ -328,3 +330,7 @@ class TestReportingApp(Helper):
 
     def test_project_status_report(self):
         self._test_render_template('/project_status/')
+
+    def test_genome_page(self):
+        self._test_render_template('/species')
+        self._test_render_template('/species/a_species')

@@ -50,18 +50,25 @@ class TestLIMSRestAPI(TestBase):
         cls.session = get_session()
         p1 = cls._create_project('testproject1', udfs={'Number of Quoted Samples': 9})
         p2 = cls._create_project('testproject2', udfs={'Number of Quoted Samples': 9}, closed=True)
-        s1 = cls._create_sample('sample1', p1, udfs={'Required Yield': 3000, 'Species': 'Gallus gallus'})
-        s2 = cls._create_sample('sample2', p1, udfs={'Required Yield': 3000, 'Species': 'Gallus gallus'})
-
-        p2s1 = cls._create_sample('sample5', p2, udfs={'Required Yield': 3000, 'Species': 'Homo Sapiens'})
-        p2s2 = cls._create_sample('sample6', p2, udfs={'Required Yield': 3000, 'Species': 'Homo Sapiens'})
-        p2s3 = cls._create_sample('sample7', p2, udfs={'Required Yield': 3000, 'Species': 'Homo Sapiens'})
-        p2s4 = cls._create_sample('sample8', p2, udfs={'Required Yield': 3000, 'Species': 'Homo Sapiens'})
+        udfs = {'Required Yield (Gb)': 30, 'Coverage (X)': 15, 'Species': 'Gallus gallus'}
+        s1 = cls._create_sample('sample1', p1, udfs=udfs)
+        s2 = cls._create_sample('sample2', p1, udfs=udfs)
+        udfs['Species'] = 'Homo Sapiens'
+        p2s1 = cls._create_sample('sample5', p2, udfs=udfs)
+        p2s2 = cls._create_sample('sample6', p2, udfs=udfs)
+        p2s3 = cls._create_sample('sample7', p2, udfs=udfs)
+        p2s4 = cls._create_sample('sample8', p2, udfs=udfs)
 
         a1 = cls._create_input_artifact(s1, 'plate1', 'H', '12')
         a2 = cls._create_input_artifact(s2, 'plate1', 'H', '11')
         step1 = cls._create_completed_process([a1], 'Awaiting User Response EG 2.0')
         step2 = cls._create_completed_process([a1], 'Random Step Name', create_date=datetime(2018, 1, 1))
+
+        # Sample2 finishes once then get sequenced again then finishes again
+        step3 = cls._create_completed_process([a2], 'AUTOMATED - Sequence', create_date=datetime(2018, 1, 1))
+        step3 = cls._create_completed_process([a2], 'Data Release EG 2.0 ST', create_date=datetime(2018, 1, 15))
+        step4 = cls._create_completed_process([a2], 'AUTOMATED - Sequence', create_date=datetime(2018, 2, 1))
+        step5 = cls._create_completed_process([a2], 'Finish Processing EG 1.0 ST', create_date=datetime(2018, 2, 15))
 
         l1 = cls._create_input_artifact(p2s1, 'FLOWCELL1', '1', '1')
         l2 = cls._create_input_artifact(p2s2, 'FLOWCELL1', '1', '2')
@@ -207,9 +214,9 @@ class TestLIMSRestAPI(TestBase):
         exp = {
             '_meta': {'total': 2},
             'data': [
-                {'Required Yield': '3000', 'Species': 'Gallus gallus', 'plate_id': 'plate1',
+                {'Required Yield (Gb)': '30', 'Coverage (X)': '15', 'Species': 'Gallus gallus', 'plate_id': 'plate1',
                  'project_id': 'testproject1', 'sample_id': 'sample1'},
-                {'Required Yield': '3000', 'Species': 'Gallus gallus', 'plate_id': 'plate1',
+                {'Required Yield (Gb)': '30', 'Coverage (X)': '15', 'Species': 'Gallus gallus', 'plate_id': 'plate1',
                  'project_id': 'testproject1', 'sample_id': 'sample2'}
             ]
         }
@@ -228,7 +235,7 @@ class TestLIMSRestAPI(TestBase):
                 'close_date': None,
                 'finished_date': None,
                 'library_queue': ['sample1'],
-                'sample_submission': ['sample2'],
+                'finished': ['sample2'],
                 'library_type': '',
                 'nb_quoted_samples': '9',
                 'nb_samples': 2,
@@ -237,7 +244,9 @@ class TestLIMSRestAPI(TestBase):
                 'project_status': 'open',
                 'researcher_name': 'Jane Doe',
                 'species': 'Gallus gallus',
-                'started_date': None
+                'started_date': None,
+                'required_yield': '30',
+                'required_coverage': '15'
             }]
         }
         assert_json_equal(json_of_response(response), exp)
@@ -259,12 +268,14 @@ class TestLIMSRestAPI(TestBase):
             '_meta': {'total': 1},
             'data': [{
                 'library_queue': ['sample1'],
-                'sample_submission': ['sample2'],
+                'finished': ['sample2'],
                 'library_type': '',
                 'nb_samples': 2,
                 'plate_id': 'plate1',
                 'project_id': 'testproject1',
-                'species': 'Gallus gallus'
+                'species': 'Gallus gallus',
+                'required_yield': '30',
+                'required_coverage': '15'
             }]
         }
         assert json_of_response(response) == exp
@@ -282,6 +293,8 @@ class TestLIMSRestAPI(TestBase):
                 'sample_id': 'sample1',
                 'species': 'Gallus gallus',
                 'started_date': None,
+                'required_yield': '30',
+                'required_coverage': '15',
                 'statuses': [{
                     'date': 'Feb 10 2018',
                     'name': 'sample_submission',
@@ -298,6 +311,13 @@ class TestLIMSRestAPI(TestBase):
         response = self.client.get('/api/0.1/lims/sample_status?match={"sample_id":"sample1"}&detailed=true')
         assert json_of_response(response)['_meta']['total'] == 1
         assert len(json_of_response(response)['data'][0]['statuses'][0]['processes']) == 2
+
+    def test_lims_sample_finish_date(self):
+        response = self.client.get('/api/0.1/lims/sample_status?match={"sample_id":"sample2"}')
+        assert response.status_code == 200
+
+        # finished data for sample2 is the first time it went through the finished status
+        assert json_of_response(response)['data'][0]['finished_date'] == '2018-01-15T00:00:00'
 
     def test_lims_run_status(self):
         response = self.client.get('/api/0.1/lims/run_status')

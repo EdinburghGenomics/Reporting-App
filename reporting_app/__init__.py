@@ -3,6 +3,8 @@ from urllib.parse import quote, unquote
 import datetime
 import flask as fl
 import flask_login
+import subprocess
+
 import auth
 from reporting_app import util
 from rest_api import settings
@@ -12,7 +14,20 @@ app = fl.Flask(__name__)
 app.secret_key = cfg['key'].encode()
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
-version = open(join(dirname(dirname(__file__)), 'version.txt')).read()
+version = open(join(dirname(dirname(__file__)), 'version.txt')).read().strip()
+
+
+def get_git_revision_short_hash():
+    try:
+        return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('utf-8').strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+git_commit = get_git_revision_short_hash()
+if git_commit:
+    # This should not appear once deployed in production.
+    version = version + '-' + git_commit
 
 
 def rest_api():
@@ -225,7 +240,7 @@ def report_samples(view_type):
     if view_type == 'all':
         title = 'All samples'
         ajax_call['api_urls'] = [
-            util.construct_url('samples', max_results=10000),
+            util.construct_url('samples', max_results=15000),
             util.construct_url('lims/sample_status', match={'project_status': 'all'}),
             util.construct_url('lims/sample_info', match={'project_status': 'all'})
         ]
@@ -255,7 +270,8 @@ def report_samples(view_type):
             title,
             'samples',
             ajax_call=ajax_call,
-            review={'entity_field': 'sample_id', 'button_name': 'samplereview'}
+            review={'entity_field': 'sample_id', 'button_name': 'samplereview'},
+            create_row='color_data_source'
         )
     )
 
@@ -344,7 +360,8 @@ def report_project(project_ids):
                     'merge_on': 'sample_id'
                 },
                 fixed_header=True,
-                review={'entity_field': 'sample_id', 'button_name': 'samplereview'}
+                review={'entity_field': 'sample_id', 'button_name': 'samplereview'},
+                create_row='color_data_source'
             )
         ],
         procs=procs
@@ -372,7 +389,8 @@ def report_sample(sample_id):
                     ]
                 },
                 minimal=True,
-                review={'entity_field': 'sample_id', 'button_name': 'samplereview'}
+                review={'entity_field': 'sample_id', 'button_name': 'samplereview'},
+                create_row='color_data_source'
             ),
             util.datatable_cfg(
                 'Run elements generated for ' + sample_id,
@@ -434,6 +452,60 @@ def project_status_reports(prj_status):
             fixed_header=True,
             table_foot='sum_row_per_column'
         )
+    )
+
+
+@app.route('/species')
+@flask_login.login_required
+def all_species():
+    return render_template(
+        'untabbed_datatables.html',
+        'Species',
+        tables=[
+            util.datatable_cfg(
+                'Available species',
+                'species',
+                util.construct_url('species', max_results=1000)
+            ),
+            util.datatable_cfg(
+                'Installed genomes',
+                'genomes',
+                util.construct_url('genomes', max_results=10000)
+            )
+        ]
+    )
+
+
+@app.route('/species/<species>')
+@flask_login.login_required
+def species_page(species):
+    return render_template(
+        'untabbed_datatables.html',
+        species,
+        tables=[
+            util.datatable_cfg(
+                'Summary',
+                'species',
+                util.construct_url('species', where={'name': species}),
+                minimal=True
+            ),
+            util.datatable_cfg(
+                'Supported genomes',
+                'genomes',
+                util.construct_url('genomes', where={'species': species}, max_results=1000),
+                minimal=True
+            ),
+            util.datatable_cfg(
+                'Yield requirements',
+                'yields',
+                ajax_call={
+                    'func_name': 'required_yields',
+                    'api_url': util.construct_url('species', where={'name': species})
+                },
+                default_sort_col='yield_x_coverage',
+                minimal=True
+            )
+        ]
     )
 
 @app.route('/test/')

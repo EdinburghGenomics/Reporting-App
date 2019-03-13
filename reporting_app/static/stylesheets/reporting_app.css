@@ -13,11 +13,6 @@
 
 .dt_cell:hover {
     overflow: visible;
-    //display: block;
-}
-
-.dropdown {
-    //display: inline-block;
 }
 
 .dropdown:hover .dropdown-content {
@@ -29,12 +24,9 @@
     text-overflow: ellipsis;
 }
 
-.dropbtn:hover {
-    overflow: visible;
-}
-
 .dropdown-content {
     display: none;
+    padding: 2px;
     position: absolute;
     z-index: 10;
     background-color: #f9f9f9;
@@ -59,6 +51,10 @@
 
 .data-filtering {
     background-color: #fcf8e3;
+}
+
+.data-source-error {
+    background-color: #f78a7e;
 }
 
 .overlay {

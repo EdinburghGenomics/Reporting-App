@@ -9,7 +9,10 @@ invalid_attr_chars = str.maketrans({k: '_' for k in (' ', ',')})
 
 def _format_order(col_name, cols):
     direction = 'desc' if col_name.startswith('-') else 'asc'
-    return [[c['data'] for c in cols].index(col_name.lstrip('-')), direction]
+    return [
+        [c['name'] for c in cols].index(col_name.lstrip('-')),
+        direction
+    ]
 
 
 def construct_url(endpoint, **query_args):

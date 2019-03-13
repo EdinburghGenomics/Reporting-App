@@ -1,10 +1,52 @@
 Changelog for Reporting-App
 ===========================
 
-0.19 (unreleased)
+0.21 (unreleased)
 -----------------
 
 - Nothing changed yet.
+
+
+0.20.2 (2019-02-20)
+-------------------
+
+- Removal of required_yield_q30 from automatic sample review
+- GC bias storage metrics
+- Empty list formatting bug fix
+
+
+0.20.1 (2018-11-30)
+-------------------
+
+- Fix bug in the display single sample cells in project status page
+
+0.20 (2018-11-30)
+-----------------
+
+- New Species and Genome Page describing the currently supported species and the yield values
+- In Automatic Run review: compound formula now use read duplicates and 96G
+- Sample finished date now points to first finished status rather than the last
+- Nb samples received added back to Project status lines
+ 
+ 0.19.1 (2018-09-18)
+-------------------
+
+- Bug fix in Automatic Sample Review where yield in gb were compared with required yield in base
+
+
+0.19 (2018-09-17)
+-----------------
+
+- Added expected yield/coverage columns to project and plate status tables
+- Added Data Release Trigger to `DELIVERY` status
+- New review thresholds
+    - Overall run: total yield, %Q30, %Q30 R1/2
+    - Lane: %Q30 R1/2, adaptors and duplicates
+    - Adding `formula` logic
+- Added commit hash to dev instances
+- Highlighting samples which have different usable data from processed data
+- Adding usable run elements to sample aggregation
+- Adding required yield and species to Lims queries
 
 
 0.18.2 (2018-06-01)

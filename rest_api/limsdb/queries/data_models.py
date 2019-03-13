@@ -59,6 +59,8 @@ class Sample(SampleInfo):
         self._all_statuses_and_date = None
         self.planned_library = None
         self.species = None
+        self.required_yield = None
+        self.coverage = None
 
     def add_completed_process(self, process_name, completed_date, process_id=None):
         self._processes.add((process_name, completed_date, 'complete', process_id))
@@ -189,12 +191,11 @@ class Sample(SampleInfo):
 
     @property
     def finished_date(self):
-        """Date of the first completed FINISHED step"""
+        """Date of the first step marking as finished"""
         for p in reversed(self.processes):
             process, date, process_type, process_id = p
-            if process_type == 'complete' and process in status_cfg.status_to_step_completed['FINISHED']:
+            if process_type == 'complete' and process in status_cfg.finished_steps:
                 return date
-        return None
 
     def to_json(self):
         return {
@@ -206,7 +207,9 @@ class Sample(SampleInfo):
             'qc_date': format_date(self.qc_date),
             'finished_date': format_date(self.finished_date),
             'library_type': self.library_type,
-            'species': self.species
+            'species': self.species,
+            'required_yield': self.required_yield,
+            'required_coverage': self.coverage
         }
 
 
@@ -224,13 +227,24 @@ class Container:
                 sample_per_status[status].append(sample.sample_name)
         return sample_per_status
 
+    def _extract_from_samples(self, field):
+        return ', '.join(sorted(set(getattr(sample, field) for sample in self.samples if getattr(sample, field))))
+
+    @property
+    def coverage(self):
+        return self._extract_from_samples('coverage')
+
+    @property
+    def required_yield(self):
+        return self._extract_from_samples('required_yield')
+
     @property
     def library_types(self):
-        return ', '.join(set(sample.library_type for sample in self.samples if sample.library_type))
+        return self._extract_from_samples('library_type')
 
     @property
     def species(self):
-        return ', '.join(set(sample.species for sample in self.samples if sample.species))
+        return self._extract_from_samples('species')
 
     def to_json(self):
         ret = {
@@ -238,7 +252,9 @@ class Container:
             'project_id': self.project_id,
             'nb_samples': len(self.samples),
             'library_type': self.library_types,
-            'species': self.species
+            'species': self.species,
+            'required_yield': self.required_yield,
+            'required_coverage': self.coverage
         }
         ret.update(self.samples_per_status())
         return ret
@@ -255,6 +271,8 @@ class Project(Container, ProjectInfo):
             'project_id': self.project_id,
             'nb_samples': len(self.samples),
             'library_type': self.library_types,
+            'required_yield': self.required_yield,
+            'required_coverage': self.coverage,
             'species': self.species,
             'open_date': format_date(self.open_date),
             'close_date': format_date(self.close_date),

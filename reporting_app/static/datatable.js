@@ -60,7 +60,7 @@ var merge_on_keep_first = function (list_of_array, key) {
 var _merge_multi_sources = function(dt_config, merge_func){
     return function(data, callback, settings){
         var calls = dt_config.ajax_call.api_urls.map( function(api_url){
-            return  $.ajax({
+            return $.ajax({
                 url: api_url,
                 headers: {'Authorization':  dt_config.token },
                 dataType: 'json',
@@ -92,6 +92,47 @@ var merge_multi_sources_keep_first = function(dt_config){
     return _merge_multi_sources(dt_config, merge_on_keep_first);
 }
 
+
+var required_yields = function(dt_config) {
+    return function(data, callback, settings) {
+        var response;
+        $.ajax(
+            {
+                url: dt_config.ajax_call.api_url,
+                headers: {'Authorization': dt_config.token},
+                dataType: 'json',
+                async: false,
+                success: function(result) { response = result; }
+            }
+        );
+        var d = response.data;
+
+        if (d.length > 1) {
+            console.warn('data is not of length 1');
+        }
+
+        var aggregated_data = d[0]['aggregated'];
+        var result = [];
+
+        for (k in aggregated_data['required_yield']) {
+            result.push(
+                {
+                    'coverage': {'order': k.slice(0, -1), 'disp': k},
+                    'required_yield': aggregated_data['required_yield'][k],
+                    'required_yield_q30': aggregated_data['required_yield_q30'][k]
+                }
+            )
+        };
+
+        callback({
+            recordsTotal: result.length,
+            recordsFiltered: result.length,
+            data: result
+        });
+    }
+}
+
+
 var test_exist = function(variable){
     if ( variable instanceof Array ) {
         variable = variable.filter(function(n){ return n != null });
@@ -103,6 +144,21 @@ var test_exist = function(variable){
 var color_filter = function( row, data, dataIndex ) {
     if (test_exist(data['trim_r1']) || test_exist(data['trim_r2']) || test_exist(data['tiles_filtered'])) {
           $(row).addClass('data-filtering');
+    }
+}
+
+var color_data_source = function( row, data, dataIndex ) {
+    if (
+        _.has(data, 'aggregated.most_recent_proc.data_source')
+        && _.has(data, 'aggregated.from_run_elements.useable_run_elements')
+    ) {
+        var list1 = _.get(data, 'aggregated.from_run_elements.useable_run_elements');
+        var list2 = _.get(data, 'aggregated.most_recent_proc.data_source');
+        list1.sort()
+        list2.sort()
+        if (!_.isEqual(list1, list2)){
+            $(row).addClass('data-source-error');
+        }
     }
 }
 
@@ -262,7 +318,11 @@ var configure_dt = function(dt_config) {
                     'data': c.data,
                     'name': c.data,
                     'render': function(data, type, row, meta) {
-                        return render_data(data, type, row, meta, c.fmt)
+                        if (type == 'display') {
+                            return render_data(data, type, row, meta, c.fmt);
+                        } else {
+                            return data;
+                        }
                     },
                     'orderable': !c.orderable || String(c.orderable).toLowerCase() == 'true',
                     'visible': !c.visible || String(c.visible).toLowerCase() == 'true',
