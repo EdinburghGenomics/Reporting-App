@@ -61,9 +61,9 @@ column_def:
     nb_invoiced:              { data: 'invoiced',                             title: 'Invoiced' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
     no_call_chip:             { data: 'genotype_validation.no_call_chip',     title: 'No-call (chip)',                                                visible: 'false' }
     no_call_seq:              { data: 'genotype_validation.no_call_seq',      title: 'No-call (seq)',                                                 visible: 'false' }
-    called_gender:            { data: 'called_gender',                        title: 'Called Gender',                                                 visible: 'false' }
-    provided_gender:          { data: 'provided_gender',                      title: 'Provided Gender',                                               visible: 'false' }
-    gender_match:             { data: 'aggregated.gender_match',              title: 'Gender' }
+    called_gender:            { data: 'called_gender',                        title: 'Called Sex',                                                    visible: 'false' }
+    provided_gender:          { data: 'provided_gender',                      title: 'Provided Sex',                                                  visible: 'false' }
+    gender_match:             { data: 'aggregated.gender_match',              title: 'Sex check' }
     passing_filter_reads:     { data: 'passing_filter_reads',                 title: 'Passing-filter reads',     fmt: { type: 'int' } }
     pc_adaptor:               { data: 'aggregated.pc_adaptor',                title: '% Adapter',                fmt: { type: 'percentage', max: 5 } }
     pc_duplicate_reads:       { data: 'aggregated.pc_duplicate_reads',        title: '% duplicate reads',        fmt: { type: 'percentage', max: 35 } }
