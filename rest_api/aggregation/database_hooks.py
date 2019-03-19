@@ -260,7 +260,7 @@ class Sample(DataRelation):
         {
             'run_ids': ToSet('run_elements.run_id'),
             'genotype_match': GenotypeMatch('genotype_validation'),
-            'gender_match': SexCheck('called_gender', 'provided_gender'),
+            'sex_check': SexCheck('sex_validation.called', 'sex_validation.provided'),
             'pc_mapped_reads': Percentage('mapped_reads', 'bam_file_reads'),
             'pc_properly_mapped_reads': Percentage('properly_mapped_reads', 'bam_file_reads'),
             'pc_duplicate_reads': Percentage('duplicate_reads', 'bam_file_reads'),

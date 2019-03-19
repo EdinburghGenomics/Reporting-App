@@ -309,15 +309,15 @@ class TestDatabaseHooks(TestCase):
             'sample_id': 'a_sample', 'project_id': 'a_project',
             'run_elements': ['150724_test_1_ATGC', '150724_test_1_ATGA'],
             'genotype_validation': {'no_call_chip': 1, 'no_call_seq': 2, 'mismatching_snps': 5},
-            'called_gender': 'female', 'provided_gender': 'female', 'mapped_reads': 1337, 'properly_mapped_reads': 1336,
-            'bam_file_reads': 1338, 'duplicate_reads': 100,
+            'sex_validation': {'called': 'female', 'provided': 'female'}, 'mapped_reads': 1337,
+            'properly_mapped_reads': 1336, 'bam_file_reads': 1338, 'duplicate_reads': 100,
             'species_contamination': {'contaminant_unique_mapped': {'Homo sapiens': 501, 'Thingius thingy': 499}},
             'coverage': {'genome_size': 3000000000, 'bases_at_coverage': {'bases_at_5X': 2900000000, 'bases_at_15X': 2000000000}}
         }
         self.post('samples', sample)
 
         exp = {
-            'genotype_match': 'Match', 'gender_match': 'female', 'pc_mapped_reads': 99.9252615844544,
+            'genotype_match': 'Match', 'sex_check': 'female', 'pc_mapped_reads': 99.9252615844544,
             'pc_properly_mapped_reads': 99.85052316890882, 'pc_duplicate_reads': 7.473841554559043,
             'matching_species': ['Homo sapiens'], 'coverage_at_5X': 96.66666666666667,
             'coverage_at_15X': 66.66666666666666, 'most_recent_proc': None, 'clean_yield_in_gb': 5.000000002,

@@ -87,8 +87,6 @@ failing_sample = {
     'required_yield_q30': 95000000000,
     'required_coverage': 30,
     'required_yield': 120000000000,
-    'provided_gender': 'female',
-    'called_gender': 'male',
     'genotype_validation': {'mismatching_snps': 3, 'no_call_chip': 1, 'no_call_seq': 0, 'matching_snps': 28},
     'coverage': {'mean': 30.156},
     'aggregated': {
@@ -107,8 +105,6 @@ passing_sample = {
     'required_yield': 120000000000,
     'species_name': 'Homo sapiens',
     'genotype_validation': {'mismatching_snps': 1, 'no_call_seq': 0, 'no_call_chip': 3, 'matching_snps': 28},
-    'provided_gender': 'female',
-    'called_gender': 'female',
     'coverage': {'mean': 30.34},
     'aggregated': {
         'clean_yield_in_gb': 120.17,
@@ -125,8 +121,6 @@ sample_failing_genotype = {
     'required_yield': 120000000000,
     'species_name': 'Homo sapiens',
     'genotype_validation': {'mismatching_snps': 12, 'no_call_seq': 0, 'no_call_chip': 3, 'matching_snps': 16},
-    'provided_gender': 'female',
-    'called_gender': 'female',
     'coverage': {'mean': 30.34},
     'aggregated': {
         'clean_yield_in_gb': 120.17,
@@ -141,8 +135,6 @@ sample_no_genotype = {
     'required_yield_q30': 95000000000,
     'required_coverage': 30,
     'required_yield': 120000000000,
-    'provided_gender': 'female',
-    'called_gender': 'female',
     'coverage': {'mean': 30.34},
     'aggregated': {
         'pc_mapped_reads': 95.62,
@@ -166,7 +158,6 @@ non_human_sample = {
 
 
 class TestRunReviewer(TestBase):
-
     def setUp(self):
         self.init_request = Mock(form={'run_id': 'run1'})
         with patch.object(AutomaticLaneReviewer, 'eve_get', return_value=[passing_lane]):
@@ -180,7 +171,7 @@ class TestRunReviewer(TestBase):
         with patch('rest_api.actions.automatic_review.get', side_effect=[(page1,), (page2,), (page3,)]) as mock_get:
             with app.test_request_context():
                 assert self.reviewer1.eve_get('endpoint', param1='this') == ['test1', 'test2', 'test3']
-                mock_get.call_count == 3
+                assert mock_get.call_count == 3
                 mock_get.assert_called_with('endpoint', param1='this')
 
     def test_reviewable_data(self):
@@ -346,4 +337,4 @@ class TestSampleReviewer(TestBase):
         with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=[]):
             with pytest.raises(werkzeug.exceptions.NotFound):
                 reviewer = AutomaticSampleReviewer(Mock(form={'sample_id': 'unknown_sample'}))
-                reviewer.reviewable_data
+                _ = reviewer.reviewable_data

@@ -35,12 +35,12 @@ class TestSchema(Helper):
             'approximate_genome_size', 'assembly_name', 'best_matching_samples', 'chromosome_count', 'comments',
             'data_deleted', 'data_files', 'data_source', 'dataset_name', 'dataset_type', 'date_added', 'date_finished',
             'date_started', 'default_version', 'end_date', 'exit_status', 'fasta', 'files_delivered',
-            'files_downloaded', 'gc_bias', 'gender_genotype', 'genome_used', 'genomes', 'goldenpath', 'mean_deviation',
+            'files_downloaded', 'gc_bias', 'genome_used', 'genomes', 'goldenpath', 'mean_deviation',
             'name', 'pid', 'pipeline_used', 'project_whitelist', 'sample_pipeline', 'slope', 'species', 'stage_id',
             'stage_name', 'stages', 'start_date', 'started_by', 'taxid', 'tools_used', 'toolset_type',
             'toolset_version', 'useable_reviewer', 'variation'
         ]
-        assert sorted(list_values_not_in_constants) == expected_not_in_constant
+        assert sorted(list_values_not_in_constants) == sorted(expected_not_in_constant)
 
         in_constants_not_in_schema = set(self.constant_values).difference(list_values_in_constants)
         assert sorted(in_constants_not_in_schema) == ['Nb secondary alignments', 'project', 'samtools_median_coverage']
