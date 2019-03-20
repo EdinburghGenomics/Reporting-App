@@ -2,6 +2,7 @@ from unittest.mock import patch, Mock, PropertyMock
 
 import pytest
 import werkzeug
+from rest_api import app
 from rest_api.actions import automatic_review as ar, AutomaticRunReviewer
 from rest_api.actions.automatic_review import AutomaticSampleReviewer, AutomaticLaneReviewer, AutomaticReviewer
 from tests.test_rest_api import TestBase
@@ -137,6 +138,21 @@ non_human_sample = {
         'pc_duplicate_reads': 20
     }
 }
+
+
+class TestAutomaticReview(TestBase):
+
+    def test_eve_get(self):
+        reviewer = ar.AutomaticReviewer()
+        page1 = {'data': ['test1'], '_links': {'next': {'href': 'endpoint?page=2'}}}
+        page2 = {'data': ['test2'], '_links': {'next': {'href': 'endpoint?page=3'}}}
+        page3 = {'data': ['test3'], '_links': {}}
+
+        with patch('rest_api.actions.automatic_review.get', side_effect=[(page1,), (page2,), (page3,)]) as mock_get:
+            with app.test_request_context():
+                assert reviewer.eve_get('endpoint', param1='this') == ['test1', 'test2', 'test3']
+                mock_get.call_count == 3
+                mock_get.assert_called_with('endpoint', param1='this')
 
 
 class TestRunReviewer(TestBase):
