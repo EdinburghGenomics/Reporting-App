@@ -211,6 +211,55 @@ function draw_highcharts_tat_graphs(data, field_name, time_period){
 }
 
 
+function draw_highcharts_plate_view(title){
+Highcharts.chart('container', {
+
+    chart: {
+        type: 'heatmap',
+        marginTop: 40,
+        marginBottom: 80,
+        plotBorderWidth: 1
+    },
+    title: { text: title},
+    xAxis: { categories: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] },
+    yAxis: { categories: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'], title: null},
+    colorAxis: {
+        min: 0,
+        minColor: '#FFFFFF',
+        maxColor: Highcharts.getOptions().colors[0]
+    },
+
+    legend: {
+        align: 'right',
+        layout: 'vertical',
+        margin: 0,
+        verticalAlign: 'top',
+        y: 25,
+        symbolHeight: 280
+    },
+
+    tooltip: {
+        formatter: function () {
+            return '<b>' + this.series.xAxis.categories[this.point.x] + '</b> sold <br><b>' +
+                this.point.value + '</b> items on <br><b>' + this.series.yAxis.categories[this.point.y] + '</b>';
+        }
+    },
+
+    series: [{
+        name: 'Sales per employee',
+        borderWidth: 1,
+        data: [[0, 0, 10], [0, 1, 19], [0, 2, 8]],
+        dataLabels: {
+            enabled: true,
+            color: '#000000'
+        }
+    }]
+
+});
+
+}
+
+
 function draw_plotly_tat_graphs(data, field_name, time_period){
 
     function compare_aggregate(a, b){
@@ -363,7 +412,6 @@ function all_tat_charts(data){
         });
     });
 }
-
 
 function aggregate_on_date(run_elements, time_period, fields) {
     var aggregate = {};
@@ -691,4 +739,6 @@ function plotCharts(run_elements) {
         dashboard.draw(run_yield_data_weeks);
     });
 }
+
+
 

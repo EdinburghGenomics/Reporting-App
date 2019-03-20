@@ -236,3 +236,34 @@ def runs_cst(session, time_since=None, run_ids=None, run_status=None):
 
     results = q.all()
     return results
+
+
+def get_library_prep_info(session, project_name=None, sample_name=None, project_status='open', list_process=None, process_id=None):
+    """Run a query that returns samples and the processeses they went through up to process_limit_date"""
+    q = session.query(t.Project.name, t.Sample.name, t.Container.name, t.ContainerPlacement.wellxposition,
+                      t.ContainerPlacement.wellyposition, t.ProcessType.displayname,
+                      t.Process.workstatus, t.Process.createddate, t.Process.processid) \
+        .distinct(t.Sample.name, t.Process.processid) \
+        .join(t.Sample.project) \
+        .join(t.Sample.artifacts) \
+        .join(t.Artifact.processiotrackers) \
+        .join(t.Artifact.containerplacement) \
+        .join(t.ContainerPlacement.container) \
+        .join(t.ProcessIOTracker.process) \
+        .join(t.Process.type)
+    q = add_filters(q, project_name=project_name, sample_name=sample_name, list_process=list_process, project_status=project_status)
+    if process_id:
+        q = q.filter(t.Process.processid == process_id)
+    return q.all()
+
+
+if __name__ == '__main__':
+    import datetime
+    from rest_api.limsdb import get_session
+    session = get_session()
+    #res = get_samples_and_processes(session, list_process=['Eval qPCR Quant'])
+    res = get_library_prep_info(session, sample_name='X99008P007A01', list_process=['Eval qPCR Quant'])
+    res = get_library_prep_info(session, sample_name='X99008P007A01')
+    #, process_id='107579'
+    for p in res:
+        print(p)

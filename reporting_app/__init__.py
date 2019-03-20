@@ -508,11 +508,24 @@ def species_page(species):
         ]
     )
 
-@app.route('/test/')
+@app.route('/tat_chart/')
 @flask_login.login_required
-def test_page():
+def tat_chart_page():
     return render_template(
-        'test.html',
+        'tat_charts.html',
         api_url=util.construct_url('lims/sample_status', match={'project_status': 'all'}),
         ajax_token=util.get_token()
+    )
+
+
+@app.route('/libraries/')
+@flask_login.login_required
+def tat_chart_page():
+    return render_template(
+        'untabbed_datatables.html',
+        'Library preparation',
+        table=util.datatable_cfg(
+            'libraries',
+            util.construct_url('lims/libraries')
+        )
     )

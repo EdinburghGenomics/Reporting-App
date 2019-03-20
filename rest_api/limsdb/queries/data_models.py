@@ -326,3 +326,22 @@ class Run:
             'nb_reads': self.udfs['Read'],
             'nb_cycles': self.udfs['Cycle']
         }
+
+
+class LibraryPrep(Container):
+    def __init__(self):
+        super().__init__()
+        self.projects = []
+        self.container_name = None
+
+    def to_json(self):
+        ret = {
+            'plate_id': self.container_name,
+            'nb_samples': len(self.samples),
+            'library_type': self.library_types,
+            'species': self.species,
+            'required_yield': self.required_yield,
+            'required_coverage': self.coverage
+        }
+        ret.update(self.samples_per_status())
+        return ret
