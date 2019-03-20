@@ -213,7 +213,10 @@ samples:
         ti_tv_ratio: { type: 'float' }
     } }
 
-    rapid_metrics: { type: 'dict', schema: {
+    rapid_analysis: { type: 'dict', schema: {
+        reviewed: { type: 'string', allowed: ['pass', 'fail', 'not reviewed'] },
+        review_comments: { type: 'string' },
+        review_date: { type: 'datetime' },
         var_calling: { type: 'dict', schema: {
             ti_tv_ratio: { type: 'float'},
             het_hom_ratio: { type: 'float'}

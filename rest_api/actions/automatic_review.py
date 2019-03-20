@@ -186,6 +186,43 @@ class AutomaticRunReviewer(Action, AutomaticLaneReviewer):
         }
 
 
+class AutomaticRapidSampleReviewer(Action, AutomaticReviewer):
+    def __init__(self, request):
+        super().__init__(request)
+        self.sample_id = self.request.form['sample_id']
+
+    @property
+    def cfg(self):
+        return review_thresholds['rapid']
+
+    @cached_property
+    def reviewable_data(self):
+        data = self.eve_get('samples', sample_id=self.sample_id)
+        if data:
+            return data[0]
+        else:
+            abort(404, 'No data found for sample id %s.' % self.sample_id)
+
+    def _perform_action(self):
+        rapid_data = self.reviewable_data.get('rapid_analysis')
+        if not rapid_data:
+            abort(404, 'rapid_analysis not found in sample %s' % self.sample_id)
+
+        if self.failing_metrics:
+            rapid_data[ELEMENT_REVIEWED] = 'fail'
+            rapid_data[ELEMENT_REVIEW_COMMENTS] = self.failure_comment
+        else:
+            rapid_data[ELEMENT_REVIEWED] = 'pass'
+
+        rapid_data[ELEMENT_REVIEW_DATE] = self.current_time
+
+        patch_internal(
+            'samples',
+            rapid_data,
+            sample_id=self.sample_id
+        )
+
+
 class AutomaticSampleReviewer(Action, AutomaticReviewer):
     def __init__(self, request):
         Action.__init__(self, request)
@@ -246,7 +283,6 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
         cfg['aggregated.clean_yield_in_gb']['value'] = required_yield
         cfg['coverage.mean']['value'] = coverage
         return cfg
-
 
     @cached_property
     def _summary(self):

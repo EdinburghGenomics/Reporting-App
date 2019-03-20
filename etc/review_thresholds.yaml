@@ -24,6 +24,26 @@ run:
         value: 70
         comparison: '>'
 
+
+rapid:
+    rapid_analysis.mapping.pc_duplicates:
+        name: PC duplicates
+        value: 20
+        comparison: '<'
+    rapid_analysis.mapping.pc_mapped:
+        name: PC mapped
+        value: 90
+        comparison: '>'
+    rapid_analysis.mapping.pc_unique_mapped:
+        name: PC unique mapped
+        value: 80
+        comparison: '>'
+    rapid_analysis.mapping.mean_coverage:
+        name: Mean coverage
+        value: 30
+        comparison: '>'
+
+
 lane:
     aggregated.yield_in_gb:
         name: Yield
