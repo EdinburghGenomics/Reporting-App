@@ -218,9 +218,17 @@ class AutomaticRapidSampleReviewer(Action, AutomaticReviewer):
 
         patch_internal(
             'samples',
-            rapid_data,
+            {'rapid_analysis': rapid_data},
             sample_id=self.sample_id
         )
+
+        return {
+            'action_id': self.sample_id + self.date_started,
+            'date_finished': self.now(),
+            'action_info': {
+                'sample_id': self.sample_id
+            }
+        }
 
 
 class AutomaticSampleReviewer(Action, AutomaticReviewer):
