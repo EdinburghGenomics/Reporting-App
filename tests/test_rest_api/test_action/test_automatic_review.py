@@ -385,7 +385,7 @@ class TestRapidSampleReviewer(TestBase):
         self.reviewer._perform_action()
         mocked_patch.assert_called_with(
             'samples',
-            exp_payload,
+            {'rapid_analysis': exp_payload},
             sample_id='sample1'
         )
 

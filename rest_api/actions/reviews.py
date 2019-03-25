@@ -53,7 +53,7 @@ class ReviewInitiator(Action):
             lims.get(lims.get_uri())
             return lims
         except HTTPError:
-            abort(401, 'Authentication in the LIMS (%s) failed' % cfg.get('clarity', {}).get('baseuri'))
+            abort(401, 'Authentication in the LIMS (%s) failed' % cfg.query('clarity', 'baseuri'))
 
     @property
     def samples_to_review(self):
