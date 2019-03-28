@@ -153,7 +153,9 @@ class Sample(SampleInfo):
         for process, date, process_type, process_id in self.processes:
             if process_type == 'complete' and process in status_cfg.additional_step_completed:
                 finished_status = status_cfg.additional_step_completed.get(process)
-                additional_status.add(finished_status)
+                # A sample should not appear in invoiced if it has been removed, as this is paradoxical
+                if self.status != 'removed' or finished_status != 'invoiced':
+                    additional_status.add(finished_status)
         return additional_status
 
     @property

@@ -13,11 +13,6 @@
 
 .dt_cell:hover {
     overflow: visible;
-    //display: block;
-}
-
-.dropdown {
-    //display: inline-block;
 }
 
 .dropdown:hover .dropdown-content {
@@ -27,10 +22,6 @@
 .dropbtn {
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.dropbtn:hover {
-    overflow: visible;
 }
 
 .dropdown-content {

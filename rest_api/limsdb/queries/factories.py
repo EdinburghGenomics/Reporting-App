@@ -2,6 +2,7 @@ from collections import defaultdict
 from egcg_core.clarity import sanitize_user_id
 from flask import request
 from config import project_status as status_cfg
+from datetime import datetime, timedelta
 from rest_api.common import retrieve_args
 from rest_api.limsdb import queries
 from rest_api.limsdb.queries.data_models import ProjectInfo, SampleInfo, Container, Run, Sample, Project
@@ -35,6 +36,7 @@ def _create_samples(session, match):
     project_status = match.get('project_status', 'open')
     sample_id = match.get('sample_id')
     sample_time_since = match.get('createddate')
+    process_limit_date = match.get('process_limit_date')
     detailed = request.args.get('detailed') in ['true', 'True',  True]
     if detailed:
         list_process_complete = None
@@ -64,13 +66,13 @@ def _create_samples(session, match):
 
     for result in queries.get_samples_and_processes(session,  project_id, sample_id, project_status=project_status,
                                                     workstatus='COMPLETE', list_process=list_process_complete,
-                                                    time_since=sample_time_since):
+                                                    time_since=sample_time_since, process_limit_date=process_limit_date):
         (pjct_name, sample_name, process_name, process_status, date_run, process_id) = result
         all_samples[sanitize_user_id(sample_name)].add_completed_process(process_name, date_run, process_id)
 
     for result in queries.get_sample_in_queues_or_progress(
             session, project_id, sample_id, list_process=list_process_queued,
-            time_since=sample_time_since, project_status=project_status):
+            time_since=sample_time_since, project_status=project_status, process_limit_date=process_limit_date):
         pjct_name, sample_name, process_name, queued_date, queue_id, process_id, process_date = result
         if not process_id:
             all_samples[sanitize_user_id(sample_name)].add_queue_location(process_name, queued_date, queue_id)
