@@ -62,7 +62,7 @@ class TestReviewInitiator(TestBase):
         global _cache_samples
         _cache_samples = {}
 
-    @patch('egcg_core.clarity.connection', return_value=MagicMock(spec=Lims, cache={}))
+    @patch('rest_api.actions.reviews.clarity.connection', return_value=MagicMock(spec=Lims, cache={}))
     def test_lims(self, mocked_connection):
         assert self.initiator.lims
         # Check that the Lims was found
@@ -78,7 +78,7 @@ class TestReviewInitiator(TestBase):
         assert e.exception.code == 401
         assert e.exception.description == 'Authentication in the LIMS (http://clarity.com) failed'
 
-    @patch('egcg_core.clarity.get_list_of_samples', side_effect=SideEffectWithMemory(fake_get_list_samples))
+    @patch('rest_api.actions.reviews.clarity.get_list_of_samples', side_effect=SideEffectWithMemory(fake_get_list_samples))
     def test_samples_to_review(self, mocked_get_list_of_samples):
         assert self.initiator.samples_to_review[0].name == 'sample_1'
 
