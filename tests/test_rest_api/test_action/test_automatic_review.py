@@ -177,7 +177,6 @@ class TestAutomaticReview(TestBase):
 
 
 class TestRunReviewer(TestBase):
-
     def setUp(self):
         self.init_request = Mock(form={'run_id': 'run1'})
         with patch.object(ar.AutomaticReviewer, 'eve_get', return_value=failing_lanes):
@@ -203,7 +202,7 @@ class TestRunReviewer(TestBase):
                 mocked_patch.assert_any_call('run_elements', lane=1, run_id='a_run', barcode='b2', payload=payload2)
 
     def test_unknown_run(self):
-        with patch.object(ar.AutomaticLaneReviewer, 'eve_get', return_value=[]):
+        with patch.object(ar.AutomaticReviewer, 'eve_get', return_value=[]):
             with pytest.raises(werkzeug.exceptions.NotFound):
                 _ = ar.AutomaticRunReviewer(Mock(form={'run_id': 'unknown_run'}))
 
