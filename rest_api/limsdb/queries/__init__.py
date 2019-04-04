@@ -246,3 +246,28 @@ def runs_cst(session, time_since=None, run_ids=None, run_status=None):
 
     results = q.all()
     return results
+
+
+def library_prep_info(session, time_from=None, time_to=None):
+    """Run a query that returns samples and the processes they went through up to process_limit_date"""
+
+    q = session.query(t.ProcessType.displayname, t.Process.luid, t.Process.daterun, t.Container.name,
+                      t.Artifact.artifactid, t.ContainerPlacement.wellxposition, t.ContainerPlacement.wellyposition,
+                      t.ArtifactUdfView.udfname, t.ArtifactUdfView.udfvalue)\
+        .join(t.Process.type)\
+        .join(t.Process.processiotrackers)\
+        .join(t.ProcessIOTracker.artifact) \
+        .join(t.Artifact.udfs)\
+        .join(t.Artifact.containerplacement)\
+        .join(t.ContainerPlacement.container)\
+        .filter(t.ProcessType.displayname == 'Eval qPCR Quant')\
+        .filter(t.ArtifactUdfView.udfname.in_(['%CV', 'Adjusted Conc. (nM)']))\
+        .filter(t.ArtifactUdfView.udfvalue != None)
+
+    if time_from:
+        q = q.filter(t.Process.daterun > func.date(time_from))
+
+    if time_to:
+        q = q.filter(t.Process.daterun < func.date(time_to))
+
+    return q.all()
