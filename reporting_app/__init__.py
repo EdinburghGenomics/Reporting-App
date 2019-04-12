@@ -260,6 +260,7 @@ def report_samples(view_type):
         ]
     elif view_type == 'stalled':
         title = 'Stalled Samples'
+        # TODO: Modify the criteria below to match agreed one
         ajax_call['api_urls'] = [
             util.construct_url('samples',
                                where={'useable': 'not%20marked', 'aggregated.most_recent_proc.status': 'finished'},
