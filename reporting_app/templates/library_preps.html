@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='library_preps.js') }}"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/heatmap.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<div id="lims_query">
+    Specify a library to view, or a date range to view multiple libraries.
+    <input type="text" name="input_time_from" id="input_time_from" placeholder="input_time_from"/>
+    <input type="text" name="input_time_to" id="input_time_to" placeholder="input_time_to"/>
+    <input type="text" name="input_library_id" id="input_library_id" placeholder="input_library_id"/>
+    <input type="button" value="Submit" id="submit"/>
+</div>
+
+<div id="heatmaps"></div>
+
+<script>
+    function trigger() {
+        var time_from = $('#input_time_from').val();
+        var time_to = $('#input_time_to').val();
+        var library_id = $('#input_library_id').val();
+        var data = get_lims_and_qc_data(
+            '{{ lims_url }}',
+            '{{ qc_url }}',
+            '{{ ajax_token }}',
+            time_from,
+            time_to,
+            library_id
+        );
+
+        for (var i=0; i<data.length; i++) {
+            var heatmap_id = 'heatmap_' + i;
+            $('#heatmaps').append('<div id="' + heatmap_id + '"></div>')
+
+            highchart(heatmap_id, data[i]);
+        }
+    }
+
+    $('#submit').click(trigger);
+</script>
+
+
+{% endblock %}

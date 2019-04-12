@@ -426,6 +426,17 @@ def plotting_report():
     )
 
 
+@app.route('/library_preps')
+@flask_login.login_required
+def library_prep_plots():
+    return render_template(
+        'library_preps.html',
+        qc_url=util.construct_url('samples'),
+        lims_url=util.construct_url('lims/library_info'),
+        ajax_token=util.get_token()
+    )
+
+
 @app.route('/project_status/', defaults={'prj_status': 'open'})
 @app.route('/project_status/<prj_status>')
 @flask_login.login_required

@@ -319,3 +319,37 @@ class Run:
             'nb_reads': self.udfs['Read'],
             'nb_cycles': self.udfs['Cycle']
         }
+
+
+class Library:
+    def __init__(self):
+        self.id = None
+        self.preps = defaultdict(LibraryPrep)
+        self.placements = defaultdict(LibrarySample)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'preps': {k: v.to_json() for k, v in self.preps.items()},
+            'placements': {'%s:%s' % k: v.to_json() for k, v in self.placements.items()}
+        }
+
+
+class LibraryPrep:
+    def __init__(self):
+        self.date_run = None
+
+    def to_json(self):
+        return {'date_run': format_date(self.date_run)}
+
+
+class LibrarySample:
+    def __init__(self):
+        self.name = None
+        self.udf = {}
+
+    def to_json(self):
+        return {
+            'name': self.name,
+            'udf': self.udf
+        }
