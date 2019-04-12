@@ -258,6 +258,18 @@ def report_samples(view_type):
             util.construct_url('lims/sample_status', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'}),
             util.construct_url('lims/sample_info', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'})
         ]
+    elif view_type == 'stalled':
+        title = 'Stalled Samples'
+        ajax_call['api_urls'] = [
+            util.construct_url('samples',
+                               where={'useable': 'not%20marked', 'aggregated.most_recent_proc.status': 'finished'},
+                               max_results=10000),
+            util.construct_url('lims/sample_status',
+                               match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT),
+                                      'project_status': 'open'}),
+            util.construct_url('lims/sample_info', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT),
+                                                          'project_status': 'open'})
+        ]
     else:
         fl.abort(404)
         return None
