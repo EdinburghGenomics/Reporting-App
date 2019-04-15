@@ -214,11 +214,14 @@ class Container:
 
     def samples_per_status(self):
         sample_per_status = defaultdict(list)
+        sample_per_status_date = defaultdict(set)
         for sample in self.samples:
             sample_per_status[sample.status].append(sample.sample_name)
+            sample_per_status_date[sample.status].add(sample.status_date)
             for status in sample.additional_status:
                 sample_per_status[status].append(sample.sample_name)
-        return sample_per_status
+                sample_per_status_date[status].add(sample.status_date)
+        return sample_per_status, sample_per_status_date
 
     def _extract_from_samples(self, field):
         return ', '.join(sorted(set(getattr(sample, field) for sample in self.samples if getattr(sample, field))))
