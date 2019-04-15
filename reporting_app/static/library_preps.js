@@ -1,4 +1,5 @@
 
+// these are well x coords in the Lims database, but plotted as y coords as per Lims UI
 var heatmap_x_coords = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
 function get_lims_and_qc_data(lims_url, qc_url, token, time_from, time_to, library_id) {
@@ -75,8 +76,9 @@ function get_lims_and_qc_data(lims_url, qc_url, token, time_from, time_to, libra
     return data;
 }
 
-function query_nested_object(top_level, query) {
+function query_nested_object(top_level, query_string) {
     var val = top_level;
+    var query = query_string.split('.');
     for (var i=0; i<query.length; i++) {
         val = val[query[i]];
         if (!val) {
@@ -86,7 +88,7 @@ function query_nested_object(top_level, query) {
     return val;
 }
 
-function format_library_series(library, colour_field) {
+function format_library_series(library, colour_metric) {
     var series = {
         name: library['id'],
         borderWidth: 1,
@@ -102,9 +104,9 @@ function format_library_series(library, colour_field) {
         var split_coord = coord.split(':');
         series['data'].push(
             {
-                x: heatmap_x_coords.indexOf(split_coord[0]),
-                y: parseInt(split_coord[1]) - 1,
-                value: parseFloat(query_nested_object(placements[coord], ['qc', 'aggregated', 'pc_q30'])),
+                y: heatmap_x_coords.indexOf(split_coord[0]),
+                x: parseInt(split_coord[1]) - 1,
+                value: parseFloat(parseFloat(query_nested_object(placements[coord], 'qc.' + colour_metric)).toFixed(3)),
                 name: placements[coord]['name']
             }
         );
@@ -112,17 +114,19 @@ function format_library_series(library, colour_field) {
     return series;
 }
 
-function highchart(heatmap_id, library) {
+function highchart(heatmap_id, library, colour_metric) {
     Highcharts.chart(heatmap_id, {
         chart: {
             type: 'heatmap',
             marginTop: 40,
             marginBottom: 80,
-            plotBorderWidth: 1
+            plotBorderWidth: 1,
+            width: 800,
+            height: 400
         },
         title: {text: 'Library ' + library['id']},
-        xAxis: {categories: heatmap_x_coords},
-        yAxis: {categories: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']},
+        yAxis: {categories: heatmap_x_coords, max: 7},
+        xAxis: {categories: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'], max: 11},
         colorAxis: {
             min: 0,
             minColor: '#FFFFFF',
@@ -138,9 +142,10 @@ function highchart(heatmap_id, library) {
         },
         tooltip: {
             formatter: function () {
-                return '<p>' + this.point.name + ', ' + this.series.xAxis.categories[this.point.x] + ':' + this.point.y + ', ' + this.point.value + '</p>';
+                var coord = this.series.yAxis.categories[this.point.y] + ':' + (this.point.x + 1);
+                return '<p>Sample: ' + this.point.name + '<br/>Coord: ' + coord + '<br/>' + colour_metric + ': ' + this.point.value + '</p>';
             }
         },
-        series: [format_library_series(library, null)]
+        series: [format_library_series(library, colour_metric)]
     });
 }
