@@ -80,6 +80,9 @@ function string_formatter(cell_data, fmt, row){
             _formatted_data = '<div style="color:red">' + _formatted_data + '</div>';
         }
 
+        // formatting style for project status page, displaying red if the newest status date is older than a week
+        if (fmt['stale'])
+
         formatted_data.push(_formatted_data);
     }
 
