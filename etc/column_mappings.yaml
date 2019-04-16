@@ -46,7 +46,7 @@ column_def:
     nb_samples_delivered:     { data: 'aggregated.samples_delivered',         title: 'Samples Delivered',        fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_samples:               { data: 'aggregated.samples',                   title: 'Samples',                  fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_samples_reviewed:      { data: 'aggregated.samples_reviewed',          title: 'Samples Reviewed',         fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
-    nb_sample_submission:     { data: 'sample_submission',                    title: 'Sample Submission' ,       fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
+    nb_sample_submission:     { data: 'sample_submission',                    title: 'Sample Submission' ,       fmt: {link_format_function: 'count_entities', link: '/sample/', type: 'stale' }, class_name: 'text-center sum' }
     nb_sample_qc:             { data: 'sample_qc',                            title: 'Sample QC' ,               fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_library_queue:         { data: 'library_queue',                        title: 'Library Queue' ,           fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_library_preparation:   { data: 'library_preparation',                  title: 'Library Preparation' ,     fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }

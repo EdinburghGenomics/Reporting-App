@@ -211,20 +211,20 @@ class Container:
         self.samples = []
         self.project_id = None
         self.container_name = None
+        self.sample_per_status_date= defaultdict(set)
 
     def samples_per_status(self):
         sample_per_status = defaultdict(list)
-        sample_per_status_date = defaultdict(set)
         for sample in self.samples:
             sample_per_status[sample.status].append(sample.sample_name)
-            sample_per_status_date[sample.status].add(sample.status_date)
+            self.sample_per_status_date[sample.status].add(sample.status_date)
             for status in sample.additional_status:
                 sample_per_status[status].append(sample.sample_name)
-                sample_per_status_date[status].add(sample.status_date)
+                self.sample_per_status_date[status].add(sample.status_date)
         # retaining only max value for each sample
-        for sample in sample_per_status_date:
-            sample_per_status_date[sample] = max(sample_per_status_date[sample])
-        return sample_per_status#, sample_per_status_date
+        for sample in self.sample_per_status_date:
+            self.sample_per_status_date[sample] = max(self.sample_per_status_date[sample])
+        return sample_per_status
 
     def _extract_from_samples(self, field):
         return ', '.join(sorted(set(getattr(sample, field) for sample in self.samples if getattr(sample, field))))
