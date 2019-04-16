@@ -211,7 +211,7 @@ class Container:
         self.samples = []
         self.project_id = None
         self.container_name = None
-        self.sample_per_status_date= defaultdict(set)
+        self.sample_per_status_date = defaultdict(set)
 
     def samples_per_status(self):
         sample_per_status = defaultdict(list)
@@ -253,7 +253,8 @@ class Container:
             'library_type': self.library_types,
             'species': self.species,
             'required_yield': self.required_yield,
-            'required_coverage': self.coverage
+            'required_coverage': self.coverage,
+            'sample_per_status_date': self.sample_per_status_date
         }
         ret.update(self.samples_per_status())
         return ret

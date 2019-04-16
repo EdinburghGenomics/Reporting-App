@@ -91,9 +91,8 @@ function string_formatter(cell_data, fmt, row){
 
         var dropbtn = document.createElement('div');
         dropbtn.className = 'dropbtn';
-        console.log(formatted_data);
         // formatting style for project status page, displaying red if the newest status date is older than a week
-        if (fmt['type'] == 'stale' && staleness_evaluator() == True) {
+        if (fmt['type'] == 'stale' && staleness_evaluator() == true) {
 
         }
         if (fmt['link_format_function']) {
