@@ -125,7 +125,7 @@ function highchart(heatmap_id, library, colour_metric) {
             height: 400
         },
         title: {text: 'Library ' + library['id']},
-        yAxis: {categories: heatmap_x_coords, max: 7},
+        yAxis: {categories: heatmap_x_coords, max: 7, reversed: true, title: null},
         xAxis: {categories: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'], max: 11},
         colorAxis: {
             min: 0,
