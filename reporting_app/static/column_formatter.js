@@ -91,9 +91,19 @@ function string_formatter(cell_data, fmt, row){
 
         var dropbtn = document.createElement('div');
         dropbtn.className = 'dropbtn';
-        // formatting style for project status page, displaying red if the newest status date is older than a week
-        if (fmt['type'] == 'stale' && staleness_evaluator(cell_data, row) == true) {
-            console.log(row)
+        // formatting style for project status page, displaying a green, yellow or red if it is over a week, two weeks or four weeks since the last change
+        if (fmt['type'] == 'stale') {
+            switch(staleness_evaluator(cell_data, row)) {
+                case 7:
+                    dropbtn.setAttribute("style", "background-color:darkgreen;color:white");
+                    break;
+                case 14:
+                    dropbtn.setAttribute("style", "background-color:darkkhaki;color:white");
+                    break;
+                case 28:
+                    dropbtn.setAttribute("style", "background-color:firebrick;color:white");
+                    break;
+            }
         }
         if (fmt['link_format_function']) {
             dropbtn.innerHTML = function_map[fmt['link_format_function']](cell_data, fmt);
@@ -151,14 +161,19 @@ function staleness_evaluator(cell_data, row) {
             status_date = new Date(row['sample_per_status_date'][item]);
             week_ago = new Date();
             week_ago.setDate(week_ago.getDate() - 7)
-            if ( status_date < week_ago ){
-                console.log('Longer than a week ago')
-                console.log(status_date)
-                return true;
+            two_weeks_ago = new Date();
+            two_weeks_ago.setDate(week_ago.getDate() - 14)
+            four_weeks_ago = new Date();
+            four_weeks_ago.setDate(week_ago.getDate() - 28)
+            if ( status_date < four_weeks_ago ){
+                return 28;
             }
-            console.log('Not longer than a week ago')
-            console.log(status_date)
-            return false;
+            else if ( status_date < two_weeks_ago ){
+                return 14;
+            }
+            else if ( status_date < week_ago ){
+                return 7;
+            }
         }
     }
 }

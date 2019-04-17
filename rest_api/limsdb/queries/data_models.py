@@ -2,7 +2,6 @@ import operator
 from datetime import datetime
 from collections import defaultdict
 from config import project_status as status_cfg
-from rest_api import settings
 from rest_api.limsdb.queries import format_date
 
 
