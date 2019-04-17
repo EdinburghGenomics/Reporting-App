@@ -138,25 +138,15 @@ non_human_sample = {
     }
 }
 
-failing_rapid_sample = {
-    'rapid_analysis': {
-        'mapping': {
-            'pc_duplicates': 50,
-            'pc_mapped': 80,
-            'pc_unique_mapped': 70,
-            'mean_coverage': 25
+rapid_sample = {
+    'aggregated': {
+        'most_recent_proc': {
+            'data_source': ['a_lane']
         }
-    }
-}
-
-passing_rapid_sample = {
+    },
     'rapid_analysis': {
-        'mapping': {
-            'pc_duplicates': 5,
-            'pc_mapped': 99,
-            'pc_unique_mapped': 98,
-            'mean_coverage': 32
-        }
+        'mapping': 'some_mapping_data',
+        'var_calling': 'some_var_calling_data'
     }
 }
 
@@ -345,11 +335,27 @@ class TestRapidSampleReviewer(TestBase):
         self.init_request = Mock(form={'sample_id': 'sample1'})
         self.reviewer = ar.AutomaticRapidSampleReviewer(self.init_request)
 
-    @patch(ppath + 'patch_internal')
     @patch.object(ar.AutomaticRapidSampleReviewer, 'eve_get')
-    def test_perform_action(self, mocked_get, mocked_patch):
-        mocked_get.return_value = [passing_rapid_sample]
-        exp_payload = passing_rapid_sample['rapid_analysis'].copy()
+    def test_reviewable_data(self, mocked_get):
+        mocked_get.side_effect = [
+            [rapid_sample],
+            [{'interop_metrics': 'some_interop_metrics'}]
+        ]
+        assert self.reviewer.reviewable_data == 'some_interop_metrics'
+        mocked_get.assert_any_call(
+            'lanes', lane_id='a_lane'
+        )
+
+    @patch(ppath + 'patch_internal')
+    @patch.object(ar.AutomaticRapidSampleReviewer, 'eve_get', return_value=[rapid_sample])
+    def test_perform_action_success(self, mocked_get, mocked_patch):
+        self.reviewer.__dict__['reviewable_data'] = {
+            'yield_r1': 56,
+            'yield_r2': 57,
+            'pc_q30_r1': 75.1,
+            'pc_q30_r2': 80
+        }
+        exp_payload = rapid_sample['rapid_analysis'].copy()
         exp_payload['reviewed'] = 'pass'
         exp_payload['review_date'] = self.reviewer.current_time
 
@@ -360,8 +366,22 @@ class TestRapidSampleReviewer(TestBase):
             sample_id='sample1'
         )
 
-        mocked_get.return_value = [failing_rapid_sample]
-        exp_payload = failing_rapid_sample['rapid_analysis'].copy()
+    @patch(ppath + 'patch_internal')
+    @patch.object(ar.AutomaticRapidSampleReviewer, 'eve_get', return_value=[rapid_sample])
+    def test_perform_action_success(self, mocked_get, mocked_patch):
+        self.reviewer.__dict__['reviewable_data'] = {
+            'yield_r1': 55,
+            'yield_r2': 54,
+            'pc_q30_r1': 75,
+            'pc_q30_r2': 74
+        }
+        exp_payload = rapid_sample['rapid_analysis'].copy()
         exp_payload['reviewed'] = 'fail'
         exp_payload['review_date'] = self.reviewer.current_time
-        exp_payload['review_comments'] = 'Failed due to mean_coverage < 30, pc_duplicates > 20, pc_mapped < 90, pc_unique_mapped < 80'
+        exp_payload['review_comments'] = 'Failed due to PC Q30 < 75, Yield < 110'
+        self.reviewer._perform_action()
+        mocked_patch.assert_called_with(
+            'samples',
+            {'rapid_analysis': exp_payload},
+            sample_id='sample1'
+        )

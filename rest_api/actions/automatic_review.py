@@ -91,9 +91,9 @@ class AutomaticReviewer:
     def failure_comment(self):
         return 'Failed due to ' + ', '.join(['%s %s %s' % (
             self.cfg.get(f, {}).get('name', f),
-            self.opposite.get((self.cfg.get(f, {}).get('comparison'))),
+            self.opposite.get(self.cfg.get(f, {}).get('comparison')),
             self.cfg.get(f, {}).get('value')
-        ) for f in self.failing_metrics ])
+        ) for f in self.failing_metrics])
 
     @cached_property
     def _summary(self):
@@ -178,15 +178,22 @@ class AutomaticRapidSampleReviewer(Action, AutomaticReviewer):
     @cached_property
     def reviewable_data(self):
         data = self.eve_get('samples', sample_id=self.sample_id)
-        if data:
-            return data[0]
-        else:
+        if not data:
             abort(404, 'No data found for sample id %s.' % self.sample_id)
 
+        data = data[0]
+        data_source = query_dict(data, 'aggregated.most_recent_proc.data_source')
+        if not data_source or len(data_source) != 1:
+            abort(404, 'Data source for sample not found (%s)' % data_source)
+
+        interop_metrics = self.eve_get('lanes', lane_id=data_source[0])[0].get('interop_metrics')
+        if not interop_metrics:
+            abort(404, 'Interop metrics not found')
+
+        return interop_metrics
+
     def _perform_action(self):
-        rapid_data = self.reviewable_data.get('rapid_analysis')
-        if not rapid_data:
-            abort(404, 'rapid_analysis not found in sample %s' % self.sample_id)
+        rapid_data = self.eve_get('samples', sample_id=self.sample_id)[0].get('rapid_analysis')
 
         if self.failing_metrics:
             rapid_data[ELEMENT_REVIEWED] = 'fail'

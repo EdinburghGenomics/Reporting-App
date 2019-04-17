@@ -10,22 +10,16 @@
 
 
 rapid:
-    rapid_analysis.mapping.pc_duplicates:
-        name: PC duplicates
-        value: 20
-        comparison: '<'
-    rapid_analysis.mapping.pc_mapped:
-        name: PC mapped
-        value: 90
+    yield:
+        name: Yield
+        value: 110
         comparison: '>'
-    rapid_analysis.mapping.pc_unique_mapped:
-        name: PC unique mapped
-        value: 80
+        formula: 'yield_r1 + yield_r2'
+    pc_q30:
+        name: PC Q30
+        value: 75
         comparison: '>'
-    rapid_analysis.mapping.mean_coverage:
-        name: Mean coverage
-        value: 30
-        comparison: '>'
+        formula: '((yield_r1 * pc_q30_r1) + (yield_r2 * pc_q30_r2))/(yield_r1 + yield_r2)'
 
 
 lane:
