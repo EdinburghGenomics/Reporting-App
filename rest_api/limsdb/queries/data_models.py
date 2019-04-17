@@ -2,6 +2,7 @@ import operator
 from datetime import datetime
 from collections import defaultdict
 from config import project_status as status_cfg
+from rest_api import settings
 from rest_api.limsdb.queries import format_date
 
 
@@ -223,7 +224,7 @@ class Container:
                 self.sample_per_status_date[status].add(sample.status_date)
         # retaining only max value for each sample
         for sample in self.sample_per_status_date:
-            self.sample_per_status_date[sample] = max(self.sample_per_status_date[sample])
+            self.sample_per_status_date[sample] = max(self.sample_per_status_date[sample]).isoformat()
         return sample_per_status
 
     def _extract_from_samples(self, field):
@@ -280,7 +281,8 @@ class Project(Container, ProjectInfo):
             'researcher_name': self.researcher_name,
             'nb_quoted_samples': self.nb_quoted_samples,
             'finished_date': format_date(self.finished_date),
-            'started_date': format_date(self.started_date)
+            'started_date': format_date(self.started_date),
+            'sample_per_status_date': self.sample_per_status_date
         }
         ret.update(self.samples_per_status())
         return ret

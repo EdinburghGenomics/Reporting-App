@@ -92,8 +92,8 @@ function string_formatter(cell_data, fmt, row){
         var dropbtn = document.createElement('div');
         dropbtn.className = 'dropbtn';
         // formatting style for project status page, displaying red if the newest status date is older than a week
-        if (fmt['type'] == 'stale' && staleness_evaluator() == true) {
-
+        if (fmt['type'] == 'stale' && staleness_evaluator(cell_data, row) == true) {
+            console.log(row)
         }
         if (fmt['link_format_function']) {
             dropbtn.innerHTML = function_map[fmt['link_format_function']](cell_data, fmt);
@@ -143,8 +143,24 @@ function resolve_min_max_value(row, value){
 }
 
 // Checks whether the date_value is longer ago than a week from the current date
-function staleness_evaluator(date_value) {
-
+function staleness_evaluator(cell_data, row) {
+    // Looping through the row to match the cell_data to a status
+    for (item in row) {
+        if ( cell_data.sort() == row[item] ){
+            // Checking staleness of the status' max date
+            status_date = new Date(row['sample_per_status_date'][item]);
+            week_ago = new Date();
+            week_ago.setDate(week_ago.getDate() - 7)
+            if ( status_date < week_ago ){
+                console.log('Longer than a week ago')
+                console.log(status_date)
+                return true;
+            }
+            console.log('Not longer than a week ago')
+            console.log(status_date)
+            return false;
+        }
+    }
 }
 
 function merge_column(data, row){
