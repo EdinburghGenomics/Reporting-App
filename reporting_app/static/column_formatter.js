@@ -91,7 +91,8 @@ function string_formatter(cell_data, fmt, row){
 
         var dropbtn = document.createElement('div');
         dropbtn.className = 'dropbtn';
-        // formatting style for project status page, displaying a green, yellow or red if it is over a week, two weeks or four weeks since the last change
+        // Formatting style for project status page, displaying a green, yellow or red if it is over a week, two weeks or four weeks since the last change.
+        // Colour selection from https://clrs.cc/
         if (fmt['type'] == 'stale') {
             switch(staleness_evaluator(cell_data, row)) {
                 case 7:
