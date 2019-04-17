@@ -95,13 +95,13 @@ function string_formatter(cell_data, fmt, row){
         if (fmt['type'] == 'stale') {
             switch(staleness_evaluator(cell_data, row)) {
                 case 7:
-                    dropbtn.setAttribute("style", "background-color:darkgreen;color:white");
+                    dropbtn.setAttribute("style", "background-color:#2ECC40;color:hsla(127, 63%, 15%, 1.0)");
                     break;
                 case 14:
-                    dropbtn.setAttribute("style", "background-color:darkkhaki;color:white");
+                    dropbtn.setAttribute("style", "background-color:#FFDC00;color:hsla(52, 100%, 20%, 1.0)");
                     break;
                 case 28:
-                    dropbtn.setAttribute("style", "background-color:firebrick;color:white");
+                    dropbtn.setAttribute("style", "background-color:#FF4136;color:hsla(3, 100%, 25%, 1.0)");
                     break;
             }
         }
@@ -159,12 +159,14 @@ function staleness_evaluator(cell_data, row) {
         if ( cell_data.sort() == row[item] ){
             // Checking staleness of the status' max date
             status_date = new Date(row['sample_per_status_date'][item]);
+            // Creating fixed date variable to compare against
             week_ago = new Date();
             week_ago.setDate(week_ago.getDate() - 7)
             two_weeks_ago = new Date();
             two_weeks_ago.setDate(week_ago.getDate() - 14)
             four_weeks_ago = new Date();
             four_weeks_ago.setDate(week_ago.getDate() - 28)
+
             if ( status_date < four_weeks_ago ){
                 return 28;
             }
