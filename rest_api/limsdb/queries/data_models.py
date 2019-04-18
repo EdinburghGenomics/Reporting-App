@@ -325,22 +325,22 @@ class Library:
     def __init__(self):
         self.id = None
         self.preps = defaultdict(LibraryPrep)
-        self.placements = defaultdict(LibrarySample)
 
     def to_json(self):
+        most_recent_prep = sorted(self.preps.values(), key=lambda p: p.date_run, reverse=True)[0]
         return {
             'id': self.id,
-            'preps': {k: v.to_json() for k, v in self.preps.items()},
-            'placements': {'%s:%s' % k: v.to_json() for k, v in self.placements.items()}
+            'times_prepared': len(self.preps),
+            'last_prepared': most_recent_prep.date_run,
+            'qc': {'%s:%s' % k: v.to_json() for k, v in most_recent_prep.placements.items()}
         }
 
 
 class LibraryPrep:
     def __init__(self):
+        self.id = None
         self.date_run = None
-
-    def to_json(self):
-        return {'date_run': format_date(self.date_run)}
+        self.placements = defaultdict(LibrarySample)
 
 
 class LibrarySample:

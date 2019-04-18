@@ -137,6 +137,9 @@ column_def:
     yield_x_coverage:         { data: { display: 'coverage.disp', _: 'coverage.order' }, title: 'Coverage' }  # e.g, render as '30X' but sort, search, etc. as '30'
     yield_required:           { data: 'required_yield',                       title: 'Required yield' }
     yield_required_q30:       { data: 'required_yield_q30',                   title: 'Required yield Q30' }
+    library_last_prepared:    { data: 'last_prepared', title: 'Last prepared' }
+    library_name:             { data: 'id', title: 'Name', fmt: { link: '/libraries/' } }
+    library_times_prepared:   { data: 'times_prepared', title: 'Times prepared' }
 
 
 
@@ -395,3 +398,9 @@ yields:
     - yield_x_coverage
     - yield_required
     - yield_required_q30
+
+
+libraries:
+    - library_name
+    - library_times_prepared
+    - library_last_prepared

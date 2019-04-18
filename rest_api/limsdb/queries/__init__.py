@@ -262,7 +262,11 @@ def library_info(session, time_from=None, time_to=None, library_id=None):
         .join(t.Artifact.samples)\
         .join(t.ContainerPlacement.container)\
         .filter(t.ProcessType.displayname == 'Eval qPCR Quant')\
-        .filter(t.ArtifactUdfView.udfname.in_(['%CV', 'Adjusted Conc. (nM)']))\
+        .filter(t.ArtifactUdfView.udfname.in_(
+            ['Original Conc. (nM)', 'Sample Transfer Volume (uL)', 'TSP1 Transfer Volume (uL)', '%CV',
+             'NTP Volume (uL)', 'Raw CP', 'RSB Transfer Volume (uL)', 'NTP Transfer Volume (uL)', 'Ave. Conc. (nM)',
+             'Adjusted Conc. (nM)', 'Original Conc. (nM)', 'Sample Transfer Volume (uL)',
+             'TSP1 Transfer Volume (uL)']))\
         .filter(t.ArtifactUdfView.udfvalue != None)
 
     if library_id:

@@ -10,10 +10,16 @@ QUnit.test('query_nested_object', function(assert) {
 QUnit.test('format_library_series', function(assert) {
     var library = {
         'id': 'a_library',
-        'placements': {
-            'A:1': {
-                'name': 'a_sample',
-                'qc': {'a_qc_metric': 13.37}
+        'preps': {
+            'a_prep': {
+                'date_run': 'a_date',
+                'qc': {
+                    'A:1': {
+                        'name': 'a_sample',
+                        'udf': {'a_udf': 13.37},
+                        'sample': {'a_rest_api_metrics': 13.38}
+                    }
+                }
             }
         }
     };

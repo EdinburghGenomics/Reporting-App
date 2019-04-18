@@ -2,74 +2,53 @@
 // these are well x coords in the Lims database, but plotted as y coords as per Lims UI
 var heatmap_x_coords = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
-function get_lims_and_qc_data(lims_url, qc_url, token, time_from, time_to, library_id) {
+function get_lims_and_qc_data(lims_url, qc_url, token, library_id) {
     var query_args = [];
 
-    if (library_id) {
-        query_args.push('library_id=' + library_id);
-    } else {
-        if (time_from) {
-            query_args.push('time_from=' + time_from);
+    function merge_qc_data(library) {
+        var samples = [];
+        var sample_coords = {};
+        var coords = Object.keys(library['qc']);
+        for (var j=0; j<coords.length; j++) {
+            var coord = coords[j];
+            var placement = library['qc'][coord];
+            sample_coords[placement['name']] = coord;
+            samples.push('{"sample_id":"' + placement['name'] + '"}');
         }
-        if (time_to) {
-            query_args.push('time_to=' + time_to);
-        }
-    }
 
-    if (query_args) {
-        lims_url = lims_url + '?' + query_args.join('&');
-    }
-
-    function merge_qc_data(data) {
-        var output_data = [];
-
-        var i;
-        var nlibraries = data.length;
-        for (i=0; i<nlibraries; i++) {
-            var library = data[i];
-            var samples = [];
-            var placements = library['placements'];
-
-            for (p in placements) {
-                var placement = placements[p];
-                samples.push('{"sample_id":"' + placement['name'] + '"}');
-            }
-
-            var qc_data = {};
-            $.ajax(
-                {
-                    url: qc_url + '?where={"$or":[' + samples.join(',') + ']}&max_results=1000',
-                    headers: {'Authorization': token},
-                    dataType: 'json',
-                    async: false,
-                    success: function(result) {
-                        var i;
-                        var nsamples = result.data.length;
-                        for (i=0; i<nsamples; i++) {
-                            var sample = result.data[i];
-                            qc_data[sample['sample_id']] = sample;
-                        }
+        var qc_data_per_coord = {};
+        $.ajax(
+            {
+                url: qc_url + '?where={"$or":[' + samples.join(',') + ']}&max_results=1000',
+                headers: {'Authorization': token},
+                dataType: 'json',
+                async: false,
+                success: function(result) {
+                    var i;
+                    var nsamples = result.data.length;
+                    for (i=0; i<nsamples; i++) {
+                        var sample = result.data[i];
+                        var coord = sample_coords[sample['sample_id']];
+                        qc_data_per_coord[coord] = sample
                     }
-                }
-            );
 
-            for (p in placements) {
-                placements[p]['qc'] = qc_data[placements[p]['name']];
+                }
             }
-            output_data.push(library);
-        }
-        return output_data;
+        );
+
+        library['reporting_app'] = qc_data_per_coord;
+        return library;
     }
 
     var data;
     $.ajax(
         {
-            url: lims_url,
+            url: lims_url + '?library_id=' + library_id,
             headers: {'Authorization': token},
             dataType: 'json',
             async: false,
             success: function(result) {
-                data = merge_qc_data(result.data);
+                data = merge_qc_data(result.data[0]);
             }
         }
     );
@@ -88,7 +67,7 @@ function query_nested_object(top_level, query_string) {
     return val;
 }
 
-function format_library_series(library, colour_metric) {
+function format_series(library, colour_metric) {
     var series = {
         name: library['id'],
         borderWidth: 1,
@@ -99,14 +78,14 @@ function format_library_series(library, colour_metric) {
         }
     }
 
-    var placements = library['placements'];
+    var placements = library['reporting_app'];
     for (coord in placements) {
         var split_coord = coord.split(':');
         series['data'].push(
             {
                 y: heatmap_x_coords.indexOf(split_coord[0]),
                 x: parseInt(split_coord[1]) - 1,
-                value: parseFloat(parseFloat(query_nested_object(placements[coord], 'qc.' + colour_metric)).toFixed(3)),
+                value: parseFloat(parseFloat(query_nested_object(placements[coord], colour_metric)).toFixed(3)),
                 name: placements[coord]['name']
             }
         );
@@ -115,7 +94,7 @@ function format_library_series(library, colour_metric) {
 }
 
 function highchart(heatmap_id, library, colour_metric) {
-    Highcharts.chart(heatmap_id, {
+    var chart = Highcharts.chart(heatmap_id, {
         chart: {
             type: 'heatmap',
             marginTop: 40,
@@ -146,6 +125,6 @@ function highchart(heatmap_id, library, colour_metric) {
                 return '<p>Sample: ' + this.point.name + '<br/>Coord: ' + coord + '<br/>' + colour_metric + ': ' + this.point.value + '</p>';
             }
         },
-        series: [format_library_series(library, colour_metric)]
+        series: [format_series(library, 'aggregated.pc_q30')]
     });
 }

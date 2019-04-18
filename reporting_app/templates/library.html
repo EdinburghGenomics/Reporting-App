@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='library_preps.js') }}"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/heatmap.js"></script>
+{% endblock %}
+
+{% block content %}
+
+Plotting sample QC for library {{ library }}.
+<br/>
+
+<input type="text" id="input_colour_metric"/>
+<div id="heatmap" class="heatmap"></div>
+
+<script>
+    function trigger() {
+        data = get_lims_and_qc_data(
+            '{{ lims_url }}',
+            '{{ qc_url }}',
+            '{{ ajax_token }}',
+            '{{ library }}'
+        );
+        highchart('heatmap', data, $('#input_colour_metric').val() || 'reporting_app.aggregated.pc_q30');
+    }
+
+    trigger();
+</script>
+
+
+{% endblock %}

@@ -193,8 +193,9 @@ def library_info(session, kwargs=None):
         luid, daterun, library_id, artifact_id, sample_id, wellx, welly, udfkey, udfvalue = data
         library = all_libraries[library_id]
         library.id = library_id
-        library.preps[luid].date_run = daterun
-        sample = library.placements[(y_coords[welly], wellx + 1)]
+        prep = library.preps[luid]
+        prep.date_run = daterun
+        sample = prep.placements[(y_coords[welly], wellx + 1)]
         sample.name = sample_id
         sample.udf[udfkey] = float(udfvalue)
 

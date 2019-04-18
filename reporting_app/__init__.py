@@ -426,11 +426,26 @@ def plotting_report():
     )
 
 
-@app.route('/library_preps')
+@app.route('/libraries/')
 @flask_login.login_required
-def library_prep_plots():
+def libraries():
     return render_template(
-        'library_preps.html',
+        'untabbed_datatables.html',
+        'Libraries',
+        table=util.datatable_cfg(
+            'Libraries',
+            'libraries',
+            util.construct_url('lims/library_info', max_results=1000)
+        )
+    )
+
+
+@app.route('/libraries/<library>')
+@flask_login.login_required
+def plot_library(library):
+    return render_template(
+        'library.html',
+        library=library,
         qc_url=util.construct_url('samples'),
         lims_url=util.construct_url('lims/library_info'),
         ajax_token=util.get_token()
