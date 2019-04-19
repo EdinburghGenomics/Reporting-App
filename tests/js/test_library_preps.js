@@ -2,41 +2,44 @@
 QUnit.test('query_nested_object', function(assert) {
     var o = {'this': {'that': {'other': 1}}};
 
-    assert.deepEqual(query_nested_object(o, 'this'), {'that': {'other': 1}});
-    assert.equal(query_nested_object(o, 'this.that.other'), 1);
-    assert.equal(query_nested_object(o, 'this.another.more'), null);
+    assert.deepEqual(query_nested_object(o, ['this']), {'that': {'other': 1}});
+    assert.equal(query_nested_object(o, ['this', 'that', 'other']), 1);
+    assert.equal(query_nested_object(o, ['this', 'another', 'more']), null);
 });
 
-QUnit.test('format_library_series', function(assert) {
-    var library = {
+QUnit.test('format_series', function(assert) {
+    library_data = {
         'id': 'a_library',
-        'preps': {
-            'a_prep': {
-                'date_run': 'a_date',
-                'qc': {
-                    'A:1': {
-                        'name': 'a_sample',
-                        'udf': {'a_udf': 13.37},
-                        'sample': {'a_rest_api_metrics': 13.38}
-                    }
-                }
+        'qc': {
+            'A:1': {
+                'name': 'a_sample',
+                'udf': {'a_udf': 13.37},
+                'reporting_app': {'a_rest_api_metric': 13.38}
             }
         }
     };
+    metrics = {
+        'a_metric': ['reporting_app', 'a_rest_api_metric'],
+        'another_metric': ['udf', 'a_udf']
+    };
 
     assert.deepEqual(
-        format_library_series(library, 'a_qc_metric'),
+        format_series('a_metric'),
         {
-            name: library['id'],
+            name: 'a_library',
             borderWidth: 1,
             data: [
-                {'y': 0, 'x': 0, 'value': 13.37, 'name': 'a_sample'}
+                {'y': 0, 'x': 0, 'value': 13.38, 'name': 'a_sample'}
             ],
             dataLabels: {
                 enabled: false,
                 color: '#000000'
             }
         }
+    );
+    assert.equal(
+        format_series('another_metric')['data'][0]['value'],
+        13.37
     );
 });
 
@@ -48,16 +51,16 @@ QUnit.test('get_lims_and_qc_data', function(assert) {
     var fake_ajax = function(config) {
         var side_effects = [
             [
-                {'placements': [{'name': 'sample_1'}, {'name': 'sample_2'}]},
-                {'placements': [{'name': 'sample_3'}, {'name': 'sample_4'}]}
+                {
+                    'qc': {
+                        'A:1': {'name': 'sample_1', 'udf': {'some': 'lims', 'udf': 'data'}},
+                        'A:2': {'name': 'sample_2', 'udf': {'some': 'more', 'lims': 'data'}}
+                    }
+                }
             ],
             [
                 {'sample_id': 'sample_1', 'some': 'rest', 'api': 'data'},
-                {'sample_id': 'sample_2', 'some': 'rest', 'api': 'data'}
-            ],
-            [
-                {'sample_id': 'sample_3', 'some': 'rest', 'api': 'data'},
-                {'sample_id': 'sample_4', 'some': 'rest', 'api': 'data'}
+                {'sample_id': 'sample_2', 'some': 'more', 'api': 'data'}
             ]
         ];
         mock_url_calls.push(config.url);
@@ -68,36 +71,53 @@ QUnit.test('get_lims_and_qc_data', function(assert) {
     $.ajax = fake_ajax;
     // patching complete
 
+    chart = {
+        addSeries: function(config) {},
+        hideLoading: function() {},
+        series: [{update: function(config) {}}],
+        legend: {update: function(config) {}}
+    };
+    metrics = {'a_metric': ['reporting_app', 'api']};
+    active_colour_metric = 'a_metric';
+
+    get_lims_and_qc_data('lims_endpoint', 'qc_url', 'Token a_token', 'a_library');
+
     assert.deepEqual(
-        get_lims_and_qc_data(
-            'lims_endpoint',
-            'qc_url',
-            "Token a_token",
-            null,
-            null,
-            'a_library'
-        ),
-        [
-            {
-                'placements': [
-                    {'name': 'sample_1', 'qc': {'sample_id': 'sample_1', 'some': 'rest', 'api': 'data'}},
-                    {'name': 'sample_2', 'qc': {'sample_id': 'sample_2', 'some': 'rest', 'api': 'data'}}
-                ]
-            },
-            {
-                'placements': [
-                    {'name': 'sample_3', 'qc': {'sample_id': 'sample_3', 'some': 'rest', 'api': 'data'}},
-                    {'name': 'sample_4', 'qc': {'sample_id': 'sample_4', 'some': 'rest', 'api': 'data'}}
-                ]
+        library_data,
+        {
+            'qc': {
+                'A:1': {
+                    'name': 'sample_1',
+                    'reporting_app': {
+                        'sample_id': 'sample_1',
+                        'some': 'rest',
+                        'api': 'data'
+                    },
+                    'udf': {
+                        'some': 'lims',
+                        'udf': 'data'
+                    }
+                },
+                'A:2': {
+                    'name': 'sample_2',
+                    'reporting_app': {
+                        'sample_id': 'sample_2',
+                        'some': 'more',
+                        'api': 'data'
+                    },
+                    'udf': {
+                        'some': 'more',
+                        'lims': 'data'
+                    }
+                }
             }
-        ]
+        }
     );
     assert.deepEqual(
         mock_url_calls,
         [
             'lims_endpoint?library_id=a_library',
-            'qc_url?where={"$or":[{"sample_id":"sample_1"},{"sample_id":"sample_2"}]}&max_results=1000',
-            'qc_url?where={"$or":[{"sample_id":"sample_3"},{"sample_id":"sample_4"}]}&max_results=1000'
+            'qc_url?where={"$or":[{"sample_id":"sample_1"},{"sample_id":"sample_2"}]}&max_results=1000'
         ]
     );
     $.ajax = original_ajax;

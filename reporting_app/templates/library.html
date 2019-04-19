@@ -2,6 +2,7 @@
 
 {% block head %}
     {{ super() }}
+<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css"/>
     <script src="{{ url_for('static', filename='library_preps.js') }}"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/heatmap.js"></script>
@@ -9,25 +10,54 @@
 
 {% block content %}
 
-Plotting sample QC for library {{ library }}.
+Plotting sample and library prep QC for {{ library }}.
 <br/>
 
-<input type="text" id="input_colour_metric"/>
+<div class="btn-group">
+  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Metric <span class="caret"></span>
+  </button>
+  <ul id="qc_options" class="dropdown-menu"></ul>
+</div>
+
 <div id="heatmap" class="heatmap"></div>
 
 <script>
-    function trigger() {
-        data = get_lims_and_qc_data(
-            '{{ lims_url }}',
-            '{{ qc_url }}',
-            '{{ ajax_token }}',
-            '{{ library }}'
-        );
-        highchart('heatmap', data, $('#input_colour_metric').val() || 'reporting_app.aggregated.pc_q30');
+    metrics = {
+        'av_conc': ['udf', 'Ave. Conc. (nM)'],
+        'cv': ['udf', '%CV'],
+        'raw_cp': ['udf', 'Raw CP'],
+        'ntp_vol': ['udf', 'NTP Volume (uL)'],
+        'adjusted_conc': ['udf', 'Adjusted Conc. (nM)'],
+        'original_conc': ['udf', 'Original Conc. (nM)'],
+        'ntp_transfer_vol': ['udf', 'NTP Transfer Volume (uL)'],
+        'rsb_transfer_vol': ['udf', 'RSB Transfer Volume (uL)'],
+        'sample_transfer_vol': ['udf', 'Sample Transfer Volume (uL)'],
+        'tsp1_transfer_vol': ['udf', 'TSP1 Transfer Volume (uL)'],
+        'pc_q30': ['reporting_app', 'aggregated', 'pc_q30'],
+        'mapping_rate': ['reporting_app', 'aggregated', 'pc_mapped_reads']
+    };
+    active_colour_metric = 'pc_q30';
+
+    var qc_options = $('#qc_options');
+    for (m in metrics) {
+        var li = $('<li>');
+        var button = $('<a>').attr('id', m).text(m);
+        li.append(button);
+        qc_options.append(li);
+        button.click(function() {
+          retrigger(this.id);
+        });
     }
 
-    trigger();
+    chart = highchart('heatmap', '{{ library }}');
+    chart.showLoading();
+    get_lims_and_qc_data(
+        '{{ lims_url }}',
+        '{{ qc_url }}',
+        '{{ ajax_token }}',
+        '{{ library }}'
+    );
 </script>
-
 
 {% endblock %}

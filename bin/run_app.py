@@ -10,6 +10,7 @@ import tornado.ioloop
 import tornado.autoreload
 import signal
 from egcg_core.app_logging import LoggingConfiguration
+from egcg_core.util import find_files
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
@@ -30,8 +31,14 @@ def run_app(cfg):
 
     app.logger.info('Started')
 
-    for f in ('schema', 'column_mappings', 'project_status_definitions', 'review_thresholds'):
-        tornado.autoreload.watch(os.path.join(os.path.dirname(__file__), '..', 'etc', f + '.yaml'))
+    watched_file_patterns = (
+        ('etc', '*.yaml'),
+        ('reporting_app', 'static', '*.js'),
+        ('reporting_app', 'templates', '*.html')
+    )
+    for pattern in watched_file_patterns:
+        for f in find_files(os.path.dirname(__file__), '..', *pattern):
+            tornado.autoreload.watch(f)
 
     tornado.autoreload.watch(cfg.config_file)
     tornado.autoreload.start()
