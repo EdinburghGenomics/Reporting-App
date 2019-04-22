@@ -22,6 +22,7 @@ lanes:
         pc_aligned_stdev_r1:   {type: 'float'},
         pc_error_r1:           {type: 'float'},
         pc_error_stdev_r1:     {type: 'float'},
+        yield_r1:              {type: 'float'},
         pc_clust_pf_r2:        {type: 'float'},
         pc_clust_pf_stdev_r2:  {type: 'float'},
         phasing_r2:            {type: 'float'},
@@ -32,7 +33,8 @@ lanes:
         pc_aligned_r2:         {type: 'float'},
         pc_aligned_stdev_r2:   {type: 'float'},
         pc_error_r2:           {type: 'float'},
-        pc_error_stdev_r2:     {type: 'float'}
+        pc_error_stdev_r2:     {type: 'float'},
+        yield_r2:              {type: 'float'}
     } }
 
 run_elements:
@@ -217,6 +219,8 @@ samples:
         reviewed: { type: 'string', allowed: ['pass', 'fail', 'not reviewed'] },
         review_comments: { type: 'string' },
         review_date: { type: 'datetime' },
+        yield: { type: 'float' },
+        pc_q30: { type: 'float' },
         var_calling: { type: 'dict', schema: {
             ti_tv_ratio: { type: 'float'},
             het_hom_ratio: { type: 'float'}

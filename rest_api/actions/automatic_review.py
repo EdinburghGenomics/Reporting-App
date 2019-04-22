@@ -1,6 +1,5 @@
 import os
 import re
-
 import yaml
 import datetime
 from cached_property import cached_property
@@ -178,34 +177,25 @@ class AutomaticRapidSampleReviewer(Action, AutomaticReviewer):
     @cached_property
     def reviewable_data(self):
         data = self.eve_get('samples', sample_id=self.sample_id)
-        if not data:
+        if data and 'rapid_metrics' in data[0]:
+            return data[0]
+        else:
             abort(404, 'No data found for sample id %s.' % self.sample_id)
 
-        data = data[0]
-        data_source = query_dict(data, 'aggregated.most_recent_proc.data_source')
-        if not data_source or len(data_source) != 1:
-            abort(404, 'Data source for sample not found (%s)' % data_source)
-
-        interop_metrics = self.eve_get('lanes', lane_id=data_source[0])[0].get('interop_metrics')
-        if not interop_metrics:
-            abort(404, 'Interop metrics not found')
-
-        return interop_metrics
-
     def _perform_action(self):
-        rapid_data = self.eve_get('samples', sample_id=self.sample_id)[0].get('rapid_analysis')
+        payload = self.reviewable_data.get('rapid_metrics')  # patch with the whole subdict, or it gets overwritten
 
         if self.failing_metrics:
-            rapid_data[ELEMENT_REVIEWED] = 'fail'
-            rapid_data[ELEMENT_REVIEW_COMMENTS] = self.failure_comment
+            payload[ELEMENT_REVIEWED] = 'fail'
+            payload[ELEMENT_REVIEW_COMMENTS] = self.failure_comment
         else:
-            rapid_data[ELEMENT_REVIEWED] = 'pass'
+            payload[ELEMENT_REVIEWED] = 'pass'
 
-        rapid_data[ELEMENT_REVIEW_DATE] = self.current_time
+        payload[ELEMENT_REVIEW_DATE] = self.current_time
 
         patch_internal(
             'samples',
-            {'rapid_analysis': rapid_data},
+            {'rapid_metrics': payload},
             sample_id=self.sample_id
         )
 

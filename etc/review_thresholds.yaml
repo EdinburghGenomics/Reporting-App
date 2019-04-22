@@ -10,16 +10,14 @@
 
 
 rapid:
-    yield:
+    rapid_metrics.yield:
         name: Yield
         value: 110
         comparison: '>'
-        formula: 'yield_r1 + yield_r2'
-    pc_q30:
+    rapid_metrics.pc_q30:
         name: PC Q30
         value: 75
         comparison: '>'
-        formula: '((yield_r1 * pc_q30_r1) + (yield_r2 * pc_q30_r2))/(yield_r1 + yield_r2)'
 
 
 lane:
