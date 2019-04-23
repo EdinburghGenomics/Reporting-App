@@ -138,8 +138,8 @@ non_human_sample = {
     }
 }
 
-passing_rapid_sample = {'rapid_metrics': {'yield': 111, 'pc_q30': 76}}
-failing_rapid_sample = {'rapid_metrics': {'yield': 109, 'pc_q30': 74}}
+passing_rapid_sample = {'rapid_analysis': {'yield': 111, 'pc_q30': 76}}
+failing_rapid_sample = {'rapid_analysis': {'yield': 109, 'pc_q30': 74}}
 
 
 class TestAutomaticReview(TestBase):
@@ -340,21 +340,21 @@ class TestRapidSampleReviewer(TestBase):
     @patch(ppath + 'patch_internal')
     def test_perform_action_success(self, mocked_patch):
         self.reviewer.__dict__['reviewable_data'] = passing_rapid_sample.copy()
-        exp_payload = passing_rapid_sample['rapid_metrics'].copy()
+        exp_payload = passing_rapid_sample['rapid_analysis'].copy()
         exp_payload['reviewed'] = 'pass'
         exp_payload['review_date'] = self.reviewer.current_time
 
         self.reviewer._perform_action()
         mocked_patch.assert_called_with(
             'samples',
-            {'rapid_metrics': exp_payload},
+            {'rapid_analysis': exp_payload},
             sample_id='sample1'
         )
 
     @patch(ppath + 'patch_internal')
     def test_perform_action_fail(self, mocked_patch):
         self.reviewer.__dict__['reviewable_data'] = failing_rapid_sample.copy()
-        exp_payload = failing_rapid_sample['rapid_metrics'].copy()
+        exp_payload = failing_rapid_sample['rapid_analysis'].copy()
         exp_payload['reviewed'] = 'fail'
         exp_payload['review_date'] = self.reviewer.current_time
         exp_payload['review_comments'] = 'Failed due to PC Q30 < 75, Yield < 110'
@@ -362,6 +362,6 @@ class TestRapidSampleReviewer(TestBase):
         self.reviewer._perform_action()
         mocked_patch.assert_called_with(
             'samples',
-            {'rapid_metrics': exp_payload},
+            {'rapid_analysis': exp_payload},
             sample_id='sample1'
         )

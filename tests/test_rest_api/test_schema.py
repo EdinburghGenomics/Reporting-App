@@ -40,7 +40,8 @@ class TestSchema(Helper):
             'stage_name', 'stages', 'start_date', 'started_by', 'taxid', 'tools_used', 'toolset_type',
             'toolset_version', 'useable_reviewer', 'variation', '0-1', '1-2', '2-5', '5-10', '10-20', '20-30', '30-40',
             '40-50', '50-100', '100+', 'pc_unique_mapped', 'pc_genome_with_coverage', 'var_calling', 'pc_duplicates',
-            'pc_mapped', 'unique_mapped_reads', 'mapping', 'rapid_analysis', 'mean_coverage'
+            'pc_mapped', 'unique_mapped_reads', 'mapping', 'rapid_analysis', 'mean_coverage', 'yield', 'yield_r1',
+            'yield_r2', 'pc_q30'
         ]
         assert sorted(list_values_not_in_constants) == sorted(expected_not_in_constant)
 

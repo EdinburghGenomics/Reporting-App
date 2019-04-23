@@ -10,11 +10,11 @@
 
 
 rapid:
-    rapid_metrics.yield:
+    rapid_analysis.yield:
         name: Yield
         value: 110
         comparison: '>'
-    rapid_metrics.pc_q30:
+    rapid_analysis.pc_q30:
         name: PC Q30
         value: 75
         comparison: '>'

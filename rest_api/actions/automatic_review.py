@@ -177,13 +177,13 @@ class AutomaticRapidSampleReviewer(Action, AutomaticReviewer):
     @cached_property
     def reviewable_data(self):
         data = self.eve_get('samples', sample_id=self.sample_id)
-        if data and 'rapid_metrics' in data[0]:
+        if data and 'rapid_analysis' in data[0]:
             return data[0]
         else:
             abort(404, 'No data found for sample id %s.' % self.sample_id)
 
     def _perform_action(self):
-        payload = self.reviewable_data.get('rapid_metrics')  # patch with the whole subdict, or it gets overwritten
+        payload = self.reviewable_data.get('rapid_analysis')  # patch with the whole subdict, or it gets overwritten
 
         if self.failing_metrics:
             payload[ELEMENT_REVIEWED] = 'fail'
@@ -195,7 +195,7 @@ class AutomaticRapidSampleReviewer(Action, AutomaticReviewer):
 
         patch_internal(
             'samples',
-            {'rapid_metrics': payload},
+            {'rapid_analysis': payload},
             sample_id=self.sample_id
         )
 
