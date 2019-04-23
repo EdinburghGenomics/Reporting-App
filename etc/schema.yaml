@@ -219,6 +219,7 @@ samples:
         reviewed: { type: 'string', allowed: ['pass', 'fail', 'not reviewed'] },
         review_comments: { type: 'string' },
         review_date: { type: 'datetime' },
+        data_source: { type: 'list', schema: { type: 'string' } },
         yield: { type: 'float' },
         pc_q30: { type: 'float' },
         var_calling: { type: 'dict', schema: {
