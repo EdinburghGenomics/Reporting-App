@@ -30,7 +30,6 @@ function get_lims_and_qc_data(lims_url, qc_url, token, library_id) {
                         library_data['qc'][coord]['reporting_app'] = sample;
                     }
                     chart.addSeries(format_series(active_colour_metric));
-                    chart.hideLoading()
                     retrigger(active_colour_metric);
                 }
             }

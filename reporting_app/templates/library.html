@@ -23,24 +23,15 @@ Plotting sample and library prep QC for {{ library }}.
 <div id="heatmap" class="heatmap"></div>
 
 <script>
-    metrics = {
-        'av_conc': ['udf', 'Ave. Conc. (nM)'],
-        'cv': ['udf', '%CV'],
-        'raw_cp': ['udf', 'Raw CP'],
-        'ntp_vol': ['udf', 'NTP Volume (uL)'],
-        'adjusted_conc': ['udf', 'Adjusted Conc. (nM)'],
-        'original_conc': ['udf', 'Original Conc. (nM)'],
-        'ntp_transfer_vol': ['udf', 'NTP Transfer Volume (uL)'],
-        'rsb_transfer_vol': ['udf', 'RSB Transfer Volume (uL)'],
-        'sample_transfer_vol': ['udf', 'Sample Transfer Volume (uL)'],
-        'tsp1_transfer_vol': ['udf', 'TSP1 Transfer Volume (uL)'],
-        'pc_q30': ['reporting_app', 'aggregated', 'pc_q30'],
-        'mapping_rate': ['reporting_app', 'aggregated', 'pc_mapped_reads']
-    };
-    active_colour_metric = 'pc_q30';
+    var app_metrics = ['pc_q30', 'pc_mapped_reads'];
+    var udfs = ['Ave. Conc. (nM)', '%CV', 'Raw CP', 'NTP Volume (uL)', 'Adjusted Conc. (nM)', 'Original Conc. (nM)',
+                'NTP Transfer Volume (uL)', 'RSB Transfer Volume (uL)', 'Sample Transfer Volume (uL)',
+                'TSP1 Transfer Volume (uL)'];
 
+    metrics = {};
     var qc_options = $('#qc_options');
-    for (m in metrics) {
+
+    function add_metric(m) {
         var li = $('<li>');
         var button = $('<a>').attr('id', m).text(m);
         li.append(button);
@@ -50,6 +41,22 @@ Plotting sample and library prep QC for {{ library }}.
         });
     }
 
+    qc_options.append($('<li>').attr('class', 'dropdown-header').text('UDFs'));
+    for (var i=0; i<udfs.length; i++) {
+        var udf = udfs[i];
+        metrics[udf] = ['udf', udf];
+        add_metric(udf);
+    }
+
+    qc_options.append($('<li>').attr('class', 'dropdown-header').text('Reporting app'));
+    for (var i=0; i<app_metrics.length; i++) {
+        var m = app_metrics[i];
+        metrics[m] = ['reporting_app', 'aggregated', m];
+        add_metric(m);
+    }
+
+    active_colour_metric = 'pc_q30';
+
     chart = highchart('heatmap', '{{ library }}');
     chart.showLoading();
     get_lims_and_qc_data(
@@ -58,6 +65,7 @@ Plotting sample and library prep QC for {{ library }}.
         '{{ ajax_token }}',
         '{{ library }}'
     );
+    chart.hideLoading();
 </script>
 
 {% endblock %}
