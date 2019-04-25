@@ -1,6 +1,7 @@
 import operator
 from datetime import datetime
 from collections import defaultdict
+from cached_property import cached_property
 from config import project_status as status_cfg
 from rest_api.limsdb.queries import format_date
 
@@ -324,16 +325,30 @@ class Run:
 class Library:
     def __init__(self):
         self.id = None
+        self.type = None
         self.preps = defaultdict(LibraryPrep)
+        self.projects = set()
 
     def to_json(self):
         most_recent_prep = sorted(self.preps.values(), key=lambda p: p.date_run, reverse=True)[0]
-        return {
+        data = {
             'id': self.id,
             'times_prepared': len(self.preps),
-            'last_prepared': most_recent_prep.date_run,
-            'qc': {'%s:%s' % k: v.to_json() for k, v in most_recent_prep.placements.items()}
+            'last_prepared': format_date(most_recent_prep.date_run),
+            'qc': {},
+            'project_ids': sorted(self.projects),
+            'type': status_cfg.protocol_names.get(self.type, 'unknown'),
+            'nsamples': len(most_recent_prep.placements)
         }
+
+        passing_samples = 0
+        for k, v in most_recent_prep.placements.items():
+            data['qc']['%s:%s' % k] = v.to_json()
+            if v.qc_flag == 'PASSED':
+                passing_samples += 1
+
+        data['pc_qc_flag_pass'] = (passing_samples / len(most_recent_prep.placements)) * 100
+        return data
 
 
 class LibraryPrep:
@@ -344,12 +359,30 @@ class LibraryPrep:
 
 
 class LibrarySample:
+    state_map = {
+        0: 'UNKNOWN',
+        1: 'PASSED',
+        2: 'FAILED'
+    }
+
     def __init__(self):
         self.name = None
         self.udf = {}
+        self.states = {}
+
+    @cached_property
+    def qc_flag(self):
+        """Duplicates functionality in genologics_sql.tables.Artifact.qc_flag"""
+        if not self.states:
+            return None
+
+        k = sorted(self.states)[-1]
+        latest_state = self.states[k]
+        return self.state_map.get(latest_state, 'ERROR')
 
     def to_json(self):
         return {
             'name': self.name,
-            'udf': self.udf
+            'udf': self.udf,
+            'qc_flag': self.qc_flag
         }

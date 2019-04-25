@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'untabbed_datatables.html' %}
 
 {% block head %}
     {{ super() }}
@@ -10,7 +10,8 @@
 
 {% block content %}
 
-Plotting sample and library prep QC for {{ library }}.
+{{ super() }}
+
 <br/>
 
 <div class="btn-group">
@@ -19,6 +20,9 @@ Plotting sample and library prep QC for {{ library }}.
   </button>
   <ul id="qc_options" class="dropdown-menu"></ul>
 </div>
+
+<p>Plotting sample and library prep QC for {{ library }}.</p>
+
 
 <div id="heatmap" class="heatmap"></div>
 

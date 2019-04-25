@@ -251,15 +251,20 @@ def runs_cst(session, time_since=None, run_ids=None, run_status=None):
 def library_info(session, time_from=None, time_to=None, library_id=None):
     """Run a query that returns samples and the processes they went through up to process_limit_date"""
 
-    q = session.query(t.Process.luid, t.Process.daterun, t.Container.name,
-                      t.Artifact.artifactid, t.Sample.name, t.ContainerPlacement.wellxposition,
-                      t.ContainerPlacement.wellyposition, t.ArtifactUdfView.udfname, t.ArtifactUdfView.udfvalue)\
+    q = session.query(t.Process.luid, t.Process.daterun, t.Container.name, t.LabProtocol.protocolname,
+                      t.ArtifactState.qcflag, t.ArtifactState.lastmodifieddate, t.Sample.name, t.Project.name,
+                      t.ContainerPlacement.wellxposition, t.ContainerPlacement.wellyposition, t.ArtifactUdfView.udfname,
+                      t.ArtifactUdfView.udfvalue)\
         .join(t.Process.type)\
+        .join(t.Process.protocolstep)\
+        .join(t.ProtocolStep.labprotocol)\
         .join(t.Process.processiotrackers)\
         .join(t.ProcessIOTracker.artifact) \
         .join(t.Artifact.udfs)\
         .join(t.Artifact.containerplacement)\
         .join(t.Artifact.samples)\
+        .join(t.Artifact.states)\
+        .join(t.Sample.project)\
         .join(t.ContainerPlacement.container)\
         .filter(t.ProcessType.displayname == 'Eval qPCR Quant')\
         .filter(t.ArtifactUdfView.udfname.in_(
