@@ -7,7 +7,9 @@ QUnit.test('query_nested_object', function(assert) {
     assert.equal(query_nested_object(o, ['this', 'another', 'more']), null);
 });
 
-QUnit.test('format_series', function(assert) {
+QUnit.test('build_series', function(assert) {
+    fake_renderer = function(metric) { return metric; };
+
     library_data = {
         'id': 'a_library',
         'qc': {
@@ -19,26 +21,22 @@ QUnit.test('format_series', function(assert) {
         }
     };
     metrics = {
-        'a_metric': ['reporting_app', 'a_rest_api_metric'],
-        'another_metric': ['udf', 'a_udf']
+        'a_metric': {'path': ['reporting_app', 'a_rest_api_metric']},
+        'another_metric': {'path': ['udf', 'a_udf']}
     };
 
     assert.deepEqual(
-        format_series('a_metric'),
+        build_series('a_metric', fake_renderer),
         {
             name: 'a_library',
-            borderWidth: 1,
             data: [
                 {'y': 0, 'x': 0, 'value': 13.38, 'name': 'a_sample'}
             ],
-            dataLabels: {
-                enabled: false,
-                color: '#000000'
-            }
+            dataLabels: {enabled: false}
         }
     );
     assert.equal(
-        format_series('another_metric')['data'][0]['value'],
+        build_series('another_metric', fake_renderer)['data'][0]['value'],
         13.37
     );
 });
@@ -75,9 +73,10 @@ QUnit.test('get_lims_and_qc_data', function(assert) {
         addSeries: function(config) {},
         hideLoading: function() {},
         series: [{update: function(config) {}}],
-        legend: {update: function(config) {}}
+        legend: {update: function(config) {}},
+        colorAxis: [{update: function(config) {}}]
     };
-    metrics = {'a_metric': ['reporting_app', 'api']};
+    metrics = {'a_metric': {'path': ['reporting_app', 'api']}};
     active_colour_metric = 'a_metric';
 
     get_lims_and_qc_data('lims_endpoint', 'qc_url', 'Token a_token', 'a_library');

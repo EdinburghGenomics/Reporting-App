@@ -3,9 +3,9 @@
 {% block head %}
     {{ super() }}
 <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css"/>
-    <script src="{{ url_for('static', filename='library_preps.js') }}"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/heatmap.js"></script>
+    <script src="{{ url_for('static', filename='library_preps.js') }}"></script>
 {% endblock %}
 
 {% block content %}
@@ -32,7 +32,6 @@
                 'NTP Transfer Volume (uL)', 'RSB Transfer Volume (uL)', 'Sample Transfer Volume (uL)',
                 'TSP1 Transfer Volume (uL)'];
 
-    metrics = {};
     var qc_options = $('#qc_options');
 
     function add_metric(m) {
@@ -41,25 +40,22 @@
         li.append(button);
         qc_options.append(li);
         button.click(function() {
-          retrigger(this.id);
+          trigger(this.id);
         });
     }
+    add_metric('QC flag');
 
     qc_options.append($('<li>').attr('class', 'dropdown-header').text('UDFs'));
     for (var i=0; i<udfs.length; i++) {
-        var udf = udfs[i];
-        metrics[udf] = ['udf', udf];
-        add_metric(udf);
+        add_metric(udfs[i]);
     }
 
     qc_options.append($('<li>').attr('class', 'dropdown-header').text('Reporting app'));
     for (var i=0; i<app_metrics.length; i++) {
-        var m = app_metrics[i];
-        metrics[m] = ['reporting_app', 'aggregated', m];
-        add_metric(m);
+        add_metric(app_metrics[i]);
     }
 
-    active_colour_metric = 'pc_q30';
+    active_colour_metric = '%Q30';
 
     chart = highchart('heatmap', '{{ library }}');
     chart.showLoading();

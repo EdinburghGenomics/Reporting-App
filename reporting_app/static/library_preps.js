@@ -1,6 +1,29 @@
 
+var available_colours = [];
+var colourstep = Math.floor(0xffffff / 96);
+for (var i=0; i<96; i++) {
+    available_colours.push('#' + i * colourstep);
+}
+
+
 // these are well x coords in the Lims database, but plotted as y coords as per Lims UI
 var heatmap_x_coords = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+metrics = {
+    '%Q30': {path: ['reporting_app', 'aggregated', 'pc_q30']},
+    '% mapped reads': {path: ['reporting_app', 'aggregated', 'pc_mapped_reads']},
+    'Ave. Conc. (nM)': {path: ['udf', 'Ave. Conc. (nM)']},
+    '%CV': {path: ['udf', '%CV']},
+    'Raw CP': {path: ['udf', 'Raw CP']},
+    'NTP Volume (uL)': {path: ['udf', 'NTP Volume (uL)']},
+    'Adjusted Conc. (nM)': {path: ['udf', 'Adjusted Conc. (nM)']},
+    'Original Conc. (nM)': {path: ['udf', 'Original Conc. (nM)']},
+    'NTP Transfer Volume (uL)': {path: ['udf', 'NTP Transfer Volume (uL)']},
+    'RSB Transfer Volume (uL)': {path: ['udf', 'RSB Transfer Volume (uL)']},
+    'Sample Transfer Volume (uL)': {path: ['udf', 'Sample Transfer Volume (uL)']},
+    'TSP1 Transfer Volume (uL)': {path: ['udf', 'TSP1 Transfer Volume (uL)']},
+    'QC flag': {path: ['qc_flag'], categories: ['UNKNOWN', 'PASSED', 'FAILED', 'ERRORED']}
+};
+
 
 function get_lims_and_qc_data(lims_url, qc_url, token, library_id) {
     var query_args = [];
@@ -29,8 +52,7 @@ function get_lims_and_qc_data(lims_url, qc_url, token, library_id) {
                         var coord = sample_coords[sample['sample_id']];
                         library_data['qc'][coord]['reporting_app'] = sample;
                     }
-                    chart.addSeries(format_series(active_colour_metric));
-                    retrigger(active_colour_metric);
+                    trigger(active_colour_metric);
                 }
             }
         );
@@ -60,15 +82,11 @@ function query_nested_object(top_level, query) {
     return val;
 }
 
-function format_series(colour_metric) {
+function build_series(colour_metric, format_func) {
     var series = {
         name: library_data['id'],
-        borderWidth: 1,
         data: [],
-        dataLabels: {
-            enabled: false,
-            color: '#000000'
-        }
+        dataLabels: {enabled: false}
     }
 
     var placements = library_data['qc'];
@@ -78,7 +96,9 @@ function format_series(colour_metric) {
             {
                 y: heatmap_x_coords.indexOf(split_coord[0]),
                 x: parseInt(split_coord[1]) - 1,
-                value: parseFloat(parseFloat(query_nested_object(placements[coord], metrics[colour_metric])).toFixed(3)),
+                value: format_func(
+                    query_nested_object(placements[coord], metrics[colour_metric]['path'])
+                ),
                 name: placements[coord]['name']
             }
         );
@@ -112,7 +132,6 @@ function highchart(heatmap_id, title) {
             margin: 0,
             verticalAlign: 'top',
             y: 25,
-            symbolHeight: 280
         },
         tooltip: {
             formatter: function () {
@@ -124,9 +143,43 @@ function highchart(heatmap_id, title) {
     });
 }
 
-function retrigger(colour_metric) {
+function category_axis(categories) {
+    var data_classes = [];
+    for (var i=0; i<categories.length; i++) {
+        data_classes.push(
+            {
+                from: i,
+                to: i + 1,
+                color: available_colours[i],
+                name: categories[i]
+            }
+        );
+    }
+    return data_classes;
+}
+
+function trigger(colour_metric) {
     active_colour_metric = colour_metric;
-    chart.series[0].update(format_series(active_colour_metric));
+
+    var format_func;
+    var config = metrics[colour_metric];
+    if (config.hasOwnProperty('categories')) {
+        chart.colorAxis[0].update({dataClasses: category_axis(config['categories'])});
+        format_func = function(data_point) { return metrics[colour_metric]['categories'].indexOf(data_point); }
+    } else {
+        chart.colorAxis[0].update({dataClasses: null});
+        format_func = function(data_point) {
+            return parseFloat(parseFloat(data_point).toFixed(3));
+        }
+    }
+
+    var series = build_series(colour_metric, format_func);
+    if (chart.series.length == 0) {
+        chart.addSeries(series);
+    } else {
+        chart.series[0].update(series);
+    }
+
     chart.legend.update(
         {
             title: {
