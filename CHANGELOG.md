@@ -1,10 +1,16 @@
 Changelog for Reporting-App
 ===========================
 
-0.21 (unreleased)
+0.21 (2019-04-29)
 -----------------
 
-- Nothing changed yet.
+- New date filters in project/sample status endpoints
+- Less misleading column names, tweaked show-hide defaults
+- Pipeline data in project table
+- Pipeline/genome data in sample table
+- Removed run top-level autoreview
+- Removed server_side and database_side aggregation
+- Not showing samples as Invoicing if they're removed
 
 
 0.20.2 (2019-02-20)
