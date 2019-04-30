@@ -15,57 +15,39 @@
 <br/>
 
 <div class="btn-group">
-  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    Metric <span class="caret"></span>
-  </button>
-  <ul id="qc_options" class="dropdown-menu"></ul>
+    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Metric <span class="caret"></span>
+    </button>
+    <ul id="qc_options" class="dropdown-menu">
+        <li id="qc_flag"></li>
+        <li class="dropdown-header">UDFs</li>
+        <li id="av_conc"></li>
+        <li id="pc_cv"></li>
+        <li id="raw_cp"></li>
+        <li id="ntp_volume"></li>
+        <li id="adjusted_conc"></li>
+        <li id="original_conc"></li>
+        <li id="ntp_transfer_vol"></li>
+        <li id="rsb_transfer_vol"></li>
+        <li id="sample_transfer_vol"></li>
+        <li id="tsp1_transfer_vol"></li>
+        <li class="dropdown-header">Reporting App</li>
+        <li id="pc_q30"></li>
+        <li id="pc_mapped_reads"></li>
+    </ul>
 </div>
-
-<p>Plotting sample and library prep QC for {{ library }}.</p>
-
 
 <div id="heatmap" class="heatmap"></div>
 
 <script>
-    var app_metrics = ['pc_q30', 'pc_mapped_reads'];
-    var udfs = ['Ave. Conc. (nM)', '%CV', 'Raw CP', 'NTP Volume (uL)', 'Adjusted Conc. (nM)', 'Original Conc. (nM)',
-                'NTP Transfer Volume (uL)', 'RSB Transfer Volume (uL)', 'Sample Transfer Volume (uL)',
-                'TSP1 Transfer Volume (uL)'];
-
-    var qc_options = $('#qc_options');
-
-    function add_metric(m) {
-        var li = $('<li>');
-        var button = $('<a>').attr('id', m).text(m);
+    for (m in metrics) {
+        var li = $('#' + m);
+        var button = $('<a>').attr('id', m).text(metrics[m]['name']);
+        button.click(function() { trigger(this.id); });
         li.append(button);
-        qc_options.append(li);
-        button.click(function() {
-          trigger(this.id);
-        });
-    }
-    add_metric('QC flag');
-
-    qc_options.append($('<li>').attr('class', 'dropdown-header').text('UDFs'));
-    for (var i=0; i<udfs.length; i++) {
-        add_metric(udfs[i]);
     }
 
-    qc_options.append($('<li>').attr('class', 'dropdown-header').text('Reporting app'));
-    for (var i=0; i<app_metrics.length; i++) {
-        add_metric(app_metrics[i]);
-    }
-
-    active_colour_metric = '%Q30';
-
-    chart = highchart('heatmap', '{{ library }}');
-    chart.showLoading();
-    get_lims_and_qc_data(
-        '{{ lims_url }}',
-        '{{ qc_url }}',
-        '{{ ajax_token }}',
-        '{{ library }}'
-    );
-    chart.hideLoading();
+    highchart('heatmap', '{{ library }}', '{{ lims_url }}', '{{ qc_url }}', '{{ ajax_token }}', '{{ library }}');
 </script>
 
 {% endblock %}

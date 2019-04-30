@@ -1,13 +1,11 @@
 from collections import defaultdict
+from egcg_core.util import query_dict
 from egcg_core.clarity import sanitize_user_id
 from flask import request
 from config import project_status as status_cfg
 from rest_api.common import retrieve_args
 from rest_api.limsdb import queries
 from rest_api.limsdb.queries import data_models
-from string import ascii_uppercase
-
-y_coords = ascii_uppercase[:8]
 
 
 def _create_samples_info(session, match):
@@ -182,11 +180,12 @@ def run_status(session):
     return sorted((r.to_json() for r in all_runs.values() if filterer(r)), key=lambda r: r['created_date'])
 
 
-def library_info(session, kwargs=None):
-    kwargs = kwargs or retrieve_args()
+def library_info(session):
+    kwargs = retrieve_args()
     time_from = kwargs.get('time_from')
     time_to = kwargs.get('time_to')
-    library_id = kwargs.get('library_id')
+    library_id = query_dict(kwargs, 'match.library_id')
+    y_coords = 'ABCDEFGH'
 
     all_libraries = defaultdict(data_models.Library)
     for data in queries.library_info(session, time_from, time_to, library_id):
@@ -195,7 +194,7 @@ def library_info(session, kwargs=None):
         library.id = library_id
         library.projects.add(project_id)
         library.type = protocol_name
-        prep = library.preps[luid]
+        prep = library.qpcrs[luid]
         prep.date_run = daterun
         sample = prep.placements[(y_coords[welly], wellx + 1)]
         sample.name = sample_id

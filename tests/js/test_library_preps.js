@@ -115,7 +115,7 @@ QUnit.test('get_lims_and_qc_data', function(assert) {
     assert.deepEqual(
         mock_url_calls,
         [
-            'lims_endpoint?library_id=a_library',
+            'lims_endpoint?match={"library_id":"a_library"}',
             'qc_url?where={"$or":[{"sample_id":"sample_1"},{"sample_id":"sample_2"}]}&max_results=1000'
         ]
     );

@@ -137,9 +137,9 @@ column_def:
     yield_x_coverage:         { data: { display: 'coverage.disp', _: 'coverage.order' }, title: 'Coverage' }  # e.g, render as '30X' but sort, search, etc. as '30'
     yield_required:           { data: 'required_yield',                       title: 'Required yield' }
     yield_required_q30:       { data: 'required_yield_q30',                   title: 'Required yield Q30' }
-    library_last_prepared:    { data: 'last_prepared', title: 'Last prepared', fmt: { type: 'datetime' } }
+    library_date_completed:   { data: 'date_completed', title: 'Date completed', fmt: { type: 'datetime' } }
     library_name:             { data: 'id', title: 'Name', fmt: { link: '/library/' } }
-    library_times_prepared:   { data: 'times_prepared', title: 'Times prepared' }
+    library_qpcrs_run:        { data: 'qpcrs_run', title: 'qPCRs run', visible: 'false' }
     library_pass_rate:        { data: 'pc_qc_flag_pass', title: 'QC flag pass rate', fmt: { type: 'percentage' } }
     library_nsamples:         { data: 'nsamples', title: '# samples' }
 
@@ -405,8 +405,8 @@ yields:
 libraries:
     - library_name
     - { column_def: 'library_type', data: 'type', title: 'Library type', visible: 'true' }
-    - library_times_prepared
-    - library_last_prepared
+    - library_qpcrs_run
+    - library_date_completed
     - library_pass_rate
     - library_nsamples
     - project_ids

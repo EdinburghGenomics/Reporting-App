@@ -249,7 +249,10 @@ def runs_cst(session, time_since=None, run_ids=None, run_status=None):
 
 
 def library_info(session, time_from=None, time_to=None, library_id=None):
-    """Run a query that returns samples and the processes they went through up to process_limit_date"""
+    """
+    Get a join of artifact UDFs, plate coordinates and QC flags for all Eval qPCR Quant processes - filterable to a
+    library ID or date range.
+    """
 
     q = session.query(t.Process.luid, t.Process.daterun, t.Container.name, t.LabProtocol.protocolname,
                       t.ArtifactState.qcflag, t.ArtifactState.lastmodifieddate, t.Sample.name, t.Project.name,

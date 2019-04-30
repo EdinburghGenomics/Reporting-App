@@ -471,7 +471,7 @@ def plot_library(library):
         table=util.datatable_cfg(
             'Library ' + library,
             'libraries',
-            util.construct_url('lims/library_info', library_id=library),
+            util.construct_url('lims/library_info', match={'library_id': library}),
             minimal=True
         ),
         library=library,

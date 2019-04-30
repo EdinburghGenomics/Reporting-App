@@ -326,15 +326,15 @@ class Library:
     def __init__(self):
         self.id = None
         self.type = None
-        self.preps = defaultdict(LibraryPrep)
+        self.qpcrs = defaultdict(QPCR)
         self.projects = set()
 
     def to_json(self):
-        most_recent_prep = sorted(self.preps.values(), key=lambda p: p.date_run, reverse=True)[0]
+        most_recent_prep = sorted(self.qpcrs.values(), key=lambda p: p.date_run, reverse=True)[0]
         data = {
             'id': self.id,
-            'times_prepared': len(self.preps),
-            'last_prepared': format_date(most_recent_prep.date_run),
+            'qpcrs_run': len(self.qpcrs),
+            'date_completed': format_date(most_recent_prep.date_run),
             'qc': {},
             'project_ids': sorted(self.projects),
             'type': status_cfg.protocol_names.get(self.type, 'unknown'),
@@ -351,7 +351,7 @@ class Library:
         return data
 
 
-class LibraryPrep:
+class QPCR:
     def __init__(self):
         self.id = None
         self.date_run = None
