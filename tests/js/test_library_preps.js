@@ -67,17 +67,19 @@ QUnit.test('get_lims_and_qc_data', function(assert) {
         config.success(result);
     };
     $.ajax = fake_ajax;
-    // patching complete
 
+    // patching chart object
+    var fake_func = function(config) {};
     chart = {
-        addSeries: function(config) {},
-        hideLoading: function() {},
-        series: [{update: function(config) {}}],
-        legend: {update: function(config) {}},
-        colorAxis: [{update: function(config) {}}]
+        addSeries: fake_func,
+        hideLoading: fake_func,
+        series: [{update: fake_func, remove: fake_func}],
+        legend: {update: fake_func},
+        colorAxis: [{update: fake_func}]
     };
     metrics = {'a_metric': {'path': ['reporting_app', 'api']}};
     active_colour_metric = 'a_metric';
+    // patching complete
 
     get_lims_and_qc_data('lims_endpoint', 'qc_url', 'Token a_token', 'a_library');
 

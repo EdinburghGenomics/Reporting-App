@@ -457,7 +457,7 @@ def libraries(view_type):
             title,
             'libraries',
             util.construct_url('lims/library_info', **query_params),
-            default_sort_col='-library_last_prepared'
+            default_sort_col='-library_date_completed'
         )
     )
 

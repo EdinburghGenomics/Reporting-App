@@ -185,11 +185,10 @@ function trigger(colour_metric) {
     }
 
     var series = build_series(colour_metric, format_func);
-    if (chart.series.length == 0) {
-        chart.addSeries(series);
-    } else {
-        chart.series[0].update(series);
+    for (var i=0; i<chart.series.length; i++) {
+        chart.series[i].remove();
     }
+    chart.addSeries(series);
 
     chart.legend.update(
         {
