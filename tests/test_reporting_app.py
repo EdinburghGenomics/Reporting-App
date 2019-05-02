@@ -334,3 +334,11 @@ class TestReportingApp(Helper):
     def test_genome_page(self):
         self._test_render_template('/species')
         self._test_render_template('/species/a_species')
+
+    def test_libraries(self):
+        self._test_render_template('/libraries/recent')
+        self._test_render_template('/libraries/last_12_months')
+        self._test_render_template('/libraries/current_year')
+        self._test_render_template('/libraries/all')
+
+        self._test_render_template('/library/a_library')

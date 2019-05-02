@@ -19,21 +19,21 @@
         Metric <span class="caret"></span>
     </button>
     <ul id="qc_options" class="dropdown-menu">
-        <li id="qc_flag"></li>
+        <li id="button_qc_flag"></li>
         <li class="dropdown-header">UDFs</li>
-        <li id="av_conc"></li>
-        <li id="pc_cv"></li>
-        <li id="raw_cp"></li>
-        <li id="ntp_volume"></li>
-        <li id="adjusted_conc"></li>
-        <li id="original_conc"></li>
-        <li id="ntp_transfer_vol"></li>
-        <li id="rsb_transfer_vol"></li>
-        <li id="sample_transfer_vol"></li>
-        <li id="tsp1_transfer_vol"></li>
+        <li id="button_av_conc"></li>
+        <li id="button_pc_cv"></li>
+        <li id="button_raw_cp"></li>
+        <li id="button_ntp_volume"></li>
+        <li id="button_adjusted_conc"></li>
+        <li id="button_original_conc"></li>
+        <li id="button_ntp_transfer_vol"></li>
+        <li id="button_rsb_transfer_vol"></li>
+        <li id="button_sample_transfer_vol"></li>
+        <li id="button_tsp1_transfer_vol"></li>
         <li class="dropdown-header">Reporting App</li>
-        <li id="pc_q30"></li>
-        <li id="pc_mapped_reads"></li>
+        <li id="button_pc_q30"></li>
+        <li id="button_pc_mapped_reads"></li>
     </ul>
 </div>
 
@@ -41,9 +41,9 @@
 
 <script>
     for (m in metrics) {
-        var li = $('#' + m);
-        var button = $('<a>').attr('id', m).text(metrics[m]['name']);
-        button.click(function() { render_heatmap(this.id); });
+        var li = $('#button_' + m);
+        var button = $('<a>').attr('target', m).text(metrics[m]['name']);
+        button.click(function() { render_heatmap(this.target); });
         li.append(button);
     }
 
