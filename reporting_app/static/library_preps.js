@@ -21,7 +21,7 @@ metrics = {
     'rsb_transfer_vol': {name: 'RSB Transfer Volume (uL)', path: ['udf', 'RSB Transfer Volume (uL)']},
     'sample_transfer_vol': {name: 'Sample Transfer Volume (uL)', path: ['udf', 'Sample Transfer Volume (uL)']},
     'tsp1_transfer_vol': {name: 'TSP1 Transfer Volume (uL)', path: ['udf', 'TSP1 Transfer Volume (uL)']},
-    'qc_flag': {name: 'QC flag', path: ['qc_flag'], categories: ['UNKNOWN', 'PASSED', 'FAILED', 'ERRORED']}
+    'qc_flag': {name: 'QC flag', path: ['qc_flag'], type: 'category'}
 };
 
 
@@ -39,13 +39,12 @@ function get_lims_and_qc_data(lims_url, qc_url, token, library_id) {
                 var sample_coords = {};  // map sample IDs to well coordinates so we know where to merge the data
 
                 var coords = Object.keys(library_data['qc']);
-                for (var i=0; i<coords.length; i++) {
-                    var coord = coords[i];
+                _.forEach(coords, function(coord) {
                     var placement = library_data['qc'][coord];
                     var sample_id = placement['name'];
                     sample_coords[sample_id] = coord;
                     sample_queries.push('{"sample_id":"' + sample_id + '"}');
-                }
+                });
 
                 // query the samples endpoint for IDs found above, merge in the data and trigger the chart
                 $.ajax(
@@ -54,14 +53,11 @@ function get_lims_and_qc_data(lims_url, qc_url, token, library_id) {
                         headers: {'Authorization': token},
                         dataType: 'json',
                         success: function(result) {
-                            var j;
-                            var nsamples = result.data.length;
-                            for (j=0; j<nsamples; j++) {
-                                var sample = result.data[j];
+                            _.forEach(result.data, function(sample) {
                                 var coord = sample_coords[sample['sample_id']];
                                 library_data['qc'][coord]['reporting_app'] = sample;
-                            }
-                            trigger(active_colour_metric);
+                            });
+                            render_heatmap(active_colour_metric);
                         }
                     }
                 );
@@ -70,19 +66,7 @@ function get_lims_and_qc_data(lims_url, qc_url, token, library_id) {
     );
 }
 
-function query_nested_object(top_level, query) {
-    // e.g, query_nested_object({'x': {'y': 'z'}}, ['x', 'y']) -> 'z'
-    var val = top_level;
-    for (var i=0; i<query.length; i++) {
-        val = val[query[i]];
-        if (!val) {
-            return null;
-        }
-    }
-    return val;
-}
-
-function build_series(colour_metric, format_func) {
+function build_series(colour_metric) {
     // build an object to pass to Highcharts.heatmap.series, converting library QC data into an array of data points
     var series = {
         name: library_data['id'],
@@ -97,7 +81,7 @@ function build_series(colour_metric, format_func) {
             {
                 y: heatmap_x_coords.indexOf(split_coord[0]),
                 x: parseInt(split_coord[1]) - 1,
-                value: format_func(query_nested_object(placements[coord], metrics[colour_metric]['path'])),
+                value: _.get(placements[coord], metrics[colour_metric]['path']),
                 name: placements[coord]['name']
             }
         );
@@ -105,15 +89,14 @@ function build_series(colour_metric, format_func) {
     return series;
 }
 
-function highchart(heatmap_id, title, lims_url, qc_url, ajax_token, library_id) {
-    chart = Highcharts.chart(heatmap_id, {
+function init_heatmap(div_id, title, lims_url, qc_url, ajax_token, library_id) {
+    chart = Highcharts.chart(div_id, {
         chart: {
             type: 'heatmap',
             marginTop: 40,
             marginBottom: 80,
             plotBorderWidth: 1,
-            width: 800,
-            height: 400
+            height: '50%'
         },
         title: {text: 'Library ' + title},
         yAxis: {categories: heatmap_x_coords, max: 7, reversed: true, title: null},
@@ -135,7 +118,7 @@ function highchart(heatmap_id, title, lims_url, qc_url, ajax_token, library_id) 
         tooltip: {
             formatter: function () {
                 var coord = this.series.yAxis.categories[this.point.y] + ':' + (this.point.x + 1);
-                return '<p>Sample: ' + this.point.name + '<br/>Coord: ' + coord + '<br/>' + metrics[active_colour_metric]['name'] + ': ' + this.point.value + '</p>';
+                return '<p>Sample: ' + this.point.name + '<br/>Coord: ' + coord + '<br/>' + metrics[active_colour_metric]['name'] + ': ' + this.point.label + '</p>';
             }
         },
         series: []
@@ -161,7 +144,7 @@ function data_classes(categories) {
     return data_classes;
 }
 
-function trigger(colour_metric) {
+function render_heatmap(colour_metric) {
     /*
     Reset the active_colour_metric, decide how to build the new data series, update the chart with the new series, and
     update the chart legend with the new metric name.
@@ -169,27 +152,31 @@ function trigger(colour_metric) {
 
     active_colour_metric = colour_metric;
 
-    var format_func;
-    var metric_config = metrics[colour_metric];
+    var transform_func;
+    var series = build_series(colour_metric);
 
-    if (metric_config.hasOwnProperty('categories')) {
-        chart.colorAxis[0].update({dataClasses: data_classes(metric_config['categories'])});
-        format_func = function(data_point) {
-            return metrics[colour_metric]['categories'].indexOf(data_point);  // data point value must be a number
+    if (metrics[colour_metric]['type'] == 'category') {
+        categories = _.uniq(_.map(series.data, function(data_point) { return data_point.value; }));
+
+        chart.colorAxis[0].update({dataClasses: data_classes(categories)});
+        transform_func = function(data_point) {
+            // value must be a number, but show the category name in chart.tooltip
+            data_point.value = categories.indexOf(data_point.value);
+            data_point.label = categories[data_point.value];
         }
     } else {
         chart.colorAxis[0].update({dataClasses: null});
-        format_func = function(data_point) {
-            return parseFloat(parseFloat(data_point).toFixed(3));  // default: plot as a float rounded to 3 decimal places
+        transform_func = function(data_point) {
+            // default: plot as a float rounded to 3 decimal places
+            data_point.value = parseFloat(parseFloat(data_point.value).toFixed(3));
+            data_point.label = data_point.value;
         }
     }
 
-    var series = build_series(colour_metric, format_func);
-    for (var i=0; i<chart.series.length; i++) {
-        chart.series[i].remove();
-    }
-    chart.addSeries(series);
+    _.forEach(series.data, function(data_point) { transform_func(data_point); });
 
+    _.forEach(chart.series, function(series) { series.remove(); });
+    chart.addSeries(series);
     chart.legend.update(
         {
             title: {

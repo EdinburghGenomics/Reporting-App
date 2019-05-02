@@ -43,11 +43,11 @@
     for (m in metrics) {
         var li = $('#' + m);
         var button = $('<a>').attr('id', m).text(metrics[m]['name']);
-        button.click(function() { trigger(this.id); });
+        button.click(function() { render_heatmap(this.id); });
         li.append(button);
     }
 
-    highchart('heatmap', '{{ library }}', '{{ lims_url }}', '{{ qc_url }}', '{{ ajax_token }}', '{{ library }}');
+    init_heatmap('heatmap', '{{ library }}', '{{ lims_url }}', '{{ qc_url }}', '{{ ajax_token }}', '{{ library }}');
 </script>
 
 {% endblock %}

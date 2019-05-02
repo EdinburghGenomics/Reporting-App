@@ -1,12 +1,4 @@
 
-QUnit.test('query_nested_object', function(assert) {
-    var o = {'this': {'that': {'other': 1}}};
-
-    assert.deepEqual(query_nested_object(o, ['this']), {'that': {'other': 1}});
-    assert.equal(query_nested_object(o, ['this', 'that', 'other']), 1);
-    assert.equal(query_nested_object(o, ['this', 'another', 'more']), null);
-});
-
 QUnit.test('build_series', function(assert) {
     fake_renderer = function(metric) { return metric; };
 
