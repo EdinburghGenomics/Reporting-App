@@ -21,7 +21,8 @@ metrics = {
     'rsb_transfer_vol': {name: 'RSB Transfer Volume (uL)', path: ['udf', 'RSB Transfer Volume (uL)']},
     'sample_transfer_vol': {name: 'Sample Transfer Volume (uL)', path: ['udf', 'Sample Transfer Volume (uL)']},
     'tsp1_transfer_vol': {name: 'TSP1 Transfer Volume (uL)', path: ['udf', 'TSP1 Transfer Volume (uL)']},
-    'qc_flag': {name: 'QC flag', path: ['qc_flag'], type: 'category'}
+    'qc_flag': {name: 'QC flag', path: ['qc_flag'], type: 'category'},
+    'project_id': {name: 'Project ID', path: ['project_id'], type: 'category'}
 };
 
 
@@ -38,13 +39,12 @@ function get_lims_and_qc_data(lims_url, qc_url, token, library_id) {
                 var sample_queries = [];  // sample IDs to merge on
                 var sample_coords = {};  // map sample IDs to well coordinates so we know where to merge the data
 
-                var coords = Object.keys(library_data['qc']);
-                _.forEach(coords, function(coord) {
-                    var placement = library_data['qc'][coord];
+                for (coord in library_data['placements']) {
+                    var placement = library_data['placements'][coord];
                     var sample_id = placement['name'];
                     sample_coords[sample_id] = coord;
                     sample_queries.push('{"sample_id":"' + sample_id + '"}');
-                });
+                }
 
                 // query the samples endpoint for IDs found above, merge in the data and trigger the chart
                 $.ajax(
@@ -55,7 +55,7 @@ function get_lims_and_qc_data(lims_url, qc_url, token, library_id) {
                         success: function(result) {
                             _.forEach(result.data, function(sample) {
                                 var coord = sample_coords[sample['sample_id']];
-                                library_data['qc'][coord]['reporting_app'] = sample;
+                                library_data['placements'][coord]['reporting_app'] = sample;
                             });
                             render_heatmap(active_colour_metric);
                         }
@@ -74,7 +74,7 @@ function build_series(colour_metric) {
         dataLabels: {enabled: false}
     }
 
-    var placements = library_data['qc'];
+    var placements = library_data['placements'];
     for (coord in placements) {
         var split_coord = coord.split(':');
         series.data.push(

@@ -322,32 +322,33 @@ class Run:
         }
 
 
-class Library:
+class LibraryPreparation:
     def __init__(self):
         self.id = None
         self.type = None
         self.qpcrs = defaultdict(QPCR)
-        self.projects = set()
 
     def to_json(self):
-        most_recent_prep = sorted(self.qpcrs.values(), key=lambda p: p.date_run, reverse=True)[0]
+        most_recent_qpcr = sorted(self.qpcrs.values(), key=lambda p: p.date_run, reverse=True)[0]
+        projects = set()
         data = {
             'id': self.id,
             'qpcrs_run': len(self.qpcrs),
-            'date_completed': format_date(most_recent_prep.date_run),
-            'qc': {},
-            'project_ids': sorted(self.projects),
+            'date_completed': format_date(most_recent_qpcr.date_run),
+            'placements': {},
             'type': status_cfg.protocol_names.get(self.type, 'unknown'),
-            'nsamples': len(most_recent_prep.placements)
+            'nsamples': len(most_recent_qpcr.placements)
         }
 
         passing_samples = 0
-        for k, v in most_recent_prep.placements.items():
-            data['qc']['%s:%s' % k] = v.to_json()
+        for k, v in most_recent_qpcr.placements.items():
+            projects.add(v.project_id)
+            data['placements']['%s:%s' % k] = v.to_json()
             if v.qc_flag == 'PASSED':
                 passing_samples += 1
 
-        data['pc_qc_flag_pass'] = (passing_samples / len(most_recent_prep.placements)) * 100
+        data['pc_qc_flag_pass'] = (passing_samples / len(most_recent_qpcr.placements)) * 100
+        data['project_ids'] = sorted(projects)
         return data
 
 
@@ -355,10 +356,10 @@ class QPCR:
     def __init__(self):
         self.id = None
         self.date_run = None
-        self.placements = defaultdict(LibrarySample)
+        self.placements = defaultdict(Library)
 
 
-class LibrarySample:
+class Library:
     state_map = {
         0: 'UNKNOWN',
         1: 'PASSED',
@@ -369,6 +370,7 @@ class LibrarySample:
         self.name = None
         self.udf = {}
         self.states = {}
+        self.project_id = None
 
     @cached_property
     def qc_flag(self):
@@ -384,5 +386,6 @@ class LibrarySample:
         return {
             'name': self.name,
             'udf': self.udf,
-            'qc_flag': self.qc_flag
+            'qc_flag': self.qc_flag,
+            'project_id': self.project_id
         }

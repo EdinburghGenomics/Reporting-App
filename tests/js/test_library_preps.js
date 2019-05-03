@@ -4,7 +4,7 @@ QUnit.test('build_series', function(assert) {
 
     library_data = {
         'id': 'a_library',
-        'qc': {
+        'placements': {
             'A:1': {
                 'name': 'a_sample',
                 'udf': {'a_udf': 13.37},
@@ -21,10 +21,10 @@ QUnit.test('build_series', function(assert) {
         build_series('a_metric', fake_renderer),
         {
             name: 'a_library',
+            dataLabels: {enabled: false},
             data: [
                 {'y': 0, 'x': 0, 'value': 13.38, 'name': 'a_sample'}
-            ],
-            dataLabels: {enabled: false}
+            ]
         }
     );
     assert.equal(
@@ -42,7 +42,7 @@ QUnit.test('get_lims_and_qc_data', function(assert) {
         var side_effects = [
             [
                 {
-                    'qc': {
+                    'placements': {
                         'A:1': {'name': 'sample_1', 'udf': {'some': 'lims', 'udf': 'data'}},
                         'A:2': {'name': 'sample_2', 'udf': {'some': 'more', 'lims': 'data'}}
                     }
@@ -78,7 +78,7 @@ QUnit.test('get_lims_and_qc_data', function(assert) {
     assert.deepEqual(
         library_data,
         {
-            'qc': {
+            'placements': {
                 'A:1': {
                     'name': 'sample_1',
                     'reporting_app': {

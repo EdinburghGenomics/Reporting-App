@@ -187,18 +187,18 @@ def library_info(session):
     library_id = query_dict(kwargs, 'match.library_id')
     y_coords = 'ABCDEFGH'
 
-    all_libraries = defaultdict(data_models.Library)
+    all_libraries = defaultdict(data_models.LibraryPreparation)
     for data in queries.library_info(session, time_from, time_to, library_id):
         luid, daterun, library_id, protocol_name, state_qc, state_modified, sample_id, project_id, wellx, welly, udfkey, udfvalue = data
-        library = all_libraries[library_id]
-        library.id = library_id
-        library.projects.add(project_id)
-        library.type = protocol_name
-        prep = library.qpcrs[luid]
-        prep.date_run = daterun
-        sample = prep.placements[(y_coords[welly], wellx + 1)]
-        sample.name = sample_id
-        sample.udf[udfkey] = float(udfvalue)
-        sample.states[state_modified] = state_qc
+        library_prep = all_libraries[library_id]
+        library_prep.id = library_id
+        library_prep.type = protocol_name
+        qpcr = library_prep.qpcrs[luid]
+        qpcr.date_run = daterun
+        library = qpcr.placements[(y_coords[welly], wellx + 1)]
+        library.name = sample_id
+        library.udf[udfkey] = float(udfvalue)
+        library.states[state_modified] = state_qc
+        library.project_id = project_id
 
     return sorted((l.to_json() for l in all_libraries.values()), key=lambda l: l['id'])

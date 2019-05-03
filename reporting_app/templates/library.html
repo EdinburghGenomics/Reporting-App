@@ -16,10 +16,11 @@
 
 <div class="btn-group">
     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        Metric <span class="caret"></span>
+        <span id="selected_metric">Metric</span> <span class="caret"></span>
     </button>
     <ul id="qc_options" class="dropdown-menu">
         <li id="button_qc_flag"></li>
+        <li id="button_project_id"></li>
         <li class="dropdown-header">UDFs</li>
         <li id="button_av_conc"></li>
         <li id="button_pc_cv"></li>
@@ -43,7 +44,7 @@
     for (m in metrics) {
         var li = $('#button_' + m);
         var button = $('<a>').attr('target', m).text(metrics[m]['name']);
-        button.click(function() { render_heatmap(this.target); });
+        button.click(function() { render_heatmap(this.target); $('#selected_metric').text(this.text); });
         li.append(button);
     }
 
