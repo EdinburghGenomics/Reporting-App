@@ -261,7 +261,11 @@ def report_samples(view_type):
     elif view_type == 'notprocessing':
         title = 'Samples not processing'
         ajax_call['api_urls'] = [
-            util.construct_url('samples', where={"$or":[{"useable":"yes"},{"useable":"not marked"}]}, max_results=10000),
+            util.construct_url('samples', where={"$or":[{"aggregated.most_recent_proc": None},
+                                                        {"aggregated.most_recent_proc.status": None},
+                                                        {"aggregated.most_recent_proc.status": "reprocess"},
+                                                        {"aggregated.most_recent_proc.status": "force_ready"},
+                                                        {"aggregated.most_recent_proc.status": "resume"}]}, max_results=10000),
             util.construct_url('lims/sample_status', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'}),
             util.construct_url('lims/sample_info', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'})
         ]
