@@ -1,0 +1,54 @@
+{% extends 'untabbed_datatables.html' %}
+
+{% block head %}
+    {{ super() }}
+<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css"/>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/heatmap.js"></script>
+    <script src="{{ url_for('static', filename='library_preps.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+
+{{ super() }}
+
+<br/>
+
+<div class="btn-group">
+    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <span id="selected_metric">Metric</span> <span class="caret"></span>
+    </button>
+    <ul id="qc_options" class="dropdown-menu">
+        <li id="button_qc_flag"></li>
+        <li id="button_project_id"></li>
+        <li class="dropdown-header">UDFs</li>
+        <li id="button_av_conc"></li>
+        <li id="button_pc_cv"></li>
+        <li id="button_raw_cp"></li>
+        <li id="button_ntp_volume"></li>
+        <li id="button_adjusted_conc"></li>
+        <li id="button_original_conc"></li>
+        <li id="button_ntp_transfer_vol"></li>
+        <li id="button_rsb_transfer_vol"></li>
+        <li id="button_sample_transfer_vol"></li>
+        <li id="button_tsp1_transfer_vol"></li>
+        <li class="dropdown-header">Reporting App</li>
+        <li id="button_pc_q30"></li>
+        <li id="button_pc_mapped_reads"></li>
+    </ul>
+</div>
+
+<div id="heatmap" class="heatmap"></div>
+
+<script>
+    for (m in metrics) {
+        var li = $('#button_' + m);
+        var button = $('<a>').attr('target', m).text(metrics[m]['name']);
+        button.click(function() { render_heatmap(this.target); $('#selected_metric').text(this.text); });
+        li.append(button);
+    }
+
+    init_heatmap('heatmap', '{{ library }}', '{{ lims_url }}', '{{ qc_url }}', '{{ ajax_token }}', '{{ library }}');
+</script>
+
+{% endblock %}

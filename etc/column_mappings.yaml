@@ -61,10 +61,10 @@ column_def:
     nb_invoiced:              { data: 'invoiced',                             title: 'Invoiced' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
     no_call_chip:             { data: 'genotype_validation.no_call_chip',     title: 'No-call (chip)',                                                visible: 'false' }
     no_call_seq:              { data: 'genotype_validation.no_call_seq',      title: 'No-call (seq)',                                                 visible: 'false' }
-    called_gender:            { data: 'called_gender',                        title: 'Called Gender',                                                 visible: 'false' }
-    provided_gender:          { data: 'provided_gender',                      title: 'Provided Gender',                                               visible: 'false' }
-    gender_match:             { data: 'aggregated.gender_match',              title: 'Gender' }
-    passing_filter_reads:     { data: 'passing_filter_reads',                 title: 'Passing-filter reads',     fmt: { type: 'int' } }
+    called_sex:               { data: 'called_gender',                        title: 'Called Sex',                                                    visible: 'false' }
+    provided_sex:             { data: 'provided_gender',                      title: 'Provided Sex',                                                  visible: 'false' }
+    sex_check:                { data: 'aggregated.gender_match',              title: 'Sex check' }
+    passing_filter_reads:     { data: 'passing_filter_reads',                 title: 'Passing-filter reads',     fmt: { type: 'int' }, visible: 'false' }
     pc_adaptor:               { data: 'aggregated.pc_adaptor',                title: '% Adapter',                fmt: { type: 'percentage', max: 5 } }
     pc_duplicate_reads:       { data: 'aggregated.pc_duplicate_reads',        title: '% duplicate reads',        fmt: { type: 'percentage', max: 35 } }
     pc_opt_duplicate_reads:   { data: 'aggregated.pc_opt_duplicate_reads',    title: '% opt duplicate reads',    fmt: { type: 'percentage', max: 25 } }
@@ -137,6 +137,11 @@ column_def:
     yield_x_coverage:         { data: { display: 'coverage.disp', _: 'coverage.order' }, title: 'Coverage' }  # e.g, render as '30X' but sort, search, etc. as '30'
     yield_required:           { data: 'required_yield',                       title: 'Required yield' }
     yield_required_q30:       { data: 'required_yield_q30',                   title: 'Required yield Q30' }
+    library_date_completed:   { data: 'date_completed', title: 'Date completed', fmt: { type: 'datetime' } }
+    library_name:             { data: 'id', title: 'Name', fmt: { link: '/library/' } }
+    library_qpcrs_run:        { data: 'qpcrs_run', title: 'qPCRs run', visible: 'false' }
+    library_pass_rate:        { data: 'pc_qc_flag_pass', title: 'QC flag pass rate', fmt: { type: 'percentage' } }
+    library_nsamples:         { data: 'nsamples', title: '# samples' }
 
 
 
@@ -237,7 +242,7 @@ demultiplexing:
     - barcode
     - project_id
     - sample_id
-    - { column_def: 'passing_filter_reads', visible: 'false' }
+    - passing_filter_reads
     - { column_def: 'yield_in_gb', fmt: { type: 'float' }, visible: 'false' }
     - clean_yield_in_gb
     - { column_def: 'yield_q30_in_gb', fmt: { type: 'float' }, visible: 'false' }
@@ -263,7 +268,7 @@ demultiplexing:
 lane_aggregation:
     - lane_number
     - sample_ids
-    - { column_def: 'passing_filter_reads',  data: 'aggregated.passing_filter_reads', visible: 'false' }
+    - { column_def: 'passing_filter_reads',  data: 'aggregated.passing_filter_reads' }
     - pc_pass_filter
     - { column_def: 'yield_in_gb', visible: 'false' }
     - { column_def: 'clean_yield_in_gb',  fmt: { type: 'float',  min: 120 } }
@@ -289,7 +294,7 @@ lane_aggregation:
 
 unexpected_barcodes:
     - barcode
-    - passing_filter_reads
+    - { column_def: 'passing_filter_reads', visible: 'true' }
     - pc_reads_in_lane
 
 
@@ -303,7 +308,7 @@ samples:
     - { column_def: 'species', visible: 'true' }
     - { column_def: 'clean_yield_in_gb', fmt: { type: 'float', min: {field: 'Required Yield (Gb)', default: 120} } }
     - { column_def: 'clean_yield_q30_in_gb', fmt: { type: 'float', min: {field: 'Yield for Quoted Coverage (Gb)', default: 95} } }
-    - { column_def: 'expected_yield', data: 'Required Yield (Gb)', visible: 'false', fmt: { type: 'float' } }
+    - { column_def: 'expected_yield', data: 'Required Yield (Gb)', fmt: { type: 'float' } }
     - expected_yield_q30
     - tissue_type
     - tumor_sample
@@ -326,9 +331,9 @@ samples:
     - pipeline_used
     - genome_used
     - species_found
-    - gender_match
-    - called_gender
-    - provided_gender
+    - sex_check
+    - called_sex
+    - provided_sex
     - genotype_match
     - matching_snps
     - mismatching_snps
@@ -358,7 +363,7 @@ sample_run_elements:
     - clean_pc_q30_r1
     - clean_pc_q30_r2
     - clean_pc_q30
-    - { column_def: 'lane_pc_optical_dups', visible: 'true' }
+    - lane_pc_optical_dups
     - pc_adaptor
     - pc_phix
     - pc_mapped_reads
@@ -395,3 +400,14 @@ yields:
     - yield_x_coverage
     - yield_required
     - yield_required_q30
+
+
+libraries:
+    - library_name
+    - { column_def: 'library_type', data: 'type', title: 'Library type', visible: 'true' }
+    - library_qpcrs_run
+    - library_date_completed
+    - library_pass_rate
+    - library_nsamples
+    - project_ids
+

@@ -94,7 +94,6 @@ started_steps:
     - Receive Sample 4.0
     - Receive Sample EG 6.1
 
-qc_steps:
-    - Awaiting User Response EG 2.0
-    - Sequencing Plate Preparation EG 2.0
-    - Sequencing Plate Preparation EG 1.0
+protocol_names:
+  TruSeq Nano Sample Prep: TRUSEQ_NANO
+  TruSeq PCR-Free Sample Prep: TRUSEQ_PCR_FREE

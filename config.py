@@ -60,7 +60,8 @@ class ProjectStatusConfig(Configuration):
             'step_queued_to_status',
             'additional_step_completed',
             'library_type_step_completed',
-            'library_planned_alias'
+            'library_planned_alias',
+            'protocol_names'
         ]:
             transformed_section = dict(
                 [(k, self.status_names.get(v)) for k, v in self.content[section].items()]

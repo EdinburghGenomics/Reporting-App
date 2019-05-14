@@ -4,7 +4,7 @@ import pytest
 import werkzeug
 from rest_api import app
 from rest_api.actions import automatic_review as ar, AutomaticRunReviewer
-from rest_api.actions.automatic_review import AutomaticSampleReviewer, AutomaticLaneReviewer
+from rest_api.actions.automatic_review import AutomaticSampleReviewer, AutomaticLaneReviewer, AutomaticReviewer
 from tests.test_rest_api import TestBase
 
 ppath = 'rest_api.actions.automatic_review.'
@@ -51,31 +51,6 @@ failing_lanes = [
             'pc_duplicate_reads': 22.9,
             'pc_opt_duplicate_reads': 21.1,
             'pc_adaptor': 0.3
-        }
-    }
-]
-
-failing_runs = [
-    {
-        'run_id': 'run1',
-        'aggregated': {
-            'pc_q30': 73.4,
-            'pc_q30_r1': 76.1,
-            'pc_q30_r2': 70.6,
-            "yield_in_gb": 1096.2,
-            "pc_duplicate_reads": 22.59,
-            'pc_opt_duplicate_reads': 21.1,
-            'pc_adaptor': 1.3
-        }
-    },
-    {
-        'run_id': 'run2',
-        'aggregated': {
-            'pc_q30': 81.5,
-            "yield_in_gb": 920.12,
-            "pc_duplicate_reads": 30.59,
-            'pc_opt_duplicate_reads': 21.1,
-            'pc_adaptor': 0.8
         }
     }
 ]
@@ -165,52 +140,49 @@ non_human_sample = {
 }
 
 
-class TestRunReviewer(TestBase):
-
-    def setUp(self):
-        self.init_request = Mock(form={'run_id': 'run1'})
-        with patch.object(AutomaticLaneReviewer, 'eve_get', return_value=[passing_lane]):
-            self.reviewer1 = ar.AutomaticRunReviewer(self.init_request)
+class TestAutomaticReview(TestBase):
 
     def test_eve_get(self):
+        reviewer = ar.AutomaticReviewer()
         page1 = {'data': ['test1'], '_links': {'next': {'href': 'endpoint?page=2'}}}
         page2 = {'data': ['test2'], '_links': {'next': {'href': 'endpoint?page=3'}}}
         page3 = {'data': ['test3'], '_links': {}}
 
         with patch('rest_api.actions.automatic_review.get', side_effect=[(page1,), (page2,), (page3,)]) as mock_get:
             with app.test_request_context():
-                assert self.reviewer1.eve_get('endpoint', param1='this') == ['test1', 'test2', 'test3']
+                assert reviewer.eve_get('endpoint', param1='this') == ['test1', 'test2', 'test3']
                 mock_get.call_count == 3
                 mock_get.assert_called_with('endpoint', param1='this')
 
-    def test_reviewable_data(self):
-        with patch.object(AutomaticLaneReviewer, 'eve_get', return_value=(failing_runs[0],)) as patch_get:
-            assert self.reviewer1.reviewable_data == failing_runs[0]
-            patch_get.assert_called_once_with('runs', run_id='run1')
+
+class TestRunReviewer(TestBase):
+
+    def setUp(self):
+        self.init_request = Mock(form={'run_id': 'run1'})
+        with patch.object(AutomaticReviewer, 'eve_get', return_value=failing_lanes):
+            self.reviewer1 = ar.AutomaticRunReviewer(self.init_request)
 
     def test_perform_action(self):
-        with patch.object(AutomaticRunReviewer, 'reviewable_data', new_callable=PropertyMock(return_value=failing_runs[0])), \
-             patch.object(AutomaticRunReviewer, 'run_elements', new_callable=PropertyMock(return_value=run_elements)), \
+        with patch.object(AutomaticLaneReviewer, 'run_elements', new_callable=PropertyMock(return_value=run_elements)), \
              patch(ppath + 'patch_internal') as mocked_patch:
                 self.reviewer1._perform_action()
-                mocked_patch.assert_any_call(
-                    'run_elements', lane=1, run_id='run1', barcode='b1',
-                    payload={
-                        'review_date': self.reviewer1.current_time,
-                        'review_comments': 'Failed due to Run PC Q30 < 75',
-                        'reviewed': 'fail'
-                    }
-                )
-                mocked_patch.assert_called_with(
-                    'run_elements', lane=1, run_id='run1', barcode='b2',
-                    payload={
-                        'review_date': self.reviewer1.current_time,
-                        'review_comments': 'Failed due to Run PC Q30 < 75',
-                        'reviewed': 'fail'}
-                )
+                payload1 = {
+                    'review_date': self.reviewer1.current_time,
+                    'review_comments': 'Failed due to Optical duplicate rate > 30, Yield < 120, Yield with no adapters and no duplicates < 96',
+                    'reviewed': 'fail'
+                }
+                payload2 = {
+                    'review_date': self.reviewer1.current_time,
+                    'review_comments': 'Failed due to PC Q30 < 75, Yield < 120, Yield with no adapters and no duplicates < 96',
+                    'reviewed': 'fail'
+                }
+                mocked_patch.assert_any_call('run_elements', lane=1, run_id='a_run', barcode='b1', payload=payload1)
+                mocked_patch.assert_any_call('run_elements', lane=1, run_id='a_run', barcode='b2', payload=payload1)
+                mocked_patch.assert_any_call('run_elements', lane=1, run_id='a_run', barcode='b1', payload=payload2)
+                mocked_patch.assert_any_call('run_elements', lane=1, run_id='a_run', barcode='b2', payload=payload2)
 
     def test_unknown_run(self):
-        with patch.object(AutomaticLaneReviewer, 'eve_get', return_value=[]):
+        with patch.object(AutomaticReviewer, 'eve_get', return_value=[]):
             with pytest.raises(werkzeug.exceptions.NotFound):
                 _ = AutomaticRunReviewer(Mock(form={'run_id': 'unknown_run'}))
 

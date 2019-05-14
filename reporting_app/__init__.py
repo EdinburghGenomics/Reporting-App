@@ -117,10 +117,10 @@ def runs_report(view_type):
             util.construct_url('lims/run_status'),
         ]
 
-    elif view_type in ['recent', 'current_year', 'year_to_date']:
+    elif view_type in ['recent', 'current_year', 'last_12_months']:
         if view_type == 'recent':
             time_ago = util.now() - datetime.timedelta(days=30)
-        elif view_type == 'year_to_date':
+        elif view_type == 'last_12_months':
             time_ago = util.now() - datetime.timedelta(days=365)
         elif view_type == 'current_year':
             y = util.now().year
@@ -426,6 +426,61 @@ def plotting_report():
     )
 
 
+@app.route('/libraries/<view_type>')
+@flask_login.login_required
+def libraries(view_type):
+    query_params = {'max_results': 10000}
+
+    time_ago = None
+    if view_type == 'recent':
+        time_ago = util.now() - datetime.timedelta(days=30)
+    elif view_type == 'last_12_months':
+        time_ago = util.now() - datetime.timedelta(days=365)
+    elif view_type == 'current_year':
+        y = util.now().year
+        time_ago = datetime.datetime(year=y, month=1, day=1)
+        view_type = str(y)
+    elif view_type == 'all':
+        pass
+    else:
+        fl.abort(404)
+        return None
+
+    if time_ago:
+        query_params['time_from'] = time_ago.strftime(settings.DATE_FORMAT)
+
+    title = util.capitalise(view_type).replace('_', ' ') + ' Libraries'
+    return render_template(
+        'untabbed_datatables.html',
+        title,
+        table=util.datatable_cfg(
+            title,
+            'libraries',
+            util.construct_url('lims/library_info', **query_params),
+            default_sort_col='-library_date_completed'
+        )
+    )
+
+
+@app.route('/library/<library>')
+@flask_login.login_required
+def plot_library(library):
+    return render_template(
+        'library.html',
+        'Library ' + library,
+        table=util.datatable_cfg(
+            'Library ' + library,
+            'libraries',
+            util.construct_url('lims/library_info', match={'library_id': library}),
+            minimal=True
+        ),
+        library=library,
+        qc_url=util.construct_url('samples'),
+        lims_url=util.construct_url('lims/library_info'),
+        ajax_token=util.get_token()
+    )
+
+
 @app.route('/project_status/', defaults={'prj_status': 'open'})
 @app.route('/project_status/<prj_status>')
 @flask_login.login_required
@@ -440,14 +495,26 @@ def project_status_reports(prj_status):
             }
         )
 
+    # Last week project status page is a special case and needs to be rendered slightly differently.
+    if prj_status == 'lastweek':
+        seven_days_ago = datetime.datetime.now() - datetime.timedelta(days=7)
+        page_title = 'Project status last week'
+        page_header = 'Status of Projects Last Week'
+        api_url = util.construct_url('lims/project_status',
+                                     match={'process_limit_date': seven_days_ago.strftime(settings.DATE_FORMAT)})
+    else:
+        page_title = prj_status.capitalize() + ' Project Status'
+        page_header = 'Status of ' + prj_status.capitalize() + ' Projects'
+        api_url = util.construct_url('lims/project_status', match={'project_status': prj_status})
+
     return render_template(
         'project_status.html',
-        prj_status.capitalize() + ' Project Status',
+        page_title,
         status_order=status_order,
         table=util.datatable_cfg(
-            'Status of ' + prj_status.capitalize() + ' Projects',
+            page_header,
             'project_status',
-            api_url=util.construct_url('lims/project_status', match={'project_status': prj_status}),
+            api_url=api_url,
             state_save=True,
             fixed_header=True,
             table_foot='sum_row_per_column'

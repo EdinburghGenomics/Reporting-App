@@ -30,6 +30,8 @@ def add_filters(q, **kwargs):
         q = q.filter(t.Process.workstatus == kwargs.get('workstatus'))
     if kwargs.get('time_since'):
         q = q.filter(func.date(t.Sample.datereceived) > func.date(kwargs.get('time_since')))
+    if kwargs.get('process_limit_date'):
+        q = q.filter(func.date(t.Process.createddate) <= func.date(kwargs.get('process_limit_date')))
     return q
 
 
@@ -71,8 +73,8 @@ def get_sample_info(session, project_name=None, sample_name=None, project_status
 
 
 def get_samples_and_processes(session, project_name=None, sample_name=None, list_process=None, workstatus=None,
-                              time_since=None, project_status='open'):
-    """Run a query that returns samples and the processeses they went through"""
+                              time_since=None, process_limit_date=None, project_status='open'):
+    """Run a query that returns samples and the processeses they went through up to process_limit_date"""
     q = session.query(t.Project.name, t.Sample.name, t.ProcessType.displayname,
                       t.Process.workstatus, t.Process.createddate, t.Process.processid) \
         .distinct(t.Sample.name, t.Process.processid) \
@@ -82,14 +84,15 @@ def get_samples_and_processes(session, project_name=None, sample_name=None, list
         .join(t.ProcessIOTracker.process) \
         .join(t.Process.type)
     q = add_filters(q, project_name=project_name, sample_name=sample_name, list_process=list_process,
-                    workstatus=workstatus, project_status=project_status, time_since=time_since)
+                    workstatus=workstatus, project_status=project_status, time_since=time_since,
+                    process_limit_date=process_limit_date)
     return q.all()
 
 
 def get_sample_in_queues_or_progress(session, project_name=None, sample_name=None, list_process=None, time_since=None,
-                                     project_status='open'):
+                                     process_limit_date=None, project_status='open'):
     """
-    Get all samples sitting in the queue of an allegedly non-QC step. See explanation at
+    Get all samples sitting in the queue of an allegedly non-QC step up to a process_limit_date. See explanation at
     https://genologics.zendesk.com/hc/en-us/articles/213982003-Reporting-the-contents-of-a-Queue
     """
 
@@ -98,6 +101,9 @@ def get_sample_in_queues_or_progress(session, project_name=None, sample_name=Non
     subq = session.query(t.ProcessIOTracker.inputartifactid, t.Process.processid, t.Process.typeid, t.Process.lastmodifieddate)
     subq = subq.join(t.ProcessIOTracker.process)
     subq = subq.filter(t.Process.workstatus != 'COMPLETE')
+    # Filter Process.createddate (in progress dates) to ensure they are < process_limit_date, if provided
+    subq = add_filters(subq, process_limit_date=process_limit_date)
+
     subq = subq.subquery()
 
     q = session.query(
@@ -123,6 +129,10 @@ def get_sample_in_queues_or_progress(session, project_name=None, sample_name=Non
     q = q.order_by(t.Project.name, t.Sample.name, t.ProcessType.displayname)
     q = add_filters(q, project_name=project_name, sample_name=sample_name, list_process=list_process,
                     project_status=project_status, time_since=time_since)
+    # Filter StageTransition.createddate (queued dates), to ensure it they are < process_limit_date, if provided
+    if process_limit_date:
+        q = q.filter(t.StageTransition.createddate <= process_limit_date)
+
     # StageTransition.workflowrunid is positive when the transition is not
     # complete and negative when the transition is completed
     q = q.filter(t.StageTransition.workflowrunid > 0)
@@ -238,32 +248,42 @@ def runs_cst(session, time_since=None, run_ids=None, run_status=None):
     return results
 
 
-def get_library_prep_info(session, project_name=None, sample_name=None, project_status='open', list_process=None, process_id=None):
-    """Run a query that returns samples and the processeses they went through up to process_limit_date"""
-    q = session.query(t.Project.name, t.Sample.name, t.Container.name, t.ContainerPlacement.wellxposition,
-                      t.ContainerPlacement.wellyposition, t.ProcessType.displayname,
-                      t.Process.workstatus, t.Process.createddate, t.Process.processid) \
-        .distinct(t.Sample.name, t.Process.processid) \
-        .join(t.Sample.project) \
-        .join(t.Sample.artifacts) \
-        .join(t.Artifact.processiotrackers) \
-        .join(t.Artifact.containerplacement) \
-        .join(t.ContainerPlacement.container) \
-        .join(t.ProcessIOTracker.process) \
-        .join(t.Process.type)
-    q = add_filters(q, project_name=project_name, sample_name=sample_name, list_process=list_process, project_status=project_status)
-    if process_id:
-        q = q.filter(t.Process.processid == process_id)
+def library_info(session, time_from=None, time_to=None, library_id=None):
+    """
+    Get a join of artifact UDFs, plate coordinates and QC flags for all Eval qPCR Quant processes - filterable to a
+    library ID or date range.
+    """
+
+    q = session.query(t.Process.luid, t.Process.daterun, t.Container.name, t.LabProtocol.protocolname,
+                      t.ArtifactState.qcflag, t.ArtifactState.lastmodifieddate, t.Sample.name, t.Project.name,
+                      t.ContainerPlacement.wellxposition, t.ContainerPlacement.wellyposition, t.ArtifactUdfView.udfname,
+                      t.ArtifactUdfView.udfvalue)\
+        .join(t.Process.type)\
+        .join(t.Process.protocolstep)\
+        .join(t.ProtocolStep.labprotocol)\
+        .join(t.Process.processiotrackers)\
+        .join(t.ProcessIOTracker.artifact) \
+        .join(t.Artifact.udfs)\
+        .join(t.Artifact.containerplacement)\
+        .join(t.Artifact.samples)\
+        .join(t.Artifact.states)\
+        .join(t.Sample.project)\
+        .join(t.ContainerPlacement.container)\
+        .filter(t.ProcessType.displayname == 'Eval qPCR Quant')\
+        .filter(t.ArtifactUdfView.udfname.in_(
+            ['Original Conc. (nM)', 'Sample Transfer Volume (uL)', 'TSP1 Transfer Volume (uL)', '%CV',
+             'NTP Volume (uL)', 'Raw CP', 'RSB Transfer Volume (uL)', 'NTP Transfer Volume (uL)', 'Ave. Conc. (nM)',
+             'Adjusted Conc. (nM)', 'Original Conc. (nM)', 'Sample Transfer Volume (uL)',
+             'TSP1 Transfer Volume (uL)']))\
+        .filter(t.ArtifactUdfView.udfvalue != None)
+
+    if library_id:
+        q = q.filter(t.Container.name == library_id)
+    else:
+        if time_from:
+            q = q.filter(t.Process.daterun > func.date(time_from))
+
+        if time_to:
+            q = q.filter(t.Process.daterun < func.date(time_to))
+
     return q.all()
-
-
-if __name__ == '__main__':
-    import datetime
-    from rest_api.limsdb import get_session
-    session = get_session()
-    #res = get_samples_and_processes(session, list_process=['Eval qPCR Quant'])
-    res = get_library_prep_info(session, sample_name='X99008P007A01', list_process=['Eval qPCR Quant'])
-    res = get_library_prep_info(session, sample_name='X99008P007A01')
-    #, process_id='107579'
-    for p in res:
-        print(p)
