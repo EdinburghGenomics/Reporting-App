@@ -4,7 +4,6 @@
 {% block head %}
     {{ super() }}
     <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css"/>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-more.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
@@ -12,23 +11,6 @@
     <script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/mathjs/3.10.0/math.min.js"></script>
     <script src="{{ url_for('static', filename='charts.js') }}"></script>
-
-    <script type="text/javascript">
-        function load_graphs(callback){
-            $('#loadingmessage').show();
-            $.ajax({
-                url: '{{ api_url|safe }}',
-                dataType: "json",
-                async: true,
-                headers: {'Authorization': '{{ ajax_token | safe}}'},
-                success: function(json) {
-                    $('#loadingmessage').hide();
-                    callback(json['data']);
-                    $('#plots_div').show();
-                }
-            });
-        }
-    </script>
 {% endblock %}
 
 {% if tables %}
@@ -68,21 +50,13 @@
             </div>
 
         </div>
-        <p>
-            Here's a simple Plotly plot -
-        </p>
-        <div id="plotly_cont"></div>
-        <p>
-            Here's a simple Highchart plot -
-        </p>
-
         <div id="highchart_cont"></div>
     </div>
 
 
 
     <script>
-        load_graphs(all_tat_charts);
+        load_tat_graphs('{{ api_url|safe }}', '{{ ajax_token | safe}}');
     </script>
 
 

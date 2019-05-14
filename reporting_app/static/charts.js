@@ -211,154 +211,6 @@ function draw_highcharts_tat_graphs(data, field_name, time_period){
 }
 
 
-function draw_highcharts_plate_view(title){
-Highcharts.chart('container', {
-
-    chart: {
-        type: 'heatmap',
-        marginTop: 40,
-        marginBottom: 80,
-        plotBorderWidth: 1
-    },
-    title: { text: title},
-    xAxis: { categories: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] },
-    yAxis: { categories: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'], title: null},
-    colorAxis: {
-        min: 0,
-        minColor: '#FFFFFF',
-        maxColor: Highcharts.getOptions().colors[0]
-    },
-
-    legend: {
-        align: 'right',
-        layout: 'vertical',
-        margin: 0,
-        verticalAlign: 'top',
-        y: 25,
-        symbolHeight: 280
-    },
-
-    tooltip: {
-        formatter: function () {
-            return '<b>' + this.series.xAxis.categories[this.point.x] + '</b> sold <br><b>' +
-                this.point.value + '</b> items on <br><b>' + this.series.yAxis.categories[this.point.y] + '</b>';
-        }
-    },
-
-    series: [{
-        name: 'Sales per employee',
-        borderWidth: 1,
-        data: [[0, 0, 10], [0, 1, 19], [0, 2, 8]],
-        dataLabels: {
-            enabled: true,
-            color: '#000000'
-        }
-    }]
-
-});
-
-}
-
-
-function draw_plotly_tat_graphs(data, field_name, time_period){
-
-    function compare_aggregate(a, b){
-        return parseInt(a[field_name]) - parseInt(b[field_name]);
-    }
-
-    aggregated_data = aggregate(data, field_name, 'tat', average);
-    aggregated_data = aggregated_data.sort(compare_aggregate);
-    var trace1 = {
-        x: aggregated_data.map(function(d){return parseInt(d[field_name])}),
-        y: aggregated_data.map(function(d){return d['tat']}),
-        text: aggregated_data.map(function(d){return format_text_tat(parseInt(d[field_name]), d['tat'], time_period, 'weeks')}),
-        type: 'line',
-        marker: {color: '#FF4D4D'},
-        name: 'Avg Turn around time',
-        hoverinfo: 'text'
-    };
-
-    sorted_data = data.sort(compare_aggregate);
-    var trace2 = {
-        x: sorted_data.map(function(d){return parseInt(d[field_name])}),
-        y: sorted_data.map(function(d){return d['tat']}),
-        y0: 0,
-        //text: aggregated_data.map(function(d){return tootltips_format(parseInt(d[field_name]), d['tat'], 'weeks')}),
-        type: 'box',
-        marker: {
-            size: 4,
-            color: '#FF4136'
-        },
-        name: 'Turn around time',
-        hoverinfo: 'all'
-    };
-
-    aggregated_data = aggregate(data, field_name, 'count', count);
-    aggregated_data = aggregated_data.sort(compare_aggregate);
-    var trace3 = {
-        x: aggregated_data.map(function(d){return parseInt(d[field_name])}),
-        y: aggregated_data.map(function(d){return d['count']}),
-        text: aggregated_data.map(function(d){return format_text_tat(parseInt(d[field_name]), d['count'], time_period, 'samples')}),
-        type: 'bar',
-        marker: {color: '#CACDD1'},
-        name: 'Number of sample',
-        hoverinfo: 'text',
-        yaxis: 'y2'
-    };
-
-    var data = [ trace1, trace2, trace3 ];
-
-    var selectorOptions = {
-        buttons: [{
-            step: 'month',
-            stepmode: 'backward',
-            count: 1,
-            label: '1m'
-        }, {
-            step: 'month',
-            stepmode: 'backward',
-            count: 6,
-            label: '6m'
-        }, {
-            step: 'year',
-            stepmode: 'todate',
-            count: 1,
-            label: 'YTD'
-        }, {
-            step: 'year',
-            stepmode: 'backward',
-            count: 1,
-            label: '1y'
-        }, {
-            step: 'all',
-        }],
-    };
-
-    var layout = {
-        xaxis: {
-            type: 'date',
-            title: 'Date',
-            rangeselector: selectorOptions,
-            rangeslider: {visible: false}
-        },
-        yaxis: {
-            title: 'Turnaround time (weeks)',
-            overlaying: 'y2',
-            fixedrange: true,
-        },
-        yaxis2: {
-            title: 'Number of sample',
-            side: 'right',
-            fixedrange: true
-        },
-        title:'Turnaround time per ' + time_period,
-
-    };
-
-    Plotly.purge('plotly_cont');
-    return Plotly.plot('plotly_cont', data, layout);
-}
-
 // Return the id of the checked radio button base on the button name
 function get_radio_value(radio_name){
     var options = document.getElementsByName(radio_name);
@@ -372,7 +224,6 @@ function get_radio_value(radio_name){
 
 function check_state_and_draw(filtered_data){
     var field_name = get_radio_value("radio_button2") + get_radio_value("radio_button1");
-    draw_plotly_tat_graphs(filtered_data, field_name, get_radio_value("radio_button1"));
     draw_highcharts_tat_graphs(filtered_data, field_name, get_radio_value("radio_button1") );
 }
 
@@ -740,5 +591,18 @@ function plotCharts(run_elements) {
     });
 }
 
-
-
+// Load the ajax call and plot the TAT plot
+function load_tat_graphs(url, token){
+    $('#loadingmessage').show();
+    $.ajax({
+        url: url,
+        dataType: "json",
+        async: true,
+        headers: {'Authorization': token},
+        success: function(json) {
+            $('#loadingmessage').hide();
+            all_tat_charts(json['data']);
+            $('#plots_div').show();
+        }
+    });
+}
