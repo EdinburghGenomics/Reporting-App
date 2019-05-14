@@ -259,16 +259,18 @@ def report_samples(view_type):
             util.construct_url('lims/sample_info', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'})
         ]
     elif view_type == 'notprocessing':
+        # Samples which have clean yield value populated, and have not started processing yet, or have a status of
+        # reprocess, force_ready, resume or null.
         title = 'Samples not processing'
         ajax_call['api_urls'] = [
-            util.construct_url('samples', where={"$and":[{"aggregated.clean_yield_in_gb":{"$exists": True,"$ne": None}},
-                                                        {"$or":[
+            util.construct_url('samples', where={"$and": [{"aggregated.clean_yield_in_gb": {"$exists": True, "$ne": None}},
+                                                          {"$or": [
                                                             {"aggregated.most_recent_proc": None},
                                                             {"aggregated.most_recent_proc.status": None},
                                                             {"aggregated.most_recent_proc.status": "reprocess"},
                                                             {"aggregated.most_recent_proc.status": "force_ready"},
                                                             {"aggregated.most_recent_proc.status": "resume"}
-                                                        ]}]}, max_results=10000),
+                                                          ]}]}, max_results=10000),
             util.construct_url('lims/sample_status', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'}),
             util.construct_url('lims/sample_info', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'})
         ]
