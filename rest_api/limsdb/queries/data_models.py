@@ -368,7 +368,7 @@ class Library:
 
     def __init__(self):
         self.name = None
-        self.udf = {}
+        self.library_qc = {}
         self.states = {}
         self.project_id = None
 
@@ -385,7 +385,7 @@ class Library:
     def to_json(self):
         return {
             'name': self.name,
-            'udf': self.udf,
+            'library_qc': self.library_qc,
             'qc_flag': self.qc_flag,
             'project_id': self.project_id
         }

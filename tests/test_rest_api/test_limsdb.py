@@ -431,13 +431,13 @@ def test_library_preparation(mocked_library_info, mocked_retrieve_args):
             'placements': {
                 'A:1': {
                     'name': 'sample_1',
-                    'udf': {'a_udf': 1.0, 'another_udf': 2.1},
+                    'library_qc': {'a_udf': 1.0, 'another_udf': 2.1},
                     'qc_flag': 'PASSED',
                     'project_id': 'a_project'
                 },
                 'A:2': {
                     'name': 'sample_2',
-                    'udf': {'a_udf': 3.2},
+                    'library_qc': {'a_udf': 3.2},
                     'qc_flag': 'PASSED',
                     'project_id': 'a_project'
                 }

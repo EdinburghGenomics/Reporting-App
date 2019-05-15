@@ -49,27 +49,18 @@ class DataRelation:
     def superelements(self):
         return {}
 
-    @staticmethod
-    def _get_relations(endpoint, where):
-        cls = data_relations[endpoint]
-        return [cls(d) for d in db[endpoint].find(where) if d]
-
-    @staticmethod
-    def _get_relation(endpoint, where):
-        d = db[endpoint].find_one(where)
-        if d:
-            return data_relations[endpoint](d)
-
     def _embed(self):
-        for k, v in self.subelements.items():
-            rels = self._get_relations(k, v)
-            self.data[k] = [r.data for r in rels]
+        for key, cls, where in self.subelements:
+            rels = [cls(d) for d in db[cls.endpoint].find(where) if d]
+            self.data[key] = [r.data for r in rels]
 
     def _trigger_superelement_aggregation(self):
-        for k, v in self.superelements.items():
-            rel = self._get_relation(k, v)
-            if rel:
-                rel.aggregate()
+        for key, cls, where in self.superelements:
+            endpoint = cls.endpoint
+            d = db[endpoint].find_one(where)
+            if d:
+                superelement = cls(d)
+                superelement.aggregate()
 
     def aggregate(self):
         self._embed()
@@ -159,11 +150,11 @@ class RunElement(DataRelation):
 
     @property
     def superelements(self):
-        return {
-            'runs': {'run_id': self.data['run_id']},
-            'lanes': {'run_id': self.data['run_id'], 'lane_number': self.data['lane']},
-            'samples': {'sample_id': self.data['sample_id']}
-        }
+        return [
+            ('runs', Run, {'run_id': self.data['run_id']}),
+            ('lanes', Lane, {'run_id': self.data['run_id'], 'lane_number': self.data['lane']}),
+            ('samples', Sample, {'sample_id': self.data['sample_id']})
+        ]
 
 
 class Run(DataRelation):
@@ -191,10 +182,10 @@ class Run(DataRelation):
 
     @property
     def subelements(self):
-        return {
-            'run_elements': {'run_id': self.data['run_id']},
-            'analysis_driver_procs': {'dataset_type': 'run', 'dataset_name': self.data['run_id']}
-        }
+        return [
+            ('run_elements', RunElement, {'run_id': self.data['run_id']}),
+            ('analysis_driver_procs', AnalysisDriverProc, {'dataset_type': 'run', 'dataset_name': self.data['run_id']})
+        ]
 
 
 class Lane(DataRelation):
@@ -227,7 +218,9 @@ class Lane(DataRelation):
 
     @property
     def subelements(self):
-        return {'run_elements': {'run_id': self.data['run_id'], 'lane': self.data['lane_number']}}
+        return [
+            ('run_elements', RunElement, {'run_id': self.data['run_id'], 'lane': self.data['lane_number']})
+        ]
 
 
 class Project(DataRelation):
@@ -244,10 +237,10 @@ class Project(DataRelation):
 
     @property
     def subelements(self):
-        return {
-            'samples': {'project_id': self.data['project_id']},
-            'analysis_driver_procs': {'dataset_type': 'project', 'dataset_name': self.data['project_id']}
-        }
+        return [
+            ('samples', Sample, {'project_id': self.data['project_id']}),
+            ('analysis_driver_procs', AnalysisDriverProc, {'dataset_type': 'project', 'dataset_name': self.data['project_id']})
+        ]
 
 
 class Sample(DataRelation):
@@ -278,6 +271,22 @@ class Sample(DataRelation):
                 'duplicate_reads': Total('run_elements.mapping_metrics.duplicate_reads'),
                 'picard_dup_reads': Total('run_elements.mapping_metrics.picard_dup_reads'),
                 'picard_opt_dup_reads': Total('run_elements.mapping_metrics.picard_opt_dup_reads')
+            },
+            'from_all_run_elements': {
+                'picard_opt_dup_reads': Total('all_run_elements.mapping_metrics.picard_opt_dup_reads'),
+                'bam_file_reads': Total('all_run_elements.mapping_metrics.bam_file_reads'),
+                'duplicate_reads': Total('all_run_elements.mapping_metrics.duplicate_reads'),
+                'gc_bias': {
+                    # caveat: we're taking averages of averages here
+                    'mean_deviation': Mean('all_run_elements.gc_bias.mean_deviation'),
+                    'slope': Mean('all_run_elements.gc_bias.slope')
+                },
+                'pc_adaptor': Percentage(
+                    Add(Total('all_run_elements.adaptor_bases_removed_r1'), Total('all_run_elements.adaptor_bases_removed_r2')),
+                    Add(Total('all_run_elements.bases_r1'), Total('all_run_elements.bases_r2'))
+                ),
+                'mean_insert_size': Mean('all_run_elements.mapping_metrics.mean_insert_size'),  # as above
+                'picard_est_lib_size': Mean('all_run_elements.mapping_metrics.picard_est_lib_size')
             }
         },
         {
@@ -285,20 +294,27 @@ class Sample(DataRelation):
                 'pc_mapped_reads': Percentage('aggregated.from_run_elements.mapped_reads', 'aggregated.from_run_elements.bam_file_reads'),
                 'pc_duplicate_reads': Percentage('aggregated.from_run_elements.duplicate_reads', 'aggregated.from_run_elements.bam_file_reads'),
                 'pc_opt_duplicate_reads': Percentage('aggregated.from_run_elements.picard_opt_dup_reads', 'aggregated.from_run_elements.bam_file_reads'),
+            },
+            'from_all_run_elements': {
+                'pc_duplicate_reads': Percentage('aggregated.from_all_run_elements.duplicate_reads', 'aggregated.from_all_run_elements.bam_file_reads'),
+                'pc_opt_duplicate_reads': Percentage('aggregated.from_all_run_elements.picard_opt_dup_reads', 'aggregated.from_all_run_elements.bam_file_reads'),
             }
         }
     ]
 
     @property
     def subelements(self):
-        return {
-            'run_elements': {'sample_id': self.data['sample_id'], 'useable': 'yes'},
-            'analysis_driver_procs': {'dataset_type': 'sample', 'dataset_name': self.data['sample_id']}
-        }
+        return [
+            ('run_elements', RunElement, {'sample_id': self.data['sample_id'], 'useable': 'yes'}),
+            ('all_run_elements', RunElement, {'sample_id': self.data['sample_id']}),
+            ('analysis_driver_procs', AnalysisDriverProc, {'dataset_type': 'sample', 'dataset_name': self.data['sample_id']})
+        ]
 
     @property
     def superelements(self):
-        return {'projects': {'project_id': self.data['project_id']}}
+        return [
+            ('projects', Project, {'project_id': self.data['project_id']})
+        ]
 
 
 class AnalysisDriverProc(DataRelation):
@@ -313,7 +329,9 @@ class AnalysisDriverProc(DataRelation):
     @property
     def superelements(self):
         endpoint, id_field = self.superendpoints[self.data['dataset_type']]
-        return {endpoint: {id_field: self.data['dataset_name']}}
+        return [
+            (endpoint, data_relations[endpoint], {id_field: self.data['dataset_name']})
+        ]
 
 
 class Species(DataRelation):
