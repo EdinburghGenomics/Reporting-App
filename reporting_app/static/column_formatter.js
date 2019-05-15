@@ -153,8 +153,11 @@ function resolve_min_max_value(row, value){
     return value;
 }
 
-// Checks whether the date_value is longer ago than a week from the current date
+
 function staleness_evaluator(cell_data, row) {
+/*
+ * Checks whether the date_value is longer ago than a week from the current date
+ */
     // Looping through the row to match the cell_data to a status
     for (item in row) {
         if ( cell_data.sort() == row[item] ){
