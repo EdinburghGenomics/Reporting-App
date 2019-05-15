@@ -1,5 +1,5 @@
 import json
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import datetime
 from time import sleep
 from unittest.mock import patch
@@ -246,8 +246,8 @@ class TestLIMSRestAPI(TestBase):
                 'species': 'Gallus gallus',
                 'started_date': None,
                 'required_yield': '30',
-                'required_coverage': '15'
-            }]
+                'required_coverage': '15',
+                'sample_per_status_date': defaultdict(set, {'finished':'2018-02-15T00:00:00', 'library_queue':'2018-02-10T00:00:00'})}]
         }
         assert_json_equal(json_of_response(response), exp)
 
