@@ -275,7 +275,8 @@ class TestLIMSRestAPI(TestBase):
                 'project_id': 'testproject1',
                 'species': 'Gallus gallus',
                 'required_yield': '30',
-                'required_coverage': '15'
+                'required_coverage': '15',
+                'sample_per_status_date': {'finished': '2018-02-15T00:00:00', 'library_queue': '2018-02-10T00:00:00'},
             }]
         }
         assert json_of_response(response) == exp
