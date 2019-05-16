@@ -143,7 +143,7 @@ function merge_column(data, row){
     return data + '-' + row[1]
 }
 
-function species_contamination_fmt(data, fmt){
+function species_contamination_fmt(data, fmt, row){
     var best_species = [];
     for (var species in data['contaminant_unique_mapped']){
         if (data['contaminant_unique_mapped'][species] > 500){
@@ -153,7 +153,7 @@ function species_contamination_fmt(data, fmt){
     return best_species.join()
 }
 
-function count_entities_fmt(data, fmt){
+function count_entities_fmt(data, fmt, row){
     return data.length;
 }
 
@@ -195,16 +195,16 @@ function coverage_fmt(data, fmt, bases_at_X){
     }
 }
 
-function coverage_15X_fmt(data, fmt){
+function coverage_15X_fmt(data, fmt, row){
     return coverage_fmt(data, fmt, 'bases_at_15X')
 }
 
-function coverage_5X_fmt(data, fmt){
+function coverage_5X_fmt(data, fmt, row){
     return coverage_fmt(data, fmt, 'bases_at_5X')
 }
 
 
-function pipeline_used_fmt(data, fmt) {
+function pipeline_used_fmt(data, fmt, row) {
     return data['name'] + ' (' + data['toolset_type'] + ' v' + data['toolset_version'] + ')'
 }
 
