@@ -91,23 +91,9 @@ function string_formatter(cell_data, fmt, row){
 
         var dropbtn = document.createElement('div');
         dropbtn.className = 'dropbtn';
-        // Formatting style for project status page, displaying a green, yellow or red if it is over a week, two weeks or four weeks since the last change.
-        // Colour selection from https://clrs.cc/
-        if (fmt['type'] == 'stale') {
-            switch(staleness_evaluator(cell_data, row)) {
-                case 7:
-                    dropbtn.setAttribute("style", "background-color:#2ECC40;color:hsla(127, 63%, 15%, 1.0)");
-                    break;
-                case 14:
-                    dropbtn.setAttribute("style", "background-color:#FFDC00;color:hsla(52, 100%, 20%, 1.0)");
-                    break;
-                case 28:
-                    dropbtn.setAttribute("style", "background-color:#FF4136;color:hsla(3, 100%, 25%, 1.0)");
-                    break;
-            }
-        }
+
         if (fmt['link_format_function']) {
-            dropbtn.innerHTML = function_map[fmt['link_format_function']](cell_data, fmt);
+            dropbtn.innerHTML = function_map[fmt['link_format_function']](cell_data, fmt, row);
         } else {
             dropbtn.innerHTML = cell_data;
         }
@@ -171,12 +157,13 @@ function count_entities_fmt(data, fmt){
     return data.length;
 }
 
-function count_entities_stale_fmt(data, fmt, cell_data, row){
+function count_entities_stale_fmt(cell_data, fmt, row){
 /*
- * Returns length attribute. Also checks whether the date_value is longer ago than a week from the current date.
+ * Returns cell aggregate length, wrapped in appropriate styling which demonstrates how long the samples have been in the
+ * status. Formatting style is for project status page, displaying a green, yellow or red if it is over a week,
+ * two weeks or four weeks since the last change. Colour selection from https://clrs.cc/
  */
     // Looping through the row to match the cell_data to a status
-    time = 0;
     for (item in row) {
         if ( cell_data.sort() == row[item] ){
             // Checking staleness of the status' max date
@@ -190,21 +177,16 @@ function count_entities_stale_fmt(data, fmt, cell_data, row){
             four_weeks_ago.setDate(week_ago.getDate() - 28)
 
             if ( status_date < four_weeks_ago ){
-                time = 28;
-                break;
+                return "<span style='background-color:#2ECC40;color:hsla(127, 63%, 15%, 1.0)'>" + data.length + "</span>";
             }
             else if ( status_date < two_weeks_ago ){
-                time = 14;
-                break;
+                return "<span style='background-color:#FFDC00;color:hsla(52, 100%, 20%, 1.0)'>" + data.length + "</span>";
             }
             else if ( status_date < week_ago ){
-                time = 7;
-                break;
+                return "<span style='background-color:#FF4136;color:hsla(3, 100%, 25%, 1.0)'>" + data.length + "</span>";
             }
         }
     }
-
-    return [data.length, ];
 }
 
 function coverage_fmt(data, fmt, bases_at_X){
