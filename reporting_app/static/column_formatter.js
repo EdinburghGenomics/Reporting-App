@@ -153,37 +153,6 @@ function resolve_min_max_value(row, value){
     return value;
 }
 
-
-function staleness_evaluator(cell_data, row) {
-/*
- * Checks whether the date_value is longer ago than a week from the current date
- */
-    // Looping through the row to match the cell_data to a status
-    for (item in row) {
-        if ( cell_data.sort() == row[item] ){
-            // Checking staleness of the status' max date
-            status_date = new Date(row['sample_per_status_date'][item]);
-            // Creating fixed date variable to compare against
-            week_ago = new Date();
-            week_ago.setDate(week_ago.getDate() - 7)
-            two_weeks_ago = new Date();
-            two_weeks_ago.setDate(week_ago.getDate() - 14)
-            four_weeks_ago = new Date();
-            four_weeks_ago.setDate(week_ago.getDate() - 28)
-
-            if ( status_date < four_weeks_ago ){
-                return 28;
-            }
-            else if ( status_date < two_weeks_ago ){
-                return 14;
-            }
-            else if ( status_date < week_ago ){
-                return 7;
-            }
-        }
-    }
-}
-
 function merge_column(data, row){
     return data + '-' + row[1]
 }
@@ -200,6 +169,42 @@ function species_contamination_fmt(data, fmt){
 
 function count_entities_fmt(data, fmt){
     return data.length;
+}
+
+function count_entities_stale_fmt(data, fmt, cell_data, row){
+/*
+ * Returns length attribute. Also checks whether the date_value is longer ago than a week from the current date.
+ */
+    // Looping through the row to match the cell_data to a status
+    time = 0;
+    for (item in row) {
+        if ( cell_data.sort() == row[item] ){
+            // Checking staleness of the status' max date
+            status_date = new Date(row['sample_per_status_date'][item]);
+            // Creating fixed date variable to compare against
+            week_ago = new Date();
+            week_ago.setDate(week_ago.getDate() - 7)
+            two_weeks_ago = new Date();
+            two_weeks_ago.setDate(week_ago.getDate() - 14)
+            four_weeks_ago = new Date();
+            four_weeks_ago.setDate(week_ago.getDate() - 28)
+
+            if ( status_date < four_weeks_ago ){
+                time = 28;
+                break;
+            }
+            else if ( status_date < two_weeks_ago ){
+                time = 14;
+                break;
+            }
+            else if ( status_date < week_ago ){
+                time = 7;
+                break;
+            }
+        }
+    }
+
+    return [data.length, ];
 }
 
 function coverage_fmt(data, fmt, bases_at_X){
@@ -225,6 +230,7 @@ function pipeline_used_fmt(data, fmt) {
 var function_map = {
     'species_contamination': species_contamination_fmt,
     'count_entities': count_entities_fmt,
+    'count_entities_stale': count_entities_stale_fmt,
     'coverage_15X': coverage_15X_fmt,
     'coverage_5X': coverage_5X_fmt,
     'pipeline_used': pipeline_used_fmt
