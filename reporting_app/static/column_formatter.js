@@ -177,13 +177,13 @@ function count_entities_stale_fmt(cell_data, fmt, row){
             four_weeks_ago.setDate(week_ago.getDate() - 28)
 
             if ( status_date < four_weeks_ago ){
-                return "<span style='background-color:#2ECC40;color:hsla(127, 63%, 15%, 1.0)'>" + data.length + "</span>";
+                return "<span style='background-color:#2ECC40;color:hsla(127, 63%, 15%, 1.0)'>" + cell_data.length + "</span>";
             }
             else if ( status_date < two_weeks_ago ){
-                return "<span style='background-color:#FFDC00;color:hsla(52, 100%, 20%, 1.0)'>" + data.length + "</span>";
+                return "<span style='background-color:#FFDC00;color:hsla(52, 100%, 20%, 1.0)'>" + cell_data.length + "</span>";
             }
             else if ( status_date < week_ago ){
-                return "<span style='background-color:#FF4136;color:hsla(3, 100%, 25%, 1.0)'>" + data.length + "</span>";
+                return "<span style='background-color:#FF4136;color:hsla(3, 100%, 25%, 1.0)'>" + cell_data.length + "</span>";
             }
         }
     }
