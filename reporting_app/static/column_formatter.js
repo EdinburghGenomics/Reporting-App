@@ -143,7 +143,7 @@ function merge_column(data, row){
     return data + '-' + row[1]
 }
 
-function species_contamination_fmt(data, fmt, row){
+function species_contamination_fmt(data, fmt){
     var best_species = [];
     for (var species in data['contaminant_unique_mapped']){
         if (data['contaminant_unique_mapped'][species] > 500){
@@ -153,17 +153,19 @@ function species_contamination_fmt(data, fmt, row){
     return best_species.join()
 }
 
-function count_entities_fmt(data, fmt, row){
+function count_entities_fmt(data, fmt){
     return data.length;
 }
 
-function count_entities_stale_fmt(cell_data, fmt, row){
+function temporal_fmt(cell_data, fmt){
 /*
  * Returns cell aggregate length, wrapped in appropriate styling which demonstrates how long the samples have been in the
  * status. Formatting style is for project status page, displaying a green, yellow or red if it is over a week,
  * two weeks or four weeks since the last change. Colour selection from https://clrs.cc/
  */
     // Looping through the row to match the cell_data to a status
+    console.log(item)
+    console.log(row)
     for (item in row) {
         if ( cell_data.sort() == row[item] ){
             // Checking staleness of the status' max date
@@ -195,16 +197,16 @@ function coverage_fmt(data, fmt, bases_at_X){
     }
 }
 
-function coverage_15X_fmt(data, fmt, row){
+function coverage_15X_fmt(data, fmt){
     return coverage_fmt(data, fmt, 'bases_at_15X')
 }
 
-function coverage_5X_fmt(data, fmt, row){
+function coverage_5X_fmt(data, fmt){
     return coverage_fmt(data, fmt, 'bases_at_5X')
 }
 
 
-function pipeline_used_fmt(data, fmt, row) {
+function pipeline_used_fmt(data, fmt) {
     return data['name'] + ' (' + data['toolset_type'] + ' v' + data['toolset_version'] + ')'
 }
 
@@ -212,7 +214,7 @@ function pipeline_used_fmt(data, fmt, row) {
 var function_map = {
     'species_contamination': species_contamination_fmt,
     'count_entities': count_entities_fmt,
-    'count_entities_stale': count_entities_stale_fmt,
+    'temporal': temporal_fmt,
     'coverage_15X': coverage_15X_fmt,
     'coverage_5X': coverage_5X_fmt,
     'pipeline_used': pipeline_used_fmt
