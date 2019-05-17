@@ -91,12 +91,19 @@ function string_formatter(cell_data, fmt, row){
 
         var dropbtn = document.createElement('div');
         dropbtn.className = 'dropbtn';
-
+        // Applying cell formatting, if specified.
+        if (fmt['cell_format_function']) {
+            style_list = function_map[fmt['cell_format_function']](cell_data, fmt, row);
+            if (style_list != null){
+                dropbtn.setAttribute("style", "background-color:" + style_list[0] + ";color:hsla(" + style_list[1] + ")");
+            }
+        }
         if (fmt['link_format_function']) {
-            dropbtn.innerHTML = function_map[fmt['link_format_function']](cell_data, fmt, row);
+            dropbtn.innerHTML = function_map[fmt['link_format_function']](cell_data, fmt);
         } else {
             dropbtn.innerHTML = cell_data;
         }
+
 
         var dropdown_content = document.createElement('div');
         dropdown_content.className = 'dropdown-content';
@@ -157,15 +164,12 @@ function count_entities_fmt(data, fmt){
     return data.length;
 }
 
-function temporal_fmt(cell_data, fmt){
+function temporal_fmt(cell_data, fmt, row){
 /*
- * Returns cell aggregate length, wrapped in appropriate styling which demonstrates how long the samples have been in the
- * status. Formatting style is for project status page, displaying a green, yellow or red if it is over a week,
+ * Returns formatting style is for project status page, displaying a green, yellow or red if it is over a week,
  * two weeks or four weeks since the last change. Colour selection from https://clrs.cc/
  */
     // Looping through the row to match the cell_data to a status
-    console.log(item)
-    console.log(row)
     for (item in row) {
         if ( cell_data.sort() == row[item] ){
             // Checking staleness of the status' max date
@@ -179,13 +183,13 @@ function temporal_fmt(cell_data, fmt){
             four_weeks_ago.setDate(week_ago.getDate() - 28)
 
             if ( status_date < four_weeks_ago ){
-                return "<span style='background-color:#2ECC40;color:hsla(127, 63%, 15%, 1.0)'>" + cell_data.length + "</span>";
+                return ["#2ECC40", "127, 63%, 15%, 1.0"]
             }
             else if ( status_date < two_weeks_ago ){
-                return "<span style='background-color:#FFDC00;color:hsla(52, 100%, 20%, 1.0)'>" + cell_data.length + "</span>";
+                return ["#FFDC00", "52, 100%, 20%, 1.0"]
             }
             else if ( status_date < week_ago ){
-                return "<span style='background-color:#FF4136;color:hsla(3, 100%, 25%, 1.0)'>" + cell_data.length + "</span>";
+                return ["#FF4136", "3, 100%, 25%, 1.0"]
             }
         }
     }
