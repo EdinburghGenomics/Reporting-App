@@ -14,7 +14,7 @@ metrics = {
     'species': {name: 'Species', path: ['bioinformatics_qc', 'species_name'], type: 'category'},
     'matching_species': {name: 'Matching species', path: ['bioinformatics_qc', 'aggregated', 'matching_species'], type: 'category'},
     'het_hom_ratio': {name: 'Het/hom ratio', path: ['bioinformatics_qc', 'sample_contamination', 'het_hom_ratio']},
-    'freemix': {name: 'Freemix', path: ['bioinformatics_qc', 'sample_contamination', 'het_hom_ratio']},
+    'freemix': {name: 'Freemix', path: ['bioinformatics_qc', 'sample_contamination', 'freemix']},
     'genotype_match': {name: 'Genotype match', path: ['bioinformatics_qc', 'aggregated', 'genotype_match'], type: 'category'},
     'pc_optical_duplicates': {name: '% optical duplicates', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'pc_opt_duplicate_reads']},
     'pc_duplicates': {name: '% duplicates', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'pc_duplicate_reads']},
