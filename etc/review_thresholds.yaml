@@ -6,23 +6,7 @@
 #  * [optional] a formula that replace the metric key as the source of the data.
 #    formula can have numeric or existing metric name
 
-run:
-    aggregated.yield_in_gb:
-        name: Run Yield
-        value: 960
-        comparison: '>'
-    aggregated.pc_q30:
-        name: Run PC Q30
-        value: 75
-        comparison: '>'
-    aggregated.pc_q30_r1:
-        name: Run PC Q30 R1
-        value: 70
-        comparison: '>'
-    aggregated.pc_q30_r2:
-        name: Run PC Q30 R2
-        value: 70
-        comparison: '>'
+
 
 lane:
     aggregated.yield_in_gb:

@@ -64,7 +64,7 @@ column_def:
     called_sex:               { data: 'called_sex',                           title: 'Called Sex',                                                    visible: 'false' }
     provided_sex:             { data: 'provided_sex',                         title: 'Provided Sex',                                                  visible: 'false' }
     sex_check:                { data: 'aggregated.sex_check',                 title: 'Sex check' }
-    passing_filter_reads:     { data: 'passing_filter_reads',                 title: 'Passing-filter reads',     fmt: { type: 'int' } }
+    passing_filter_reads:     { data: 'passing_filter_reads',                 title: 'Passing-filter reads',     fmt: { type: 'int' }, visible: 'false' }
     pc_adaptor:               { data: 'aggregated.pc_adaptor',                title: '% Adapter',                fmt: { type: 'percentage', max: 5 } }
     pc_duplicate_reads:       { data: 'aggregated.pc_duplicate_reads',        title: '% duplicate reads',        fmt: { type: 'percentage', max: 35 } }
     pc_opt_duplicate_reads:   { data: 'aggregated.pc_opt_duplicate_reads',    title: '% opt duplicate reads',    fmt: { type: 'percentage', max: 25 } }
@@ -237,7 +237,7 @@ demultiplexing:
     - barcode
     - project_id
     - sample_id
-    - { column_def: 'passing_filter_reads', visible: 'false' }
+    - passing_filter_reads
     - { column_def: 'yield_in_gb', fmt: { type: 'float' }, visible: 'false' }
     - clean_yield_in_gb
     - { column_def: 'yield_q30_in_gb', fmt: { type: 'float' }, visible: 'false' }
@@ -263,7 +263,7 @@ demultiplexing:
 lane_aggregation:
     - lane_number
     - sample_ids
-    - { column_def: 'passing_filter_reads',  data: 'aggregated.passing_filter_reads', visible: 'false' }
+    - { column_def: 'passing_filter_reads',  data: 'aggregated.passing_filter_reads' }
     - pc_pass_filter
     - { column_def: 'yield_in_gb', visible: 'false' }
     - { column_def: 'clean_yield_in_gb',  fmt: { type: 'float',  min: 120 } }
@@ -289,7 +289,7 @@ lane_aggregation:
 
 unexpected_barcodes:
     - barcode
-    - passing_filter_reads
+    - { column_def: 'passing_filter_reads', visible: 'true' }
     - pc_reads_in_lane
 
 
@@ -303,7 +303,7 @@ samples:
     - { column_def: 'species', visible: 'true' }
     - { column_def: 'clean_yield_in_gb', fmt: { type: 'float', min: {field: 'Required Yield (Gb)', default: 120} } }
     - { column_def: 'clean_yield_q30_in_gb', fmt: { type: 'float', min: {field: 'Yield for Quoted Coverage (Gb)', default: 95} } }
-    - { column_def: 'expected_yield', data: 'Required Yield (Gb)', visible: 'false', fmt: { type: 'float' } }
+    - { column_def: 'expected_yield', data: 'Required Yield (Gb)', fmt: { type: 'float' } }
     - expected_yield_q30
     - tissue_type
     - tumor_sample
@@ -358,7 +358,7 @@ sample_run_elements:
     - clean_pc_q30_r1
     - clean_pc_q30_r2
     - clean_pc_q30
-    - { column_def: 'lane_pc_optical_dups', visible: 'true' }
+    - lane_pc_optical_dups
     - pc_adaptor
     - pc_phix
     - pc_mapped_reads
