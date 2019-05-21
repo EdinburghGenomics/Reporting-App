@@ -296,6 +296,29 @@ class TestReportingApp(Helper):
             create_row='color_data_source'
         )
 
+        mocked_render = self._test_render_template('/samples/notprocessing')
+        mocked_render.assert_called_with(
+            'untabbed_datatables.html',
+            'Samples not processing',
+            include_review_modal=True,
+            table='a_datatable_cfg'
+        )
+        mocked_cfg.assert_called_with(
+            'Samples not processing',
+            'samples',
+            ajax_call={
+                'func_name': 'merge_multi_sources_keep_first',
+                'merge_on': 'sample_id',
+                'api_urls': [
+                    '/api/0.1/samples?max_results=10000&where={"$and":[{"aggregated.clean_yield_in_gb":{"$exists":true,"$ne":null}},{"$or":[{"aggregated.most_recent_proc":null},{"aggregated.most_recent_proc.status":null},{"aggregated.most_recent_proc.status":"reprocess"},{"aggregated.most_recent_proc.status":"force_ready"},{"aggregated.most_recent_proc.status":"resume"}]}]}',
+                    '/api/0.1/lims/sample_status?match={"createddate":"13_06_2017_00:00:00","project_status":"open"}',
+                    '/api/0.1/lims/sample_info?match={"createddate":"13_06_2017_00:00:00","project_status":"open"}'
+                ]
+            },
+            review={'entity_field': 'sample_id', 'button_name': 'samplereview'},
+            create_row='color_data_source'
+        )
+
     @patch('reporting_app.rest_api')
     def test_report_project(self, mocked_rest_api):
         self._test_render_template('/projects/a_project')
