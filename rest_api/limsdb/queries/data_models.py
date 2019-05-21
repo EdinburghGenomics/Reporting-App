@@ -214,6 +214,7 @@ class Container:
 
     def samples_per_status(self):
         sample_per_status = defaultdict(list)
+        status = defaultdict(list)
         sample_per_status_date = defaultdict(set)
         for sample in self.samples:
             sample_per_status[sample.status].append(sample.sample_name)
@@ -224,7 +225,10 @@ class Container:
         # retaining only max value for each sample
         for sample in sample_per_status_date:
             sample_per_status_date[sample] = max(sample_per_status_date[sample]).isoformat()
-        return sample_per_status, sample_per_status_date
+        # generating the newer generation status response, which will succeed sample_per_status
+        status = dict(sample_per_status)
+
+        return sample_per_status, status
 
     def _extract_from_samples(self, field):
         return ', '.join(sorted(set(getattr(sample, field) for sample in self.samples if getattr(sample, field))))
