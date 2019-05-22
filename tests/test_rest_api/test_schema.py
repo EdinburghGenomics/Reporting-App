@@ -36,12 +36,12 @@ class TestSchema(Helper):
             'data_deleted', 'data_files', 'data_source', 'dataset_name', 'dataset_type', 'date_added', 'date_finished',
             'date_started', 'default_version', 'end_date', 'exit_status', 'fasta', 'files_delivered',
             'files_downloaded', 'gc_bias', 'gender_genotype', 'genome_used', 'genomes', 'goldenpath', 'mean_deviation',
-            'name', 'pid', 'pipeline_used', 'project_whitelist', 'sample_pipeline', 'slope', 'species', 'stage_id',
-            'stage_name', 'stages', 'start_date', 'started_by', 'taxid', 'tools_used', 'toolset_type',
-            'toolset_version', 'useable_reviewer', 'variation', '0-1', '1-2', '2-5', '5-10', '10-20', '20-30', '30-40',
-            '40-50', '50-100', '100+', 'pc_unique_mapped', 'pc_genome_with_coverage', 'var_calling', 'pc_duplicates',
-            'pc_mapped', 'unique_mapped_reads', 'mapping', 'rapid_analysis', 'mean_coverage', 'yield', 'yield_r1',
-            'yield_r2', 'pc_q30'
+            'name', 'pid', 'pipeline_used', 'project_whitelist', 'sample_pipeline', 'slope', 'snpEff', 'species',
+            'stage_id', 'stage_name', 'stages', 'start_date', 'started_by', 'taxid', 'tools_used', 'toolset_type',
+            'toolset_version', 'useable_reviewer', 'variation', 'vqsr', '0-1', '1-2', '2-5', '5-10', '10-20', '20-30',
+            '30-40', '40-50', '50-100', '100+', 'pc_unique_mapped', 'pc_genome_with_coverage', 'var_calling',
+            'pc_duplicates', 'pc_mapped', 'unique_mapped_reads', 'mapping', 'rapid_analysis', 'mean_coverage', 'yield',
+            'yield_r1', 'yield_r2', 'pc_q30'
         ]
         assert sorted(list_values_not_in_constants) == sorted(expected_not_in_constant)
 

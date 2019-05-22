@@ -314,7 +314,8 @@ species:
 genomes:
     assembly_name: {            type: 'string', required: True, unique: True }
     species: {                  type: 'string' }
-    data_files: {               type: 'dict', schema: { fasta: { type: 'string' }, variation: { type: 'string' } } }
+    data_files: {               type: 'dict', schema: { fasta: { type: 'string' }, variation: { type: 'string' }, vqsr: { type: 'dict' } } }
+    snpEff: {                   type: 'string' }
     data_source: {              type: 'string' }
     tools_used: {               type: 'dict' }
     date_added: {               type: 'datetime' }
