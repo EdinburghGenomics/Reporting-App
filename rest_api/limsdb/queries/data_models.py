@@ -214,7 +214,6 @@ class Container:
 
     def samples_per_status(self):
         sample_per_status = defaultdict(list)
-        status = defaultdict(list)
         sample_per_status_date = defaultdict(set)
         for sample in self.samples:
             sample_per_status[sample.status].append(sample.sample_name)
@@ -225,8 +224,11 @@ class Container:
         # retaining only max value for each sample
         for sample in sample_per_status_date:
             sample_per_status_date[sample] = max(sample_per_status_date[sample]).isoformat()
-        # generating the newer generation status response, which will succeed sample_per_status
+        # Generating the newer generation status response, which will succeed sample_per_status
         status = dict(sample_per_status)
+        for stat in status:
+            status[stat] = {'samples': status[stat],
+                            'last_modified_date': sample_per_status_date[stat]}
 
         return sample_per_status, status
 
@@ -250,7 +252,7 @@ class Container:
         return self._extract_from_samples('species')
 
     def to_json(self):
-        status, dates = self.samples_per_status()
+        sample_per_status, status = self.samples_per_status()
         ret = {
             'plate_id': self.container_name,
             'project_id': self.project_id,
@@ -259,9 +261,9 @@ class Container:
             'species': self.species,
             'required_yield': self.required_yield,
             'required_coverage': self.coverage,
-            'sample_per_status_date': dates
+            'status': status
         }
-        ret.update(status)
+        ret.update(sample_per_status)
         return ret
 
 
@@ -272,7 +274,7 @@ class Project(Container, ProjectInfo):
         ProjectInfo.__init__(self)
 
     def to_json(self):
-        status, dates = self.samples_per_status()
+        sample_per_status, status = self.samples_per_status()
         ret = {
             'project_id': self.project_id,
             'nb_samples': len(self.samples),
@@ -287,9 +289,9 @@ class Project(Container, ProjectInfo):
             'nb_quoted_samples': self.nb_quoted_samples,
             'finished_date': format_date(self.finished_date),
             'started_date': format_date(self.started_date),
-            'sample_per_status_date': dates
+            'status': status
         }
-        ret.update(status)
+        ret.update(sample_per_status)
         return ret
 
     @property
