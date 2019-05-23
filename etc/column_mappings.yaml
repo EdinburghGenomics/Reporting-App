@@ -63,7 +63,7 @@ column_def:
     no_call_seq:              { data: 'genotype_validation.no_call_seq',      title: 'No-call (seq)',                                                 visible: 'false' }
     called_sex:               { data: 'called_sex',                           title: 'Called Sex',                                                    visible: 'false' }
     provided_sex:             { data: 'provided_sex',                         title: 'Provided Sex',                                                  visible: 'false' }
-    sex_check:                { data: 'aggregated.sex_check',                 title: 'Sex check' }
+    sex_match:                { data: 'aggregated.sex_match',                 title: 'Sex match' }
     passing_filter_reads:     { data: 'passing_filter_reads',                 title: 'Passing-filter reads',     fmt: { type: 'int' }, visible: 'false' }
     pc_adaptor:               { data: 'aggregated.pc_adaptor',                title: '% Adapter',                fmt: { type: 'percentage', max: 5 } }
     pc_duplicate_reads:       { data: 'aggregated.pc_duplicate_reads',        title: '% duplicate reads',        fmt: { type: 'percentage', max: 35 } }
@@ -326,7 +326,7 @@ samples:
     - pipeline_used
     - genome_used
     - species_found
-    - sex_check
+    - sex_match
     - called_sex
     - provided_sex
     - genotype_match

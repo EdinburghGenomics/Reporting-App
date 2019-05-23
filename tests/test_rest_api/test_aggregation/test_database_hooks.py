@@ -317,7 +317,7 @@ class TestDatabaseHooks(TestCase):
         self.post('samples', sample)
 
         exp = {
-            'genotype_match': 'Match', 'sex_check': 'female', 'pc_mapped_reads': 99.9252615844544,
+            'genotype_match': 'Match', 'sex_match': 'female', 'pc_mapped_reads': 99.9252615844544,
             'pc_properly_mapped_reads': 99.85052316890882, 'pc_duplicate_reads': 7.473841554559043,
             'matching_species': ['Homo sapiens'], 'coverage_at_5X': 96.66666666666667,
             'coverage_at_15X': 66.66666666666666, 'most_recent_proc': None, 'clean_yield_in_gb': 5.000000002,
