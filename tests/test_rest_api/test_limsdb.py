@@ -234,7 +234,8 @@ class TestContainer(TestCase):
             'nb_samples': 2,
             'required_coverage': '',
             'required_yield': '',
-            'sample_per_status_date': {'sample_qc': '2015-06-01T00:00:00'}
+            'status': {'sample_qc': {'last_modified_date': '2015-06-01T00:00:00',
+                                     'samples': ['X99999P001H05', 'X99999P001H06']}}
         }
 
 
@@ -266,7 +267,7 @@ class TestProject(TestCase):
             'started_date': None,
             'required_coverage': '',
             'required_yield': '',
-            'sample_per_status_date': defaultdict(set)
+            'status': defaultdict(set)
         }
 
         self.sample1.species = 'Homo sapiens'
@@ -291,7 +292,7 @@ class TestProject(TestCase):
             'finished': ['X99999P001H05', 'X99999P001H06'],
             'required_coverage': '',
             'required_yield': '',
-            'sample_per_status_date': defaultdict(set, {'finished': '2015-09-01T00:00:00'})
+            'status': {'finished': {'last_modified_date': '2015-09-01T00:00:00', 'samples': ['X99999P001H05', 'X99999P001H06']}}
         }
 
     def test_finished_date(self):
@@ -391,7 +392,7 @@ def test_sample_status_per_project(m_retrieve_args, m_project_info, m_request, m
             'project_id': 'X99999',
             'required_coverage': '',
             'required_yield': '',
-            'sample_per_status_date': {'sequencing_queue': '2016-11-27T11:14:59.325000'}
+            'status': {'sequencing_queue': {'samples': ['X99999P001H05'], 'last_modified_date': '2016-11-27T11:14:59.325000'}}
         }
     ]
 
@@ -415,6 +416,6 @@ def test_sample_status_per_plate(m_retrieve_args, m_project_info, m_request, m_n
             'project_id': 'X99999',
             'required_coverage': '',
             'required_yield': '',
-            'sample_per_status_date': {'sequencing_queue': '2016-11-27T11:14:59.325000'}
+            'status': {'sequencing_queue': {'samples': ['X99999P001H05'], 'last_modified_date': '2016-11-27T11:14:59.325000'}}
         }
     ]
