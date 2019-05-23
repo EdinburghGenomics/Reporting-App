@@ -8,6 +8,18 @@
 
 
 
+
+rapid:
+    rapid_analysis.yield:
+        name: Yield
+        value: 110
+        comparison: '>'
+    rapid_analysis.pc_q30:
+        name: PC Q30
+        value: 75
+        comparison: '>'
+
+
 lane:
     aggregated.yield_in_gb:
         name: Yield
