@@ -22,6 +22,7 @@ lanes:
         pc_aligned_stdev_r1:   {type: 'float'},
         pc_error_r1:           {type: 'float'},
         pc_error_stdev_r1:     {type: 'float'},
+        yield_r1:              {type: 'float'},
         pc_clust_pf_r2:        {type: 'float'},
         pc_clust_pf_stdev_r2:  {type: 'float'},
         phasing_r2:            {type: 'float'},
@@ -32,7 +33,8 @@ lanes:
         pc_aligned_r2:         {type: 'float'},
         pc_aligned_stdev_r2:   {type: 'float'},
         pc_error_r2:           {type: 'float'},
-        pc_error_stdev_r2:     {type: 'float'}
+        pc_error_stdev_r2:     {type: 'float'},
+        yield_r2:              {type: 'float'}
     } }
 
 run_elements:
@@ -210,6 +212,43 @@ samples:
         best_matching_samples: { type: 'dict' },
         het_hom_ratio: { type: 'float' },
         ti_tv_ratio: { type: 'float' }
+    } }
+
+    rapid_analysis: { type: 'dict', schema: {
+        reviewed: { type: 'string', allowed: ['pass', 'fail', 'not reviewed'] },
+        review_comments: { type: 'string' },
+        review_date: { type: 'datetime' },
+        data_source: { type: 'list', schema: { type: 'string' } },
+        yield: { type: 'float' },
+        pc_q30: { type: 'float' },
+        var_calling: { type: 'dict', schema: {
+            ti_tv_ratio: { type: 'float'},
+            het_hom_ratio: { type: 'float'}
+        } },
+        mapping: { type: 'dict', schema: {
+            total_reads: { type: 'integer' },
+            duplicate_reads: { type: 'integer' },
+            pc_duplicates: { type: 'float' },
+            mapped_reads: { type: 'integer' },
+            pc_mapped: { type: 'float' },
+            unique_mapped_reads: { type: 'integer' },
+            pc_unique_mapped: { type: 'float' },
+            mean_coverage: { type: 'float' },
+            median_coverage: { type: 'float' },
+            genome_size: { type: 'integer' },
+            pc_genome_with_coverage: { type: 'dict', schema: {
+                100+: { type: 'float' },
+                50-100: { type: 'float' },
+                40-50: { type: 'float' },
+                30-40: { type: 'float' },
+                20-30: { type: 'float' },
+                10-20: { type: 'float' },
+                5-10: { type: 'float' },
+                2-5: { type: 'float' },
+                1-2: { type: 'float' },
+                0-1: { type: 'float' }
+            } }
+        } }
     } }
 
     # Events

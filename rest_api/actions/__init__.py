@@ -1,15 +1,16 @@
 from flask import json
 from werkzeug.datastructures import ImmutableMultiDict
 from werkzeug.exceptions import abort
-from rest_api.actions.automatic_review import AutomaticSampleReviewer, AutomaticRunReviewer
+from rest_api.actions import automatic_review
 from rest_api.actions.reviews import RunReviewInitiator, SampleReviewInitiator
 
 
 action_map = {
     'run_review': RunReviewInitiator,
     'sample_review': SampleReviewInitiator,
-    'automatic_run_review': AutomaticRunReviewer,
-    'automatic_sample_review': AutomaticSampleReviewer
+    'automatic_run_review': automatic_review.AutomaticRunReviewer,
+    'automatic_sample_review': automatic_review.AutomaticSampleReviewer,
+    'automatic_rapid_review': automatic_review.AutomaticRapidSampleReviewer
 }
 
 
