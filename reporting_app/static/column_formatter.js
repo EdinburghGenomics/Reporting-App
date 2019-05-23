@@ -13,6 +13,7 @@ function render_data(data, type, row, meta, fmt) {
     if (fmt['name']) {
         data = function_map[fmt['name']](data, fmt)
     }
+    console.log(meta)
     return string_formatter(data, fmt, row)
 }
 
@@ -170,6 +171,10 @@ function temporal_fmt(cell_data, fmt, row){
  * two weeks or four weeks since the last change. Colour selection from https://clrs.cc/
  */
     // Looping through the row to match the cell_data to a status
+    console.log('Row: ');
+    console.log(row);
+    console.log('Cell data: ');
+    console.log(cell_data)
     for (item in row) {
         if ( cell_data.sort() == row[item] ){
             // Checking staleness of the status' max date
