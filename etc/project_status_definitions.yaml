@@ -37,6 +37,7 @@ status_order:
 step_completed_to_status:
     Manifest Parsing EG 1.0 ST: SAMPLE_QC
     FluidX Sample Receipt EG 1.1 ST: SAMPLE_QC
+    FluidX Transfer From Rack Into Plate EG 1.0 ST: SAMPLE_QC
     Receive Sample 4.0: SAMPLE_QC
     Receive Sample EG 6.1: SAMPLE_QC
     Awaiting User Response EG 2.0: LIBRARY_QUEUE
@@ -57,6 +58,7 @@ step_completed_to_status:
 # This section describes the LIMS steps that specify that the sample is queued in a status, e.g, if the sample is queued
 # to 'Sequencing Plate Preparation EG 2.0' then it is in LIBRARY_QUEUE
 step_queued_to_status:
+    FluidX Transfer From Rack Into Plate EG 1.0 ST: SAMPLE_SUBMISSION
     FluidX Sample Receipt EG 1.1 ST: SAMPLE_SUBMISSION
     Receive Sample EG 6.1: SAMPLE_SUBMISSION
     Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
