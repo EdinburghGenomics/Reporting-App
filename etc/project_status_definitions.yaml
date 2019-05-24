@@ -35,6 +35,7 @@ status_order:
 # This section describes the LIMS steps that specify the exit from a status, e.g. if the sample finished
 # 'Receive Sample EG 6.1' then it completed SAMPLE_SUBMISSION and will be moved to the next one.
 step_completed_to_status:
+    Manifest Parsing EG 1.0 ST: SAMPLE_QC
     FluidX Sample Receipt EG 1.1 ST: SAMPLE_QC
     Receive Sample 4.0: SAMPLE_QC
     Receive Sample EG 6.1: SAMPLE_QC
