@@ -110,17 +110,32 @@ function string_formatter(cell_data, fmt, row){
         dropdown_content.className = 'dropdown-content';
 
         var div;
-        for (var i=0, tot=formatted_data.length; i<tot; i++) {
-            div = document.createElement('div');
-            div.innerHTML = formatted_data[i];
-            dropdown_content.appendChild(div);
-        }
+        if ('samples' in formatted_data) {
+            for (var i=0, tot=formatted_data['samples'].length; i<tot; i++) {
+                div = document.createElement('div');
+                div.innerHTML = formatted_data['samples'][i];
+                dropdown_content.appendChild(div);
+            }
 
-        dropdown.appendChild(dropbtn);
-        if (formatted_data.length) {
-            dropdown.appendChild(dropdown_content);
+            dropdown.appendChild(dropbtn);
+            if (formatted_data['samples'].length) {
+                dropdown.appendChild(dropdown_content);
+            }
+            formatted_data = dropdown.outerHTML;
         }
-        formatted_data = dropdown.outerHTML;
+        else{
+            for (var i=0, tot=formatted_data.length; i<tot; i++) {
+                div = document.createElement('div');
+                div.innerHTML = formatted_data[i];
+                dropdown_content.appendChild(div);
+            }
+
+            dropdown.appendChild(dropbtn);
+            if (formatted_data.length) {
+                dropdown.appendChild(dropdown_content);
+            }
+            formatted_data = dropdown.outerHTML;
+        }
     } else if (formatted_data.length == 1) {
         formatted_data = formatted_data[0];
     }
@@ -165,7 +180,7 @@ function count_entities_fmt(data, fmt){
     if ('samples' in data) {
         return data['samples'].length;
     }
-    return 0;
+    return data.length;
 }
 
 function temporal_fmt(cell_data, fmt){
