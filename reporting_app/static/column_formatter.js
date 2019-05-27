@@ -13,12 +13,12 @@ function render_data(data, type, row, meta, fmt) {
     if (fmt['name']) {
         data = function_map[fmt['name']](data, fmt)
     }
-    console.log(meta)
     return string_formatter(data, fmt, row)
 }
 
 
 function string_formatter(cell_data, fmt, row){
+    original_cell_data = cell_data;
     // cast the cell data to a list, whether it's a single value, an object or already a list
     // this allows subsequent logic to safely assume it's handling a list
     if (cell_data instanceof Array) {
@@ -94,13 +94,13 @@ function string_formatter(cell_data, fmt, row){
         dropbtn.className = 'dropbtn';
         // Applying cell formatting, if specified.
         if (fmt['cell_format_function']) {
-            style_list = function_map[fmt['cell_format_function']](cell_data, fmt, row);
+            style_list = function_map[fmt['cell_format_function']](original_cell_data, fmt);
             if (style_list != null){
                 dropbtn.setAttribute("style", "background-color:" + style_list[0] + ";color:hsla(" + style_list[1] + ")");
             }
         }
         if (fmt['link_format_function']) {
-            dropbtn.innerHTML = function_map[fmt['link_format_function']](cell_data, fmt);
+            dropbtn.innerHTML = function_map[fmt['link_format_function']](original_cell_data, fmt);
         } else {
             dropbtn.innerHTML = cell_data;
         }
@@ -162,41 +162,35 @@ function species_contamination_fmt(data, fmt){
 }
 
 function count_entities_fmt(data, fmt){
-    return data.length;
+    if ('samples' in data) {
+        return data['samples'].length;
+    }
+    return 0;
 }
 
-function temporal_fmt(cell_data, fmt, row){
+function temporal_fmt(cell_data, fmt){
 /*
  * Returns formatting style is for project status page, displaying a green, yellow or red if it is over a week,
  * two weeks or four weeks since the last change. Colour selection from https://clrs.cc/
  */
-    // Looping through the row to match the cell_data to a status
-    console.log('Row: ');
-    console.log(row);
-    console.log('Cell data: ');
-    console.log(cell_data)
-    for (item in row) {
-        if ( cell_data.sort() == row[item] ){
-            // Checking staleness of the status' max date
-            status_date = new Date(row['sample_per_status_date'][item]);
-            // Creating fixed date variable to compare against
-            week_ago = new Date();
-            week_ago.setDate(week_ago.getDate() - 7)
-            two_weeks_ago = new Date();
-            two_weeks_ago.setDate(week_ago.getDate() - 14)
-            four_weeks_ago = new Date();
-            four_weeks_ago.setDate(week_ago.getDate() - 28)
+    // Checking staleness of the status' max date
+    status_date = new Date(cell_data['last_modified_date']);
+    // Creating fixed date variable to compare against
+    week_ago = new Date();
+    week_ago.setDate(week_ago.getDate() - 7)
+    two_weeks_ago = new Date();
+    two_weeks_ago.setDate(week_ago.getDate() - 14)
+    four_weeks_ago = new Date();
+    four_weeks_ago.setDate(week_ago.getDate() - 28)
 
-            if ( status_date < four_weeks_ago ){
-                return ["#2ECC40", "127, 63%, 15%, 1.0"]
-            }
-            else if ( status_date < two_weeks_ago ){
-                return ["#FFDC00", "52, 100%, 20%, 1.0"]
-            }
-            else if ( status_date < week_ago ){
-                return ["#FF4136", "3, 100%, 25%, 1.0"]
-            }
-        }
+    if ( status_date < four_weeks_ago ){
+        return ["#2ECC40", "127, 63%, 15%, 1.0"]
+    }
+    else if ( status_date < two_weeks_ago ){
+        return ["#FFDC00", "52, 100%, 20%, 1.0"]
+    }
+    else if ( status_date < week_ago ){
+        return ["#FF4136", "3, 100%, 25%, 1.0"]
     }
 }
 
