@@ -140,8 +140,9 @@ class Reference(Calculation):
 
 class Mean(Accumulation):
     def _expression(self, elements):
+        elements = [e for e in elements if e is not None]
         if elements:
-            return statistics.mean([e for e in elements if e is not None])
+            return statistics.mean(elements)
 
 
 class FirstElement(Accumulation):
