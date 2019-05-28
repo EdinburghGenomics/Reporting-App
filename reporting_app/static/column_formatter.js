@@ -133,6 +133,7 @@ function string_formatter(cell_data, fmt, row){
         formatted_data = formatted_data[0];
     }
 
+    // Creating the cell
      var dt_cell = document.createElement('div');
      dt_cell.className = 'dt_cell';
     // Applying cell formatting, if specified.
@@ -192,7 +193,7 @@ function temporal_fmt(cell_data, fmt){
  * Returns formatting style is for project status page, displaying a blue, yellow or red if it is over a week,
  * two weeks or four weeks since the last change.
  */
-    // Checking staleness of the status' max date
+    // Checking time elapsed of the status' max date
     status_date = new Date(cell_data['last_modified_date']);
     // Creating fixed date variable to compare against
     week_ago = new Date();

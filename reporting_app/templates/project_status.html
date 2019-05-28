@@ -4,8 +4,13 @@
 {% block content %}
 <button data-toggle="collapse" data-target="#description">Description</button>
 <div id="description" class="collapse">
-    The project status table shows the number sample in each project based on the workflow they completed and the step
-    they're queued. The steps involved are described below.
+    <h4>The project status table shows the number of samples in each project based on the workflow they completed, and the step
+        they're queued at. The steps involved are described below. The colour on some statuses represents the period of time that
+        the latest sample has been in this status.
+    </h4>
+    <h5><span class="bg-danger">Red</span> means the latest sample's status is over four weeks old.</h5>
+    <h5><span class="bg-warning">Yellow</span> means the latest sample's status is over two weeks old.</h5>
+    <h5><span class="bg-info">Blue</span> means the latest sample's status is over a week old.</h5>
 
     <table class="table">
         <th>Status</th>
