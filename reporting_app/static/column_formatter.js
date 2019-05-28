@@ -17,6 +17,25 @@ function render_data(data, type, row, meta, fmt) {
 }
 
 
+function flatten_object(cell_object){
+    // convert, e.g, {'this': 0, 'that': 1, 'other': 2} to ['other: 2', 'that: 1', 'this: 0']
+    var cell_array = [];
+    var keys = Object.keys(cell_object);
+    keys.sort();
+
+    var i;
+    var nkeys = keys.length;
+    for (i=0; i<nkeys; i++) {
+        var k = keys[i];
+        cell_array.push(k + ': ' + cell_object[k]);
+    }
+    return cell_array
+}
+
+function get_samples(cell_object){
+    return cell_object['samples']
+}
+
 function string_formatter(cell_data, fmt, row){
     original_cell_data = cell_data;
     // cast the cell data to a list, whether it's a single value, an object or already a list
@@ -24,22 +43,17 @@ function string_formatter(cell_data, fmt, row){
     if (cell_data instanceof Array) {
         cell_data.sort();
     } else if (cell_data instanceof Object) {
-        // convert, e.g, {'this': 0, 'that': 1, 'other': 2} to ['other: 2', 'that: 1', 'this: 0']
-        var _cell_data = [];
-        var keys = Object.keys(cell_data);
-        keys.sort();
-
-        var i;
-        var nkeys = keys.length;
-        for (i=0; i<nkeys; i++) {
-            var k = keys[i];
-            _cell_data.push(k + ': ' + cell_data[k]);
+        if ('object_converter' in fmt){
+            cell_data = function_map[fmt['object_converter']](cell_data)
+            cell_data.sort()
+        }else{
+            cell_data = flatten_object(cell_data)
         }
-        cell_data = _cell_data;
     } else {
         cell_data = [cell_data];  // cast a single value to a list of length 1
     }
 
+    // Only arrays
     var formatted_data = [];
     var i, tot;
     for (i=0, tot=cell_data.length; i<tot; i++) {
@@ -80,7 +94,6 @@ function string_formatter(cell_data, fmt, row){
         } else if (max && data > max) {
             _formatted_data = '<div style="color:red">' + _formatted_data + '</div>';
         }
-
         formatted_data.push(_formatted_data);
     }
 
@@ -92,55 +105,44 @@ function string_formatter(cell_data, fmt, row){
 
         var dropbtn = document.createElement('div');
         dropbtn.className = 'dropbtn';
-        // Applying cell formatting, if specified.
-        if (fmt['cell_format_function']) {
-            style_list = function_map[fmt['cell_format_function']](original_cell_data, fmt);
-            if (style_list != null){
-                dropbtn.setAttribute("style", "background-color:" + style_list[0] + ";color:hsla(" + style_list[1] + ")");
-            }
-        }
+
         if (fmt['link_format_function']) {
-            dropbtn.innerHTML = function_map[fmt['link_format_function']](original_cell_data, fmt);
+            dropbtn.innerHTML = function_map[fmt['link_format_function']](formatted_data, fmt);
         } else {
             dropbtn.innerHTML = cell_data;
         }
-
 
         var dropdown_content = document.createElement('div');
         dropdown_content.className = 'dropdown-content';
 
         var div;
-        if ('samples' in formatted_data) {
-            for (var i=0, tot=formatted_data['samples'].length; i<tot; i++) {
-                div = document.createElement('div');
-                div.innerHTML = formatted_data['samples'][i];
-                dropdown_content.appendChild(div);
-            }
 
-            dropdown.appendChild(dropbtn);
-            if (formatted_data['samples'].length) {
-                dropdown.appendChild(dropdown_content);
-            }
-            formatted_data = dropdown.outerHTML;
+        for (var i=0, tot=formatted_data.length; i<tot; i++) {
+            div = document.createElement('div');
+            div.innerHTML = formatted_data[i];
+            dropdown_content.appendChild(div);
         }
-        else{
-            for (var i=0, tot=formatted_data.length; i<tot; i++) {
-                div = document.createElement('div');
-                div.innerHTML = formatted_data[i];
-                dropdown_content.appendChild(div);
-            }
 
-            dropdown.appendChild(dropbtn);
-            if (formatted_data.length) {
-                dropdown.appendChild(dropdown_content);
-            }
-            formatted_data = dropdown.outerHTML;
+        dropdown.appendChild(dropbtn);
+        if (formatted_data.length) {
+            dropdown.appendChild(dropdown_content);
         }
+        formatted_data = dropdown.outerHTML;
     } else if (formatted_data.length == 1) {
         formatted_data = formatted_data[0];
     }
 
-    return '<div class="dt_cell">' + formatted_data + '</div>';
+     var dt_cell = document.createElement('div');
+     dt_cell.className = 'dt_cell';
+    // Applying cell formatting, if specified.
+    if (fmt['cell_format_function']) {
+        style_list = function_map[fmt['cell_format_function']](original_cell_data, fmt);
+        if (style_list != null){
+            dt_cell.setAttribute("style", "background-color:" + style_list[0] + ";color:hsla(" + style_list[1] + ")");
+        }
+    }
+    dt_cell.innerHTML = formatted_data
+    return dt_cell.outerHTML;
 }
 
 
@@ -235,5 +237,6 @@ var function_map = {
     'temporal': temporal_fmt,
     'coverage_15X': coverage_15X_fmt,
     'coverage_5X': coverage_5X_fmt,
-    'pipeline_used': pipeline_used_fmt
+    'pipeline_used': pipeline_used_fmt,
+    'get_samples': get_samples
 };
