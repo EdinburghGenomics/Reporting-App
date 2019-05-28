@@ -33,6 +33,7 @@ function flatten_object(cell_object){
 }
 
 function get_samples(cell_object){
+    // returns the samples from a status dict
     return cell_object['samples']
 }
 
@@ -53,7 +54,7 @@ function string_formatter(cell_data, fmt, row){
         cell_data = [cell_data];  // cast a single value to a list of length 1
     }
 
-    // Only arrays
+    // Only arrays are supported from this point onwards
     var formatted_data = [];
     var i, tot;
     for (i=0, tot=cell_data.length; i<tot; i++) {
@@ -136,9 +137,10 @@ function string_formatter(cell_data, fmt, row){
      dt_cell.className = 'dt_cell';
     // Applying cell formatting, if specified.
     if (fmt['cell_format_function']) {
-        style_list = function_map[fmt['cell_format_function']](original_cell_data, fmt);
-        if (style_list != null){
-            dt_cell.setAttribute("style", "background-color:" + style_list[0] + ";color:hsla(" + style_list[1] + ")");
+        css_class = function_map[fmt['cell_format_function']](original_cell_data, fmt);
+        if (css_class != null){
+            existing_css_class = dt_cell.getAttribute("class");
+            dt_cell.setAttribute("class", existing_css_class + " " + css_class);
         }
     }
     dt_cell.innerHTML = formatted_data
@@ -187,8 +189,8 @@ function count_entities_fmt(data, fmt){
 
 function temporal_fmt(cell_data, fmt){
 /*
- * Returns formatting style is for project status page, displaying a green, yellow or red if it is over a week,
- * two weeks or four weeks since the last change. Colour selection from https://clrs.cc/
+ * Returns formatting style is for project status page, displaying a blue, yellow or red if it is over a week,
+ * two weeks or four weeks since the last change.
  */
     // Checking staleness of the status' max date
     status_date = new Date(cell_data['last_modified_date']);
@@ -201,13 +203,13 @@ function temporal_fmt(cell_data, fmt){
     four_weeks_ago.setDate(week_ago.getDate() - 28)
 
     if ( status_date < four_weeks_ago ){
-        return ["#2ECC40", "127, 63%, 15%, 1.0"]
+        return "bg-danger"
     }
     else if ( status_date < two_weeks_ago ){
-        return ["#FFDC00", "52, 100%, 20%, 1.0"]
+        return "bg-warning"
     }
     else if ( status_date < week_ago ){
-        return ["#FF4136", "3, 100%, 25%, 1.0"]
+        return "bg-info"
     }
 }
 

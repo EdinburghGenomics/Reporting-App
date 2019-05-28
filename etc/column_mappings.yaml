@@ -14,6 +14,7 @@
 #      * link_format_function: javascript function name formatting the link's text
 #      * name: javascript function name that will modify the data before the formating
 #      * cell_format_function: javascript function name formatting the cell's text
+#      * object_converter: javascript function name which will parse a cell_data list into its own variable
 
 column_def:
     bam_file_reads:           { data: 'bam_file_reads',                       title: 'Initial reads in bam',     fmt: { type: 'int' }, visible: 'false' }
