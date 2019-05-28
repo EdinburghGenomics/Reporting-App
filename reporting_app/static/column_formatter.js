@@ -182,9 +182,6 @@ function species_contamination_fmt(data, fmt){
 }
 
 function count_entities_fmt(data, fmt){
-    if ('samples' in data) {
-        return data['samples'].length;
-    }
     return data.length;
 }
 
