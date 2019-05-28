@@ -197,7 +197,7 @@ def library_info(session):
         qpcr.date_run = daterun
         library = qpcr.placements[(y_coords[welly], wellx + 1)]
         library.name = sample_id
-        library.udf[udfkey] = float(udfvalue)
+        library.library_qc[udfkey] = float(udfvalue)
         library.states[state_modified] = state_qc
         library.project_id = project_id
 

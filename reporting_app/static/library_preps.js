@@ -2,25 +2,37 @@
 var chart, library_data;  // globals for the chart object and the library data to be plotted
 
 // pointer to the current metric being plotted
-var active_colour_metric = 'pc_q30';
+var active_colour_metric;
 var colour_palette = Highcharts.getOptions().colors;
 
 // Artifact y coordinates, but plot them as x coordinates as per Lims UI
 var heatmap_x_coords = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
 metrics = {
-    'pc_q30': {name: '%Q30', path: ['reporting_app', 'aggregated', 'pc_q30']},
-    'pc_mapped_reads': {name: '% mapped reads', path: ['reporting_app', 'aggregated', 'pc_mapped_reads']},
-    'av_conc': {name: 'Ave. Conc. (nM)', path: ['udf', 'Ave. Conc. (nM)']},
-    'pc_cv': {name: '%CV', path: ['udf', '%CV']},
-    'raw_cp': {name: 'Raw CP', path: ['udf', 'Raw CP']},
-    'ntp_volume': {name: 'NTP Volume (uL)', path: ['udf', 'NTP Volume (uL)']},
-    'adjusted_conc': {name: 'Adjusted Conc. (nM)', path: ['udf', 'Adjusted Conc. (nM)']},
-    'original_conc': {name: 'Original Conc. (nM)', path: ['udf', 'Original Conc. (nM)']},
-    'ntp_transfer_vol': {name: 'NTP Transfer Volume (uL)', path: ['udf', 'NTP Transfer Volume (uL)']},
-    'rsb_transfer_vol': {name: 'RSB Transfer Volume (uL)', path: ['udf', 'RSB Transfer Volume (uL)']},
-    'sample_transfer_vol': {name: 'Sample Transfer Volume (uL)', path: ['udf', 'Sample Transfer Volume (uL)']},
-    'tsp1_transfer_vol': {name: 'TSP1 Transfer Volume (uL)', path: ['udf', 'TSP1 Transfer Volume (uL)']},
+    'pc_q30': {name: '%Q30', path: ['bioinformatics_qc', 'aggregated', 'pc_q30']},
+    'pc_mapped_reads': {name: '% mapped reads', path: ['bioinformatics_qc', 'aggregated', 'pc_mapped_reads']},
+    'species': {name: 'Species', path: ['bioinformatics_qc', 'species_name'], type: 'category'},
+    'matching_species': {name: 'Matching species', path: ['bioinformatics_qc', 'aggregated', 'matching_species'], type: 'category'},
+    'het_hom_ratio': {name: 'Het/hom ratio', path: ['bioinformatics_qc', 'sample_contamination', 'het_hom_ratio']},
+    'freemix': {name: 'Freemix', path: ['bioinformatics_qc', 'sample_contamination', 'freemix']},
+    'genotype_match': {name: 'Genotype match', path: ['bioinformatics_qc', 'aggregated', 'genotype_match'], type: 'category'},
+    'pc_optical_duplicates': {name: '% optical duplicates', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'pc_opt_duplicate_reads']},
+    'pc_duplicates': {name: '% duplicates', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'pc_duplicate_reads']},
+    'gc_bias_mean_dev': {name: 'GC bias (mean deviation)', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'gc_bias', 'mean_deviation']},
+    'gc_bias_slope': {name: 'GC bias (slope)', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'gc_bias', 'slope']},
+    'pc_adaptor': {name: '% adaptor', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'pc_adaptor']},
+    'mean_insert_size': {name: 'Mean insert size', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'mean_insert_size']},
+    'library_size': {name: 'Picard est. lib size', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'picard_est_lib_size']},
+    'av_conc': {name: 'Ave. Conc. (nM)', path: ['library_qc', 'Ave. Conc. (nM)']},
+    'pc_cv': {name: '%CV', path: ['library_qc', '%CV']},
+    'raw_cp': {name: 'Raw CP', path: ['library_qc', 'Raw CP']},
+    'ntp_volume': {name: 'NTP Volume (uL)', path: ['library_qc', 'NTP Volume (uL)']},
+    'adjusted_conc': {name: 'Adjusted Conc. (nM)', path: ['library_qc', 'Adjusted Conc. (nM)']},
+    'original_conc': {name: 'Original Conc. (nM)', path: ['library_qc', 'Original Conc. (nM)']},
+    'ntp_transfer_vol': {name: 'NTP Transfer Volume (uL)', path: ['library_qc', 'NTP Transfer Volume (uL)']},
+    'rsb_transfer_vol': {name: 'RSB Transfer Volume (uL)', path: ['library_qc', 'RSB Transfer Volume (uL)']},
+    'sample_transfer_vol': {name: 'Sample Transfer Volume (uL)', path: ['library_qc', 'Sample Transfer Volume (uL)']},
+    'tsp1_transfer_vol': {name: 'TSP1 Transfer Volume (uL)', path: ['library_qc', 'TSP1 Transfer Volume (uL)']},
     'qc_flag': {name: 'QC flag', path: ['qc_flag'], type: 'category'},
     'project_id': {name: 'Project ID', path: ['project_id'], type: 'category'}
 };
@@ -55,9 +67,8 @@ function get_lims_and_qc_data(lims_url, qc_url, token, library_id) {
                         success: function(result) {
                             _.forEach(result.data, function(sample) {
                                 var coord = sample_coords[sample['sample_id']];
-                                library_data['placements'][coord]['reporting_app'] = sample;
+                                library_data['placements'][coord]['bioinformatics_qc'] = sample;
                             });
-                            render_heatmap(active_colour_metric);
                         }
                     }
                 );
@@ -81,7 +92,7 @@ function build_series(colour_metric) {
             {
                 y: heatmap_x_coords.indexOf(split_coord[0]),
                 x: parseInt(split_coord[1]) - 1,
-                value: _.get(placements[coord], metrics[colour_metric]['path']),
+                value: _.get(placements[coord], metrics[colour_metric]['path']) || '(missing value)',
                 name: placements[coord]['name']
             }
         );
@@ -89,7 +100,7 @@ function build_series(colour_metric) {
     return series;
 }
 
-function init_heatmap(div_id, title, lims_url, qc_url, ajax_token, library_id) {
+function init_heatmap(div_id, library_id, lims_url, qc_url, ajax_token) {
     chart = Highcharts.chart(div_id, {
         chart: {
             type: 'heatmap',
@@ -98,17 +109,14 @@ function init_heatmap(div_id, title, lims_url, qc_url, ajax_token, library_id) {
             plotBorderWidth: 1,
             height: '50%'
         },
-        title: {text: 'Library ' + title},
-        yAxis: {categories: heatmap_x_coords, max: 7, reversed: true, title: null},
-        xAxis: {categories: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'], max: 11},
+        title: {text: 'Library ' + library_id},
+        yAxis: {categories: heatmap_x_coords, min: 0, max: 7, reversed: true, title: null},
+        xAxis: {categories: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'], min: 0, max: 11},
         colorAxis: {
             minColor: '#FFFFFF',
             maxColor: colour_palette[0]
         },
         legend: {
-            title: {
-                text: metrics[active_colour_metric]['name']
-            },
             align: 'right',
             layout: 'vertical',
             margin: 0,
@@ -156,7 +164,18 @@ function render_heatmap(colour_metric) {
     var series = build_series(colour_metric);
 
     if (metrics[colour_metric]['type'] == 'category') {
-        categories = _.uniq(_.map(series.data, function(data_point) { return data_point.value; }));
+        categories = _.uniq(
+            _.map(
+                series.data,
+                function(data_point) {
+                    var datatype = typeof data_point.value;
+                    if (datatype == 'object') {
+                        data_point.value = data_point.value.sort().join(', ');
+                    }
+                    return data_point.value;
+                }
+            )
+        );
 
         chart.colorAxis[0].update({dataClasses: data_classes(categories)});
         transform_func = function(data_point) {

@@ -1,6 +1,4 @@
 import statistics
-import datetime
-
 from cached_property import cached_property
 from egcg_core.app_logging import logging_default
 from rest_api import cfg
@@ -126,16 +124,6 @@ class ToSet(Accumulation):
         return sorted(set(e for e in elements if e is not None))
 
 
-class NbUniqueElements(Calculation):
-    def _expression(self, elements):
-        if self.filter_func:
-            elements = [e for e in elements if self.filter_func(e)]
-        else:
-            elements = [e for e in elements if e is not None]
-
-        return len(set(elements))
-
-
 class Total(Accumulation):
     def _expression(self, elements):
         elements = [e for e in elements if e is not None]
@@ -145,17 +133,6 @@ class Total(Accumulation):
             return sum(elements)
 
 
-class MostRecent(Calculation):
-    def __init__(self, *args, date_field='_created', date_format='%d_%m_%Y_%H:%M:%S'):
-        self.date_field = date_field
-        self.date_format = date_format
-        super().__init__(*args)
-
-    def _expression(self, elements):
-        return sorted(elements,
-                      key=lambda x: datetime.datetime.strptime(x.get(self.date_field), self.date_format))[-1]
-
-
 class Reference(Calculation):
     def _expression(self, field):
         return field
@@ -163,8 +140,9 @@ class Reference(Calculation):
 
 class Mean(Accumulation):
     def _expression(self, elements):
+        elements = [e for e in elements if e is not None]
         if elements:
-            return sum(elements) / len(elements)
+            return statistics.mean(elements)
 
 
 class FirstElement(Accumulation):
@@ -244,7 +222,7 @@ class RequiredYieldQ30(RequiredYield):
             return self.quantised_yields[required_yield]
 
 
-class MostRecent(Calculation):  # TODO: Should replace server_side.MostRecent
+class MostRecent(Calculation):
     def __init__(self, *args, date_field='_created'):
         self.date_field = date_field
         super().__init__(*args)
@@ -269,7 +247,7 @@ class UniqDict(Calculation):
         return sorted(set(elements))
 
 
-class NbUniqueDicts(Calculation):  # TODO: Should replace server_side.NbUniqueElements
+class NbUniqueDicts(Calculation):
     def __init__(self, *args, filter_func=None, key=None):
         super().__init__(*args, filter_func=filter_func)
         self.key = key
@@ -281,4 +259,3 @@ class NbUniqueDicts(Calculation):  # TODO: Should replace server_side.NbUniqueEl
             elements = [e[self.key] for e in elements if e]
 
         return len(set(elements))
-

@@ -81,7 +81,7 @@ QUnit.test('get_lims_and_qc_data', function(assert) {
             'placements': {
                 'A:1': {
                     'name': 'sample_1',
-                    'reporting_app': {
+                    'bioinformatics_qc': {
                         'sample_id': 'sample_1',
                         'some': 'rest',
                         'api': 'data'
@@ -93,7 +93,7 @@ QUnit.test('get_lims_and_qc_data', function(assert) {
                 },
                 'A:2': {
                     'name': 'sample_2',
-                    'reporting_app': {
+                    'bioinformatics_qc': {
                         'sample_id': 'sample_2',
                         'some': 'more',
                         'api': 'data'
