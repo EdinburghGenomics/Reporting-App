@@ -416,16 +416,6 @@ def report_sample(sample_id):
     )
 
 
-@app.route('/charts')
-@flask_login.login_required
-def plotting_report():
-    return render_template(
-        'charts.html',
-        api_url=util.construct_url('run_elements', max_results=1000000),
-        ajax_token=util.get_token()
-    )
-
-
 @app.route('/libraries/<view_type>')
 @flask_login.login_required
 def libraries(view_type):
@@ -575,11 +565,25 @@ def species_page(species):
         ]
     )
 
+@app.route('/charts')
+@flask_login.login_required
+def plotting_report():
+    six_months_ago = util.now() - datetime.timedelta(days=30)
+
+    return render_template(
+        'charts.html',
+        api_url=util.construct_url('lanes', max_results=10000, where={'_created': {'$gte': six_months_ago.strftime(settings.DATE_FORMAT)}}),
+        ajax_token=util.get_token()
+    )
+
+
 @app.route('/tat_chart/')
 @flask_login.login_required
 def tat_chart_page():
+    six_months_ago = util.now() - datetime.timedelta(days=182)
+
     return render_template(
         'tat_charts.html',
-        api_url=util.construct_url('lims/sample_status', match={'project_status': 'all'}),
+        api_url=util.construct_url('lims/sample_status', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'}),
         ajax_token=util.get_token()
     )
