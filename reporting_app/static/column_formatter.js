@@ -190,23 +190,16 @@ function temporal_fmt(cell_data, fmt){
  * Returns formatting style is for project status page, displaying a green, yellow or red if it is over a week,
  * two weeks or four weeks since the last change.
  */
-    // Checking time elapsed of the status' max date
-    status_date = new Date(cell_data['last_modified_date']);
-    // Creating fixed date variable to compare against
-    week_ago = new Date();
-    week_ago.setDate(week_ago.getDate() - 7)
-    two_weeks_ago = new Date();
-    two_weeks_ago.setDate(week_ago.getDate() - 14)
-    four_weeks_ago = new Date();
-    four_weeks_ago.setDate(week_ago.getDate() - 28)
+    // Checking days elapsed since the status' max date
+    days_since_last_change = moment().diff(cell_data['last_modified_date'], 'days')
 
-    if ( status_date < four_weeks_ago ){
+    if ( days_since_last_change > 28 ){
         return "bg-danger"
     }
-    else if ( status_date < two_weeks_ago ){
+    else if ( days_since_last_change > 14 ){
         return "bg-warning"
     }
-    else if ( status_date < week_ago ){
+    else if ( days_since_last_change > 7 ){
         return "bg-success"
     }
 }
