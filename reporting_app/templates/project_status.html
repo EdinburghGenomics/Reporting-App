@@ -2,21 +2,25 @@
 {% from 'datatable_macro.html' import datatable %}
 
 {% block content %}
-<button data-toggle="collapse" data-target="#description" class="btn btn-primary pull-right"><i class="fa fa-question-circle"></i> Help</button>
+<button data-toggle="collapse" data-target="#description" class="btn btn-default pull-right"><i class="fa fa-question-circle"></i> Help</button>
 <div id="description" class="collapse help-box">
-    <h4>The Project Status table shows the number of samples in each project based on the workflow they completed, and the step
+    <p>The Project Status table shows the number of samples in each project based on the workflow they completed, and the step
         they're queued at. The steps involved are described below. The colour on some statuses represents the period of time that
         the latest sample has been in this status.
-    </h4>
+    </p>
     <h5><span class="bg-danger">Red</span> means the latest sample's status is over four weeks old.</h5>
     <h5><span class="bg-warning">Yellow</span> means the latest sample's status is over two weeks old.</h5>
     <h5><span class="bg-info">Blue</span> means the latest sample's status is over a week old.</h5>
 
-    <table class="table">
-        <th>Status</th>
-        <th>Completed Steps</th>
-        <th>Queued in Steps</th>
-        {% for s in status_order %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>Completed Steps</th>
+                <th>Queued in Steps</th>
+                {% for s in status_order %}
+            </tr>
+        </thead>
         <tr>
             <th>{{ s.name }}</th>
             <td>{{ s.completed | join(', ') }}</td>
