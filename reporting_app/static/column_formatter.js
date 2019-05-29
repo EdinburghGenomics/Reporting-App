@@ -187,7 +187,7 @@ function count_entities_fmt(data, fmt){
 
 function temporal_fmt(cell_data, fmt){
 /*
- * Returns formatting style is for project status page, displaying a blue, yellow or red if it is over a week,
+ * Returns formatting style is for project status page, displaying a green, yellow or red if it is over a week,
  * two weeks or four weeks since the last change.
  */
     // Checking time elapsed of the status' max date
@@ -207,7 +207,7 @@ function temporal_fmt(cell_data, fmt){
         return "bg-warning"
     }
     else if ( status_date < week_ago ){
-        return "bg-info"
+        return "bg-success"
     }
 }
 
