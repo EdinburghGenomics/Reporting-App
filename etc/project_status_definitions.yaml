@@ -43,8 +43,10 @@ step_completed_to_status:
     Awaiting User Response EG 2.0: LIBRARY_QUEUE
     Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
     Sequencing Plate Preparation EG 1.0: LIBRARY_QUEUE
+    KAPA Make Normalised CFP EG 1.0 ST: LIBRARY_PREP
     Create CFP Batch: LIBRARY_PREP
     Eval qPCR Quant: SEQUENCING_QUEUE
+    KAPA QC Review EG 1.0 ST: SEQUENCING_QUEUE
     Create Pooling CST Batch: SEQUENCING
     Create Production CST Batch: SEQUENCING
     AUTOMATED - Sequence: BIOINFORMATICS
@@ -62,6 +64,7 @@ step_queued_to_status:
     FluidX Sample Receipt EG 1.1 ST: SAMPLE_SUBMISSION
     Receive Sample EG 6.1: SAMPLE_SUBMISSION
     Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
+    KAPA Make Normalised CFP EG 1.0 ST: LIBRARY_QUEUE
     Create CFP Batch: LIBRARY_QUEUE
     Eval Project Quant: LIBRARY_QUEUE
     Create PDP Pool: SEQUENCING_QUEUE
