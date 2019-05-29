@@ -348,7 +348,13 @@ var sum_row_per_column = function( row, data, start, end, display ) {
                 .cells( null, this.index(), { page: 'current'} )
                 .data()
                 .reduce(function (a, b) {
-                    if (b.constructor === Array){
+                    /* This is a hardcoded workaround, which is expected to be in place until a need for a more generalised
+                       solution to be implemented.
+                     */
+                    if (b instanceof Object){
+                        return b.samples.length;
+                    }
+                    else if (b.constructor === Array){
                         return a + b.length;
                     } else if (!isNaN(parseFloat(b)) && isFinite(b)){
                         return a + parseFloat(b);
