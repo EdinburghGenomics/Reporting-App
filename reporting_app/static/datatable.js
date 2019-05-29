@@ -349,7 +349,7 @@ var sum_row_per_column = function( row, data, start, end, display ) {
                 .data()
                 .reduce(function (a, b) {
                     /* This is a hardcoded workaround, which is expected to be in place until a need for a more generalised
-                       solution to be implemented.
+                       solution arises.
                      */
                     if (b instanceof Object){
                         return b.samples.length;
