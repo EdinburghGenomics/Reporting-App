@@ -411,3 +411,40 @@ def test_sample_status_per_plate(m_retrieve_args, m_project_info, m_request, m_n
             'required_yield': ''
         }
     ]
+
+
+@mocked_retrieve_args
+@patch('rest_api.limsdb.queries.library_info')
+def test_library_preparation(mocked_library_info, mocked_retrieve_args):
+    mocked_library_info.return_value = (
+        ('qpcr1', datetime(2019, 5, 2), 'lib1', 'TruSeq Nano Sample Prep', 1, 'a_mod_date', 'sample_1', 'a_project', 0, 0, 'a_udf', 1.0),
+        ('qpcr1', datetime(2019, 5, 2), 'lib1', 'TruSeq Nano Sample Prep', 1, 'a_mod_date', 'sample_1', 'a_project', 0, 0, 'another_udf', 2.1),
+        ('qpcr1', datetime(2019, 5, 2), 'lib1', 'TruSeq PCR-Free Sample Prep', 1, 'a_mod_date', 'sample_2', 'a_project', 1, 0, 'a_udf', 3.2),
+        ('qpcr2', datetime(2019, 5, 1), 'lib1', 'TruSeq Nano Sample Prep', 1, 'a_mod_date', 'sample_1', 'a_project', 0, 0, 'a_udf', 1.4)
+    )
+
+    assert f.library_info(None) == [
+        {
+            'id': 'lib1',
+            'qpcrs_run': 2,
+            'date_completed': '2019-05-02T00:00:00',
+            'placements': {
+                'A:1': {
+                    'name': 'sample_1',
+                    'library_qc': {'a_udf': 1.0, 'another_udf': 2.1},
+                    'qc_flag': 'PASSED',
+                    'project_id': 'a_project'
+                },
+                'A:2': {
+                    'name': 'sample_2',
+                    'library_qc': {'a_udf': 3.2},
+                    'qc_flag': 'PASSED',
+                    'project_id': 'a_project'
+                }
+            },
+            'type': 'nano',
+            'nsamples': 2,
+            'pc_qc_flag_pass': 100.0,
+            'project_ids': ['a_project']
+        }
+    ]

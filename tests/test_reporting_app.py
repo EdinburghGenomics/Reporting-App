@@ -169,7 +169,7 @@ class TestReportingApp(Helper):
     @patch('reporting_app.util.datatable_cfg', return_value='a_datatable_cfg')
     @patch('reporting_app.util.now', return_value=datetime(2017, 12, 12, 0, 0, 0))
     def test_runs_report(self, mocked_datetime, mocked_cfg):
-        for endpoint, title in (('all', 'All'), ('recent', 'Recent'), ('current_year', '2017'), ('year_to_date', 'Year to date')):
+        for endpoint, title in (('all', 'All'), ('recent', 'Recent'), ('current_year', '2017'), ('last_12_months', 'Last 12 months')):
             mocked_render = self._test_render_template('/runs/' + endpoint)
             mocked_render.assert_called_with('untabbed_datatables.html', title + ' Runs', include_review_modal=True, table='a_datatable_cfg')
 
@@ -203,7 +203,7 @@ class TestReportingApp(Helper):
             review={'entity_field': 'sample_ids', 'button_name': 'runreview'}
         )
         mocked_cfg.assert_any_call(
-            'Year to date Runs',
+            'Last 12 months Runs',
             'runs',
             ajax_call={
                 'func_name': 'merge_multi_sources',
@@ -357,3 +357,11 @@ class TestReportingApp(Helper):
     def test_genome_page(self):
         self._test_render_template('/species')
         self._test_render_template('/species/a_species')
+
+    def test_libraries(self):
+        self._test_render_template('/libraries/recent')
+        self._test_render_template('/libraries/last_12_months')
+        self._test_render_template('/libraries/current_year')
+        self._test_render_template('/libraries/all')
+
+        self._test_render_template('/library/a_library')

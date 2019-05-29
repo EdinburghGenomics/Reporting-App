@@ -246,3 +246,44 @@ def runs_cst(session, time_since=None, run_ids=None, run_status=None):
 
     results = q.all()
     return results
+
+
+def library_info(session, time_from=None, time_to=None, library_id=None):
+    """
+    Get a join of artifact UDFs, plate coordinates and QC flags for all Eval qPCR Quant processes - filterable to a
+    library ID or date range.
+    """
+
+    q = session.query(t.Process.luid, t.Process.daterun, t.Container.name, t.LabProtocol.protocolname,
+                      t.ArtifactState.qcflag, t.ArtifactState.lastmodifieddate, t.Sample.name, t.Project.name,
+                      t.ContainerPlacement.wellxposition, t.ContainerPlacement.wellyposition, t.ArtifactUdfView.udfname,
+                      t.ArtifactUdfView.udfvalue)\
+        .join(t.Process.type)\
+        .join(t.Process.protocolstep)\
+        .join(t.ProtocolStep.labprotocol)\
+        .join(t.Process.processiotrackers)\
+        .join(t.ProcessIOTracker.artifact) \
+        .join(t.Artifact.udfs)\
+        .join(t.Artifact.containerplacement)\
+        .join(t.Artifact.samples)\
+        .join(t.Artifact.states)\
+        .join(t.Sample.project)\
+        .join(t.ContainerPlacement.container)\
+        .filter(t.ProcessType.displayname == 'Eval qPCR Quant')\
+        .filter(t.ArtifactUdfView.udfname.in_(
+            ['Original Conc. (nM)', 'Sample Transfer Volume (uL)', 'TSP1 Transfer Volume (uL)', '%CV',
+             'NTP Volume (uL)', 'Raw CP', 'RSB Transfer Volume (uL)', 'NTP Transfer Volume (uL)', 'Ave. Conc. (nM)',
+             'Adjusted Conc. (nM)', 'Original Conc. (nM)', 'Sample Transfer Volume (uL)',
+             'TSP1 Transfer Volume (uL)']))\
+        .filter(t.ArtifactUdfView.udfvalue != None)
+
+    if library_id:
+        q = q.filter(t.Container.name == library_id)
+    else:
+        if time_from:
+            q = q.filter(t.Process.daterun > func.date(time_from))
+
+        if time_to:
+            q = q.filter(t.Process.daterun < func.date(time_to))
+
+    return q.all()
