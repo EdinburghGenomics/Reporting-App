@@ -254,6 +254,20 @@ function all_tat_charts(data){
     });
 }
 
+
+// Global variables
+var chart;
+var lane_data;
+var lane_metrics = {};
+var color_options = {};
+var plot_options = {
+    'scatter': {'id': 'scatter', 'name': 'Scatter plot', 'function': scatter_series},
+    'scatter_smooth': {'id': 'scatter_smooth', 'name': 'Scatter plot with smooth line', 'function': scatter_series_with_smooth_line},
+    'box': {'id': 'box', 'name': 'Box plot', 'function': box_plot_series},
+    'average': {'id': 'average', 'name': 'Line plot of average', 'function': average_series},
+    'average_smooth': {'id': 'average_smooth', 'name': 'plot of average with smooth line', 'function': average_series_with_smooth_line},
+}
+
 function get_categories(data, key){
     var categories = _.uniq(data.map(function(d) {return _.get(d, key)}))
     categories.sort()
@@ -307,13 +321,22 @@ function box_plot_series(data, color_key, metric_path, metric_name){
 }
 
 function scatter_series(data, color_key, metric_path, metric_name){
+    return _scatter_series(data, color_key, metric_path, metric_name, false)
+}
+
+function scatter_series_with_smooth_line(data, color_key, metric_path, metric_name){
+    return _scatter_series(data, color_key, metric_path, metric_name, true)
+}
+
+function _scatter_series(data, color_key, metric_path, metric_name, smooth_line){
     // Generate a plot with scatter series based on the provided color key and metric
     // No aggregation is performed
 
     color_categories = get_categories(data, color_key)
+    var i = 0;
     return color_categories.map(function(category){
         var filtered_data = data.filter(function (d){return _.get(d, color_key) == category})
-        return {
+        series = {
             name: category,
             data: _.map(filtered_data, function(d){return [parseInt(d['date']), _.get(d, metric_path)] }),
             yAxis: 0,
@@ -325,21 +348,35 @@ function scatter_series(data, color_key, metric_path, metric_name){
             },
             tooltip: {
                 pointFormatter: function(){return format_text_tat(color_key + " " + category, this.x, this.y, 'date', metric_name, '');}
-            }
+            },
+            color: colour_palette[i]
         }
+        if (smooth_line){
+            series.regression = true
+            series.regressionSettings = { type: 'loess', loessSmooth: 50 }
+        }
+        i += 1;
+        return series
     })
-
 }
 
 function average_series(data, color_key, metric_path, metric_name){
+    return _average_series(data, color_key, metric_path, metric_name, false)
+}
+
+function average_series_with_smooth_line(data, color_key, metric_path, metric_name){
+    return _average_series(data, color_key, metric_path, metric_name, true)
+}
+
+function _average_series(data, color_key, metric_path, metric_name, smooth_line){
     // Generate a plot series showing average of the provided color key and metric
     color_categories = get_categories(data, color_key)
-
+    var i = -1
     return color_categories.map(function(category){
 
         var filtered_data = data.filter(function (d){return _.get(d, color_key) == category})
         var aggregated_data = aggregate(filtered_data, 'date', metric_path, average, 'metric_avg', null)
-        return {
+        series = {
             name: category,
             data: aggregated_data.map(function(d){return [parseInt(d['date']), d['metric_avg']]}),
             yAxis: 0,
@@ -351,63 +388,154 @@ function average_series(data, color_key, metric_path, metric_name){
             },
             tooltip: {
                 pointFormatter: function(){return format_text_tat(color_key + " " + category, this.x, this.y, 'date', metric_name, '');}
-            }
+            },
+            color: colour_palette[i],
         }
+        if (smooth_line){
+            series.regression = true
+            series.regressionSettings = { type: 'loess', loessSmooth: 10 }
+            series.type = 'scatter'
+        }
+        i += 1;
+        return series
+
     })
 }
 
+function init_lane_sequencing_metrics_chart(url, token, metric_list, color_list){
+    // create the buttons for the metrics
+    _.forEach(metric_list, function(m){
+        var li = $('#button_' + m.id);
+        var button = $('<a>').attr('target', m.id).text(m['name']);
+        button.click(function() {
+            $('#selected_metric').text(this.text);
+            $('#selected_metric').attr('target', this.target);
+            render_lane_sequencing_metrics_chart(
+                $('#selected_metric').attr('target'),
+                $('#selected_color').attr('target'),
+                $('#selected_plot_type').attr('target'),
+            );
+        });
+        li.append(button);
+        // populate the global metrics object.
+        lane_metrics[m.id]=m
+    })
 
-function lane_sequencing_metrics_chart(data){
-    // Adds date and sequencer to the data structure by parsing the run name
-    data.map(function(element) {
-        element['date'] = moment(element['run_id'].split('_')[0], 'YYMMDD').valueOf();
-        element['sequencer'] = element['run_id'].split('_')[1];
-    });
-    metric_path = 'aggregated.pc_duplicate_reads'
-    metric_name = '%duplicates'
-    color_metric = 'lane_number'
+    // create the buttons for the color
+    _.forEach(color_list, function(c){
+        var li = $('#button_' + c.id);
+        var button = $('<a>').attr('target', c.id).text(c['name']);
+        button.click(function() {
+            $('#selected_color').text(this.text)
+            $('#selected_color').attr('target', this.target)
+            render_lane_sequencing_metrics_chart(
+                $('#selected_metric').attr('target'),
+                $('#selected_color').attr('target'),
+                $('#selected_plot_type').attr('target'),
+            );
+        });
+        li.append(button);
+        // populate the global metrics object.
+        color_options[c.id]=c
+    })
 
-//    var series = box_plot_series(data, color_metric, metric_path, metric_name)
-//    var series = scatter_series(data, color_metric, metric_path, metric_name)
-    var series = average_series(data, color_metric, metric_path, metric_name)
-    return Highcharts.chart('highchart_cont', {
+    // create the buttons for the plot type
+     _.forEach(plot_options, function(p){
+        var li = $('#button_' + p['id']);
+        var button = $('<a>').attr('target', p['id']).text(p['name']);
+        button.click(function() {
+            $('#selected_plot_type').text(this.text)
+            $('#selected_plot_type').attr('target', this.target)
+            render_lane_sequencing_metrics_chart(
+                $('#selected_metric').attr('target'),
+                $('#selected_color').attr('target'),
+                $('#selected_plot_type').attr('target'),
+            );
+        });
+        li.append(button);
+    })
+
+
+    chart = Highcharts.chart('highchart_cont', {
         chart: {
             zoomType: 'x'
         },
         title: {
-            text: 'Sequencing metrics: ' + metric_name,
+            text: 'Sequencing metrics: ' ,
         },
         xAxis: {
             type: 'datetime',
-            title: {
-                text: 'Date'
-            }
+            title: { text: 'Date' }
         },
-        yAxis: [
-            {
-                title: {
-                    text: metric_name
-                }
-            },
-        ],
-        series: series,
+        yAxis: [ { title: { text: '' } }],
+        series: [],
+        plotOptions: { series: { softThreshold: true } },
         credits: false
     });
+    // Load the data and store it for later use
+    chart.showLoading();
+    load_ajax_call(url, token, function(json){
+        lane_data = json['data']
+        // Adds date and sequencer to the data structure by parsing the run name
+        lane_data.map(function(element) {
+            element['date'] = moment(element['run_id'].split('_')[0], 'YYMMDD').valueOf();
+            element['sequencer'] = element['run_id'].split('_')[1];
+            element['pool'] = element['run_elements'].length > 1 ? 'pooling' : 'non_pooling';
+        });
+        chart.hideLoading();
 
+    });
+}
+
+function render_lane_sequencing_metrics_chart(metric_id, color_id, plot_type){
+    if (metric_id == "" || color_id == "" || plot_type == ""){ return }
+    // Create the new series
+    var series = plot_options[plot_type]['function'](
+        lane_data,
+        color_options[color_id].path,
+        lane_metrics[metric_id].path,
+        lane_metrics[metric_id].name
+    )
+    // Remove the previous series
+    _.forEachRight(chart.series, function(s) { s.remove(); });
+    // Add the new series
+    _.forEach(series, function(s){chart.addSeries(s, false)});
+    //Title
+    var title = plot_options[plot_type].name + ' of ' + lane_metrics[metric_id].name + ' per ' + color_options[color_id].name
+    chart.yAxis[0].update({ title: { text: lane_metrics[metric_id].name } })
+    chart.title.update({ text: title })
+    chart.legend.update({
+        title: {
+            text: color_options[color_id].name,
+            align: 'center',
+            fontWeight: 'bold'
+        }
+    });
 }
 
 // Load the ajax call and call the call back method
-function load_graph(url, token, callback){
-    $('#loadingmessage').show();
+function load_ajax_call(url, token, callback){
     $.ajax({
         url: url,
         dataType: "json",
         async: true,
         headers: {'Authorization': token},
         success: function(json) {
-            $('#loadingmessage').hide();
-            callback(json['data']);
-            $('#plots_div').show();
+            if (callback !== undefined){
+                callback(json);
+            }
         }
     });
+}
+
+// Load the ajax call and call the call back method then show a div and hide the loading message
+function load_graph(url, token, callback){
+    $('#loadingmessage').show();
+    load_ajax_call(url, token, function(json){
+        if (callback !== undefined){
+            callback(json);
+        }
+        $('#loadingmessage').hide();
+        $('#plots_div').show();
+    })
 }

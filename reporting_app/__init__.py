@@ -565,15 +565,41 @@ def species_page(species):
         ]
     )
 
+
+metrics = [
+    {'id': 'pc_q30', 'name': '%Q30', 'path': 'aggregated.pc_q30'},
+    {'id': 'pc_optical_duplicates', 'name': '% optical duplicates', 'path': 'aggregated.pc_opt_duplicate_reads'},
+    {'id': 'pc_duplicates', 'name': '% duplicates', 'path': 'aggregated.pc_duplicate_reads'},
+    {'id': 'pc_adaptor', 'name': '% adaptor', 'path': 'aggregated.pc_adaptor'},
+    {'id': 'pc_pass_filter', 'name': '%PF', 'path': 'aggregated.pc_pass_filter'},
+    {'id': 'prephasing_r1', 'name': 'Prephasing R1', 'path': 'interop_metrics.prephasing_r1'},
+    {'id': 'prephasing_r2', 'name': 'Prephasing R2', 'path': 'interop_metrics.prephasing_r2'},
+    {'id': 'phasing_r1', 'name': 'Phasing R1', 'path': 'interop_metrics.phasing_r1'},
+    {'id': 'phasing_r2', 'name': 'Phasing R2', 'path': 'interop_metrics.phasing_r2'},
+    {'id': 'intensity_c1_r1', 'name': 'Intensity Cycle1', 'path': 'interop_metrics.intensity_c1_r1'},
+    {'id': 'pc_error_r1', 'name': '% Error rate R1', 'path': 'interop_metrics.pc_error_r1'},
+    {'id': 'pc_error_r2', 'name': '% Error rate R2', 'path': 'interop_metrics.pc_error_r2'}
+]
+
+colors = [
+    {'id': 'nothing', 'name': 'No color', 'path': None},
+    {'id': 'lane_number', 'name': 'Lane', 'path': 'lane_number'},
+    {'id': 'sequencer', 'name': 'Sequencer', 'path': 'sequencer'},
+    {'id': 'pool', 'name': 'Pooling', 'path': 'pool'},
+]
+
+
 @app.route('/charts')
 @flask_login.login_required
 def plotting_report():
-    six_months_ago = util.now() - datetime.timedelta(days=30)
+    six_months_ago = util.now() - datetime.timedelta(days=182)
 
     return render_template(
         'charts.html',
         api_url=util.construct_url('lanes', max_results=10000, where={'_created': {'$gte': six_months_ago.strftime(settings.DATE_FORMAT)}}),
-        ajax_token=util.get_token()
+        ajax_token=util.get_token(),
+        metric_options=metrics,
+        color_options=colors
     )
 
 

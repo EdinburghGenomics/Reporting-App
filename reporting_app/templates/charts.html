@@ -6,6 +6,7 @@
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-more.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="//rawgithub.com/phpepe/highcharts-regression/master/highcharts-regression.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/mathjs/3.10.0/math.min.js"></script>
@@ -13,16 +14,48 @@
 {% endblock %}
 
 {% block content %}
-    <div id="loadingmessage" class="panel panel-default" style="width: 15%; margin: 0 auto;">
-        <div class="panel-body" style="text-align: center;">
-            <p class="fa fa-refresh fa-spin"></p>
-        </div>
+    <div class="btn-group">
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span id="selected_metric" target="">Metric</span> <span class="caret"></span>
+        </button>
+        <ul id="qc_options" class="dropdown-menu">
+        {% for m in metric_options %}
+            <li id="button_{{ m.id }}"></li>
+        {% endfor %}
+        </ul>
     </div>
-    <div id="plots_div" style="display: none">
-        <div id="highchart_cont"></div>
+    <div class="btn-group">
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span id="selected_color" target="">Color</span> <span class="caret"></span>
+        </button>
+        <ul id="color_options" class="dropdown-menu">
+        {% for c in color_options %}
+            <li id="button_{{ c.id }}"></li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div class="btn-group">
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span id="selected_plot_type" target="">Plot</span> <span class="caret"></span>
+        </button>
+        <ul id="plot_options" class="dropdown-menu">
+            <li id="button_scatter"></li>
+            <li id="button_scatter_smooth"></li>
+            <li id="button_box"></li>
+            <li id="button_average"></li>
+            <li id="button_average_smooth"></li>
+        </ul>
     </div>
 
+
+    <div id="highchart_cont"></div>
+
     <script>
-        load_graph('{{ api_url|safe }}', '{{ ajax_token | safe}}', lane_sequencing_metrics_chart);
+        init_lane_sequencing_metrics_chart(
+            '{{ api_url|safe }}',
+            '{{ ajax_token|safe }}',
+            {{ metric_options|tojson|safe }},
+            {{ color_options|tojson|safe }},
+        )
     </script>
 {% endblock %}
