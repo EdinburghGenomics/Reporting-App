@@ -35,14 +35,18 @@ status_order:
 # This section describes the LIMS steps that specify the exit from a status, e.g. if the sample finished
 # 'Receive Sample EG 6.1' then it completed SAMPLE_SUBMISSION and will be moved to the next one.
 step_completed_to_status:
+    Manifest Parsing EG 1.0 ST: SAMPLE_QC
     FluidX Sample Receipt EG 1.1 ST: SAMPLE_QC
+    FluidX Transfer From Rack Into Plate EG 1.0 ST: SAMPLE_QC
     Receive Sample 4.0: SAMPLE_QC
     Receive Sample EG 6.1: SAMPLE_QC
     Awaiting User Response EG 2.0: LIBRARY_QUEUE
     Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
     Sequencing Plate Preparation EG 1.0: LIBRARY_QUEUE
+    KAPA Make Normalised CFP EG 1.0 ST: LIBRARY_PREP
     Create CFP Batch: LIBRARY_PREP
     Eval qPCR Quant: SEQUENCING_QUEUE
+    KAPA QC Review EG 1.0 ST: SEQUENCING_QUEUE
     Create Pooling CST Batch: SEQUENCING
     Create Production CST Batch: SEQUENCING
     AUTOMATED - Sequence: BIOINFORMATICS
@@ -56,9 +60,11 @@ step_completed_to_status:
 # This section describes the LIMS steps that specify that the sample is queued in a status, e.g, if the sample is queued
 # to 'Sequencing Plate Preparation EG 2.0' then it is in LIBRARY_QUEUE
 step_queued_to_status:
+    FluidX Transfer From Rack Into Plate EG 1.0 ST: SAMPLE_SUBMISSION
     FluidX Sample Receipt EG 1.1 ST: SAMPLE_SUBMISSION
     Receive Sample EG 6.1: SAMPLE_SUBMISSION
     Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
+    KAPA Make Normalised CFP EG 1.0 ST: LIBRARY_QUEUE
     Create CFP Batch: LIBRARY_QUEUE
     Eval Project Quant: LIBRARY_QUEUE
     Create PDP Pool: SEQUENCING_QUEUE
