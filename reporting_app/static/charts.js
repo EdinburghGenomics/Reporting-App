@@ -353,7 +353,7 @@ function _scatter_series(data, color_key, metric_path, metric_name, smooth_line)
         }
         if (smooth_line){
             series.regression = true
-            series.regressionSettings = { type: 'loess', loessSmooth: 50 }
+            series.regressionSettings = { type: 'loess', loessSmooth: 50, color: colour_palette[i], name: "smooth " + category }
         }
         i += 1;
         return series
@@ -371,7 +371,7 @@ function average_series_with_smooth_line(data, color_key, metric_path, metric_na
 function _average_series(data, color_key, metric_path, metric_name, smooth_line){
     // Generate a plot series showing average of the provided color key and metric
     color_categories = get_categories(data, color_key)
-    var i = -1
+    var i = 0
     return color_categories.map(function(category){
 
         var filtered_data = data.filter(function (d){return _.get(d, color_key) == category})
@@ -393,7 +393,7 @@ function _average_series(data, color_key, metric_path, metric_name, smooth_line)
         }
         if (smooth_line){
             series.regression = true
-            series.regressionSettings = { type: 'loess', loessSmooth: 10 }
+            series.regressionSettings = { type: 'loess', loessSmooth: 15, color: colour_palette[i], name: "smooth " + category }
             series.type = 'scatter'
         }
         i += 1;
