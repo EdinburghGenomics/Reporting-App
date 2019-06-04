@@ -412,7 +412,7 @@ function init_lane_sequencing_metrics_chart(urls, token, merge_on, merge_propert
             render_lane_sequencing_metrics_chart(
                 $('#selected_metric').attr('target'),
                 $('#selected_color').attr('target'),
-                $('#selected_plot_type').attr('target'),
+                $('#selected_plot_type').attr('target')
             );
         });
         li.append(button);
@@ -430,7 +430,7 @@ function init_lane_sequencing_metrics_chart(urls, token, merge_on, merge_propert
             render_lane_sequencing_metrics_chart(
                 $('#selected_metric').attr('target'),
                 $('#selected_color').attr('target'),
-                $('#selected_plot_type').attr('target'),
+                $('#selected_plot_type').attr('target')
             );
         });
         li.append(button);
@@ -448,7 +448,7 @@ function init_lane_sequencing_metrics_chart(urls, token, merge_on, merge_propert
             render_lane_sequencing_metrics_chart(
                 $('#selected_metric').attr('target'),
                 $('#selected_color').attr('target'),
-                $('#selected_plot_type').attr('target'),
+                $('#selected_plot_type').attr('target')
             );
         });
         li.append(button);

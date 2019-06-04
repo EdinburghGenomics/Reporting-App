@@ -80,7 +80,7 @@ var merge_on_key_keep_first_sub_porperties = function (list_of_array, key, list_
         i++;
     });
     //flatten the list of list
-    return r.flat(1);
+    return [].concat.apply([], r);
 }
 
 // Create a function that send multiple ajax queries then merge the results based using merge_func callback
