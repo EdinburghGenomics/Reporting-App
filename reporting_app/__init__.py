@@ -590,16 +590,25 @@ colors = [
 ]
 
 
-@app.route('/charts')
+@app.route('/charts/<view_type>')
 @flask_login.login_required
-def plotting_report():
-    six_months_ago = util.now() - datetime.timedelta(days=182)
+def plotting_report(view_type):
+    time_ago = None
+    if view_type == 'last_month':
+        time_ago = util.now() - datetime.timedelta(days=30)
+    elif view_type == 'last_3_months':
+        time_ago = util.now() - datetime.timedelta(days=182)
+    elif view_type == 'last_12_months':
+        time_ago = util.now() - datetime.timedelta(days=365)
+    else:
+        fl.abort(404)
+        return None
 
     return render_template(
         'charts.html',
         api_urls=[
-            util.construct_url('lanes', max_results=10000, where={'_created': {'$gte': six_months_ago.strftime(settings.DATE_FORMAT)}}),
-            util.construct_url('lims/run_status', createddate=six_months_ago.strftime(settings.DATE_FORMAT)),
+            util.construct_url('lanes', max_results=10000, where={'_created': {'$gte': time_ago.strftime(settings.DATE_FORMAT)}}),
+            util.construct_url('lims/run_status', createddate=time_ago.strftime(settings.DATE_FORMAT)),
         ],
         ajax_token=util.get_token(),
         merge_on='run_id',
@@ -611,11 +620,37 @@ def plotting_report():
 
 @app.route('/tat_chart/')
 @flask_login.login_required
-def tat_chart_page():
-    six_months_ago = util.now() - datetime.timedelta(days=182)
+def tat_chart_page(view_type):
+    time_ago = None
+    if view_type == 'last_month':
+        time_ago = util.now() - datetime.timedelta(days=30)
+    if view_type == 'last_3_months':
+        time_ago = util.now() - datetime.timedelta(days=182)
+    elif view_type == 'last_12_months':
+        time_ago = util.now() - datetime.timedelta(days=365)
+    else:
+        fl.abort(404)
+        return None
 
     return render_template(
         'tat_charts.html',
-        api_url=util.construct_url('lims/sample_status', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'}),
+        api_url=util.construct_url('lims/sample_status', match={'createddate': time_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'}),
         ajax_token=util.get_token()
     )
+def libraries(view_type):
+    query_params = {'max_results': 10000}
+
+    time_ago = None
+    if view_type == 'recent':
+        time_ago = util.now() - datetime.timedelta(days=30)
+    elif view_type == 'last_12_months':
+        time_ago = util.now() - datetime.timedelta(days=365)
+    elif view_type == 'current_year':
+        y = util.now().year
+        time_ago = datetime.datetime(year=y, month=1, day=1)
+        view_type = str(y)
+    elif view_type == 'all':
+        pass
+    else:
+        fl.abort(404)
+        return None

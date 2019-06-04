@@ -477,13 +477,12 @@ function init_lane_sequencing_metrics_chart(urls, token, merge_on, merge_propert
     ajax_call_function(null, function(json){
         lane_data = json['data']
         // Remove lanes from runs where the Run did not complete
-        lane_data.filter(function(element){
+        lane_data = lane_data.filter(function(element){
             return _.get(element, 'run.run_status', 'RunCompleted') == 'RunCompleted'
         });
         // Adds date and sequencer to the data structure by parsing the run name
         lane_data.map(function(element) {
             run_id_split = element['run_id'].split('_')
-
             element['date'] = moment(run_id_split[0], 'YYMMDD').valueOf();
             element['sequencer'] = run_id_split[1];
             element['sequencer_stage'] = run_id_split[1] + '_' + run_id_split[3].substring(0, 1);

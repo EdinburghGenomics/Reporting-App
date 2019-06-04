@@ -88,7 +88,14 @@
                         </ul>
                     </li>
                     <li><a href="/species">Species</a></li>
-                    <li><a href="/charts">Charts</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Charts<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/charts/last_month">30 days</a></li>
+                            <li><a href="/charts/last_3_months">Last 3 month</a></li>
+                            <li><a href="/charts/last_12_months">Last 12 months</a></li>
+                        </ul>
+                    </li>
                     <li class="dropdown">
                         <a href="#" class="dropdown=toggle" data-toggle="dropdown">{{ current_user.username }}<b class="caret"></b></a>
                         <ul class="dropdown-menu">
