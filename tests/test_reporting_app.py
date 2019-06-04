@@ -326,7 +326,9 @@ class TestReportingApp(Helper):
         self._test_render_template('/sample/a_sample')
 
     def test_plotting_report(self):
-        self._test_render_template('/charts')
+        self._test_render_template('/charts/last_month')
+        self._test_render_template('/charts/last_3_months')
+        self._test_render_template('/charts/last_12_months')
 
     def test_project_status_report(self):
         self._test_render_template('/project_status/')
