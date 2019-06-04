@@ -585,6 +585,7 @@ colors = [
     {'id': 'nothing', 'name': 'No color', 'path': None},
     {'id': 'lane_number', 'name': 'Lane', 'path': 'lane_number'},
     {'id': 'sequencer', 'name': 'Sequencer', 'path': 'sequencer'},
+    {'id': 'sequencer_stage', 'name': 'Sequencer/Stage', 'path': 'sequencer_stage'},
     {'id': 'pool', 'name': 'Pooling', 'path': 'pool'},
 ]
 
@@ -596,8 +597,13 @@ def plotting_report():
 
     return render_template(
         'charts.html',
-        api_url=util.construct_url('lanes', max_results=10000, where={'_created': {'$gte': six_months_ago.strftime(settings.DATE_FORMAT)}}),
+        api_urls=[
+            util.construct_url('lanes', max_results=10000, where={'_created': {'$gte': six_months_ago.strftime(settings.DATE_FORMAT)}}),
+            util.construct_url('lims/run_status', createddate=six_months_ago.strftime(settings.DATE_FORMAT)),
+        ],
         ajax_token=util.get_token(),
+        merge_on='run_id',
+        merge_properties=['run'],
         metric_options=metrics,
         color_options=colors
     )

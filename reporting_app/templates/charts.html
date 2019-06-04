@@ -11,9 +11,11 @@
     <script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/mathjs/3.10.0/math.min.js"></script>
     <script src="{{ url_for('static', filename='charts.js') }}"></script>
+    <script src="{{ url_for('static', filename='utils.js') }}"></script>
 {% endblock %}
 
 {% block content %}
+    <span>Display: </span>
     <div class="btn-group">
         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span id="selected_metric" target="">Metric</span> <span class="caret"></span>
@@ -24,6 +26,7 @@
         {% endfor %}
         </ul>
     </div>
+    <span> Per </span>
     <div class="btn-group">
         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span id="selected_color" target="">Color</span> <span class="caret"></span>
@@ -34,6 +37,7 @@
         {% endfor %}
         </ul>
     </div>
+    <span> As </span>
     <div class="btn-group">
         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span id="selected_plot_type" target="">Plot</span> <span class="caret"></span>
@@ -47,13 +51,14 @@
         </ul>
     </div>
 
-
     <div id="highchart_cont"></div>
 
     <script>
         init_lane_sequencing_metrics_chart(
-            '{{ api_url|safe }}',
+            {{ api_urls|tojson|safe }},
             '{{ ajax_token|safe }}',
+            '{{ merge_on }}',
+            {{ merge_properties|tojson|safe  }},
             {{ metric_options|tojson|safe }},
             {{ color_options|tojson|safe }},
         )

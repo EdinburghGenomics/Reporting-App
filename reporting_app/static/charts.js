@@ -331,14 +331,13 @@ function scatter_series_with_smooth_line(data, color_key, metric_path, metric_na
 function _scatter_series(data, color_key, metric_path, metric_name, smooth_line){
     // Generate a plot with scatter series based on the provided color key and metric
     // No aggregation is performed
-
     color_categories = get_categories(data, color_key)
     var i = 0;
     return color_categories.map(function(category){
         var filtered_data = data.filter(function (d){return _.get(d, color_key) == category})
         series = {
             name: category,
-            data: _.map(filtered_data, function(d){return [parseInt(d['date']), _.get(d, metric_path)] }),
+            data: _.map(filtered_data, function(d){return {x: parseInt(d['date']), y:_.get(d, metric_path), name: _.get(d, 'lane_id')} }),
             yAxis: 0,
             type: 'scatter',
             marker: {
@@ -347,7 +346,7 @@ function _scatter_series(data, color_key, metric_path, metric_name, smooth_line)
                 lineWidth: 1
             },
             tooltip: {
-                pointFormatter: function(){return format_text_tat(color_key + " " + category, this.x, this.y, 'date', metric_name, '');}
+                pointFormatter: function(){return format_text_tat(this.name, this.x, this.y, 'date', metric_name, '');}
             },
             color: colour_palette[i]
         }
@@ -402,7 +401,7 @@ function _average_series(data, color_key, metric_path, metric_name, smooth_line)
     })
 }
 
-function init_lane_sequencing_metrics_chart(url, token, metric_list, color_list){
+function init_lane_sequencing_metrics_chart(urls, token, merge_on, merge_properties, metric_list, color_list){
     // create the buttons for the metrics
     _.forEach(metric_list, function(m){
         var li = $('#button_' + m.id);
@@ -469,21 +468,28 @@ function init_lane_sequencing_metrics_chart(url, token, metric_list, color_list)
         },
         yAxis: [ { title: { text: '' } }],
         series: [],
-        plotOptions: { series: { softThreshold: true } },
+        plotOptions: { series: { softThreshold: true, turboThreshold: 0 }  },
         credits: false
     });
     // Load the data and store it for later use
     chart.showLoading();
-    load_ajax_call(url, token, function(json){
+    ajax_call_function = merge_multi_sources_keep_first(urls, token, merge_on, merge_properties)
+    ajax_call_function(null, function(json){
         lane_data = json['data']
+        // Remove lanes from runs where the Run did not complete
+        lane_data.filter(function(element){
+            return _.get(element, 'run.run_status', 'RunCompleted') == 'RunCompleted'
+        });
         // Adds date and sequencer to the data structure by parsing the run name
         lane_data.map(function(element) {
-            element['date'] = moment(element['run_id'].split('_')[0], 'YYMMDD').valueOf();
-            element['sequencer'] = element['run_id'].split('_')[1];
+            run_id_split = element['run_id'].split('_')
+
+            element['date'] = moment(run_id_split[0], 'YYMMDD').valueOf();
+            element['sequencer'] = run_id_split[1];
+            element['sequencer_stage'] = run_id_split[1] + '_' + run_id_split[3].substring(0, 1);
             element['pool'] = element['run_elements'].length > 1 ? 'pooling' : 'non_pooling';
         });
         chart.hideLoading();
-
     });
 }
 
