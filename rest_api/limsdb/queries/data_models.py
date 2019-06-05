@@ -215,11 +215,23 @@ class Container:
 
     def samples_per_status(self):
         sample_per_status = defaultdict(list)
+        sample_per_status_date = defaultdict(set)
         for sample in self.samples:
             sample_per_status[sample.status].append(sample.sample_name)
+            sample_per_status_date[sample.status].add(sample.status_date)
             for status in sample.additional_status:
                 sample_per_status[status].append(sample.sample_name)
-        return sample_per_status
+                sample_per_status_date[status].add(sample.status_date)
+        # retaining only max value for each sample
+        for sample in sample_per_status_date:
+            sample_per_status_date[sample] = max(sample_per_status_date[sample]).isoformat()
+        # Generating the newer generation status response, which will succeed sample_per_status
+        status = dict(sample_per_status)
+        for stat in status:
+            status[stat] = {'samples': status[stat],
+                            'last_modified_date': sample_per_status_date[stat]}
+
+        return sample_per_status, status
 
     def _extract_from_samples(self, field):
         return ', '.join(sorted(set(getattr(sample, field) for sample in self.samples if getattr(sample, field))))
@@ -241,6 +253,7 @@ class Container:
         return self._extract_from_samples('species')
 
     def to_json(self):
+        sample_per_status, status = self.samples_per_status()
         ret = {
             'plate_id': self.container_name,
             'project_id': self.project_id,
@@ -248,9 +261,10 @@ class Container:
             'library_type': self.library_types,
             'species': self.species,
             'required_yield': self.required_yield,
-            'required_coverage': self.coverage
+            'required_coverage': self.coverage,
+            'status': status
         }
-        ret.update(self.samples_per_status())
+        ret.update(sample_per_status)
         return ret
 
 
@@ -261,6 +275,7 @@ class Project(Container, ProjectInfo):
         ProjectInfo.__init__(self)
 
     def to_json(self):
+        sample_per_status, status = self.samples_per_status()
         ret = {
             'project_id': self.project_id,
             'nb_samples': len(self.samples),
@@ -274,9 +289,10 @@ class Project(Container, ProjectInfo):
             'researcher_name': self.researcher_name,
             'nb_quoted_samples': self.nb_quoted_samples,
             'finished_date': format_date(self.finished_date),
-            'started_date': format_date(self.started_date)
+            'started_date': format_date(self.started_date),
+            'status': status
         }
-        ret.update(self.samples_per_status())
+        ret.update(sample_per_status)
         return ret
 
     @property
