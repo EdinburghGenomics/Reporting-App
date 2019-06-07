@@ -8,7 +8,7 @@ import subprocess
 import auth
 from reporting_app import util
 from rest_api import settings
-from config import reporting_app_config as cfg, project_status as project_status_cfg
+from config import reporting_app_config as cfg, project_status as project_status_cfg, chart_metrics_mappings
 
 app = fl.Flask(__name__)
 app.secret_key = cfg['key'].encode()
@@ -566,34 +566,9 @@ def species_page(species):
     )
 
 
-metrics = [
-    {'id': 'pc_q30', 'name': '%Q30', 'path': 'aggregated.pc_q30'},
-    {'id': 'pc_optical_duplicates', 'name': '% optical duplicates', 'path': 'aggregated.pc_opt_duplicate_reads'},
-    {'id': 'pc_duplicates', 'name': '% duplicates', 'path': 'aggregated.pc_duplicate_reads'},
-    {'id': 'pc_adaptor', 'name': '% adaptor', 'path': 'aggregated.pc_adaptor'},
-    {'id': 'pc_pass_filter', 'name': '%PF', 'path': 'aggregated.pc_pass_filter'},
-    {'id': 'prephasing_r1', 'name': 'Prephasing R1', 'path': 'interop_metrics.prephasing_r1'},
-    {'id': 'prephasing_r2', 'name': 'Prephasing R2', 'path': 'interop_metrics.prephasing_r2'},
-    {'id': 'phasing_r1', 'name': 'Phasing R1', 'path': 'interop_metrics.phasing_r1'},
-    {'id': 'phasing_r2', 'name': 'Phasing R2', 'path': 'interop_metrics.phasing_r2'},
-    {'id': 'intensity_c1_r1', 'name': 'Intensity Cycle1', 'path': 'interop_metrics.intensity_c1_r1'},
-    {'id': 'pc_error_r1', 'name': '% Error rate R1', 'path': 'interop_metrics.pc_error_r1'},
-    {'id': 'pc_error_r2', 'name': '% Error rate R2', 'path': 'interop_metrics.pc_error_r2'}
-]
-
-colors = [
-    {'id': 'nothing', 'name': 'No color', 'path': None},
-    {'id': 'lane_number', 'name': 'Lane', 'path': 'lane_number'},
-    {'id': 'sequencer', 'name': 'Sequencer', 'path': 'sequencer'},
-    {'id': 'sequencer_stage', 'name': 'Sequencer/Stage', 'path': 'sequencer_stage'},
-    {'id': 'pool', 'name': 'Pooling', 'path': 'pool'},
-]
-
-
 @app.route('/charts/<view_type>')
 @flask_login.login_required
 def plotting_report(view_type):
-    time_ago = None
     if view_type == 'last_month':
         time_ago = util.now() - datetime.timedelta(days=30)
     elif view_type == 'last_3_months':
@@ -613,8 +588,8 @@ def plotting_report(view_type):
         ajax_token=util.get_token(),
         merge_on='run_id',
         merge_properties=['run'],
-        metric_options=metrics,
-        color_options=colors
+        metric_options=chart_metrics_mappings.get('seq_plot_metrics'),
+        color_options=chart_metrics_mappings.get('seq_plot_colors')
     )
 
 
@@ -637,20 +612,3 @@ def tat_chart_page(view_type):
         api_url=util.construct_url('lims/sample_status', match={'createddate': time_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'}),
         ajax_token=util.get_token()
     )
-def libraries(view_type):
-    query_params = {'max_results': 10000}
-
-    time_ago = None
-    if view_type == 'recent':
-        time_ago = util.now() - datetime.timedelta(days=30)
-    elif view_type == 'last_12_months':
-        time_ago = util.now() - datetime.timedelta(days=365)
-    elif view_type == 'current_year':
-        y = util.now().year
-        time_ago = datetime.datetime(year=y, month=1, day=1)
-        view_type = str(y)
-    elif view_type == 'all':
-        pass
-    else:
-        fl.abort(404)
-        return None

@@ -16,10 +16,11 @@ class SplitConfiguration(Configuration):
 
 
 class ColumnMappingConfig(Configuration):
-    def __init__(self, *cfg_search_path):
+    def __init__(self, *cfg_search_path, definition_key):
         super().__init__(*cfg_search_path)
+        self.def_key = definition_key
 
-        self.column_def = self.content.pop('column_def')
+        self.column_def = self.content.pop(self.def_key)
         for key in self.content:
             # self.content[key] needs to be a list of strings or dicts
             for i in range(len(self.content[key])):
@@ -31,9 +32,9 @@ class ColumnMappingConfig(Configuration):
                         raise ConfigError('No column definition for %s' % self.content[key][i])
                 elif isinstance(self.content[key][i], dict):
                     column_name = self.content[key][i]['column_def']
-                    if self.content[key][i]['column_def'] in self.column_def:
+                    if self.content[key][i][self.def_key] in self.column_def:
                         # take a copy of the column def and update it with the specific info
-                        tmp = copy.copy(self.column_def[self.content[key][i]['column_def']])
+                        tmp = copy.copy(self.column_def[self.content[key][i][self.def_key]])
                         tmp.update(self.content[key][i])
                         self.content[key][i] = tmp
                     else:
@@ -92,5 +93,6 @@ rest_config = SplitConfiguration(
     _cfg_file('example_reporting.yaml')
 )
 schema = Configuration(_cfg_file('schema.yaml'))
-col_mappings = ColumnMappingConfig(_cfg_file('column_mappings.yaml'))
+col_mappings = ColumnMappingConfig(_cfg_file('column_mappings.yaml'), definition_key='column_def')
+chart_metrics_mappings = ColumnMappingConfig(_cfg_file('charts_metrics_mappings.yaml'), definition_key='metrics_def')
 project_status = ProjectStatusConfig(_cfg_file('project_status_definitions.yaml'))
