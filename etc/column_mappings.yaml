@@ -13,6 +13,8 @@
 #      * link: relative link formatted as baseurl/<link>/data
 #      * link_format_function: javascript function name formatting the link's text
 #      * name: javascript function name that will modify the data before the formating
+#      * cell_format_function: javascript function name formatting the cell's text
+#      * object_converter: javascript function name which will parse a cell_data list into its own variable
 
 column_def:
     bam_file_reads:           { data: 'bam_file_reads',                       title: 'Initial reads in bam',     fmt: { type: 'int' }, visible: 'false' }
@@ -46,19 +48,19 @@ column_def:
     nb_samples_delivered:     { data: 'aggregated.samples_delivered',         title: 'Samples Delivered',        fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_samples:               { data: 'aggregated.samples',                   title: 'Samples',                  fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
     nb_samples_reviewed:      { data: 'aggregated.samples_reviewed',          title: 'Samples Reviewed',         fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
-    nb_sample_submission:     { data: 'sample_submission',                    title: 'Sample Submission' ,       fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
-    nb_sample_qc:             { data: 'sample_qc',                            title: 'Sample QC' ,               fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
-    nb_library_queue:         { data: 'library_queue',                        title: 'Library Queue' ,           fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
-    nb_library_preparation:   { data: 'library_preparation',                  title: 'Library Preparation' ,     fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
-    nb_sequencing_queue:      { data: 'sequencing_queue',                     title: 'Sequencing Queue' ,        fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
-    nb_sequencing:            { data: 'sequencing',                           title: 'Sequencing' ,              fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
-    nb_bioinformatics:        { data: 'bioinformatics',                       title: 'Bioinformatics' ,          fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
-    nb_delivery:              { data: 'delivery',                             title: 'Delivery' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
-    nb_finished:              { data: 'finished',                             title: 'Finished' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum' }
-    nb_removed:               { data: 'removed',                              title: 'Removed' ,                 fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
-    nb_repeat:                { data: 'repeat',                               title: 'Request repeat' ,          fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
-    nb_genotyped:             { data: 'genotyped',                            title: 'Genotyped' ,               fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
-    nb_invoiced:              { data: 'invoiced',                             title: 'Invoiced' ,                fmt: {link_format_function: 'count_entities', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
+    nb_sample_submission:     { data: 'status.sample_submission',             title: 'Sample Submission' ,       fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', cell_format_function: 'temporal', link: '/sample/' }, class_name: 'text-center sum' }
+    nb_sample_qc:             { data: 'status.sample_qc',                     title: 'Sample QC' ,               fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', cell_format_function: 'temporal', link: '/sample/' }, class_name: 'text-center sum' }
+    nb_library_queue:         { data: 'status.library_queue',                 title: 'Library Queue' ,           fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', cell_format_function: 'temporal', link: '/sample/' }, class_name: 'text-center sum' }
+    nb_library_preparation:   { data: 'status.library_preparation',           title: 'Library Preparation' ,     fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', cell_format_function: 'temporal', link: '/sample/' }, class_name: 'text-center sum' }
+    nb_sequencing_queue:      { data: 'status.sequencing_queue',              title: 'Sequencing Queue' ,        fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', cell_format_function: 'temporal', link: '/sample/' }, class_name: 'text-center sum' }
+    nb_sequencing:            { data: 'status.sequencing',                    title: 'Sequencing' ,              fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', cell_format_function: 'temporal', link: '/sample/' }, class_name: 'text-center sum' }
+    nb_bioinformatics:        { data: 'status.bioinformatics',                title: 'Bioinformatics' ,          fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', cell_format_function: 'temporal', link: '/sample/' }, class_name: 'text-center sum' }
+    nb_delivery:              { data: 'status.delivery',                      title: 'Delivery' ,                fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', cell_format_function: 'temporal', link: '/sample/' }, class_name: 'text-center sum' }
+    nb_finished:              { data: 'status.finished',                      title: 'Finished' ,                fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', link: '/sample/' }, class_name: 'text-center sum' }
+    nb_removed:               { data: 'status.removed',                       title: 'Removed' ,                 fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
+    nb_repeat:                { data: 'status.repeat',                        title: 'Request repeat' ,          fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
+    nb_genotyped:             { data: 'status.genotyped',                     title: 'Genotyped' ,               fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
+    nb_invoiced:              { data: 'status.invoiced',                      title: 'Invoiced' ,                fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
     no_call_chip:             { data: 'genotype_validation.no_call_chip',     title: 'No-call (chip)',                                                visible: 'false' }
     no_call_seq:              { data: 'genotype_validation.no_call_seq',      title: 'No-call (seq)',                                                 visible: 'false' }
     called_sex:               { data: 'called_sex',                           title: 'Called Sex',                                                    visible: 'false' }
@@ -137,6 +139,11 @@ column_def:
     yield_x_coverage:         { data: { display: 'coverage.disp', _: 'coverage.order' }, title: 'Coverage' }  # e.g, render as '30X' but sort, search, etc. as '30'
     yield_required:           { data: 'required_yield',                       title: 'Required yield' }
     yield_required_q30:       { data: 'required_yield_q30',                   title: 'Required yield Q30' }
+    library_date_completed:   { data: 'date_completed', title: 'Date completed', fmt: { type: 'datetime' } }
+    library_name:             { data: 'id', title: 'Name', fmt: { link: '/library/' } }
+    library_qpcrs_run:        { data: 'qpcrs_run', title: 'qPCRs run', visible: 'false' }
+    library_pass_rate:        { data: 'pc_qc_flag_pass', title: 'QC flag pass rate', fmt: { type: 'percentage' } }
+    library_nsamples:         { data: 'nsamples', title: '# samples' }
 
 
 
@@ -395,3 +402,14 @@ yields:
     - yield_x_coverage
     - yield_required
     - yield_required_q30
+
+
+libraries:
+    - library_name
+    - { column_def: 'library_type', data: 'type', title: 'Library type', visible: 'true' }
+    - library_qpcrs_run
+    - library_date_completed
+    - library_pass_rate
+    - library_nsamples
+    - project_ids
+

@@ -25,12 +25,9 @@ if __name__ == '__main__':
     collection = db['samples']
 
     query = {'gender_validation': {'$exists': True}}
-    samples = collection.find(query)
-
-    app_logger.info('Updating %s samples', collection.count(query))
-
+    app_logger.info('Renaming gender to sex for %s samples', collection.count(query))
     count = 0
-    for s in samples:
+    for s in collection.find(query):
         count += 1
         if count % 100 == 0:
             app_logger.info('%s samples processed', count)
@@ -57,4 +54,5 @@ if __name__ == '__main__':
             }
         )
 
-        c.patch_entry('samples', {}, 'sample_id', s['sample_id'])
+    app_logger.info('Retriggering aggregation for all %s samples', collection.count())
+    c.patch_entries('samples', {})

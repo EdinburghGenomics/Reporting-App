@@ -33,7 +33,8 @@ function_mapping = {
     'sample_status': factories.sample_status,
     'run_status': factories.run_status,
     'sample_info': factories.sample_info,
-    'project_info': factories.project_info
+    'project_info': factories.project_info,
+    'library_info': factories.library_info
 }
 
 

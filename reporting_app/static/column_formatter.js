@@ -17,28 +17,44 @@ function render_data(data, type, row, meta, fmt) {
 }
 
 
+function flatten_object(cell_object){
+    // convert, e.g, {'this': 0, 'that': 1, 'other': 2} to ['other: 2', 'that: 1', 'this: 0']
+    var cell_array = [];
+    var keys = Object.keys(cell_object);
+    keys.sort();
+
+    var i;
+    var nkeys = keys.length;
+    for (i=0; i<nkeys; i++) {
+        var k = keys[i];
+        cell_array.push(k + ': ' + cell_object[k]);
+    }
+    return cell_array
+}
+
+function get_samples(cell_object){
+    // returns the samples from a status dict
+    return cell_object['samples']
+}
+
 function string_formatter(cell_data, fmt, row){
+    original_cell_data = cell_data;
     // cast the cell data to a list, whether it's a single value, an object or already a list
     // this allows subsequent logic to safely assume it's handling a list
     if (cell_data instanceof Array) {
         cell_data.sort();
     } else if (cell_data instanceof Object) {
-        // convert, e.g, {'this': 0, 'that': 1, 'other': 2} to ['other: 2', 'that: 1', 'this: 0']
-        var _cell_data = [];
-        var keys = Object.keys(cell_data);
-        keys.sort();
-
-        var i;
-        var nkeys = keys.length;
-        for (i=0; i<nkeys; i++) {
-            var k = keys[i];
-            _cell_data.push(k + ': ' + cell_data[k]);
+        if ('object_converter' in fmt){
+            cell_data = function_map[fmt['object_converter']](cell_data)
+            cell_data.sort()
+        }else{
+            cell_data = flatten_object(cell_data)
         }
-        cell_data = _cell_data;
     } else {
         cell_data = [cell_data];  // cast a single value to a list of length 1
     }
 
+    // Only arrays are supported from this point onwards
     var formatted_data = [];
     var i, tot;
     for (i=0, tot=cell_data.length; i<tot; i++) {
@@ -79,7 +95,6 @@ function string_formatter(cell_data, fmt, row){
         } else if (max && data > max) {
             _formatted_data = '<div style="color:red">' + _formatted_data + '</div>';
         }
-
         formatted_data.push(_formatted_data);
     }
 
@@ -91,8 +106,9 @@ function string_formatter(cell_data, fmt, row){
 
         var dropbtn = document.createElement('div');
         dropbtn.className = 'dropbtn';
+
         if (fmt['link_format_function']) {
-            dropbtn.innerHTML = function_map[fmt['link_format_function']](cell_data, fmt);
+            dropbtn.innerHTML = function_map[fmt['link_format_function']](formatted_data, fmt);
         } else {
             dropbtn.innerHTML = cell_data;
         }
@@ -101,6 +117,7 @@ function string_formatter(cell_data, fmt, row){
         dropdown_content.className = 'dropdown-content';
 
         var div;
+
         for (var i=0, tot=formatted_data.length; i<tot; i++) {
             div = document.createElement('div');
             div.innerHTML = formatted_data[i];
@@ -116,7 +133,19 @@ function string_formatter(cell_data, fmt, row){
         formatted_data = formatted_data[0];
     }
 
-    return '<div class="dt_cell">' + formatted_data + '</div>';
+    // Creating the cell
+     var dt_cell = document.createElement('div');
+     dt_cell.className = 'dt_cell';
+    // Applying cell formatting, if specified.
+    if (fmt['cell_format_function']) {
+        css_class = function_map[fmt['cell_format_function']](original_cell_data, fmt);
+        if (css_class != null){
+            existing_css_class = dt_cell.getAttribute("class");
+            dt_cell.setAttribute("class", existing_css_class + " " + css_class);
+        }
+    }
+    dt_cell.innerHTML = formatted_data
+    return dt_cell.outerHTML;
 }
 
 
@@ -156,6 +185,25 @@ function count_entities_fmt(data, fmt){
     return data.length;
 }
 
+function temporal_fmt(cell_data, fmt){
+/*
+ * Returns formatting style is for project status page, displaying a green, yellow or red if it is over a week,
+ * two weeks or four weeks since the last change.
+ */
+    // Checking days elapsed since the status' max date
+    days_since_last_change = moment().diff(cell_data['last_modified_date'], 'days')
+
+    if ( days_since_last_change > 28 ){
+        return "bg-danger"
+    }
+    else if ( days_since_last_change > 14 ){
+        return "bg-warning"
+    }
+    else if ( days_since_last_change > 7 ){
+        return "bg-success"
+    }
+}
+
 function coverage_fmt(data, fmt, bases_at_X){
     if ('bases_at_coverage' in data && bases_at_X in data['bases_at_coverage'] && 'genome_size' in data ) {
         return data['bases_at_coverage'][bases_at_X]/data['genome_size']*100;
@@ -179,7 +227,9 @@ function pipeline_used_fmt(data, fmt) {
 var function_map = {
     'species_contamination': species_contamination_fmt,
     'count_entities': count_entities_fmt,
+    'temporal': temporal_fmt,
     'coverage_15X': coverage_15X_fmt,
     'coverage_5X': coverage_5X_fmt,
-    'pipeline_used': pipeline_used_fmt
+    'pipeline_used': pipeline_used_fmt,
+    'get_samples': get_samples
 };

@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime
 from unittest import TestCase
 from unittest.mock import patch
@@ -194,11 +195,11 @@ class TestContainer(TestCase):
         self.container1.container_name = 'X99999P001'
 
     def test_samples_per_status(self):
-        samples_per_status = self.container1.samples_per_status()
+        samples_per_status, sample_per_status_date = self.container1.samples_per_status()
         assert samples_per_status == {'sample_qc': ['X99999P001H05', 'X99999P001H06']}
         self.sample1._status_and_date = self.sample2._status_and_date = None
         self.sample2.add_completed_process('Sequencing Plate Preparation EG 2.0', datetime.strptime('20-07-15', '%d-%m-%y'), 111)
-        samples_per_status = self.container1.samples_per_status()
+        samples_per_status, sample_per_status_date  = self.container1.samples_per_status()
         assert samples_per_status == {'sample_qc': ['X99999P001H05'], 'library_queue': ['X99999P001H06']}
 
     def test_library_types(self):
@@ -232,7 +233,9 @@ class TestContainer(TestCase):
             'species': '',
             'nb_samples': 2,
             'required_coverage': '',
-            'required_yield': ''
+            'required_yield': '',
+            'status': {'sample_qc': {'last_modified_date': '2015-06-01T00:00:00',
+                                     'samples': ['X99999P001H05', 'X99999P001H06']}}
         }
 
 
@@ -249,6 +252,7 @@ class TestProject(TestCase):
 
     def test_to_json(self):
         json = self.project.to_json()
+
         assert json == {
             'project_id': 'X99999',
             'nb_samples': 0,
@@ -262,7 +266,8 @@ class TestProject(TestCase):
             'finished_date': None,
             'started_date': None,
             'required_coverage': '',
-            'required_yield': ''
+            'required_yield': '',
+            'status': defaultdict(set)
         }
 
         self.sample1.species = 'Homo sapiens'
@@ -286,7 +291,8 @@ class TestProject(TestCase):
             'started_date': '2015-06-01T00:00:00',
             'finished': ['X99999P001H05', 'X99999P001H06'],
             'required_coverage': '',
-            'required_yield': ''
+            'required_yield': '',
+            'status': {'finished': {'last_modified_date': '2015-09-01T00:00:00', 'samples': ['X99999P001H05', 'X99999P001H06']}}
         }
 
     def test_finished_date(self):
@@ -385,7 +391,8 @@ def test_sample_status_per_project(m_retrieve_args, m_project_info, m_request, m
             'species': 'Homo sapiens',
             'project_id': 'X99999',
             'required_coverage': '',
-            'required_yield': ''
+            'required_yield': '',
+            'status': {'sequencing_queue': {'samples': ['X99999P001H05'], 'last_modified_date': '2016-11-27T11:14:59.325000'}}
         }
     ]
 
@@ -408,6 +415,44 @@ def test_sample_status_per_plate(m_retrieve_args, m_project_info, m_request, m_n
             'species': 'Homo sapiens',
             'project_id': 'X99999',
             'required_coverage': '',
-            'required_yield': ''
+            'required_yield': '',
+            'status': {'sequencing_queue': {'samples': ['X99999P001H05'], 'last_modified_date': '2016-11-27T11:14:59.325000'}}
+        }
+    ]
+
+
+@mocked_retrieve_args
+@patch('rest_api.limsdb.queries.library_info')
+def test_library_preparation(mocked_library_info, mocked_retrieve_args):
+    mocked_library_info.return_value = (
+        ('qpcr1', datetime(2019, 5, 2), 'lib1', 'TruSeq Nano Sample Prep', 1, 'a_mod_date', 'sample_1', 'a_project', 0, 0, 'a_udf', 1.0),
+        ('qpcr1', datetime(2019, 5, 2), 'lib1', 'TruSeq Nano Sample Prep', 1, 'a_mod_date', 'sample_1', 'a_project', 0, 0, 'another_udf', 2.1),
+        ('qpcr1', datetime(2019, 5, 2), 'lib1', 'TruSeq PCR-Free Sample Prep', 1, 'a_mod_date', 'sample_2', 'a_project', 1, 0, 'a_udf', 3.2),
+        ('qpcr2', datetime(2019, 5, 1), 'lib1', 'TruSeq Nano Sample Prep', 1, 'a_mod_date', 'sample_1', 'a_project', 0, 0, 'a_udf', 1.4)
+    )
+
+    assert f.library_info(None) == [
+        {
+            'id': 'lib1',
+            'qpcrs_run': 2,
+            'date_completed': '2019-05-02T00:00:00',
+            'placements': {
+                'A:1': {
+                    'name': 'sample_1',
+                    'library_qc': {'a_udf': 1.0, 'another_udf': 2.1},
+                    'qc_flag': 'PASSED',
+                    'project_id': 'a_project'
+                },
+                'A:2': {
+                    'name': 'sample_2',
+                    'library_qc': {'a_udf': 3.2},
+                    'qc_flag': 'PASSED',
+                    'project_id': 'a_project'
+                }
+            },
+            'type': 'nano',
+            'nsamples': 2,
+            'pc_qc_flag_pass': 100.0,
+            'project_ids': ['a_project']
         }
     ]
