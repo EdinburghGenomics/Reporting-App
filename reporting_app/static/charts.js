@@ -261,11 +261,11 @@ var lane_data;
 var lane_metrics = {};
 var color_options = {};
 var plot_options = {
-    'scatter': {'id': 'scatter', 'name': 'Scatter plot', 'function': scatter_series},
-    'scatter_smooth': {'id': 'scatter_smooth', 'name': 'Scatter plot with smooth line', 'function': scatter_series_with_smooth_line},
-    'box': {'id': 'box', 'name': 'Box plot', 'function': box_plot_series},
-    'average': {'id': 'average', 'name': 'Line plot of average', 'function': average_series},
-    'average_smooth': {'id': 'average_smooth', 'name': 'plot of average with smooth line', 'function': average_series_with_smooth_line},
+    'scatter': {'name': 'scatter', 'title': 'Scatter plot', 'function': scatter_series},
+    'scatter_smooth': {'name': 'scatter_smooth', 'title': 'Scatter plot with smooth line', 'function': scatter_series_with_smooth_line},
+    'box': {'name': 'box', 'title': 'Box plot', 'function': box_plot_series},
+    'average': {'name': 'average', 'title': 'Line plot of average', 'function': average_series},
+    'average_smooth': {'name': 'average_smooth', 'title': 'plot of average with smooth line', 'function': average_series_with_smooth_line},
 }
 
 function get_categories(data, key){
@@ -404,8 +404,8 @@ function _average_series(data, color_key, metric_path, metric_name, smooth_line)
 function init_lane_sequencing_metrics_chart(urls, token, merge_on, merge_properties, metric_list, color_list){
     // create the buttons for the metrics
     _.forEach(metric_list, function(m){
-        var li = $('#button_' + m.id);
-        var button = $('<a>').attr('target', m.id).text(m['name']);
+        var li = $('#button_' + m.name);
+        var button = $('<a>').attr('target', m.name).text(m['title']);
         button.click(function() {
             $('#selected_metric').text(this.text);
             $('#selected_metric').attr('target', this.target);
@@ -417,13 +417,13 @@ function init_lane_sequencing_metrics_chart(urls, token, merge_on, merge_propert
         });
         li.append(button);
         // populate the global metrics object.
-        lane_metrics[m.id]=m
+        lane_metrics[m.name]=m
     })
 
     // create the buttons for the color
     _.forEach(color_list, function(c){
-        var li = $('#button_' + c.id);
-        var button = $('<a>').attr('target', c.id).text(c['name']);
+        var li = $('#button_' + c.name);
+        var button = $('<a>').attr('target', c.name).text(c['title']);
         button.click(function() {
             $('#selected_color').text(this.text)
             $('#selected_color').attr('target', this.target)
@@ -435,13 +435,13 @@ function init_lane_sequencing_metrics_chart(urls, token, merge_on, merge_propert
         });
         li.append(button);
         // populate the global metrics object.
-        color_options[c.id]=c
+        color_options[c.name]=c
     })
 
     // create the buttons for the plot type
      _.forEach(plot_options, function(p){
-        var li = $('#button_' + p['id']);
-        var button = $('<a>').attr('target', p['id']).text(p['name']);
+        var li = $('#button_' + p['name']);
+        var button = $('<a>').attr('target', p['name']).text(p['title']);
         button.click(function() {
             $('#selected_plot_type').text(this.text)
             $('#selected_plot_type').attr('target', this.target)
@@ -499,19 +499,20 @@ function render_lane_sequencing_metrics_chart(metric_id, color_id, plot_type){
         lane_data,
         color_options[color_id].path,
         lane_metrics[metric_id].path,
-        lane_metrics[metric_id].name
+        lane_metrics[metric_id].title
     )
     // Remove the previous series
     _.forEachRight(chart.series, function(s) { s.remove(); });
     // Add the new series
     _.forEach(series, function(s){chart.addSeries(s, false)});
     //Title
-    var title = plot_options[plot_type].name + ' of ' + lane_metrics[metric_id].name + ' per ' + color_options[color_id].name
-    chart.yAxis[0].update({ title: { text: lane_metrics[metric_id].name } })
+    var title = plot_options[plot_type].title + ' of ' + lane_metrics[metric_id].title + ' per ' + color_options[color_id].title
+
+    chart.yAxis[0].update({ title: { text: lane_metrics[metric_id].title } })
     chart.title.update({ text: title })
     chart.legend.update({
         title: {
-            text: color_options[color_id].name,
+            text: color_options[color_id].title,
             align: 'center',
             fontWeight: 'bold'
         }

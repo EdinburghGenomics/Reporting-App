@@ -22,7 +22,7 @@
         </button>
         <ul id="qc_options" class="dropdown-menu">
         {% for m in metric_options %}
-            <li id="button_{{ m.id }}"></li>
+            <li id="button_{{ m.name }}"></li>
         {% endfor %}
         </ul>
     </div>
@@ -33,7 +33,7 @@
         </button>
         <ul id="color_options" class="dropdown-menu">
         {% for c in color_options %}
-            <li id="button_{{ c.id }}"></li>
+            <li id="button_{{ c.name }}"></li>
         {% endfor %}
         </ul>
     </div>
