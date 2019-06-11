@@ -55,4 +55,4 @@ if __name__ == '__main__':
         )
 
     app_logger.info('Retriggering aggregation for all %s samples', collection.count())
-    c.patch_entries('samples', {})
+    c.patch_entries('samples', {}, all_pages=True)
