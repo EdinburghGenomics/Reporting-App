@@ -131,3 +131,108 @@ QUnit.test('test_exist', function(assert) {
     assert.ok(test_exist('1, 2, 3'));
     assert.ok(test_exist(['1', '2', '3']));
 });
+
+
+QUnit.test('test_significant_figures', function(assert) {
+    var list_number = [1, 2, 4, 7, 2, 5];
+    assert.equal(significant_figures(list_number), 0)
+
+    list_number = [1.868, 0.293, 2.1274, 1.4728, 1.3457, 0.71895];
+    assert.equal(significant_figures(list_number), 2)
+
+    list_number = [10.868, 67.293, 54.1274, 23.4728, 7.3457, 61.71895];
+    assert.equal(significant_figures(list_number), 1)
+
+    list_number = [1245.868, 7347.293, 2684.1274, 930.4728, 2535.3457, 1651.71895];
+    assert.equal(significant_figures(list_number), 0)
+
+});
+
+
+QUnit.test('getPercentile', function(assert) {
+    assert.equal(
+        getPercentile([10, 4, 23, 41, 32, 58, 29], 50),
+        29
+    );
+})
+
+var list_object = [
+    {'x': 1, 'y': 2},
+    {'x': 2, 'y': 2},
+    {'x': 3, 'y': 2},
+    {'x': 2, 'y': 4},
+    {'x': 42, 'y': 4}
+]
+
+QUnit.test('sum', function(assert) {
+    assert.equal(sum(list_object, 'x'), 50);
+})
+
+QUnit.test('average', function(assert) {
+    assert.equal(average(list_object, 'x'), 10);
+})
+
+QUnit.test('count', function(assert) {
+    assert.equal(count(list_object, 'x'), 5);
+})
+
+QUnit.test('extract', function(assert) {
+    assert.deepEqual(extract(list_object, 'x'), [1, 2, 3, 2, 42]);
+})
+
+QUnit.test('boxplot_values_outliers', function(assert) {
+    box = boxplot_values_outliers(list_object, 'x')
+    assert.deepEqual(box.values, [1, 2, 2, 3, 3]);
+    assert.deepEqual(box.outliers, [42]);
+})
+
+QUnit.test('format_time_period', function(assert) {
+    d = moment('2018-06-22T00:00:00Z').valueOf()
+    assert.equal(format_time_period('date', d), '22 Jun 2018');
+    assert.equal(format_time_period('week', d), 'Week 25 2018');
+    assert.equal(format_time_period('month', d), 'Jun 2018');
+    assert.equal(format_time_period('quarter', d), 'Q2 2018');
+})
+
+QUnit.test('format_y_point', function(assert) {
+    assert.deepEqual(format_y_point(1.234, 'prefix', 'suffix', 1), 'prefix 1.2 suffix');
+    assert.deepEqual(format_y_point(1, 'prefix', 'suffix', 1), 'prefix 1.0 suffix');
+})
+
+QUnit.test('format_y_boxplot', function(assert) {
+    options = {low: 2.0, q1: 3.0, median: 4.0, q3: 5.0, high: 6.0}
+    expected_html = 'low: prefix 2 suffix<br>25pc: prefix 3 suffix<br>Median: prefix 4 suffix<br>75pc: prefix 5 suffix<br>high: prefix 6 suffix'
+    assert.equal(format_y_boxplot(options, 'prefix', 'suffix'), expected_html);
+})
+
+QUnit.test('aggregate', function(assert) {
+    assert.deepEqual(
+        aggregate(list_object, 'y', ['x', 'x'], [average, count], ['average_x', 'count_x'], null),
+        [{y: "2", average_x: 2, count_x: 3}, {y: "4", average_x: 22, count_x:2}]
+    );
+
+    let list_object2 = [
+        {'x': 1, 'y': 2},
+        {'x': 2, 'y': 2},
+        {'x': 3, 'y': 2},
+        {'x': 2, 'y': 4},
+        {'x': 0, 'y': 4}
+    ]
+    assert.deepEqual(
+        aggregate(list_object2, 'y', ['x', 'x'], [average, count], ['average_x', 'count_x'], null),
+        [{y: "2", average_x: 2, count_x: 3}, {y: "4", average_x: 1, count_x:2}]
+    );
+
+    list_object2 = [
+        {'x': 1, 'y': 2},
+        {'x': 2, 'y': 2},
+        {'x': 3, 'y': 2},
+        {'x': 2, 'y': 4},
+        {'x': null, 'y': 4}
+    ]
+    // Null values should be filtered out
+    assert.deepEqual(
+        aggregate(list_object2, 'y', ['x', 'x'], [average, count], ['average_x', 'count_x'], null),
+        [{y: "2", average_x: 2, count_x: 3}, {y: "4", average_x: 2, count_x:1}]
+    );
+})

@@ -132,6 +132,8 @@ var merge_multi_sources_keep_first = function(api_urls, token, merging_key, merg
     return _merge_multi_sources(api_urls, token, merging_key, merge_on_key_keep_first_sub_porperties, merged_properties);
 }
 
+// Check that the variable exists, is not null
+// If it is an array, check that it is not empty or only containing null values
 var test_exist = function(variable){
     if ( variable instanceof Array ) {
         variable = variable.filter(function(n){ return n != null });
@@ -139,3 +141,144 @@ var test_exist = function(variable){
     }
     return variable !== undefined && variable !== null && variable;
 }
+
+// Calculate the number of significant decimal digits to show from a range of number.
+var significant_figures = function(array_of_number){
+    if (_.every(array_of_number, Number.isInteger)){
+        return 0
+    }
+    var span = Math.max(...array_of_number) - Math.min(...array_of_number)
+
+    var sig_fig = 0
+    if (span < .1) {
+        sig_fig = 4
+    }else if (span < 1) {
+        sig_fig = 3
+    }else if (span < 10) {
+        sig_fig = 2
+    }else if (span < 100) {
+        sig_fig = 1
+    }
+    return sig_fig
+}
+
+
+
+//get any percentile from an array
+function getPercentile(data, percentile) {
+    //because .sort() doesn't sort numbers correctly
+    data.sort(function(a, b){ return a - b });
+    var index = (percentile / 100) * data.length;
+    var result;
+    if (Math.floor(index) == index) {
+        result = (data[(index - 1)] + data[index]) / 2;
+    } else {
+        result = data[Math.floor(index)];
+    }
+    return result;
+}
+
+
+function aggregate(list_object, toGroup, toAggregate, fn, output_field, val0) {
+    /*
+    Use lodash.js to group, and aggregate the data provided in the list_object.
+    The list of object will be group on a field and one or multiple aggregation function will be applied to one or
+    multiple other fields.
+    Parameter toAggregate, fn and output_field should be of the same type and have te same length if they are arrays.
+
+    list_object: list of object to aggregate
+    toGroup: field used to group the object
+    toAggregate: field or list of field to aggregate and report after grouping
+    fn: function or list of function to calculate the aggregate
+    output_field: field or list of field to name the aggregated fields default to toAggregate
+    val0: value of list of value used as default for each field.
+    */
+    if (output_field === undefined){output_field=toAggregate;}
+    return _.chain(list_object)
+            .groupBy(toGroup)
+            .map(function(g, key) {
+                ret = {}
+                // Because the key has been used as an object property, it has been cast to a string.
+                ret[toGroup] = key;
+                if (Array.isArray(toAggregate)){
+                    for (var i=0; i < toAggregate.length; i++) {
+                        // Filter out null values
+                        var fg = _.filter(g, function(e){return _.get(e, toAggregate[i]) != null })
+                        ret[output_field[i]] = fn[i](fg,  toAggregate[i]) || val0[i];
+                    }
+                }else{
+                    // Filter out null values
+                    var fg = _.filter(g, function(e){return _.get(e, toAggregate) != null })
+                    ret[output_field] = fn(fg, toAggregate) || val0;
+                }
+                return ret;
+            })
+            .value();
+    }
+
+/*Functions for aggregation in the underscore pipeline*/
+var sum = function (objects, key) { return _.reduce(objects, function (sum, n) { return sum + _.get(n, key) }, 0) }
+var average = function (objects, key) {return sum(objects, key) / objects.length }
+var count = function (objects, key) { return objects.length }
+var extract = function (objects, key) { return objects.map( function(d){ return _.get(d, key);  }); }
+var quantile_box_plot = function (objects, key) {
+    return math.quantileSeq(objects.map(function(d){return _.get(d, key)}), [0.05, .25, .5, .75, 0.95]);
+}
+var boxplot_values_outliers = function(objects, key) {
+    var data = extract(objects, key);
+    var boxData = {},
+        min = Math.min.apply(Math, data),
+        max = Math.max.apply(Math, data),
+        q1 = getPercentile(data, 25),
+        median = getPercentile(data, 50),
+        q3 = getPercentile(data, 75),
+        iqr = q3 - q1,
+        lowerFence = q1 - (iqr * 1.5),
+        upperFence = q3 + (iqr * 1.5),
+        outliers = [];
+        in_dist_data = [];
+
+    for (var i = 0; i < data.length; i++) {
+        if (data[i] < lowerFence || data[i] > upperFence) {
+            outliers.push(data[i]);
+        }else{
+            in_dist_data.push(data[i])
+        }
+    }
+    boxData.values = [Math.min.apply(Math, in_dist_data), q1, median, q3, Math.max.apply(Math, in_dist_data)];
+    boxData.outliers = outliers;
+    return boxData;
+}
+
+/*Function for formatting tooltip text from a time data point*/
+function format_time_period(time_period, x) {
+    if (time_period=='date'){return moment(x).format("DD MMM YYYY");}
+    if (time_period=='week'){return 'Week ' + moment(x).format("w YYYY");}
+    if (time_period=='month'){return moment(x).format("MMM YYYY");}
+    if (time_period=='quarter'){return 'Q' + moment(x).format("Q YYYY");}
+    return ""
+}
+
+function format_y_point(y, prefix, suffix, nb_decimal){return prefix + ' ' + y.toFixed(nb_decimal) + ' ' + suffix}
+function format_y_boxplot(options, prefix, suffix, nb_decimal){
+    res = [
+       'low: ' + prefix + ' ' + options.low.toFixed(nb_decimal) + ' ' + suffix,
+       '25pc: ' + prefix + ' '  + options.q1.toFixed(nb_decimal) + ' ' + suffix,
+       'Median: ' + prefix + ' '  + options.median.toFixed(nb_decimal) + ' ' + suffix,
+       '75pc: ' + prefix + ' '  + options.q3.toFixed(nb_decimal) + ' ' + suffix,
+       'high: ' + prefix + ' '  + options.high.toFixed(nb_decimal) + ' ' + suffix
+    ]
+    return res.join('<br>');
+}
+function format_point_tooltip(series_name, x, y, time_period, prefix,  suffix, nb_decimal){
+    return  series_name + " --  " + format_time_period(time_period, x) + ": <br> " + format_y_point(y, prefix, suffix, nb_decimal);
+}
+    function format_boxplot_tooltip(series_name, x, options, time_period, prefix, suffix, nb_decimal) {
+    return series_name +
+           " -- " +
+           format_time_period(time_period, x) +
+           ": <br> " +
+           format_y_boxplot(options, prefix, suffix, nb_decimal);
+}
+
+

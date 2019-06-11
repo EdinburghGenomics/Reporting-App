@@ -4,22 +4,19 @@
 {% block head %}
     {{ super() }}
     <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css"/>
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/highcharts-more.js"></script>
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/mathjs/3.10.0/math.min.js"></script>
-    <script src="{{ url_for('static', filename='charts.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="https://code.highcharts.com/7.1.2/highcharts.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://code.highcharts.com/7.1.2/highcharts-more.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://code.highcharts.com/7.1.2/modules/exporting.js"></script>
+    <script type="text/javascript" charset="utf8" src="//rawgithub.com/streamlinesocial/highcharts-regression/b84143a4e78a8e128374fe485c711b09a1062750/highcharts-regression.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.10.3/math.min.js" crossorigin="anonymous"></script>
+
+    <script src="{{ url_for('static', filename='tat_charts.js') }}"></script>
+    <script src="{{ url_for('static', filename='utils.js') }}"></script>
+
 {% endblock %}
 
-{% if tables %}
-    {% for table in tables %}
-    {{ datatable(table) }}
-    {% endfor %}
-{% elif table %}
-    {{ datatable(table) }}
-{% endif %}
 
 {% block content %}
     <div id="loadingmessage" class="panel panel-default" style="width: 15%; margin: 0 auto;">
@@ -30,21 +27,21 @@
     <div id="plots_div" style="display: none">
         <div id="highchart_buttons">
             <div class="btn-group" data-toggle="buttons">
-                <label class="btn btn-primary">
+                <label class="btn btn-default">
                     <input type="radio" id="week" name="radio_button1" autocomplete="off" >Show Weeks</input>
                 </label>
-                <label class="btn btn-primary">
+                <label class="btn btn-default">
                     <input type="radio" id="month" name="radio_button1" autocomplete="off">Show Months</input>
                 </label>
-                <label class="btn btn-primary active">
+                <label class="btn btn-default active">
                     <input type="radio" id="quarter" name="radio_button1" autocomplete="off" checked>Show Quarter</input>
                 </label>
             </div>
             <div class="btn-group" data-toggle="buttons">
-                <label class="btn btn-primary active">
+                <label class="btn btn-default active">
                     <input type="radio" id="st" name="radio_button2" autocomplete="off" checked>Order by date received</input>
                 </label>
-                <label class="btn btn-primary">
+                <label class="btn btn-default">
                     <input type="radio" id="en" name="radio_button2" autocomplete="off">Order by date delivered</input>
                 </label>
             </div>

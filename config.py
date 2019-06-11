@@ -33,7 +33,7 @@ class DefinitionMappingConfig(Configuration):
                 elif isinstance(self.content[key][i], dict):
                     definition_name = self.content[key][i][self.def_key]
                     if self.content[key][i][self.def_key] in self.element_definitions:
-                        # take a copy of the column def and update it with the specific info
+                        # take a copy of the definition and update it with the specific info
                         tmp = copy.copy(self.element_definitions[self.content[key][i][self.def_key]])
                         tmp.update(self.content[key][i])
                         self.content[key][i] = tmp
@@ -41,7 +41,7 @@ class DefinitionMappingConfig(Configuration):
                         # leave the definition as it is
                         pass
                 else:
-                    raise ConfigError('Invalid column definition %s' % self.content[key][i])
+                    raise ConfigError('Invalid definition %s' % self.content[key][i])
 
                 self.content[key][i]['name'] = definition_name
 

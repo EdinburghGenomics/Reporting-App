@@ -154,35 +154,6 @@ class TestSample(TestCase):
 
     def test_to_json(self):
         json = self.sample.to_json()
-        print(json)
-        {
-            'sample_id': 'X99999P001H05',
-            'project_id': 'X99999',
-            'statuses': [
-                {
-                    'name': 'sample_submission',
-                    'date': 'Jun 01 2015', 'processes': [
-                        {'name': 'Receive Sample EG 6.1', 'date': 'Jun 01 2015', 'type': 'complete', 'process_id': 111}
-                    ]
-                },
-                {
-                    'name': 'sample_qc',
-                    'date': 'Jul 16 2015',
-                    'processes': [
-                        {'name': 'Read and Eval SSQC', 'date': 'Jul 16 2015', 'type': 'complete', 'process_id': 111}
-                    ]
-                }
-            ],
-             'current_status': 'sample_qc',
-            'started_date': '2015-06-01T00:00:00',
-            'qc_date': None,
-            'finished_date': None,
-            'library_type': 'pcr_free',
-            'species': 'Homo sapiens',
-            'required_yield': None,
-            'required_coverage': None
-        }
-
         assert json == {
             'library_type': 'pcr_free',
             'sample_id': 'X99999P001H05',
