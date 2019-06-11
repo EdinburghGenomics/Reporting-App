@@ -44,7 +44,7 @@ var merge_on_key = function (list_of_array, key) {
 
 // merge several arrays of object based on given property but only keep object present in the first array
 // the other ones can add properties but no new objects
-var merge_on_key_keep_first_sub_porperties = function (list_of_array, key, list_of_merge_property_names) {
+var merge_on_key_keep_first_sub_properties = function (list_of_array, key, list_of_merge_property_names) {
     // Default list of property to empty array if it does not exist
     list_of_merge_property_names = list_of_merge_property_names || []
 
@@ -129,7 +129,7 @@ var merge_multi_sources = function(api_urls, token, merging_key){
 // token: the token used for authentication
 // merging_key: property name to merge on
 var merge_multi_sources_keep_first = function(api_urls, token, merging_key, merged_properties){
-    return _merge_multi_sources(api_urls, token, merging_key, merge_on_key_keep_first_sub_porperties, merged_properties);
+    return _merge_multi_sources(api_urls, token, merging_key, merge_on_key_keep_first_sub_properties, merged_properties);
 }
 
 // Check that the variable exists, is not null
@@ -145,9 +145,10 @@ var test_exist = function(variable){
 // Calculate the number of significant decimal digits to show from a range of number.
 var significant_figures = function(array_of_number){
     if (_.every(array_of_number, Number.isInteger)){
-        return 0
+        return 0;
     }
-    var span = Math.max(...array_of_number) - Math.min(...array_of_number)
+    // spread operator does not work with phantomJS
+    var span = Math.max.apply(null, array_of_number) - Math.min.apply(null, array_of_number);
 
     var sig_fig = 0
     if (span < .1) {
@@ -162,10 +163,8 @@ var significant_figures = function(array_of_number){
     return sig_fig
 }
 
-
-
 //get any percentile from an array
-function getPercentile(data, percentile) {
+var getPercentile = function(data, percentile) {
     //because .sort() doesn't sort numbers correctly
     data.sort(function(a, b){ return a - b });
     var index = (percentile / 100) * data.length;
