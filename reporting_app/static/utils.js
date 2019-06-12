@@ -148,7 +148,7 @@ var significant_figures = function(array_of_number){
         return 0;
     }
     // spread operator does not work with phantomJS
-    var span = Math.max.apply(null, array_of_number) - Math.min.apply(null, array_of_number);
+    var span = Math.max.apply(Math, array_of_number) - Math.min.apply(Math, array_of_number);
 
     var sig_fig = 0
     if (span < .1) {
@@ -221,9 +221,14 @@ var average = function (objects, key) {return sum(objects, key) / objects.length
 var count = function (objects, key) { return objects.length }
 var extract = function (objects, key) { return objects.map( function(d){ return _.get(d, key);  }); }
 var quantile_box_plot = function (objects, key) {
+    // Provide 5, 25, 50, 75, and 95 percentile from a list of objects and a key
     return math.quantileSeq(objects.map(function(d){return _.get(d, key)}), [0.05, .25, .5, .75, 0.95]);
 }
 var boxplot_values_outliers = function(objects, key) {
+    // This function returns an object containing standard values for a box plot
+    // The 25, 50, and 75 percentile for the box
+    // 1.5 time inter-quartile for the top and bottom whiskers
+    // It also extract all the point that falls out of the whiskers and report them as outliers
     var data = extract(objects, key);
     var boxData = {},
         min = Math.min.apply(Math, data),
