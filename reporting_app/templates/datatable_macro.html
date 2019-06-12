@@ -13,7 +13,7 @@
 <script type="text/javascript" language="JavaScript">create_datatable({{ dt_config|tojson|safe }})</script>
 
 <div id="{{ dt_config.name }}-container" class="collapse in">
-    <table id="{{ dt_config.name }}" class="table table-hover table-condensed table-responsive">
+    <table id="{{ dt_config.name }}" class="table table-hover table-condensed table-responsive table-striped">
         <thead>
             <tr>
                 {% for col in dt_config.cols %}
