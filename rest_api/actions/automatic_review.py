@@ -1,6 +1,5 @@
 import os
 import re
-
 import yaml
 import datetime
 from cached_property import cached_property
@@ -91,9 +90,9 @@ class AutomaticReviewer:
     def failure_comment(self):
         return 'Failed due to ' + ', '.join(['%s %s %s' % (
             self.cfg.get(f, {}).get('name', f),
-            self.opposite.get((self.cfg.get(f, {}).get('comparison'))),
+            self.opposite.get(self.cfg.get(f, {}).get('comparison')),
             self.cfg.get(f, {}).get('value')
-        ) for f in self.failing_metrics ])
+        ) for f in self.failing_metrics])
 
     @cached_property
     def _summary(self):
@@ -166,6 +165,49 @@ class AutomaticRunReviewer(Action, AutomaticReviewer):
         }
 
 
+class AutomaticRapidSampleReviewer(Action, AutomaticReviewer):
+    def __init__(self, request):
+        super().__init__(request)
+        self.sample_id = self.request.form['sample_id']
+
+    @property
+    def cfg(self):
+        return review_thresholds['rapid']
+
+    @cached_property
+    def reviewable_data(self):
+        data = self.eve_get('samples', sample_id=self.sample_id)
+        if data and 'rapid_analysis' in data[0]:
+            return data[0]
+        else:
+            abort(404, 'No data found for sample id %s.' % self.sample_id)
+
+    def _perform_action(self):
+        payload = self.reviewable_data.get('rapid_analysis')  # patch with the whole subdict, or it gets overwritten
+
+        if self.failing_metrics:
+            payload[ELEMENT_REVIEWED] = 'fail'
+            payload[ELEMENT_REVIEW_COMMENTS] = self.failure_comment
+        else:
+            payload[ELEMENT_REVIEWED] = 'pass'
+
+        payload[ELEMENT_REVIEW_DATE] = self.current_time
+
+        patch_internal(
+            'samples',
+            {'rapid_analysis': payload},
+            sample_id=self.sample_id
+        )
+
+        return {
+            'action_id': self.sample_id + self.date_started,
+            'date_finished': self.now(),
+            'action_info': {
+                'sample_id': self.sample_id
+            }
+        }
+
+
 class AutomaticSampleReviewer(Action, AutomaticReviewer):
     def __init__(self, request):
         Action.__init__(self, request)
@@ -226,7 +268,6 @@ class AutomaticSampleReviewer(Action, AutomaticReviewer):
         cfg['aggregated.clean_yield_in_gb']['value'] = required_yield
         cfg['coverage.mean']['value'] = coverage
         return cfg
-
 
     @cached_property
     def _summary(self):
