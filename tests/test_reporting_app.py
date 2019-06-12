@@ -307,7 +307,7 @@ class TestReportingApp(Helper):
             'Samples not processing',
             'samples',
             ajax_call={
-                'func_name': 'merge_multi_sources_keep_first',
+                'func_name': 'dt_merge_multi_sources_keep_first',
                 'merge_on': 'sample_id',
                 'api_urls': [
                     '/api/0.1/samples?max_results=10000&where={"$and":[{"aggregated.clean_yield_in_gb":{"$exists":true,"$ne":null}},{"$or":[{"aggregated.most_recent_proc":null},{"aggregated.most_recent_proc.status":null},{"aggregated.most_recent_proc.status":"reprocess"},{"aggregated.most_recent_proc.status":"force_ready"},{"aggregated.most_recent_proc.status":"resume"}]}]}',

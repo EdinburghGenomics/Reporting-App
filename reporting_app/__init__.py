@@ -597,6 +597,7 @@ def sequencing_charts(view_type):
     time_str = time_ago.strftime(settings.DATE_FORMAT)
     return render_template(
         'charts.html',
+        'Sequencing metrics charts',
         api_urls=[
             util.construct_url('lanes', max_results=10000, where={'_created': {'$gte': time_str}}),
             util.construct_url('lims/run_status', createddate=time_str),
@@ -614,6 +615,7 @@ def sequencing_charts(view_type):
 def tat_charts():
     return render_template(
         'tat_charts.html',
+        'Turn around time charts',
         api_url=util.construct_url('lims/sample_status', match={'project_status': 'all'}),
         ajax_token=util.get_token()
     )
