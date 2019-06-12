@@ -131,7 +131,6 @@ function check_state_and_draw(filtered_data){
 
 function all_tat_charts(json){
     // Prepare the data for display
-    console.log(json)
     var finished_data = json.data.filter(function (d){
             return d.current_status === 'finished';
         }).map(function (d) {
@@ -145,7 +144,6 @@ function all_tat_charts(json){
         });
         return d;
     });
-    console.log(finished_data)
 
 
     check_state_and_draw(finished_data);
