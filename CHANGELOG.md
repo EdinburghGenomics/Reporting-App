@@ -1,10 +1,12 @@
 Changelog for Reporting-App
 ===========================
 
-0.22 (unreleased)
------------------
 
-- Nothing changed yet.
+0.21.1 (2019-06-12)
+-------------------
+
+- Update to schema for rapid processing and GATK4 pipelines
+- Add new LIMS step in dsample status definition to transition to Sample QC/Library Prep/Library Queue
 
 
 0.21 (2019-04-29)
