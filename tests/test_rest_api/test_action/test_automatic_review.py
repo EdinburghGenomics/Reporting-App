@@ -3,8 +3,7 @@ from unittest.mock import patch, Mock, PropertyMock
 import pytest
 import werkzeug
 from rest_api import app
-from rest_api.actions import automatic_review as ar, AutomaticRunReviewer
-from rest_api.actions.automatic_review import AutomaticSampleReviewer, AutomaticLaneReviewer, AutomaticReviewer
+from rest_api.actions import automatic_review as ar
 from tests.test_rest_api import TestBase
 
 ppath = 'rest_api.actions.automatic_review.'
@@ -139,6 +138,9 @@ non_human_sample = {
     }
 }
 
+passing_rapid_sample = {'rapid_analysis': {'yield': 111, 'pc_q30': 76}}
+failing_rapid_sample = {'rapid_analysis': {'yield': 109, 'pc_q30': 74}}
+
 
 class TestAutomaticReview(TestBase):
 
@@ -151,19 +153,18 @@ class TestAutomaticReview(TestBase):
         with patch('rest_api.actions.automatic_review.get', side_effect=[(page1,), (page2,), (page3,)]) as mock_get:
             with app.test_request_context():
                 assert reviewer.eve_get('endpoint', param1='this') == ['test1', 'test2', 'test3']
-                mock_get.call_count == 3
+                assert mock_get.call_count == 3
                 mock_get.assert_called_with('endpoint', param1='this')
 
 
 class TestRunReviewer(TestBase):
-
     def setUp(self):
         self.init_request = Mock(form={'run_id': 'run1'})
-        with patch.object(AutomaticReviewer, 'eve_get', return_value=failing_lanes):
+        with patch.object(ar.AutomaticReviewer, 'eve_get', return_value=failing_lanes):
             self.reviewer1 = ar.AutomaticRunReviewer(self.init_request)
 
     def test_perform_action(self):
-        with patch.object(AutomaticLaneReviewer, 'run_elements', new_callable=PropertyMock(return_value=run_elements)), \
+        with patch.object(ar.AutomaticLaneReviewer, 'run_elements', new_callable=PropertyMock(return_value=run_elements)), \
              patch(ppath + 'patch_internal') as mocked_patch:
                 self.reviewer1._perform_action()
                 payload1 = {
@@ -182,9 +183,9 @@ class TestRunReviewer(TestBase):
                 mocked_patch.assert_any_call('run_elements', lane=1, run_id='a_run', barcode='b2', payload=payload2)
 
     def test_unknown_run(self):
-        with patch.object(AutomaticReviewer, 'eve_get', return_value=[]):
+        with patch.object(ar.AutomaticReviewer, 'eve_get', return_value=[]):
             with pytest.raises(werkzeug.exceptions.NotFound):
-                _ = AutomaticRunReviewer(Mock(form={'run_id': 'unknown_run'}))
+                _ = ar.AutomaticRunReviewer(Mock(form={'run_id': 'unknown_run'}))
 
     def test_resolve_formula(self):
         data = {'this': {
@@ -227,7 +228,7 @@ class TestLaneReviewer(TestBase):
         assert self.failing_reviewer_1.failure_comment == \
                'Failed due to Optical duplicate rate > 30, Yield < 120, Yield with no adapters and no duplicates < 96'
 
-    @patch.object(AutomaticLaneReviewer, 'eve_get', return_value=run_elements)
+    @patch.object(ar.AutomaticLaneReviewer, 'eve_get', return_value=run_elements)
     @patch(ppath + 'patch_internal')
     def test_push_review(self, mocked_patch, mocked_get):
         self.passing_reviewer.push_review()
@@ -248,7 +249,6 @@ class TestLaneReviewer(TestBase):
 
 
 class TestSampleReviewer(TestBase):
-
     def setUp(self):
         self.init_request = Mock(form={'sample_id': 'sample1'})
         self.fake_sample = Mock(udf={
@@ -257,7 +257,7 @@ class TestSampleReviewer(TestBase):
             'Coverage (X)': 30
         })
         self.patch_lims_samples = patch.object(
-            AutomaticSampleReviewer,
+            ar.AutomaticSampleReviewer,
             'lims_sample',
             new_callable=PropertyMock(return_value=self.fake_sample)
         )
@@ -265,33 +265,33 @@ class TestSampleReviewer(TestBase):
         self.reviewer1 = ar.AutomaticSampleReviewer(self.init_request)
 
     def test_reviewable_data(self):
-        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(passing_sample,)) as patch_get, \
+        with patch.object(ar.AutomaticSampleReviewer, 'eve_get', return_value=(passing_sample,)) as patch_get, \
              self.patch_lims_samples:
             _ = self.reviewer.reviewable_data
             patch_get.assert_called_once_with('samples', sample_id="sample1")
 
     def test_failing_metrics(self):
-        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(passing_sample,)), self.patch_lims_samples:
+        with patch.object(ar.AutomaticSampleReviewer, 'eve_get', return_value=(passing_sample,)), self.patch_lims_samples:
             assert self.reviewer.failing_metrics == []
 
-        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(failing_sample,)), self.patch_lims_samples:
+        with patch.object(ar.AutomaticSampleReviewer, 'eve_get', return_value=(failing_sample,)), self.patch_lims_samples:
             assert self.reviewer1.failing_metrics == ['aggregated.clean_yield_in_gb']
 
     def test_cfg(self):
-        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(sample_no_genotype,)), self.patch_lims_samples:
+        with patch.object(ar.AutomaticSampleReviewer, 'eve_get', return_value=(sample_no_genotype,)), self.patch_lims_samples:
             assert 'genotype_validation.no_call_seq' not in self.reviewer.cfg
             assert 'genotype_validation.mismatching_snps' not in self.reviewer.cfg
             assert self.reviewer.cfg['aggregated.clean_yield_in_gb']['value'] == 120
             assert self.reviewer.cfg['coverage.mean']['value'] == 30
 
-        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(passing_sample,)), self.patch_lims_samples:
+        with patch.object(ar.AutomaticSampleReviewer, 'eve_get', return_value=(passing_sample,)), self.patch_lims_samples:
             assert 'genotype_validation.no_call_seq' in self.reviewer1.cfg
             assert 'genotype_validation.mismatching_snps' in self.reviewer1.cfg
             assert self.reviewer1.cfg['aggregated.clean_yield_in_gb']['value'] == 120
             assert self.reviewer1.cfg['coverage.mean']['value'] == 30
 
     def test_summary(self):
-        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(failing_sample,)), self.patch_lims_samples:
+        with patch.object(ar.AutomaticSampleReviewer, 'eve_get', return_value=(failing_sample,)), self.patch_lims_samples:
             assert self.reviewer._summary == {
                 'reviewed': 'fail',
                 'review_comments': 'Failed due to Yield < 120',
@@ -299,13 +299,13 @@ class TestSampleReviewer(TestBase):
             }
 
     def test_get_failure_comment(self):
-        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(sample_failing_genotype,)), \
+        with patch.object(ar.AutomaticSampleReviewer, 'eve_get', return_value=(sample_failing_genotype,)), \
              self.patch_lims_samples:
             assert self.reviewer.failure_comment == 'Failed due to Genotyping error > 5'
 
     @patch(ppath + 'patch_internal')
     def test_push_review(self, mocked_patch):
-        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=(passing_sample,)), self.patch_lims_samples:
+        with patch.object(ar.AutomaticSampleReviewer, 'eve_get', return_value=(passing_sample,)), self.patch_lims_samples:
             self.reviewer.push_review()
 
             mocked_patch.assert_called_with(
@@ -315,7 +315,53 @@ class TestSampleReviewer(TestBase):
             )
 
     def test_unknown_sample(self):
-        with patch.object(AutomaticSampleReviewer, 'eve_get', return_value=[]):
+        with patch.object(ar.AutomaticSampleReviewer, 'eve_get', return_value=[]):
             with pytest.raises(werkzeug.exceptions.NotFound):
-                reviewer = AutomaticSampleReviewer(Mock(form={'sample_id': 'unknown_sample'}))
-                reviewer.reviewable_data
+                reviewer = ar.AutomaticSampleReviewer(Mock(form={'sample_id': 'unknown_sample'}))
+                _ = reviewer.reviewable_data
+
+
+class TestRapidSampleReviewer(TestBase):
+    def setUp(self):
+        self.init_request = Mock(form={'sample_id': 'sample1'})
+        self.reviewer = ar.AutomaticRapidSampleReviewer(self.init_request)
+
+    @patch(ppath + 'abort')
+    @patch.object(ar.AutomaticRapidSampleReviewer, 'eve_get', return_value=(passing_rapid_sample,))
+    def test_reviewable_data(self, mocked_get, mocked_abort):
+        assert self.reviewer.reviewable_data == passing_rapid_sample
+        mocked_get.assert_called_once_with('samples', sample_id='sample1')
+        del self.reviewer.__dict__['reviewable_data']
+
+        mocked_get.return_value = {}
+        _ = self.reviewer.reviewable_data
+        mocked_abort.assert_called_with(404, 'No data found for sample id sample1.')
+
+    @patch(ppath + 'patch_internal')
+    def test_perform_action_success(self, mocked_patch):
+        self.reviewer.__dict__['reviewable_data'] = passing_rapid_sample.copy()
+        exp_payload = passing_rapid_sample['rapid_analysis'].copy()
+        exp_payload['reviewed'] = 'pass'
+        exp_payload['review_date'] = self.reviewer.current_time
+
+        self.reviewer._perform_action()
+        mocked_patch.assert_called_with(
+            'samples',
+            {'rapid_analysis': exp_payload},
+            sample_id='sample1'
+        )
+
+    @patch(ppath + 'patch_internal')
+    def test_perform_action_fail(self, mocked_patch):
+        self.reviewer.__dict__['reviewable_data'] = failing_rapid_sample.copy()
+        exp_payload = failing_rapid_sample['rapid_analysis'].copy()
+        exp_payload['reviewed'] = 'fail'
+        exp_payload['review_date'] = self.reviewer.current_time
+        exp_payload['review_comments'] = 'Failed due to PC Q30 < 75, Yield < 110'
+
+        self.reviewer._perform_action()
+        mocked_patch.assert_called_with(
+            'samples',
+            {'rapid_analysis': exp_payload},
+            sample_id='sample1'
+        )
