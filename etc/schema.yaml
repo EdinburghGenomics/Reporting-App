@@ -189,12 +189,11 @@ samples:
     pc_callable: {              type: 'float',   required: False }
 
     # QC validation
-    called_gender: {            type: 'string',  allowed: ['male', 'female', 'unknown'] }
-    provided_gender: {          type: 'string',  allowed: ['male', 'female', 'unknown'] }
-    gender_validation: {        type: 'dict',    schema: {
+    sex_validation: {           type: 'dict',    schema: {
+        called: {               type: 'string',  allowed: ['male', 'female', 'unknown'] },
+        provided: {             type: 'string',  allowed: ['male', 'female', 'unknown'] },
         hetX: { type: 'float' },
-        covY: { type: 'float' },
-        gender_genotype: { type: 'string',  allowed: ['male', 'female', 'unknown'] }
+        covY: { type: 'float' }
     } }
     genotype_validation: {      type: 'dict', schema: {
         matching_snps: { type: 'integer' },
@@ -284,6 +283,7 @@ analysis_driver_procs:
     stages: {                   type: 'list', schema: { type: 'string', data_relation: { resource: 'analysis_driver_stages', field: 'stage_id', embeddable: True } } }
     data_source: {              type: 'list',  required: False, schema: { type: 'string' } }
     genome_used: {              type: 'string' }  # TODO: this should be stored in samples when doing #112
+
 
 analysis_driver_stages:
     stage_id: {                 type: 'string', required: True, unique: True }
