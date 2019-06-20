@@ -179,7 +179,7 @@ class TestReportingApp(Helper):
             'All Runs',
             'runs',
             ajax_call={
-                'func_name': 'merge_multi_sources',
+                'func_name': 'dt_merge_multi_sources',
                 'merge_on': 'run_id',
                 'api_urls': ['/api/0.1/runs?max_results=10000', '/api/0.1/lims/run_status']
             },
@@ -191,7 +191,7 @@ class TestReportingApp(Helper):
             'Recent Runs',
             'runs',
             ajax_call={
-                'func_name': 'merge_multi_sources',
+                'func_name': 'dt_merge_multi_sources',
                 'merge_on': 'run_id',
                 'api_urls': [
                     '/api/0.1/runs?max_results=10000&where={"_created":{"$gte":"12_11_2017_00:00:00"}}',
@@ -206,7 +206,7 @@ class TestReportingApp(Helper):
             'Last 12 months Runs',
             'runs',
             ajax_call={
-                'func_name': 'merge_multi_sources',
+                'func_name': 'dt_merge_multi_sources',
                 'merge_on': 'run_id',
                 'api_urls': [
                     '/api/0.1/runs?max_results=10000&where={"_created":{"$gte":"12_12_2016_00:00:00"}}',
@@ -221,7 +221,7 @@ class TestReportingApp(Helper):
             '2017 Runs',
             'runs',
             ajax_call={
-                'func_name': 'merge_multi_sources',
+                'func_name': 'dt_merge_multi_sources',
                 'merge_on': 'run_id',
                 'api_urls': [
                     '/api/0.1/runs?max_results=10000&where={"_created":{"$gte":"01_01_2017_00:00:00"}}',
@@ -261,7 +261,7 @@ class TestReportingApp(Helper):
             'All samples',
             'samples',
             ajax_call={
-                'func_name': 'merge_multi_sources_keep_first',
+                'func_name': 'dt_merge_multi_sources_keep_first',
                 'merge_on': 'sample_id',
                 'api_urls': [
                     '/api/0.1/samples?max_results=15000',
@@ -284,7 +284,7 @@ class TestReportingApp(Helper):
             'Samples to review',
             'samples',
             ajax_call={
-                'func_name': 'merge_multi_sources_keep_first',
+                'func_name': 'dt_merge_multi_sources_keep_first',
                 'merge_on': 'sample_id',
                 'api_urls': [
                     '/api/0.1/samples?max_results=10000&where={"aggregated.most_recent_proc.status":"finished","useable":"not%20marked"}',
@@ -307,7 +307,7 @@ class TestReportingApp(Helper):
             'Samples not processing',
             'samples',
             ajax_call={
-                'func_name': 'merge_multi_sources_keep_first',
+                'func_name': 'dt_merge_multi_sources_keep_first',
                 'merge_on': 'sample_id',
                 'api_urls': [
                     '/api/0.1/samples?max_results=10000&where={"$and":[{"aggregated.clean_yield_in_gb":{"$exists":true,"$ne":null}},{"$or":[{"aggregated.most_recent_proc":null},{"aggregated.most_recent_proc.status":null},{"aggregated.most_recent_proc.status":"reprocess"},{"aggregated.most_recent_proc.status":"force_ready"},{"aggregated.most_recent_proc.status":"resume"}]}]}',
@@ -349,7 +349,10 @@ class TestReportingApp(Helper):
         self._test_render_template('/sample/a_sample')
 
     def test_plotting_report(self):
-        self._test_render_template('/charts')
+        self._test_render_template('/charts/seq/last_month')
+        self._test_render_template('/charts/seq/last_3_months')
+        self._test_render_template('/charts/seq/last_12_months')
+        self._test_render_template('/charts/tat')
 
     def test_project_status_report(self):
         self._test_render_template('/project_status/')
