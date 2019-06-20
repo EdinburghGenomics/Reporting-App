@@ -63,9 +63,9 @@ column_def:
     nb_invoiced:              { data: 'status.invoiced',                      title: 'Invoiced' ,                fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
     no_call_chip:             { data: 'genotype_validation.no_call_chip',     title: 'No-call (chip)',                                                visible: 'false' }
     no_call_seq:              { data: 'genotype_validation.no_call_seq',      title: 'No-call (seq)',                                                 visible: 'false' }
-    called_sex:               { data: 'called_gender',                        title: 'Called Sex',                                                    visible: 'false' }
-    provided_sex:             { data: 'provided_gender',                      title: 'Provided Sex',                                                  visible: 'false' }
-    sex_check:                { data: 'aggregated.gender_match',              title: 'Sex check' }
+    called_sex:               { data: 'called_sex',                           title: 'Called Sex',                                                    visible: 'false' }
+    provided_sex:             { data: 'provided_sex',                         title: 'Provided Sex',                                                  visible: 'false' }
+    sex_match:                { data: 'aggregated.sex_match',                 title: 'Sex match' }
     passing_filter_reads:     { data: 'passing_filter_reads',                 title: 'Passing-filter reads',     fmt: { type: 'int' }, visible: 'false' }
     pc_adaptor:               { data: 'aggregated.pc_adaptor',                title: '% Adapter',                fmt: { type: 'percentage', max: 5 } }
     pc_duplicate_reads:       { data: 'aggregated.pc_duplicate_reads',        title: '% duplicate reads',        fmt: { type: 'percentage', max: 35 } }
@@ -333,7 +333,7 @@ samples:
     - pipeline_used
     - genome_used
     - species_found
-    - sex_check
+    - sex_match
     - called_sex
     - provided_sex
     - genotype_match

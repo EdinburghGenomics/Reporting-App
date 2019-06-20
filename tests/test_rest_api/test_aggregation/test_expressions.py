@@ -38,8 +38,8 @@ def test_genotype_match():
     assert e.evaluate({'genotyping': {'no_call_chip': 7, 'no_call_seq': 8}}) == 'Unknown'
 
 
-def test_sex_check():
-    e = expressions.SexCheck('called', 'provided')
+def test_sex_match():
+    e = expressions.SexMatch('called', 'provided')
     assert e.evaluate({'called': 'Male'}) is None
     assert e.evaluate({'called': 'Male', 'provided': 'Male'}) == 'Male'
     assert e.evaluate({'called': 'Male', 'provided': 'Female'}) == 'Mismatch'

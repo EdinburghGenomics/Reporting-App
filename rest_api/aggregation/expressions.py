@@ -170,7 +170,7 @@ class GenotypeMatch(Calculation):
             return 'Unknown'
 
 
-class SexCheck(Calculation):
+class SexMatch(Calculation):
     def _expression(self, called, provided):
         if not called or not provided:
             return None
