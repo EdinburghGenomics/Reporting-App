@@ -588,7 +588,7 @@ def sequencing_charts(view_type):
     if view_type == 'last_month':
         time_ago = util.now() - datetime.timedelta(days=30)
     elif view_type == 'last_3_months':
-        time_ago = util.now() - datetime.timedelta(days=182)
+        time_ago = util.now() - datetime.timedelta(days=92)
     elif view_type == 'last_12_months':
         time_ago = util.now() - datetime.timedelta(days=365)
     else:
