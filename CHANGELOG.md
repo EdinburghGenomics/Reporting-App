@@ -2,10 +2,15 @@ Changelog for Reporting-App
 ===========================
 
 
-0.22 (unreleased)
+0.22 (2019-07-09)
 -----------------
 
-- Nothing changed yet.
+- New sequencing trending and turnaround graphs
+- New library prep QC view and database queries
+- Coloured project status by staleness
+- New page for samples not processing
+- 'gender' database keys renamed to 'sex'
+- Updated EGCG-Core to v0.11
 
 
 0.21.1 (2019-06-12)
