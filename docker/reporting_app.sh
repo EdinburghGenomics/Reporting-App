@@ -14,3 +14,6 @@ git checkout $checkout_param
 
 /opt/database/mongodb-linux-x86_64-rhel70-3.4.1/bin/mongod > /opt/database/mongod.log &
 REPORTINGCONFIG=/opt/reporting.yaml /opt/python/bin/python bin/run_app.py rest_api
+if [ -e /opt/data_for_clarity_lims.yaml ] then
+    REPORTINGCONFIG=/opt/reporting.yaml PYTHONPATH=/opt/python/bin/python docker/load_data_to_lims_db.py --yaml_file /opt/data_for_clarity_lims.yaml
+fi

@@ -1,6 +1,5 @@
 # EGCG Reporting App
 [![travis](https://img.shields.io/travis/EdinburghGenomics/Reporting-App/master.svg)](https://travis-ci.org/EdinburghGenomics/Reporting-App)
-[![landscape](https://landscape.io/github/EdinburghGenomics/Reporting-App/master/landscape.svg)](https://landscape.io/github/EdinburghGenomics/Reporting-App)
 [![GitHub issues](https://img.shields.io/github/issues/EdinburghGenomics/Reporting-App.svg)](https://github.com/EdinburghGenomics/Reporting-App/issues)
 [![Coverage Status](https://coveralls.io/repos/github/EdinburghGenomics/Reporting-App/badge.svg)](https://coveralls.io/github/EdinburghGenomics/Reporting-App)
 
@@ -108,9 +107,6 @@ the image, navigate to this directory and run:
 
 `docker build -t <image_name> .`
 
-It is possible to do this without altering `reporting.yaml`, but there would not be any valid Lims connection.
-There are two ways to fix this: you can either edit `reporting.yaml` before building, or supply a different
-config at run time using Docker volumes.
 
 Having built the image, you should now be able to run a container and query its Rest API through `egcg_core`:
 
@@ -134,6 +130,10 @@ For example, to start a container with our own databases and tag v0.9.2 of the a
 
     docker run -v path/to/my_user_db.sqlite:/opt/users.sqlite -v path/to/my_nosql_db:/data/db <image_name> v0.9.2
 
+To load data to the local lims database, you need to provide a yaml file following the format of 
+docker/data_for_clarity_lims.yaml. The file should be provided as follows:
+
+    docker run -v path/to/data_for_lims.yaml:/opt/data_for_clarity_lims.yaml <image_name> v0.9.2
 
 ## Dependencies
 - a running MongoDB database

@@ -16,8 +16,13 @@ def get_session(echo=False):
     global _session
     if _session is None:
         if 'lims_database' in cfg:
-            uri = "postgresql://{username}:{password}@{url}/{db}".format(**cfg.get('lims_database'))
-            engine = create_engine(uri, echo=echo, isolation_level="AUTOCOMMIT")
+            # Default the database type to postgresql for backward compatibility.
+            if cfg['lims_database'].get('database_type', 'postgresql') == 'postgresql':
+                uri = "postgresql://{username}:{password}@{url}/{db}".format(**cfg.get('lims_database'))
+                engine = create_engine(uri, echo=echo, isolation_level="AUTOCOMMIT")
+            elif cfg['lims_database'].get('database_type') == 'sqlite':
+                uri = 'sqlite:///{database_path}'.format(**cfg.get('lims_database'))
+                engine = create_engine(uri, echo=echo)
         else:
             engine = create_engine('sqlite:///:memory:')
         Base.metadata.bind = engine

@@ -13,10 +13,8 @@ rest_app:
     api_version: '0.1'
 
     lims_database:
-        username: a_username
-        password: a_password
-        url: a_baseurl
-        db: a_db_name
+        database_type: sqlite
+        database_path: /opt/clarity_lims_database.sqlite
 
     available_coverages: [10, 15, 30, 60, 90, 120]
     available_yields:
