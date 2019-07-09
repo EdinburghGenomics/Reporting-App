@@ -11,6 +11,10 @@ rest_app:
     x_domains: []
     url_prefix: 'api'
     api_version: '0.1'
+    timed_rotating_file_handlers:
+        - filename: /opt/logs/rest_api.log
+          when: 'midnight'
+          level: INFO
 
     lims_database:
         database_type: sqlite
