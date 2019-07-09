@@ -17,3 +17,4 @@ REPORTINGCONFIG=/opt/reporting.yaml /opt/python/bin/python bin/run_app.py rest_a
 if [ -e /opt/data_for_clarity_lims.yaml ] then
     REPORTINGCONFIG=/opt/reporting.yaml PYTHONPATH=/opt/python/bin/python docker/load_data_to_lims_db.py --yaml_file /opt/data_for_clarity_lims.yaml
 fi
+
