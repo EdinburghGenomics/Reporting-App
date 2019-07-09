@@ -25,7 +25,7 @@ run_element1 = {
         'picard_dup_reads': 1010, 'picard_opt_dup_reads': 500, 'picard_est_lib_size': 10000, 'mean_insert_size': 450.2,
         'std_dev_insert_size': 68.4, 'median_insert_size': 432.5, 'median_abs_dev_insert_size': 58.5
     },
-    'coverage': {'mean': 2.6}
+    'coverage': {'mean': 2.6}, 'gc_bias': {'slope': 0.01, 'mean_deviation': 0.1}
 }
 
 run_element2 = {
@@ -41,7 +41,23 @@ run_element2 = {
         'picard_dup_reads': 1110, 'picard_opt_dup_reads': 600, 'picard_est_lib_size': 10000, 'mean_insert_size': 450.2,
         'std_dev_insert_size': 68.4, 'median_insert_size': 432.5, 'median_abs_dev_insert_size': 58.5
     },
-    'coverage': {'mean': 2.4}
+    'coverage': {'mean': 2.4}, 'gc_bias': {'slope': 0.011, 'mean_deviation': 0.11}
+}
+
+unusable_run_element = {
+    'run_element_id': '150724_test_1_ATGT', 'run_id': '150724_test', 'project_id': 'a_project',
+    'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGC', 'library_id': 'a_library',
+    'bases_r1': 1500000002, 'bases_r2': 1400000002, 'q30_bases_r1': 1400000002, 'q30_bases_r2': 1300000002,
+    'clean_bases_r1': 1300000002, 'clean_bases_r2': 1200000002, 'clean_q30_bases_r1': 1200000002,
+    'clean_q30_bases_r2': 1100000002, 'total_reads': 9170, 'passing_filter_reads': 8471,
+    'pc_reads_in_lane': 54.2, 'reviewed': 'pass', 'useable': 'no', 'clean_reads': 1339,
+    'lane_pc_optical_dups': 0.1, 'adaptor_bases_removed_r1': 1340, 'adaptor_bases_removed_r2': 1341,
+    'mapping_metrics': {
+        'bam_file_reads': 8621, 'mapped_reads': 8301, 'duplicate_reads': 1101, 'properly_mapped_reads': 8201,
+        'picard_dup_reads': 1111, 'picard_opt_dup_reads': 601, 'picard_est_lib_size': 10003, 'mean_insert_size': 300.5,
+        'std_dev_insert_size': 68.4, 'median_insert_size': 432.5, 'median_abs_dev_insert_size': 58.5
+    },
+    'coverage': {'mean': 2.4}, 'gc_bias': {'slope': 0.012, 'mean_deviation': 0.12}
 }
 
 
@@ -303,21 +319,22 @@ class TestDatabaseHooks(TestCase):
         # no patching to test here
 
     def test_sample_aggregation(self):
+        self.run_elements.append(copy.deepcopy(unusable_run_element))
         self.post('run_elements', self.run_elements)
 
         sample = {
             'sample_id': 'a_sample', 'project_id': 'a_project',
             'run_elements': ['150724_test_1_ATGC', '150724_test_1_ATGA'],
             'genotype_validation': {'no_call_chip': 1, 'no_call_seq': 2, 'mismatching_snps': 5},
-            'called_gender': 'female', 'provided_gender': 'female', 'mapped_reads': 1337, 'properly_mapped_reads': 1336,
-            'bam_file_reads': 1338, 'duplicate_reads': 100,
+            'sex_validation': {'called': 'female', 'provided': 'female'}, 'mapped_reads': 1337,
+            'properly_mapped_reads': 1336, 'bam_file_reads': 1338, 'duplicate_reads': 100,
             'species_contamination': {'contaminant_unique_mapped': {'Homo sapiens': 501, 'Thingius thingy': 499}},
             'coverage': {'genome_size': 3000000000, 'bases_at_coverage': {'bases_at_5X': 2900000000, 'bases_at_15X': 2000000000}}
         }
         self.post('samples', sample)
 
         exp = {
-            'genotype_match': 'Match', 'gender_match': 'female', 'pc_mapped_reads': 99.9252615844544,
+            'genotype_match': 'Match', 'sex_match': 'female', 'pc_mapped_reads': 99.9252615844544,
             'pc_properly_mapped_reads': 99.85052316890882, 'pc_duplicate_reads': 7.473841554559043,
             'matching_species': ['Homo sapiens'], 'coverage_at_5X': 96.66666666666667,
             'coverage_at_15X': 66.66666666666666, 'most_recent_proc': None, 'clean_yield_in_gb': 5.000000002,
@@ -328,18 +345,20 @@ class TestDatabaseHooks(TestCase):
                 'pc_mapped_reads': 96.83098591549296, 'picard_opt_dup_reads': 1100,
                 'pc_duplicate_reads': 12.323943661971832, 'pc_opt_duplicate_reads': 6.455399061032864,
                 'picard_dup_reads': 2120, 'mean_coverage': 5
+            },
+            'from_all_run_elements': {
+                'pc_duplicate_reads': 12.47418261174545,
+                'pc_opt_duplicate_reads': 6.628736214488913,
+                'picard_opt_dup_reads': 1701,
+                'bam_file_reads': 25661,
+                'duplicate_reads': 3201,
+                'gc_bias': {'mean_deviation': 0.11, 'slope': 0.011},
+                'pc_adaptor': 9.235632177538644e-05,
+                'mean_insert_size': 400.3,
+                'picard_est_lib_size': 10001
             }
         }
 
-        self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])
-
-        self.post(
-            'run_elements',
-            {
-                'run_element_id': '150724_test_1_ATGG', 'run_id': '150724_test', 'project_id': 'a_project',
-                'sample_id': 'a_sample', 'lane': 1, 'barcode': 'ATGG', 'library_id': 'a_library', 'useable': 'no'
-            }
-        )
         self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])
 
         self.post(
@@ -358,8 +377,9 @@ class TestDatabaseHooks(TestCase):
             {'clean_yield_in_gb': 6.100000003, 'clean_pc_q30_r1': 91.89189189627466,
              'clean_pc_q30': 91.80327869255576, 'clean_yield_q30_in_gb': 5.600000003}
         )
-        exp['from_run_elements'].update({'mean_coverage': 6.5})
+        exp['from_run_elements']['mean_coverage'] = 6.5
         exp['from_run_elements']['useable_run_elements'].append('150724_test_2_ATGG')
+        exp['from_all_run_elements']['pc_adaptor'] = 9.375999993436801e-05
 
         self.assert_dict_subsets(exp, self.get('samples')[0]['aggregated'])
 

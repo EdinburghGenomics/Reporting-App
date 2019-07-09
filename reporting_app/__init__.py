@@ -8,7 +8,7 @@ import subprocess
 import auth
 from reporting_app import util
 from rest_api import settings
-from config import reporting_app_config as cfg, project_status as project_status_cfg
+from config import reporting_app_config as cfg, project_status as project_status_cfg, chart_metrics_mappings
 
 app = fl.Flask(__name__)
 app.secret_key = cfg['key'].encode()
@@ -109,7 +109,7 @@ def change_password():
 @app.route('/runs/<view_type>')
 @flask_login.login_required
 def runs_report(view_type):
-    ajax_call = {'func_name': 'merge_multi_sources', 'merge_on': 'run_id'}
+    ajax_call = {'func_name': 'dt_merge_multi_sources', 'merge_on': 'run_id'}
 
     if view_type == 'all':
         ajax_call['api_urls'] = [
@@ -117,10 +117,10 @@ def runs_report(view_type):
             util.construct_url('lims/run_status'),
         ]
 
-    elif view_type in ['recent', 'current_year', 'year_to_date']:
+    elif view_type in ['recent', 'current_year', 'last_12_months']:
         if view_type == 'recent':
             time_ago = util.now() - datetime.timedelta(days=30)
-        elif view_type == 'year_to_date':
+        elif view_type == 'last_12_months':
             time_ago = util.now() - datetime.timedelta(days=365)
         elif view_type == 'current_year':
             y = util.now().year
@@ -220,7 +220,7 @@ def project_reports():
             'All projects list',
             'projects',
             ajax_call={
-                'func_name': 'merge_multi_sources',
+                'func_name': 'dt_merge_multi_sources',
                 'api_urls': [
                     util.construct_url('projects', max_results=10000),
                     util.construct_url('lims/project_info', match={'project_status': 'all'}),
@@ -235,7 +235,7 @@ def project_reports():
 @flask_login.login_required
 def report_samples(view_type):
     six_months_ago = util.now() - datetime.timedelta(days=182)
-    ajax_call = {'func_name': 'merge_multi_sources_keep_first', 'merge_on': 'sample_id'}
+    ajax_call = {'func_name': 'dt_merge_multi_sources_keep_first', 'merge_on': 'sample_id'}
 
     if view_type == 'all':
         title = 'All samples'
@@ -255,6 +255,22 @@ def report_samples(view_type):
         title = 'Samples to review'
         ajax_call['api_urls'] = [
             util.construct_url('samples', where={'useable': 'not%20marked', 'aggregated.most_recent_proc.status': 'finished'}, max_results=10000),
+            util.construct_url('lims/sample_status', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'}),
+            util.construct_url('lims/sample_info', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'})
+        ]
+    elif view_type == 'notprocessing':
+        # Samples which have clean yield value populated, and have not started processing yet, or have a status of
+        # reprocess, force_ready, resume or null.
+        title = 'Samples not processing'
+        ajax_call['api_urls'] = [
+            util.construct_url('samples', where={"$and": [{"aggregated.clean_yield_in_gb": {"$exists": True, "$ne": None}},
+                                                          {"$or": [
+                                                            {"aggregated.most_recent_proc": None},
+                                                            {"aggregated.most_recent_proc.status": None},
+                                                            {"aggregated.most_recent_proc.status": "reprocess"},
+                                                            {"aggregated.most_recent_proc.status": "force_ready"},
+                                                            {"aggregated.most_recent_proc.status": "resume"}
+                                                          ]}]}, max_results=10000),
             util.construct_url('lims/sample_status', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'}),
             util.construct_url('lims/sample_info', match={'createddate': six_months_ago.strftime(settings.DATE_FORMAT), 'project_status': 'open'})
         ]
@@ -290,7 +306,7 @@ def report_project(project_ids):
     if len(id_list) > 1:
         project_status_call = {
             'ajax_call': {
-                'func_name': 'merge_multi_sources',
+                'func_name': 'dt_merge_multi_sources',
                 'merge_on': 'project_id',
                 'api_urls': [
                     util.construct_url('lims/project_status', match={'project_id': i, 'project_status': 'all'})
@@ -300,7 +316,7 @@ def report_project(project_ids):
         }
         plate_status_call = {
             'ajax_call': {
-                'func_name': 'merge_multi_sources',
+                'func_name': 'dt_merge_multi_sources',
                 'merge_on': 'plate_id',
                 'api_urls': [
                     util.construct_url('lims/plate_status', match={'project_id': i, 'project_status': 'all'})
@@ -355,7 +371,7 @@ def report_project(project_ids):
                 'Bioinformatics report for ' + project_ids,
                 'samples',
                 ajax_call={
-                    'func_name': 'merge_multi_sources',
+                    'func_name': 'dt_merge_multi_sources',
                     'api_urls': bioinformatics_urls,
                     'merge_on': 'sample_id'
                 },
@@ -380,7 +396,7 @@ def report_sample(sample_id):
                 'Bioinformatics report for ' + sample_id,
                 'samples',
                 ajax_call={
-                    'func_name': 'merge_multi_sources',
+                    'func_name': 'dt_merge_multi_sources',
                     'merge_on': 'sample_id',
                     'api_urls': [
                         util.construct_url('samples', where={'sample_id': sample_id}),
@@ -416,12 +432,57 @@ def report_sample(sample_id):
     )
 
 
-@app.route('/charts')
+@app.route('/libraries/<view_type>')
 @flask_login.login_required
-def plotting_report():
+def libraries(view_type):
+    query_params = {'max_results': 10000}
+
+    time_ago = None
+    if view_type == 'recent':
+        time_ago = util.now() - datetime.timedelta(days=30)
+    elif view_type == 'last_12_months':
+        time_ago = util.now() - datetime.timedelta(days=365)
+    elif view_type == 'current_year':
+        y = util.now().year
+        time_ago = datetime.datetime(year=y, month=1, day=1)
+        view_type = str(y)
+    elif view_type == 'all':
+        pass
+    else:
+        fl.abort(404)
+        return None
+
+    if time_ago:
+        query_params['time_from'] = time_ago.strftime(settings.DATE_FORMAT)
+
+    title = util.capitalise(view_type).replace('_', ' ') + ' Libraries'
     return render_template(
-        'charts.html',
-        api_url=util.construct_url('run_elements', max_results=1000000),
+        'untabbed_datatables.html',
+        title,
+        table=util.datatable_cfg(
+            title,
+            'libraries',
+            util.construct_url('lims/library_info', **query_params),
+            default_sort_col='-library_date_completed'
+        )
+    )
+
+
+@app.route('/library/<library>')
+@flask_login.login_required
+def plot_library(library):
+    return render_template(
+        'library.html',
+        'Library ' + library,
+        table=util.datatable_cfg(
+            'Library ' + library,
+            'libraries',
+            util.construct_url('lims/library_info', match={'library_id': library}),
+            minimal=True
+        ),
+        library=library,
+        qc_url=util.construct_url('samples'),
+        lims_url=util.construct_url('lims/library_info'),
         ajax_token=util.get_token()
     )
 
@@ -518,4 +579,43 @@ def species_page(species):
                 minimal=True
             )
         ]
+    )
+
+
+@app.route('/charts/seq/<view_type>')
+@flask_login.login_required
+def sequencing_charts(view_type):
+    if view_type == 'last_month':
+        time_ago = util.now() - datetime.timedelta(days=30)
+    elif view_type == 'last_3_months':
+        time_ago = util.now() - datetime.timedelta(days=92)
+    elif view_type == 'last_12_months':
+        time_ago = util.now() - datetime.timedelta(days=365)
+    else:
+        fl.abort(404)
+        return None
+    time_str = time_ago.strftime(settings.DATE_FORMAT)
+    return render_template(
+        'charts.html',
+        'Sequencing metrics charts',
+        api_urls=[
+            util.construct_url('lanes', max_results=10000, where={'_created': {'$gte': time_str}}),
+            util.construct_url('lims/run_status', createddate=time_str),
+        ],
+        ajax_token=util.get_token(),
+        merge_on='run_id',
+        merge_properties=['run'],
+        metric_options=chart_metrics_mappings.get('seq_plot_metrics'),
+        color_options=chart_metrics_mappings.get('seq_plot_colors')
+    )
+
+
+@app.route('/charts/tat')
+@flask_login.login_required
+def tat_charts():
+    return render_template(
+        'tat_charts.html',
+        'Turn around time charts',
+        api_url=util.construct_url('lims/sample_status', match={'project_status': 'all'}),
+        ajax_token=util.get_token()
     )

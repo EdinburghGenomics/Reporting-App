@@ -99,3 +99,7 @@ started_steps:
     - FluidX Sample Receipt EG 1.1 ST
     - Receive Sample 4.0
     - Receive Sample EG 6.1
+
+protocol_names:
+  TruSeq Nano Sample Prep: TRUSEQ_NANO
+  TruSeq PCR-Free Sample Prep: TRUSEQ_PCR_FREE

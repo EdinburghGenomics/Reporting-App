@@ -169,7 +169,7 @@ class TestReportingApp(Helper):
     @patch('reporting_app.util.datatable_cfg', return_value='a_datatable_cfg')
     @patch('reporting_app.util.now', return_value=datetime(2017, 12, 12, 0, 0, 0))
     def test_runs_report(self, mocked_datetime, mocked_cfg):
-        for endpoint, title in (('all', 'All'), ('recent', 'Recent'), ('current_year', '2017'), ('year_to_date', 'Year to date')):
+        for endpoint, title in (('all', 'All'), ('recent', 'Recent'), ('current_year', '2017'), ('last_12_months', 'Last 12 months')):
             mocked_render = self._test_render_template('/runs/' + endpoint)
             mocked_render.assert_called_with('untabbed_datatables.html', title + ' Runs', include_review_modal=True, table='a_datatable_cfg')
 
@@ -179,7 +179,7 @@ class TestReportingApp(Helper):
             'All Runs',
             'runs',
             ajax_call={
-                'func_name': 'merge_multi_sources',
+                'func_name': 'dt_merge_multi_sources',
                 'merge_on': 'run_id',
                 'api_urls': ['/api/0.1/runs?max_results=10000', '/api/0.1/lims/run_status']
             },
@@ -191,7 +191,7 @@ class TestReportingApp(Helper):
             'Recent Runs',
             'runs',
             ajax_call={
-                'func_name': 'merge_multi_sources',
+                'func_name': 'dt_merge_multi_sources',
                 'merge_on': 'run_id',
                 'api_urls': [
                     '/api/0.1/runs?max_results=10000&where={"_created":{"$gte":"12_11_2017_00:00:00"}}',
@@ -203,10 +203,10 @@ class TestReportingApp(Helper):
             review={'entity_field': 'sample_ids', 'button_name': 'runreview'}
         )
         mocked_cfg.assert_any_call(
-            'Year to date Runs',
+            'Last 12 months Runs',
             'runs',
             ajax_call={
-                'func_name': 'merge_multi_sources',
+                'func_name': 'dt_merge_multi_sources',
                 'merge_on': 'run_id',
                 'api_urls': [
                     '/api/0.1/runs?max_results=10000&where={"_created":{"$gte":"12_12_2016_00:00:00"}}',
@@ -221,7 +221,7 @@ class TestReportingApp(Helper):
             '2017 Runs',
             'runs',
             ajax_call={
-                'func_name': 'merge_multi_sources',
+                'func_name': 'dt_merge_multi_sources',
                 'merge_on': 'run_id',
                 'api_urls': [
                     '/api/0.1/runs?max_results=10000&where={"_created":{"$gte":"01_01_2017_00:00:00"}}',
@@ -261,7 +261,7 @@ class TestReportingApp(Helper):
             'All samples',
             'samples',
             ajax_call={
-                'func_name': 'merge_multi_sources_keep_first',
+                'func_name': 'dt_merge_multi_sources_keep_first',
                 'merge_on': 'sample_id',
                 'api_urls': [
                     '/api/0.1/samples?max_results=15000',
@@ -284,10 +284,33 @@ class TestReportingApp(Helper):
             'Samples to review',
             'samples',
             ajax_call={
-                'func_name': 'merge_multi_sources_keep_first',
+                'func_name': 'dt_merge_multi_sources_keep_first',
                 'merge_on': 'sample_id',
                 'api_urls': [
                     '/api/0.1/samples?max_results=10000&where={"aggregated.most_recent_proc.status":"finished","useable":"not%20marked"}',
+                    '/api/0.1/lims/sample_status?match={"createddate":"13_06_2017_00:00:00","project_status":"open"}',
+                    '/api/0.1/lims/sample_info?match={"createddate":"13_06_2017_00:00:00","project_status":"open"}'
+                ]
+            },
+            review={'entity_field': 'sample_id', 'button_name': 'samplereview'},
+            create_row='color_data_source'
+        )
+
+        mocked_render = self._test_render_template('/samples/notprocessing')
+        mocked_render.assert_called_with(
+            'untabbed_datatables.html',
+            'Samples not processing',
+            include_review_modal=True,
+            table='a_datatable_cfg'
+        )
+        mocked_cfg.assert_called_with(
+            'Samples not processing',
+            'samples',
+            ajax_call={
+                'func_name': 'dt_merge_multi_sources_keep_first',
+                'merge_on': 'sample_id',
+                'api_urls': [
+                    '/api/0.1/samples?max_results=10000&where={"$and":[{"aggregated.clean_yield_in_gb":{"$exists":true,"$ne":null}},{"$or":[{"aggregated.most_recent_proc":null},{"aggregated.most_recent_proc.status":null},{"aggregated.most_recent_proc.status":"reprocess"},{"aggregated.most_recent_proc.status":"force_ready"},{"aggregated.most_recent_proc.status":"resume"}]}]}',
                     '/api/0.1/lims/sample_status?match={"createddate":"13_06_2017_00:00:00","project_status":"open"}',
                     '/api/0.1/lims/sample_info?match={"createddate":"13_06_2017_00:00:00","project_status":"open"}'
                 ]
@@ -326,7 +349,10 @@ class TestReportingApp(Helper):
         self._test_render_template('/sample/a_sample')
 
     def test_plotting_report(self):
-        self._test_render_template('/charts')
+        self._test_render_template('/charts/seq/last_month')
+        self._test_render_template('/charts/seq/last_3_months')
+        self._test_render_template('/charts/seq/last_12_months')
+        self._test_render_template('/charts/tat')
 
     def test_project_status_report(self):
         self._test_render_template('/project_status/')
@@ -334,3 +360,11 @@ class TestReportingApp(Helper):
     def test_genome_page(self):
         self._test_render_template('/species')
         self._test_render_template('/species/a_species')
+
+    def test_libraries(self):
+        self._test_render_template('/libraries/recent')
+        self._test_render_template('/libraries/last_12_months')
+        self._test_render_template('/libraries/current_year')
+        self._test_render_template('/libraries/all')
+
+        self._test_render_template('/library/a_library')

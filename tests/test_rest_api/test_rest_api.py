@@ -1,5 +1,5 @@
 import json
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import datetime
 from time import sleep
 from unittest.mock import patch
@@ -246,7 +246,13 @@ class TestLIMSRestAPI(TestBase):
                 'species': 'Gallus gallus',
                 'started_date': None,
                 'required_yield': '30',
-                'required_coverage': '15'
+                'required_coverage': '15',
+                'status': {'finished': {
+                    'last_modified_date': '2018-02-15T00:00:00',
+                    'samples': ['sample2']},
+                    'library_queue': {
+                        'last_modified_date': '2018-02-10T00:00:00',
+                        'samples': ['sample1']}}
             }]
         }
         assert_json_equal(json_of_response(response), exp)
@@ -275,9 +281,12 @@ class TestLIMSRestAPI(TestBase):
                 'project_id': 'testproject1',
                 'species': 'Gallus gallus',
                 'required_yield': '30',
-                'required_coverage': '15'
-            }]
-        }
+                'required_coverage': '15',
+                'status': {'finished': {'last_modified_date': '2018-02-15T00:00:00',
+                                        'samples': ['sample2']},
+                           'library_queue': {'last_modified_date': '2018-02-10T00:00:00',
+                                             'samples': ['sample1']}}
+            }]}
         assert json_of_response(response) == exp
 
     def test_lims_sample_status(self):

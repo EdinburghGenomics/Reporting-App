@@ -1,16 +1,16 @@
 from collections import defaultdict
+from egcg_core.util import query_dict
 from egcg_core.clarity import sanitize_user_id
 from flask import request
 from config import project_status as status_cfg
-from datetime import datetime, timedelta
 from rest_api.common import retrieve_args
 from rest_api.limsdb import queries
-from rest_api.limsdb.queries.data_models import ProjectInfo, SampleInfo, Container, Run, Sample, Project
+from rest_api.limsdb.queries import data_models
 
 
 def _create_samples_info(session, match):
     """Query the LIMS database for sample information and create SampleInfo objects"""
-    all_samples = defaultdict(SampleInfo)
+    all_samples = defaultdict(data_models.SampleInfo)
     project_id = match.get('project_id')
     project_status = match.get('project_status', 'open')
     sample_id = match.get('sample_id')
@@ -31,7 +31,7 @@ def _create_samples_info(session, match):
 
 def _create_samples(session, match):
     """Query the LIMS database for sample information and create Sample objects"""
-    all_samples = defaultdict(Sample)
+    all_samples = defaultdict(data_models.Sample)
     project_id = match.get('project_id')
     project_status = match.get('project_status', 'open')
     sample_id = match.get('sample_id')
@@ -96,7 +96,7 @@ def sample_status_per_project(session):
     samples = _create_samples(session, match)
     project_name = match.get('project_id')
     project_status = match.get('project_status', 'open')
-    all_projects = defaultdict(Project)
+    all_projects = defaultdict(data_models.Project)
     for project_info in queries.get_project_info(session, project_name, udfs=['Number of Quoted Samples'],
                                                  project_status=project_status):
         pjct_name, open_date, close_date, firstname, lastname, udf_name, nb_quoted_samples = project_info
@@ -117,7 +117,7 @@ def sample_status_per_plate(session):
     kwargs = retrieve_args()
     match = kwargs.get('match', {})
     samples = _create_samples(session, match)
-    all_plates = defaultdict(Container)
+    all_plates = defaultdict(data_models.Container)
     for sample in samples:
         all_plates[sample.plate_name].samples.append(sample)
         all_plates[sample.plate_name].container_name = sample.plate_name
@@ -139,7 +139,7 @@ def project_info(session):
     match = kwargs.get('match', {})
     project_name = match.get('project_id')
     project_status = match.get('project_status', 'open')
-    all_projects = defaultdict(ProjectInfo)
+    all_projects = defaultdict(data_models.ProjectInfo)
     for info in queries.get_project_info(session, project_name, udfs=['Number of Quoted Samples'],
                                          project_status=project_status):
         pjct_name, open_date, close_date, firstname, lastname, udf_name, nb_quoted_samples = info
@@ -157,7 +157,7 @@ def run_status(session):
     kwargs = retrieve_args()
     time_since = kwargs.get('createddate', None)
     status = kwargs.get('status', None)
-    all_runs = defaultdict(Run)
+    all_runs = defaultdict(data_models.Run)
 
     for data in queries.runs_info(session, time_since=time_since):
         createddate, process_id, udf_name, udf_value, lane, sample_id, project_id = data
@@ -178,3 +178,27 @@ def run_status(session):
         filterer = lambda r: r.udfs['Run Status'] != 'RunStarted'
 
     return sorted((r.to_json() for r in all_runs.values() if filterer(r)), key=lambda r: r['created_date'])
+
+
+def library_info(session):
+    kwargs = retrieve_args()
+    time_from = kwargs.get('time_from')
+    time_to = kwargs.get('time_to')
+    library_id = query_dict(kwargs, 'match.library_id')
+    y_coords = 'ABCDEFGH'
+
+    all_libraries = defaultdict(data_models.LibraryPreparation)
+    for data in queries.library_info(session, time_from, time_to, library_id):
+        luid, daterun, library_id, protocol_name, state_qc, state_modified, sample_id, project_id, wellx, welly, udfkey, udfvalue = data
+        library_prep = all_libraries[library_id]
+        library_prep.id = library_id
+        library_prep.type = protocol_name
+        qpcr = library_prep.qpcrs[luid]
+        qpcr.date_run = daterun
+        library = qpcr.placements[(y_coords[welly], wellx + 1)]
+        library.name = sample_id
+        library.library_qc[udfkey] = float(udfvalue)
+        library.states[state_modified] = state_qc
+        library.project_id = project_id
+
+    return sorted((l.to_json() for l in all_libraries.values()), key=lambda l: l['id'])

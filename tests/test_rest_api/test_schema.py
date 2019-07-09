@@ -35,7 +35,7 @@ class TestSchema(Helper):
             'approximate_genome_size', 'assembly_name', 'best_matching_samples', 'chromosome_count', 'comments',
             'data_deleted', 'data_files', 'data_source', 'dataset_name', 'dataset_type', 'date_added', 'date_finished',
             'date_started', 'default_version', 'end_date', 'exit_status', 'fasta', 'files_delivered',
-            'files_downloaded', 'gc_bias', 'gender_genotype', 'genome_used', 'genomes', 'goldenpath', 'mean_deviation',
+            'files_downloaded', 'gc_bias', 'genome_used', 'genomes', 'goldenpath', 'mean_deviation',
             'name', 'pid', 'pipeline_used', 'project_whitelist', 'sample_pipeline', 'slope', 'snpEff', 'species',
             'stage_id', 'stage_name', 'stages', 'start_date', 'started_by', 'taxid', 'tools_used', 'toolset_type',
             'toolset_version', 'useable_reviewer', 'variation', 'vqsr', '0-1', '1-2', '2-5', '5-10', '10-20', '20-30',

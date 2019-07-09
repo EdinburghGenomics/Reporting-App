@@ -1,6 +1,7 @@
 import operator
 from datetime import datetime
 from collections import defaultdict
+from cached_property import cached_property
 from config import project_status as status_cfg
 from rest_api.limsdb.queries import format_date
 
@@ -214,11 +215,23 @@ class Container:
 
     def samples_per_status(self):
         sample_per_status = defaultdict(list)
+        sample_per_status_date = defaultdict(set)
         for sample in self.samples:
             sample_per_status[sample.status].append(sample.sample_name)
+            sample_per_status_date[sample.status].add(sample.status_date)
             for status in sample.additional_status:
                 sample_per_status[status].append(sample.sample_name)
-        return sample_per_status
+                sample_per_status_date[status].add(sample.status_date)
+        # retaining only max value for each sample
+        for sample in sample_per_status_date:
+            sample_per_status_date[sample] = max(sample_per_status_date[sample]).isoformat()
+        # Generating the newer generation status response, which will succeed sample_per_status
+        status = dict(sample_per_status)
+        for stat in status:
+            status[stat] = {'samples': status[stat],
+                            'last_modified_date': sample_per_status_date[stat]}
+
+        return sample_per_status, status
 
     def _extract_from_samples(self, field):
         return ', '.join(sorted(set(getattr(sample, field) for sample in self.samples if getattr(sample, field))))
@@ -240,6 +253,7 @@ class Container:
         return self._extract_from_samples('species')
 
     def to_json(self):
+        sample_per_status, status = self.samples_per_status()
         ret = {
             'plate_id': self.container_name,
             'project_id': self.project_id,
@@ -247,9 +261,10 @@ class Container:
             'library_type': self.library_types,
             'species': self.species,
             'required_yield': self.required_yield,
-            'required_coverage': self.coverage
+            'required_coverage': self.coverage,
+            'status': status
         }
-        ret.update(self.samples_per_status())
+        ret.update(sample_per_status)
         return ret
 
 
@@ -260,6 +275,7 @@ class Project(Container, ProjectInfo):
         ProjectInfo.__init__(self)
 
     def to_json(self):
+        sample_per_status, status = self.samples_per_status()
         ret = {
             'project_id': self.project_id,
             'nb_samples': len(self.samples),
@@ -273,9 +289,10 @@ class Project(Container, ProjectInfo):
             'researcher_name': self.researcher_name,
             'nb_quoted_samples': self.nb_quoted_samples,
             'finished_date': format_date(self.finished_date),
-            'started_date': format_date(self.started_date)
+            'started_date': format_date(self.started_date),
+            'status': status
         }
-        ret.update(self.samples_per_status())
+        ret.update(sample_per_status)
         return ret
 
     @property
@@ -318,4 +335,73 @@ class Run:
             'instrument_id': self.udfs['InstrumentID'],
             'nb_reads': self.udfs['Read'],
             'nb_cycles': self.udfs['Cycle']
+        }
+
+
+class LibraryPreparation:
+    def __init__(self):
+        self.id = None
+        self.type = None
+        self.qpcrs = defaultdict(QPCR)
+
+    def to_json(self):
+        most_recent_qpcr = sorted(self.qpcrs.values(), key=lambda p: p.date_run, reverse=True)[0]
+        projects = set()
+        data = {
+            'id': self.id,
+            'qpcrs_run': len(self.qpcrs),
+            'date_completed': format_date(most_recent_qpcr.date_run),
+            'placements': {},
+            'type': status_cfg.protocol_names.get(self.type, 'unknown'),
+            'nsamples': len(most_recent_qpcr.placements)
+        }
+
+        passing_samples = 0
+        for k, v in most_recent_qpcr.placements.items():
+            projects.add(v.project_id)
+            data['placements']['%s:%s' % k] = v.to_json()
+            if v.qc_flag == 'PASSED':
+                passing_samples += 1
+
+        data['pc_qc_flag_pass'] = (passing_samples / len(most_recent_qpcr.placements)) * 100
+        data['project_ids'] = sorted(projects)
+        return data
+
+
+class QPCR:
+    def __init__(self):
+        self.id = None
+        self.date_run = None
+        self.placements = defaultdict(Library)
+
+
+class Library:
+    state_map = {
+        0: 'UNKNOWN',
+        1: 'PASSED',
+        2: 'FAILED'
+    }
+
+    def __init__(self):
+        self.name = None
+        self.library_qc = {}
+        self.states = {}
+        self.project_id = None
+
+    @cached_property
+    def qc_flag(self):
+        """Duplicates functionality in genologics_sql.tables.Artifact.qc_flag"""
+        if not self.states:
+            return None
+
+        k = sorted(self.states)[-1]
+        latest_state = self.states[k]
+        return self.state_map.get(latest_state, 'ERROR')
+
+    def to_json(self):
+        return {
+            'name': self.name,
+            'library_qc': self.library_qc,
+            'qc_flag': self.qc_flag,
+            'project_id': self.project_id
         }

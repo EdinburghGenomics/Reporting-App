@@ -54,7 +54,7 @@
                         <ul class="dropdown-menu">
                             <li><a href="/runs/recent">Recent</a></li>
                             <li><a href="/runs/current_year">Current year</a></li>
-                            <li><a href="/runs/year_to_date">Year to date</a></li>
+                            <li><a href="/runs/last_12_months">Last 12 months</a></li>
                             <li><a href="/runs/all">All</a></li>
                         </ul>
                     </li>
@@ -64,6 +64,7 @@
                             <li><a href="/samples/all">All</a></li>
                             <li><a href="/samples/processing">Processing</a></li>
                             <li><a href="/samples/toreview">To review</a></li>
+                            <li><a href="/samples/notprocessing">Not processing</a></li>
                         </ul>
                     </li>
                     <li>
@@ -78,8 +79,27 @@
                             <li><a href="/project_status/all">Project Status - All</a></li>
                         </ul>
                     </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Libraries<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/libraries/recent">Recent</a></li>
+                            <li><a href="/libraries/current_year">Current year</a></li>
+                            <li><a href="/libraries/last_12_months">Last 12 months</a></li>
+                            <li><a href="/libraries/all">All</a></li>
+                        </ul>
+                    </li>
                     <li><a href="/species">Species</a></li>
-                    <li><a href="/charts">Charts</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Charts<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <h6 class="dropdown-header">Seq metrics</h6>
+                            <li><a href="/charts/seq/last_month">Last 30 days</a></li>
+                            <li><a href="/charts/seq/last_3_months">Last 3 months</a></li>
+                            <li><a href="/charts/seq/last_12_months">Last 12 months</a></li>
+                            <h6 class="dropdown-header">TAT metric</h6>
+                            <li><a href="/charts/tat">Since start</a></li>
+                        </ul>
+                    </li>
                     <li class="dropdown">
                         <a href="#" class="dropdown=toggle" data-toggle="dropdown">{{ current_user.username }}<b class="caret"></b></a>
                         <ul class="dropdown-menu">

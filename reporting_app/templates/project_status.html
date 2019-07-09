@@ -2,16 +2,21 @@
 {% from 'datatable_macro.html' import datatable %}
 
 {% block content %}
-<button data-toggle="collapse" data-target="#description">Description</button>
-<div id="description" class="collapse">
-    The project status table shows the number sample in each project based on the workflow they completed and the step
-    they're queued. The steps involved are described below.
+<button data-toggle="collapse" data-target="#description" class="btn btn-default pull-right"><i class="fa fa-question-circle"></i> Help</button>
+<div id="description" class="collapse help-box">
+    <h4>The Project Status table</h4>
+    <p>The Project Status table shows the number of samples in each project based on the workflow they completed, and the step
+        they're queued at. The steps involved are described below.</p>
 
-    <table class="table">
-        <th>Status</th>
-        <th>Completed Steps</th>
-        <th>Queued in Steps</th>
-        {% for s in status_order %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>Completed Steps</th>
+                <th>Queued in Steps</th>
+                {% for s in status_order %}
+            </tr>
+        </thead>
         <tr>
             <th>{{ s.name }}</th>
             <td>{{ s.completed | join(', ') }}</td>
@@ -19,6 +24,29 @@
         </tr>
         {% endfor %}
 
+    </table>
+
+    <h4>Project Status Colouring</h4>
+    <p>The colour on some statuses represents the period of time that the latest sample has been in this status.</p>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Colour</th>
+                <th>Meaning</th>
+            </tr>
+        </thead>
+        <tr>
+            <td><span class="bg-danger">Red</span></td>
+            <td>The latest sample's status has not changed in over four weeks.</td>
+        </tr>
+        <tr>
+            <td><span class="bg-warning">Yellow</span></td>
+            <td>The latest sample's status has not changed in over two weeks, but less than four weeks.</td>
+        </tr>
+        <tr>
+            <td><span class="bg-success">Green</span></td>
+            <td>The latest sample's status has not changed in over a week, but less than 2 weeks.</td>
+        </tr>
     </table>
 </div>
 

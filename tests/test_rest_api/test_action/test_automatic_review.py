@@ -61,8 +61,6 @@ failing_sample = {
     'required_yield_q30': 95000000000,
     'required_coverage': 30,
     'required_yield': 120000000000,
-    'provided_gender': 'female',
-    'called_gender': 'male',
     'genotype_validation': {'mismatching_snps': 3, 'no_call_chip': 1, 'no_call_seq': 0, 'matching_snps': 28},
     'coverage': {'mean': 30.156},
     'aggregated': {
@@ -81,8 +79,6 @@ passing_sample = {
     'required_yield': 120000000000,
     'species_name': 'Homo sapiens',
     'genotype_validation': {'mismatching_snps': 1, 'no_call_seq': 0, 'no_call_chip': 3, 'matching_snps': 28},
-    'provided_gender': 'female',
-    'called_gender': 'female',
     'coverage': {'mean': 30.34},
     'aggregated': {
         'clean_yield_in_gb': 120.17,
@@ -99,8 +95,6 @@ sample_failing_genotype = {
     'required_yield': 120000000000,
     'species_name': 'Homo sapiens',
     'genotype_validation': {'mismatching_snps': 12, 'no_call_seq': 0, 'no_call_chip': 3, 'matching_snps': 16},
-    'provided_gender': 'female',
-    'called_gender': 'female',
     'coverage': {'mean': 30.34},
     'aggregated': {
         'clean_yield_in_gb': 120.17,
@@ -115,8 +109,6 @@ sample_no_genotype = {
     'required_yield_q30': 95000000000,
     'required_coverage': 30,
     'required_yield': 120000000000,
-    'provided_gender': 'female',
-    'called_gender': 'female',
     'coverage': {'mean': 30.34},
     'aggregated': {
         'pc_mapped_reads': 95.62,

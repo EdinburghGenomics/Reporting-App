@@ -1,0 +1,40 @@
+metrics_def:
+    pc_q30:                   { title: '%Q30',                 path: 'aggregated.pc_q30' }
+    pc_optical_duplicates:    { title: '% optical duplicates', path: 'aggregated.pc_opt_duplicate_reads' }
+    pc_duplicates:            { title: '% duplicates',         path: 'aggregated.pc_duplicate_reads' }
+    pc_adaptor:               { title: '% adaptor',            path: 'aggregated.pc_adaptor' }
+    pc_pass_filter:           { title: '%PF',                  path: 'aggregated.pc_pass_filter' }
+    prephasing_r1:            { title: 'Prephasing R1',        path: 'interop_metrics.prephasing_r1' }
+    prephasing_r2:            { title: 'Prephasing R2',        path: 'interop_metrics.prephasing_r2' }
+    phasing_r1:               { title: 'Phasing R1',           path: 'interop_metrics.phasing_r1' }
+    phasing_r2:               { title: 'Phasing R2',           path: 'interop_metrics.phasing_r2' }
+    intensity_c1_r1:          { title: 'Intensity Cycle1',     path: 'interop_metrics.intensity_c1_r1' }
+    pc_error_r1:              { title: '% Error rate R1',      path: 'interop_metrics.pc_error_r1' }
+    pc_error_r2:              { title: '% Error rate R2',      path: 'interop_metrics.pc_error_r2' }
+    nothing:                  { title: 'No color',             path: '' }
+    lane_number:              { title: 'Lane',                 path: 'lane_number' }
+    sequencer:                { title: 'Sequencer',            path: 'sequencer' }
+    sequencer_stage:          { title: 'Sequencer/Stage',      path: 'sequencer_stage' }
+    pool:                     { title: 'Pooling',              path: 'pool' }
+
+
+seq_plot_metrics:
+    - pc_q30
+    - pc_optical_duplicates
+    - pc_duplicates
+    - pc_adaptor
+    - pc_pass_filter
+    - prephasing_r1
+    - prephasing_r2
+    - phasing_r1
+    - phasing_r2
+    - intensity_c1_r1
+    - pc_error_r1
+    - pc_error_r2
+
+seq_plot_colors:
+    - nothing
+    - lane_number
+    - sequencer
+    - sequencer_stage
+    - pool
