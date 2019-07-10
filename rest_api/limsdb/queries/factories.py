@@ -185,10 +185,16 @@ def library_info(session):
     time_from = kwargs.get('time_from')
     time_to = kwargs.get('time_to')
     library_id = query_dict(kwargs, 'match.library_id')
+    project_name = query_dict(kwargs, 'match.project_id')
+    sample_name = query_dict(kwargs, 'match.sample_id')
     y_coords = 'ABCDEFGH'
-
+    udfs = ['Original Conc. (nM)', 'Sample Transfer Volume (uL)', 'TSP1 Transfer Volume (uL)', '%CV',
+             'NTP Volume (uL)', 'Raw CP', 'RSB Transfer Volume (uL)', 'NTP Transfer Volume (uL)', 'Ave. Conc. (nM)',
+             'Adjusted Conc. (nM)', 'Original Conc. (nM)', 'Sample Transfer Volume (uL)',
+             'TSP1 Transfer Volume (uL)']
     all_libraries = defaultdict(data_models.LibraryPreparation)
-    for data in queries.library_info(session, time_from, time_to, library_id):
+    for data in queries.library_info(session, time_from=time_from, time_to=time_to, library_id=library_id,
+                                     project_name=project_name, sample_name=sample_name, artifact_udfs=udfs):
         luid, daterun, library_id, protocol_name, state_qc, state_modified, sample_id, project_id, wellx, welly, udfkey, udfvalue = data
         library_prep = all_libraries[library_id]
         library_prep.id = library_id

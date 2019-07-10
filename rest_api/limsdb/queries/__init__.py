@@ -248,7 +248,8 @@ def runs_cst(session, time_since=None, run_ids=None, run_status=None):
     return results
 
 
-def library_info(session, time_from=None, time_to=None, library_id=None):
+def library_info(session, project_name=None, sample_name=None, time_from=None, time_to=None, library_id=None,
+                 artifact_udfs=None):
     """
     Get a join of artifact UDFs, plate coordinates and QC flags for all Eval qPCR Quant processes - filterable to a
     library ID or date range.
@@ -270,20 +271,17 @@ def library_info(session, time_from=None, time_to=None, library_id=None):
         .join(t.Sample.project)\
         .join(t.ContainerPlacement.container)\
         .filter(t.ProcessType.displayname == 'Eval qPCR Quant')\
-        .filter(t.ArtifactUdfView.udfname.in_(
-            ['Original Conc. (nM)', 'Sample Transfer Volume (uL)', 'TSP1 Transfer Volume (uL)', '%CV',
-             'NTP Volume (uL)', 'Raw CP', 'RSB Transfer Volume (uL)', 'NTP Transfer Volume (uL)', 'Ave. Conc. (nM)',
-             'Adjusted Conc. (nM)', 'Original Conc. (nM)', 'Sample Transfer Volume (uL)',
-             'TSP1 Transfer Volume (uL)']))\
+        .filter(t.ArtifactUdfView.udfname.in_(artifact_udfs))\
         .filter(t.ArtifactUdfView.udfvalue != None)
 
     if library_id:
         q = q.filter(t.Container.name == library_id)
-    else:
-        if time_from:
-            q = q.filter(t.Process.daterun > func.date(time_from))
 
-        if time_to:
-            q = q.filter(t.Process.daterun < func.date(time_to))
+    if time_from:
+        q = q.filter(t.Process.daterun > func.date(time_from))
 
+    if time_to:
+        q = q.filter(t.Process.daterun < func.date(time_to))
+
+    q = add_filters(q, project_name=project_name, sample_name=sample_name)
     return q.all()

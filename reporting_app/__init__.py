@@ -324,12 +324,25 @@ def report_project(project_ids):
                 ]
             }
         }
+        library_info_call = {
+            'ajax_call': {
+                'func_name': 'dt_merge_multi_sources',
+                'merge_on': 'library_id',
+                'api_urls': [
+                    util.construct_url('lims/library_info', match={'project_id': id_list[i]})
+                    for i in id_list
+                ]
+            }
+        }
     else:
         project_status_call = {
             'api_url': util.construct_url('lims/project_status', match={'project_id': id_list[0], 'project_status': 'all'})
         }
         plate_status_call = {
             'api_url': util.construct_url('lims/plate_status', match={'project_id': id_list[0], 'project_status': 'all'})
+        }
+        library_info_call = {
+            'api_url': util.construct_url('lims/library_info', match={'project_id': id_list[0]})
         }
 
     procs = []
@@ -368,6 +381,13 @@ def report_project(project_ids):
                 **plate_status_call
             ),
             util.datatable_cfg(
+                'Libraries preparations for ' + project_ids,
+                'libraries',
+                minimal=True,
+                default_sort_col='library_name',
+                **library_info_call
+            ),
+            util.datatable_cfg(
                 'Bioinformatics report for ' + project_ids,
                 'samples',
                 ajax_call={
@@ -392,6 +412,13 @@ def report_sample(sample_id):
         sample_id + ' Sample Report',
         include_review_modal=True,
         tables=[
+            util.datatable_cfg(
+                'Libraries preparations for ' + sample_id,
+                'libraries',
+                minimal=True,
+                default_sort_col='library_name',
+                api_url=util.construct_url('lims/library_info', match={'sample_id': sample_id})
+            ),
             util.datatable_cfg(
                 'Bioinformatics report for ' + sample_id,
                 'samples',
