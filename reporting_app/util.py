@@ -30,9 +30,10 @@ def construct_url(endpoint, **query_args):
     return url.replace(' ', '')
 
 
-def datatable_cfg(title, cols, api_url=None, ajax_call=None, default_sort_col=None, minimal=False, review=None, **kwargs):
-    if not api_url and not ajax_call:
-        raise ValueError('Either api_url or ajax_call must be provided')
+def datatable_cfg(title, cols, api_url=None, ajax_call=None, default_sort_col=None, minimal=False,
+                  review=None, **kwargs):
+    if not api_url and not ajax_call and not kwargs.get('data_source'):
+        raise ValueError('Either api_url, ajax_call or data_source must be provided')
     if default_sort_col is None:
         default_sort_col = [0, 'desc']
     else:

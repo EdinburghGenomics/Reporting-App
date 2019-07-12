@@ -2,7 +2,9 @@ import operator
 from datetime import datetime
 from collections import defaultdict
 from cached_property import cached_property
-from config import project_status as status_cfg
+from werkzeug.urls import url_join
+
+from config import project_status as status_cfg, rest_config as cfg
 from rest_api.limsdb.queries import format_date
 
 
@@ -402,6 +404,100 @@ class Library:
         return {
             'name': self.name,
             'library_qc': self.library_qc,
+            'qc_flag': self.qc_flag,
+            'project_id': self.project_id
+        }
+
+
+class StepContainer:
+    """Representation of the container as a way to aggregate multiple step."""
+    def __init__(self):
+        self.id = None
+        self.type = None
+        self.specific_steps = defaultdict(SpecificStep)
+
+    def to_json(self):
+        most_recent_step = sorted(self.specific_steps.values(), key=lambda p: p.date_run, reverse=True)[0]
+        projects = set()
+        data = {
+            'id': self.id,
+            'step_link': cfg['lims_url'] + '/clarity/work-complete/' + str(most_recent_step.id),
+            'step_run': len(self.specific_steps),
+            'date_completed': format_date(most_recent_step.date_run),
+            'samples': [],
+            'protocol': status_cfg.protocol_names.get(self.type, self.type),
+            'nsamples': len(most_recent_step.artifacts)
+        }
+
+        passing_samples = 0
+        for k, v in most_recent_step.artifacts.items():
+            projects.add(v.project_id)
+            data['samples'].append(v.to_json())
+            if v.qc_flag == 'PASSED':
+                passing_samples += 1
+
+        data['pc_qc_flag_pass'] = (passing_samples / len(most_recent_step.artifacts)) * 100
+        data['project_ids'] = sorted(projects)
+        return data
+
+    def to_flatten_json(self):
+        most_recent_step = sorted(self.specific_steps.values(), key=lambda p: p.date_run, reverse=True)[0]
+        data = []
+        for artifact in most_recent_step.artifacts.values():
+            element = {
+                'id': self.id,
+                'step_run': len(self.specific_steps),
+                'date_completed': format_date(most_recent_step.date_run),
+                'protocol': status_cfg.protocol_names.get(self.type, self.type),
+                'project': artifact.project_id,
+            }
+            element.update(artifact.to_json())
+            data.append(element)
+        return data
+
+
+class SpecificStep:
+    """Representation of the specific step which contains the artifact so it can support multiple processes."""
+    def __init__(self):
+        self.id = None
+        self.date_run = None
+        self.artifacts = defaultdict(Artifact)
+
+
+class Artifact:
+    """
+    Representation of the input artifacts used in the specific step. It is assume that only one artifact per sample
+    will be used.
+    """
+
+    state_map = {
+        0: 'UNKNOWN',
+        1: 'PASSED',
+        2: 'FAILED'
+    }
+
+    def __init__(self):
+        self.name = None
+        self.location = None
+        self.udfs = {}
+        self.states = {}
+        self.project_id = None
+
+    @cached_property
+    def qc_flag(self):
+        """Duplicates functionality in genologics_sql.tables.Artifact.qc_flag"""
+        if not self.states:
+            return None
+
+        k = sorted(self.states)[-1]
+        latest_state = self.states[k]
+        return self.state_map.get(latest_state, 'ERROR')
+
+    def to_json(self):
+        return {
+            'name': self.name,
+            'location': self.location,
+            'udfs': self.udfs,
             'qc_flag': self.qc_flag,
             'project_id': self.project_id
         }

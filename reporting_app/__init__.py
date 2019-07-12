@@ -334,6 +334,16 @@ def report_project(project_ids):
                 ]
             }
         }
+        sample_qc_info_call = {
+            'ajax_call': {
+                'func_name': 'dt_merge_multi_sources',
+                'merge_on': 'library_id',
+                'api_urls': [
+                    util.construct_url('lims/sample_qc_info', match={'project_id': id_list[i]})
+                    for i in id_list
+                ]
+            }
+        }
     else:
         project_status_call = {
             'api_url': util.construct_url('lims/project_status', match={'project_id': id_list[0], 'project_status': 'all'})
@@ -343,6 +353,9 @@ def report_project(project_ids):
         }
         library_info_call = {
             'api_url': util.construct_url('lims/library_info', match={'project_id': id_list[0]})
+        }
+        sample_qc_info_call = {
+            'api_url': util.construct_url('lims/sample_qc_info', match={'project_id': id_list[0]})
         }
 
     procs = []
@@ -381,10 +394,31 @@ def report_project(project_ids):
                 **plate_status_call
             ),
             util.datatable_cfg(
+                'Sample QC for ' + project_ids,
+                'sample_qc',
+                minimal=True,
+                default_sort_col='plate_name',
+                child_datatable=util.datatable_cfg(
+                    '',  # No title provided
+                    'sample_qc_child',
+                    data_source='samples',  # Where to find the data of the child datatable
+                    name_source='id',  # Where to find the name of the child datatable
+                    minimal=True
+                ),
+                **sample_qc_info_call
+            ),
+            util.datatable_cfg(
                 'Libraries preparations for ' + project_ids,
                 'libraries',
                 minimal=True,
-                default_sort_col='library_name',
+                default_sort_col='plate_name',
+                child_datatable=util.datatable_cfg(
+                    '',  # No title provided
+                    'libraries_child',
+                    data_source='samples',  # Where to find the data of the child datatable
+                    name_source='id',  # Where to find the name of the child datatable
+                    minimal=True
+                ),
                 **library_info_call
             ),
             util.datatable_cfg(
@@ -413,11 +447,17 @@ def report_sample(sample_id):
         include_review_modal=True,
         tables=[
             util.datatable_cfg(
-                'Libraries preparations for ' + sample_id,
-                'libraries',
+                'Sample QC for ' + sample_id,
+                'sample_qc_child_flatten',
                 minimal=True,
-                default_sort_col='library_name',
-                api_url=util.construct_url('lims/library_info', match={'sample_id': sample_id})
+                default_sort_col='sample_id',
+                api_url=util.construct_url('lims/sample_qc_info', match={'sample_id': sample_id}, flatten=True)
+            ),util.datatable_cfg(
+                'Libraries preparations for ' + sample_id,
+                'libraries_child_flatten',
+                minimal=True,
+                default_sort_col='sample_id',
+                api_url=util.construct_url('lims/library_info', match={'sample_id': sample_id}, flatten=True)
             ),
             util.datatable_cfg(
                 'Bioinformatics report for ' + sample_id,
@@ -490,7 +530,14 @@ def libraries(view_type):
             title,
             'libraries',
             util.construct_url('lims/library_info', **query_params),
-            default_sort_col='-library_date_completed'
+            default_sort_col='-library_date_completed',
+            child_datatable=util.datatable_cfg(
+                '',  # No title provided
+                'libraries_child',
+                data_source='samples', # Where to find the data of the child datatable
+                name_source='id',  # Where to find the name of the child datatable
+                minimal=True
+            )
         )
     )
 
@@ -504,8 +551,15 @@ def plot_library(library):
         table=util.datatable_cfg(
             'Library ' + library,
             'libraries',
-            util.construct_url('lims/library_info', match={'library_id': library}),
-            minimal=True
+            util.construct_url('lims/library_info', match={'container_id': library}),
+            minimal=True,
+            child_datatable=util.datatable_cfg(
+                '',  # No title provided
+                'libraries_child',
+                data_source='samples',  # Where to find the data of the child datatable
+                name_source='id',  # Where to find the name of the child datatable
+                minimal=True
+            )
         ),
         library=library,
         qc_url=util.construct_url('samples'),

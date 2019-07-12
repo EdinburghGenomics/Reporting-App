@@ -76,8 +76,7 @@ function string_formatter(cell_data, fmt, row){
         } else {
             _formatted_data = data;
         }
-
-        if (fmt['link']) {  // convert the link to an html <a/>, replacing ' ' with '+'
+        if (fmt['link'] != null) {  // convert the link to an html <a/>, replacing ' ' with '+'
             _formatted_data = '<a href=' + fmt['link'] + data.replace(/ /g, "+") + '>' + data + '</a>';
         }
 

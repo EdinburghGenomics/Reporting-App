@@ -180,31 +180,59 @@ def run_status(session):
     return sorted((r.to_json() for r in all_runs.values() if filterer(r)), key=lambda r: r['created_date'])
 
 
-def library_info(session):
+def step_info(session, step_name, artifact_udfs=None, sample_udfs=None):
     kwargs = retrieve_args()
     time_from = kwargs.get('time_from')
     time_to = kwargs.get('time_to')
-    library_id = query_dict(kwargs, 'match.library_id')
+    library_id = query_dict(kwargs, 'match.container_id')
     project_name = query_dict(kwargs, 'match.project_id')
     sample_name = query_dict(kwargs, 'match.sample_id')
+    flatten = kwargs.get('flatten', False) in ['True', 'true', True]
     y_coords = 'ABCDEFGH'
-    udfs = ['Original Conc. (nM)', 'Sample Transfer Volume (uL)', 'TSP1 Transfer Volume (uL)', '%CV',
-             'NTP Volume (uL)', 'Raw CP', 'RSB Transfer Volume (uL)', 'NTP Transfer Volume (uL)', 'Ave. Conc. (nM)',
-             'Adjusted Conc. (nM)', 'Original Conc. (nM)', 'Sample Transfer Volume (uL)',
-             'TSP1 Transfer Volume (uL)']
-    all_libraries = defaultdict(data_models.LibraryPreparation)
-    for data in queries.library_info(session, time_from=time_from, time_to=time_to, library_id=library_id,
-                                     project_name=project_name, sample_name=sample_name, artifact_udfs=udfs):
-        luid, daterun, library_id, protocol_name, state_qc, state_modified, sample_id, project_id, wellx, welly, udfkey, udfvalue = data
-        library_prep = all_libraries[library_id]
-        library_prep.id = library_id
-        library_prep.type = protocol_name
-        qpcr = library_prep.qpcrs[luid]
-        qpcr.date_run = daterun
-        library = qpcr.placements[(y_coords[welly], wellx + 1)]
-        library.name = sample_id
-        library.library_qc[udfkey] = float(udfvalue)
-        library.states[state_modified] = state_qc
-        library.project_id = project_id
+    all_step_containers = defaultdict(data_models.StepContainer)
+    for data in queries.step_info(session, step_name, time_from=time_from, time_to=time_to, container_name=library_id,
+                                  project_name=project_name, sample_name=sample_name, artifact_udfs=artifact_udfs,
+                                  sample_udfs=sample_udfs):
 
-    return sorted((l.to_json() for l in all_libraries.values()), key=lambda l: l['id'])
+        luid, daterun, container_id, protocol_name, state_qc, state_modified, sample_id, project_id, wellx, welly = data[:10]
+
+        step_container = all_step_containers[container_id]
+        step_container.id = container_id
+        step_container.type = protocol_name
+        specific_step = step_container.specific_steps[luid]
+        specific_step.id = luid
+        specific_step.date_run = daterun
+        location = '%s:%s' % (y_coords[welly], wellx + 1)
+
+        artifact = specific_step.artifacts[location]
+        artifact.name = sample_id
+        artifact.states[state_modified] = state_qc
+        artifact.project_id = project_id
+        artifact.location = location
+        if artifact_udfs and sample_udfs:
+            art_udfkey, art_udfvalue, smp_udfkey, smp_udfvalue = data[10:]
+            artifact.udfs[art_udfkey] = art_udfvalue
+            artifact.udfs[smp_udfkey] = smp_udfvalue
+        elif artifact_udfs or sample_udfs:
+            udfkey, udfvalue = data[10:]
+            artifact.udfs[udfkey] = udfvalue
+
+    if flatten:
+        return sorted((item for l in all_step_containers.values() for item in l.to_flatten_json()), key=lambda l: l['id'])
+    else:
+        return sorted((l.to_json() for l in all_step_containers.values()), key=lambda l: l['id'])
+
+
+def library_info(session):
+    art_udfs = ['Original Conc. (nM)', 'Sample Transfer Volume (uL)', 'TSP1 Transfer Volume (uL)', '%CV',
+            'NTP Volume (uL)', 'Raw CP', 'RSB Transfer Volume (uL)', 'NTP Transfer Volume (uL)', 'Ave. Conc. (nM)',
+            'Adjusted Conc. (nM)', 'Original Conc. (nM)', 'Sample Transfer Volume (uL)',
+            'TSP1 Transfer Volume (uL)']
+    smp_udfs = ['Picogreen Concentration (ng/ul)', 'Total DNA (ng)', 'GQN']
+
+    return step_info(session, 'Eval qPCR Quant', artifact_udfs=art_udfs, sample_udfs=smp_udfs)
+
+
+def sample_qc_info(session):
+    smp_udfs = ['Picogreen Concentration (ng/ul)', 'Total DNA (ng)', 'GQN']
+    return step_info(session, 'QC Review EG 2.1', sample_udfs=smp_udfs)

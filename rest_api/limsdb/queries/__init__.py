@@ -1,3 +1,4 @@
+
 import genologics_sql.tables as t
 from sqlalchemy import or_, and_, func
 from sqlalchemy.orm.util import aliased
@@ -285,3 +286,108 @@ def library_info(session, project_name=None, sample_name=None, time_from=None, t
 
     q = add_filters(q, project_name=project_name, sample_name=sample_name)
     return q.all()
+
+
+def step_info(session, step_name, project_name=None, sample_name=None, time_from=None, time_to=None,
+              container_name=None, artifact_udfs=None, sample_udfs=None, allow_missing_sample_udfs=False):
+    """
+    Get a join of artifact UDFs, plate coordinates and QC flags for all step of the provided name - filterable to a
+     project, sample name, container name or date range.
+    """
+    q = session.query(t.Process.processid, t.Process.daterun, t.Container.name, t.LabProtocol.protocolname,
+                      t.ArtifactState.qcflag, t.ArtifactState.lastmodifieddate, t.Sample.name, t.Project.name,
+                      t.ContainerPlacement.wellxposition, t.ContainerPlacement.wellyposition)\
+        .join(t.Process.type)\
+        .join(t.Process.protocolstep)\
+        .join(t.ProtocolStep.labprotocol)\
+        .join(t.Process.processiotrackers)\
+        .join(t.ProcessIOTracker.artifact)\
+        .join(t.Artifact.containerplacement)\
+        .join(t.Artifact.samples)\
+        .join(t.Artifact.states)\
+        .join(t.Sample.project)\
+        .join(t.ContainerPlacement.container)\
+        .filter(t.ProcessType.displayname == step_name)
+
+    if artifact_udfs:
+        q = q.join(t.Artifact.udfs)\
+            .filter(t.ArtifactUdfView.udfname.in_(artifact_udfs))\
+            .filter(t.ArtifactUdfView.udfvalue != None)
+        q = q.add_columns(t.ArtifactUdfView.udfname, t.ArtifactUdfView.udfvalue)
+
+    if sample_udfs:
+        q = q.join(t.Sample.udfs)
+        # Allow udfname to be None as some sample will not have any of the UDF
+        if allow_missing_sample_udfs:
+            q = q.filter(or_(t.SampleUdfView.udfname.in_(sample_udfs), t.SampleUdfView.udfname == None))
+        else:
+            q = q.filter(t.SampleUdfView.udfname.in_(sample_udfs)) \
+                .filter(t.SampleUdfView.udfvalue != None)
+        q = q.add_columns(t.SampleUdfView.udfname, t.SampleUdfView.udfvalue)
+
+    if container_name:
+        q = q.filter(t.Container.name == container_name)
+
+    if time_from:
+        q = q.filter(t.Process.daterun > func.date(time_from))
+
+    if time_to:
+        q = q.filter(t.Process.daterun < func.date(time_to))
+
+    q = add_filters(q, project_name=project_name, sample_name=sample_name)
+    return q.all()
+
+
+def step_info_with_output(session, step_name, project_name=None, sample_name=None, time_from=None, time_to=None,
+              container_name=None, artifact_udfs=None):
+    """
+    Get a join of output artifact UDFs, for all step of the provided name - filterable to a
+     project, sample name, container name or date range.
+    """
+
+    q = session.query(t.Process.luid, t.Process.daterun, t.ProcessIOTracker.inputartifactid,
+                      t.Sample.name, t.Project.name,  t.ArtifactUdfView.udfname, t.ArtifactUdfView.udfvalue, t.Artifact.luid)\
+        .join(t.Process.type)\
+        .join(t.Process.processiotrackers)\
+        .join(t.ProcessIOTracker.output)\
+        .join(t.Artifact, t.OutputMapping.outputartifactid == t.Artifact.artifactid)\
+        .join(t.Artifact.udfs)\
+        .join(t.Artifact.samples)\
+        .join(t.Sample.project)\
+        .filter(t.ProcessType.displayname == step_name)\
+        .filter(t.Process.luid == '24-36448')\
+        .filter(t.ArtifactUdfView.udfvalue != None)
+
+    if udfs:
+        q = q.filter(t.ArtifactUdfView.udfname.in_(artifact_udfs))
+
+    if container_name:
+        q = q.filter(t.Container.name == container_name)
+
+    if time_from:
+        q = q.filter(t.Process.daterun > func.date(time_from))
+
+    if time_to:
+        q = q.filter(t.Process.daterun < func.date(time_to))
+
+    q = add_filters(q, project_name=project_name, sample_name=sample_name)
+    return q.first()
+
+
+if __name__ == '__main__':
+    from rest_api.limsdb import get_session
+    import datetime
+
+    session = get_session(echo=True)
+    art_udfs = ['Original Conc. (nM)', 'Sample Transfer Volume (uL)', 'TSP1 Transfer Volume (uL)', '%CV',
+                'NTP Volume (uL)', 'Raw CP', 'RSB Transfer Volume (uL)', 'NTP Transfer Volume (uL)', 'Ave. Conc. (nM)',
+                'Adjusted Conc. (nM)', 'Original Conc. (nM)', 'Sample Transfer Volume (uL)',
+                'TSP1 Transfer Volume (uL)']
+    smp_udfs = ['Picogreen Concentration (ng/ul)', 'Total DNA (ng)', 'GQN']
+    art_udfs = ['Original ']
+
+    res = step_info(session, 'Eval qPCR Quant', container_name='LP9231839-DCT',  artifact_udfs=art_udfs, sample_udfs=smp_udfs)
+    #res = step_info(session, 'Eval qPCR Quant', time_from=datetime.datetime(year=2019, month=6, day=12), artifact_udfs=art_udfs, sample_udfs=smp_udfs)
+
+    for r in res[:10]:
+        print(r)

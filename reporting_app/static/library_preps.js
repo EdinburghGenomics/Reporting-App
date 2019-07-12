@@ -23,16 +23,16 @@ metrics = {
     'pc_adaptor': {name: '% adaptor', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'pc_adaptor']},
     'mean_insert_size': {name: 'Mean insert size', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'mean_insert_size']},
     'library_size': {name: 'Picard est. lib size', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'picard_est_lib_size']},
-    'av_conc': {name: 'Ave. Conc. (nM)', path: ['library_qc', 'Ave. Conc. (nM)']},
-    'pc_cv': {name: '%CV', path: ['library_qc', '%CV']},
-    'raw_cp': {name: 'Raw CP', path: ['library_qc', 'Raw CP']},
-    'ntp_volume': {name: 'NTP Volume (uL)', path: ['library_qc', 'NTP Volume (uL)']},
-    'adjusted_conc': {name: 'Adjusted Conc. (nM)', path: ['library_qc', 'Adjusted Conc. (nM)']},
-    'original_conc': {name: 'Original Conc. (nM)', path: ['library_qc', 'Original Conc. (nM)']},
-    'ntp_transfer_vol': {name: 'NTP Transfer Volume (uL)', path: ['library_qc', 'NTP Transfer Volume (uL)']},
-    'rsb_transfer_vol': {name: 'RSB Transfer Volume (uL)', path: ['library_qc', 'RSB Transfer Volume (uL)']},
-    'sample_transfer_vol': {name: 'Sample Transfer Volume (uL)', path: ['library_qc', 'Sample Transfer Volume (uL)']},
-    'tsp1_transfer_vol': {name: 'TSP1 Transfer Volume (uL)', path: ['library_qc', 'TSP1 Transfer Volume (uL)']},
+    'av_conc': {name: 'Ave. Conc. (nM)', path: ['udfs', 'Ave. Conc. (nM)']},
+    'pc_cv': {name: '%CV', path: ['udfs', '%CV']},
+    'raw_cp': {name: 'Raw CP', path: ['udfs', 'Raw CP']},
+    'ntp_volume': {name: 'NTP Volume (uL)', path: ['udfs', 'NTP Volume (uL)']},
+    'adjusted_conc': {name: 'Adjusted Conc. (nM)', path: ['udfs', 'Adjusted Conc. (nM)']},
+    'original_conc': {name: 'Original Conc. (nM)', path: ['udfs', 'Original Conc. (nM)']},
+    'ntp_transfer_vol': {name: 'NTP Transfer Volume (uL)', path: ['udfs', 'NTP Transfer Volume (uL)']},
+    'rsb_transfer_vol': {name: 'RSB Transfer Volume (uL)', path: ['udfs', 'RSB Transfer Volume (uL)']},
+    'sample_transfer_vol': {name: 'Sample Transfer Volume (uL)', path: ['udfs', 'Sample Transfer Volume (uL)']},
+    'tsp1_transfer_vol': {name: 'TSP1 Transfer Volume (uL)', path: ['udfs', 'TSP1 Transfer Volume (uL)']},
     'qc_flag': {name: 'QC flag', path: ['qc_flag'], type: 'category'},
     'project_id': {name: 'Project ID', path: ['project_id'], type: 'category'}
 };
@@ -42,22 +42,19 @@ function get_lims_and_qc_data(lims_url, qc_url, token, library_id) {
     // query the Lims library_info endpoint for a single library, set library_data and merge in data from samples endpoint
     $.ajax(
         {
-            url: lims_url + '?match={"library_id":"' + library_id + '"}',
+            url: lims_url + '?match={"container_id":"' + library_id + '"}',
             headers: {'Authorization': token},
             dataType: 'json',
             success: function(result) {
                 library_data = result.data[0];
 
                 var sample_queries = [];  // sample IDs to merge on
-                var sample_coords = {};  // map sample IDs to well coordinates so we know where to merge the data
-
-                for (coord in library_data['placements']) {
-                    var placement = library_data['placements'][coord];
-                    var sample_id = placement['name'];
-                    sample_coords[sample_id] = coord;
+                var sample_coords = {};  // map sample IDs to index of the sample in library_data so we can merge the sequencing qc later
+                library_data['samples'].forEach(function(sample, i){
+                    var sample_id = sample['name'];
+                    sample_coords[sample_id] = i;
                     sample_queries.push('{"sample_id":"' + sample_id + '"}');
-                }
-
+                });
                 // query the samples endpoint for IDs found above, merge in the data and trigger the chart
                 $.ajax(
                     {
@@ -65,9 +62,9 @@ function get_lims_and_qc_data(lims_url, qc_url, token, library_id) {
                         headers: {'Authorization': token},
                         dataType: 'json',
                         success: function(result) {
-                            _.forEach(result.data, function(sample) {
-                                var coord = sample_coords[sample['sample_id']];
-                                library_data['placements'][coord]['bioinformatics_qc'] = sample;
+                            _.forEach(result.data, function(sample_qc) {
+                                var i = sample_coords[sample_qc['sample_id']];
+                                library_data['samples'][i]['bioinformatics_qc'] = sample_qc;
                             });
                         }
                     }
@@ -85,18 +82,19 @@ function build_series(colour_metric) {
         dataLabels: {enabled: false}
     }
 
-    var placements = library_data['placements'];
-    for (coord in placements) {
-        var split_coord = coord.split(':');
+    _.forEach(library_data['samples'], function(sample){
+        var split_coord = sample['location'].split(':');
+        console.log(split_coord);
         series.data.push(
             {
                 y: heatmap_x_coords.indexOf(split_coord[0]),
                 x: parseInt(split_coord[1]) - 1,
-                value: _.get(placements[coord], metrics[colour_metric]['path']) || '(missing value)',
-                name: placements[coord]['name']
+                value: _.get(sample, metrics[colour_metric]['path']) || '(missing value)',
+                name: sample['name']
             }
         );
-    }
+    });
+    console.log(series)
     return series;
 }
 
