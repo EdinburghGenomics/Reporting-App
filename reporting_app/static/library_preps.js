@@ -84,7 +84,6 @@ function build_series(colour_metric) {
 
     _.forEach(library_data['samples'], function(sample){
         var split_coord = sample['location'].split(':');
-        console.log(split_coord);
         series.data.push(
             {
                 y: heatmap_x_coords.indexOf(split_coord[0]),
@@ -94,7 +93,6 @@ function build_series(colour_metric) {
             }
         );
     });
-    console.log(series)
     return series;
 }
 

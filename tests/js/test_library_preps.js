@@ -4,13 +4,14 @@ QUnit.test('build_series', function(assert) {
 
     library_data = {
         'id': 'a_library',
-        'placements': {
-            'A:1': {
+        'samples': [
+            {
+                'location': 'A:1',
                 'name': 'a_sample',
                 'udf': {'a_udf': 13.37},
                 'reporting_app': {'a_rest_api_metric': 13.38}
             }
-        }
+        ]
     };
     metrics = {
         'a_metric': {'path': ['reporting_app', 'a_rest_api_metric']},
@@ -42,10 +43,10 @@ QUnit.test('get_lims_and_qc_data', function(assert) {
         var side_effects = [
             [
                 {
-                    'placements': {
-                        'A:1': {'name': 'sample_1', 'udf': {'some': 'lims', 'udf': 'data'}},
-                        'A:2': {'name': 'sample_2', 'udf': {'some': 'more', 'lims': 'data'}}
-                    }
+                    'samples': [
+                        {'name': 'sample_1', 'location': 'A:1', 'udfs': {'some': 'lims', 'udf': 'data'}},
+                        {'name': 'sample_2', 'location': 'A:2', 'udfs': {'some': 'more', 'lims': 'data'}}
+                    ]
                 }
             ],
             [
@@ -78,38 +79,40 @@ QUnit.test('get_lims_and_qc_data', function(assert) {
     assert.deepEqual(
         library_data,
         {
-            'placements': {
-                'A:1': {
+            'samples': [
+                {
                     'name': 'sample_1',
+                    'location': 'A:1',
                     'bioinformatics_qc': {
                         'sample_id': 'sample_1',
                         'some': 'rest',
                         'api': 'data'
                     },
-                    'udf': {
+                    'udfs': {
                         'some': 'lims',
                         'udf': 'data'
                     }
                 },
-                'A:2': {
+                {
                     'name': 'sample_2',
+                    'location': 'A:2',
                     'bioinformatics_qc': {
                         'sample_id': 'sample_2',
                         'some': 'more',
                         'api': 'data'
                     },
-                    'udf': {
+                    'udfs': {
                         'some': 'more',
                         'lims': 'data'
                     }
                 }
-            }
+            ]
         }
     );
     assert.deepEqual(
         mock_url_calls,
         [
-            'lims_endpoint?match={"library_id":"a_library"}',
+            'lims_endpoint?match={"container_id":"a_library"}',
             'qc_url?where={"$or":[{"sample_id":"sample_1"},{"sample_id":"sample_2"}]}&max_results=1000'
         ]
     );

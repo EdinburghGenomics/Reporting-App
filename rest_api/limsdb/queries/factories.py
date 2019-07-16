@@ -228,11 +228,13 @@ def library_info(session):
             'NTP Volume (uL)', 'Raw CP', 'RSB Transfer Volume (uL)', 'NTP Transfer Volume (uL)', 'Ave. Conc. (nM)',
             'Adjusted Conc. (nM)', 'Original Conc. (nM)', 'Sample Transfer Volume (uL)',
             'TSP1 Transfer Volume (uL)']
-    smp_udfs = ['Picogreen Concentration (ng/ul)', 'Total DNA (ng)', 'GQN']
-
+    smp_udfs = ['Species', 'Picogreen Concentration (ng/ul)', 'Total DNA (ng)', 'GQN']
     return step_info(session, 'Eval qPCR Quant', artifact_udfs=art_udfs, sample_udfs=smp_udfs)
 
 
 def sample_qc_info(session):
-    smp_udfs = ['Picogreen Concentration (ng/ul)', 'Total DNA (ng)', 'GQN']
+    # Species is not required to be added in the list of UDFs, but in order to ensure that the sample is reported on,
+    # at least one of the UDFs needs to be found and some test sample does not have the other ones
+    # The Query becomes very slow if we allow for the sample to be reported even without a UDF.
+    smp_udfs = ['Species', 'Picogreen Concentration (ng/ul)', 'Total DNA (ng)', 'GQN']
     return step_info(session, 'QC Review EG 2.1', sample_udfs=smp_udfs)
