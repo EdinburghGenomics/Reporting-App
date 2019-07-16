@@ -452,7 +452,8 @@ def report_sample(sample_id):
                 minimal=True,
                 default_sort_col='sample_id',
                 api_url=util.construct_url('lims/sample_qc_info', match={'sample_id': sample_id}, flatten=True)
-            ),util.datatable_cfg(
+            ),
+            util.datatable_cfg(
                 'Libraries preparations for ' + sample_id,
                 'libraries_child_flatten',
                 minimal=True,

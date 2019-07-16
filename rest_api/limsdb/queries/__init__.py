@@ -346,20 +346,20 @@ def step_info_with_output(session, step_name, project_name=None, sample_name=Non
     """
 
     q = session.query(t.Process.luid, t.Process.daterun, t.ProcessIOTracker.inputartifactid,
-                      t.Sample.name, t.Project.name,  t.ArtifactUdfView.udfname, t.ArtifactUdfView.udfvalue, t.Artifact.luid)\
+                      t.Sample.name, t.Project.name, t.Artifact.luid)\
         .join(t.Process.type)\
         .join(t.Process.processiotrackers)\
         .join(t.ProcessIOTracker.output)\
         .join(t.Artifact, t.OutputMapping.outputartifactid == t.Artifact.artifactid)\
-        .join(t.Artifact.udfs)\
         .join(t.Artifact.samples)\
         .join(t.Sample.project)\
         .filter(t.ProcessType.displayname == step_name)\
-        .filter(t.Process.luid == '24-36448')\
-        .filter(t.ArtifactUdfView.udfvalue != None)
 
-    if udfs:
-        q = q.filter(t.ArtifactUdfView.udfname.in_(artifact_udfs))
+    if artifact_udfs:
+        q = q.join(t.Artifact.udfs) \
+            .filter(t.ArtifactUdfView.udfname.in_(artifact_udfs)) \
+            .filter(t.ArtifactUdfView.udfvalue != None)
+        q = q.add_columns(t.ArtifactUdfView.udfname, t.ArtifactUdfView.udfvalue)
 
     if container_name:
         q = q.filter(t.Container.name == container_name)
@@ -371,23 +371,5 @@ def step_info_with_output(session, step_name, project_name=None, sample_name=Non
         q = q.filter(t.Process.daterun < func.date(time_to))
 
     q = add_filters(q, project_name=project_name, sample_name=sample_name)
-    return q.first()
+    return q.all()
 
-
-if __name__ == '__main__':
-    from rest_api.limsdb import get_session
-    import datetime
-
-    session = get_session(echo=True)
-    art_udfs = ['Original Conc. (nM)', 'Sample Transfer Volume (uL)', 'TSP1 Transfer Volume (uL)', '%CV',
-                'NTP Volume (uL)', 'Raw CP', 'RSB Transfer Volume (uL)', 'NTP Transfer Volume (uL)', 'Ave. Conc. (nM)',
-                'Adjusted Conc. (nM)', 'Original Conc. (nM)', 'Sample Transfer Volume (uL)',
-                'TSP1 Transfer Volume (uL)']
-    smp_udfs = ['Picogreen Concentration (ng/ul)', 'Total DNA (ng)', 'GQN']
-    art_udfs = ['Original ']
-
-    res = step_info(session, 'Eval qPCR Quant', container_name='LP9231839-DCT',  artifact_udfs=art_udfs, sample_udfs=smp_udfs)
-    #res = step_info(session, 'Eval qPCR Quant', time_from=datetime.datetime(year=2019, month=6, day=12), artifact_udfs=art_udfs, sample_udfs=smp_udfs)
-
-    for r in res[:10]:
-        print(r)

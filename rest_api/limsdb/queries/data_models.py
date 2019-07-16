@@ -2,7 +2,6 @@ import operator
 from datetime import datetime
 from collections import defaultdict
 from cached_property import cached_property
-from werkzeug.urls import url_join
 
 from config import project_status as status_cfg, rest_config as cfg
 from rest_api.limsdb.queries import format_date

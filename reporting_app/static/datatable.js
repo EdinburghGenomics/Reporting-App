@@ -319,7 +319,8 @@ var sum_row_per_column = function( row, data, start, end, display ) {
                        solution arises.
                      */
                     if (b instanceof Object){
-n                    }
+                        return a + b.samples.length;
+                    }
                     else if (b.constructor === Array){
                         return a + b.length;
                     } else if (!isNaN(parseFloat(b)) && isFinite(b)){
