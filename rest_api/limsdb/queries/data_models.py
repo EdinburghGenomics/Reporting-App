@@ -339,75 +339,6 @@ class Run:
         }
 
 
-class LibraryPreparation:
-    def __init__(self):
-        self.id = None
-        self.type = None
-        self.qpcrs = defaultdict(QPCR)
-
-    def to_json(self):
-        most_recent_qpcr = sorted(self.qpcrs.values(), key=lambda p: p.date_run, reverse=True)[0]
-        projects = set()
-        data = {
-            'id': self.id,
-            'qpcrs_run': len(self.qpcrs),
-            'date_completed': format_date(most_recent_qpcr.date_run),
-            'placements': {},
-            'type': status_cfg.protocol_names.get(self.type, 'unknown'),
-            'nsamples': len(most_recent_qpcr.placements)
-        }
-
-        passing_samples = 0
-        for k, v in most_recent_qpcr.placements.items():
-            projects.add(v.project_id)
-            data['placements']['%s:%s' % k] = v.to_json()
-            if v.qc_flag == 'PASSED':
-                passing_samples += 1
-
-        data['pc_qc_flag_pass'] = (passing_samples / len(most_recent_qpcr.placements)) * 100
-        data['project_ids'] = sorted(projects)
-        return data
-
-
-class QPCR:
-    def __init__(self):
-        self.id = None
-        self.date_run = None
-        self.placements = defaultdict(Library)
-
-
-class Library:
-    state_map = {
-        0: 'UNKNOWN',
-        1: 'PASSED',
-        2: 'FAILED'
-    }
-
-    def __init__(self):
-        self.name = None
-        self.library_qc = {}
-        self.states = {}
-        self.project_id = None
-
-    @cached_property
-    def qc_flag(self):
-        """Duplicates functionality in genologics_sql.tables.Artifact.qc_flag"""
-        if not self.states:
-            return None
-
-        k = sorted(self.states)[-1]
-        latest_state = self.states[k]
-        return self.state_map.get(latest_state, 'ERROR')
-
-    def to_json(self):
-        return {
-            'name': self.name,
-            'library_qc': self.library_qc,
-            'qc_flag': self.qc_flag,
-            'project_id': self.project_id
-        }
-
-
 class StepContainer:
     """Representation of the container as a way to aggregate multiple step."""
     def __init__(self):
@@ -429,7 +360,7 @@ class StepContainer:
         }
 
         passing_samples = 0
-        for k, v in most_recent_step.artifacts.items():
+        for k, v in sorted(most_recent_step.artifacts.items()):
             projects.add(v.project_id)
             data['samples'].append(v.to_json())
             if v.qc_flag == 'PASSED':
