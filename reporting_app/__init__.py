@@ -531,7 +531,7 @@ def libraries(view_type):
             title,
             'libraries',
             util.construct_url('lims/library_info', **query_params),
-            default_sort_col='-library_date_completed',
+            default_sort_col='-date_completed',
             child_datatable=util.datatable_cfg(
                 '',  # No title provided
                 'libraries_child',

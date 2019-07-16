@@ -373,3 +373,22 @@ def step_info_with_output(session, step_name, project_name=None, sample_name=Non
     q = add_filters(q, project_name=project_name, sample_name=sample_name)
     return q.all()
 
+
+if __name__ == '__main__':
+    from rest_api.limsdb import get_session
+    import datetime
+
+    session = get_session(echo=True)
+    art_udfs = ['Original Conc. (nM)', 'Sample Transfer Volume (uL)', 'TSP1 Transfer Volume (uL)', '%CV',
+                'NTP Volume (uL)', 'Raw CP', 'RSB Transfer Volume (uL)', 'NTP Transfer Volume (uL)', 'Ave. Conc. (nM)',
+                'Adjusted Conc. (nM)', 'Original Conc. (nM)', 'Sample Transfer Volume (uL)',
+                'TSP1 Transfer Volume (uL)']
+    smp_udfs = ['Picogreen Concentration (ng/ul)', 'Total DNA (ng)', 'GQN']
+    art_udfs = ['GQN', 'A260', 'RE %Adapter', 'RE %Q30', 'RE Estimated Duplicate Rate', 'A260/230 ratio',
+                'A260/280 ratio', 'Total Conc. (ng/ul)', 'Comment', 'RE Id']
+
+    res = step_info_with_output(session, 'QC Review EG 2.1',  artifact_udfs=art_udfs)
+    #res = step_info(session, 'Eval qPCR Quant', time_from=datetime.datetime(year=2019, month=6, day=12), artifact_udfs=art_udfs, sample_udfs=smp_udfs)
+
+    for r in res[:10]:
+        print(r)

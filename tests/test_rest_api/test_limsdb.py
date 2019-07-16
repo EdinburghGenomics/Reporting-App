@@ -422,35 +422,38 @@ def test_sample_status_per_plate(m_retrieve_args, m_project_info, m_request, m_n
 
 
 @mocked_retrieve_args
-@patch('rest_api.limsdb.queries.library_info')
+@patch('rest_api.limsdb.queries.step_info')
 def test_library_preparation(mocked_library_info, mocked_retrieve_args):
     mocked_library_info.return_value = (
-        ('qpcr1', datetime(2019, 5, 2), 'lib1', 'TruSeq Nano Sample Prep', 1, 'a_mod_date', 'sample_1', 'a_project', 0, 0, 'a_udf', 1.0),
-        ('qpcr1', datetime(2019, 5, 2), 'lib1', 'TruSeq Nano Sample Prep', 1, 'a_mod_date', 'sample_1', 'a_project', 0, 0, 'another_udf', 2.1),
-        ('qpcr1', datetime(2019, 5, 2), 'lib1', 'TruSeq PCR-Free Sample Prep', 1, 'a_mod_date', 'sample_2', 'a_project', 1, 0, 'a_udf', 3.2),
-        ('qpcr2', datetime(2019, 5, 1), 'lib1', 'TruSeq Nano Sample Prep', 1, 'a_mod_date', 'sample_1', 'a_project', 0, 0, 'a_udf', 1.4)
+        ('qpcr1', datetime(2019, 5, 2), 'lib1', 'TruSeq Nano Sample Prep', 1, 'a_mod_date', 'sample_1', 'a_project', 0, 0, 'a_udf', 1.0, 'sample_udf', 'A'),
+        ('qpcr1', datetime(2019, 5, 2), 'lib1', 'TruSeq Nano Sample Prep', 1, 'a_mod_date', 'sample_1', 'a_project', 0, 0, 'another_udf', 2.1, 'sample_udf', 'A'),
+        ('qpcr1', datetime(2019, 5, 2), 'lib1', 'TruSeq PCR-Free Sample Prep', 1, 'a_mod_date', 'sample_2', 'a_project', 1, 0, 'a_udf', 3.2, 'sample_udf', 'A'),
+        ('qpcr2', datetime(2019, 5, 1), 'lib1', 'TruSeq Nano Sample Prep', 1, 'a_mod_date', 'sample_1', 'a_project', 0, 0, 'a_udf', 1.4, 'sample_udf', 'A')
     )
-
+    print(f.library_info(None))
     assert f.library_info(None) == [
         {
             'id': 'lib1',
-            'qpcrs_run': 2,
+            'step_link': 'http://clarity.com/clarity/work-complete/qpcr1',
+            'step_run': 2,
             'date_completed': '2019-05-02T00:00:00',
-            'placements': {
-                'A:1': {
+            'samples': [
+                {
                     'name': 'sample_1',
-                    'library_qc': {'a_udf': 1.0, 'another_udf': 2.1},
+                    'location': 'A:1',
+                    'udfs': {'a_udf': 1.0, 'sample_udf': 'A', 'another_udf': 2.1},
                     'qc_flag': 'PASSED',
                     'project_id': 'a_project'
                 },
-                'A:2': {
+                {
                     'name': 'sample_2',
-                    'library_qc': {'a_udf': 3.2},
+                    'location': 'A:2',
+                    'udfs': {'a_udf': 3.2, 'sample_udf': 'A'},
                     'qc_flag': 'PASSED',
                     'project_id': 'a_project'
                 }
-            },
-            'type': 'nano',
+            ],
+            'protocol': 'nano',
             'nsamples': 2,
             'pc_qc_flag_pass': 100.0,
             'project_ids': ['a_project']
