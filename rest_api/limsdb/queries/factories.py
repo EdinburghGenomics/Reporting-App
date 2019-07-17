@@ -180,7 +180,7 @@ def run_status(session):
     return sorted((r.to_json() for r in all_runs.values() if filterer(r)), key=lambda r: r['created_date'])
 
 
-def step_info(session, step_name, artifact_udfs=None, sample_udfs=None):
+def step_info(session, step_name, artifact_udfs=None, sample_udfs=None, output_udfs=None, container_type='96 wells plate'):
     kwargs = retrieve_args()
     time_from = kwargs.get('time_from')
     time_to = kwargs.get('time_to')
@@ -188,11 +188,16 @@ def step_info(session, step_name, artifact_udfs=None, sample_udfs=None):
     project_name = query_dict(kwargs, 'match.project_id')
     sample_name = query_dict(kwargs, 'match.sample_id')
     flatten = kwargs.get('flatten', False) in ['True', 'true', True]
-    y_coords = 'ABCDEFGH'
+    if container_type == '96 wells plate':
+        y_coords = 'ABCDEFGH'
+    elif container_type == '384 wells plate':
+        y_coords = 'ABCDEFGHIJKLMNOP'
+    else:
+        y_coords = '1'
     all_step_containers = defaultdict(data_models.StepContainer)
     for data in queries.step_info(session, step_name, time_from=time_from, time_to=time_to, container_name=library_id,
                                   project_name=project_name, sample_name=sample_name, artifact_udfs=artifact_udfs,
-                                  sample_udfs=sample_udfs):
+                                  sample_udfs=sample_udfs, output_udfs=output_udfs):
 
         luid, daterun, container_id, protocol_name, state_qc, state_modified, sample_id, project_id, wellx, welly = data[:10]
 
@@ -209,13 +214,9 @@ def step_info(session, step_name, artifact_udfs=None, sample_udfs=None):
         artifact.states[state_modified] = state_qc
         artifact.project_id = project_id
         artifact.location = location
-        if artifact_udfs and sample_udfs:
-            art_udfkey, art_udfvalue, smp_udfkey, smp_udfvalue = data[10:]
-            artifact.udfs[art_udfkey] = art_udfvalue
-            artifact.udfs[smp_udfkey] = smp_udfvalue
-        elif artifact_udfs or sample_udfs:
-            udfkey, udfvalue = data[10:]
-            artifact.udfs[udfkey] = udfvalue
+        # Whatever the number of udf type they will come at the end and come on key, value pair
+        for i in range(10, len(data), 2):
+            artifact.udfs[data[i]] = data[i+1]
 
     if flatten:
         return sorted((item for l in all_step_containers.values() for item in l.to_flatten_json()), key=lambda l: l['id'])
@@ -238,3 +239,9 @@ def sample_qc_info(session):
     # The Query becomes very slow if we allow for the sample to be reported even without a UDF.
     smp_udfs = ['Species', 'Picogreen Concentration (ng/ul)', 'Total DNA (ng)', 'GQN']
     return step_info(session, 'QC Review EG 2.1', sample_udfs=smp_udfs)
+
+
+def genotyping_info(session):
+    art_udfs = ['Number of Calls (This Run)']
+    smp_udfs = ['Number of Calls (Best Run)']
+    return step_info(session, 'QuantStudio Data Import EG 2.0', sample_udfs=smp_udfs, output_udfs=art_udfs, container_type='384 wells plate')

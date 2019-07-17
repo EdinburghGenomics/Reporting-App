@@ -154,7 +154,8 @@ column_def:
     picogreen_concentration:  { data: 'udfs.Picogreen Concentration (ng/ul)', title: 'Original concentration (ng/ul)', fmt: { type: 'float' }, visible: 'true' }
     frag_anal_gqn:            { data: 'udfs.GQN',                             title: 'Fragment Analyser GQN', fmt: { type: 'float' }, visible: 'true' }
     Total_DNA:                { data: 'udfs.Total DNA (ng)',                  title: 'Original DNA quantity', fmt: { type: 'float' }, visible: 'true' }
-
+    nb_call:                  { data: 'udfs.Number of Calls (This Run)',      title: 'Nb calls', fmt: { type: 'int' }, visible: 'true' }
+    best_nb_call:             { data: 'udfs.Number of Calls (Best Run)',      title: 'Best nb calls', fmt: { type: 'int' }, visible: 'true' }
 
 # Datatables tables definition
 # the remaining top level entries each define a table with a list of column
@@ -473,3 +474,27 @@ sample_qc_child_flatten:
     - picogreen_concentration
     - frag_anal_gqn
     - Total_DNA
+
+genotyping:
+    - extend_row
+    - { column_def: 'plate_name', fmt: { link: '/library/' }  }
+    - step_link
+    - date_completed
+    - step_nsamples
+    - project_ids
+
+genotyping_child:
+    - { column_def: 'sample_id', data: 'name' }
+    - location
+    - nb_call
+    - best_nb_call
+
+
+genotyping_child_flatten:
+    - { column_def: 'sample_id', data: 'name' }
+    - step_link
+    - { column_def: 'plate_name', fmt: { link: '/library/' }  }
+    - location
+    - date_completed
+    - nb_call
+    - best_nb_call

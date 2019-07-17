@@ -35,7 +35,8 @@ function_mapping = {
     'sample_info': factories.sample_info,
     'project_info': factories.project_info,
     'library_info': factories.library_info,
-    'sample_qc_info': factories.sample_qc_info
+    'sample_qc_info': factories.sample_qc_info,
+    'genotyping_info': factories.genotyping_info
 }
 
 

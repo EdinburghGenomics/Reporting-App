@@ -249,47 +249,8 @@ def runs_cst(session, time_since=None, run_ids=None, run_status=None):
     return results
 
 
-def library_info(session, project_name=None, sample_name=None, time_from=None, time_to=None, library_id=None,
-                 artifact_udfs=None):
-    """
-    Get a join of artifact UDFs, plate coordinates and QC flags for all Eval qPCR Quant processes - filterable to a
-    library ID or date range.
-    """
-
-    q = session.query(t.Process.luid, t.Process.daterun, t.Container.name, t.LabProtocol.protocolname,
-                      t.ArtifactState.qcflag, t.ArtifactState.lastmodifieddate, t.Sample.name, t.Project.name,
-                      t.ContainerPlacement.wellxposition, t.ContainerPlacement.wellyposition, t.ArtifactUdfView.udfname,
-                      t.ArtifactUdfView.udfvalue)\
-        .join(t.Process.type)\
-        .join(t.Process.protocolstep)\
-        .join(t.ProtocolStep.labprotocol)\
-        .join(t.Process.processiotrackers)\
-        .join(t.ProcessIOTracker.artifact) \
-        .join(t.Artifact.udfs)\
-        .join(t.Artifact.containerplacement)\
-        .join(t.Artifact.samples)\
-        .join(t.Artifact.states)\
-        .join(t.Sample.project)\
-        .join(t.ContainerPlacement.container)\
-        .filter(t.ProcessType.displayname == 'Eval qPCR Quant')\
-        .filter(t.ArtifactUdfView.udfname.in_(artifact_udfs))\
-        .filter(t.ArtifactUdfView.udfvalue != None)
-
-    if library_id:
-        q = q.filter(t.Container.name == library_id)
-
-    if time_from:
-        q = q.filter(t.Process.daterun > func.date(time_from))
-
-    if time_to:
-        q = q.filter(t.Process.daterun < func.date(time_to))
-
-    q = add_filters(q, project_name=project_name, sample_name=sample_name)
-    return q.all()
-
-
 def step_info(session, step_name, project_name=None, sample_name=None, time_from=None, time_to=None,
-              container_name=None, artifact_udfs=None, sample_udfs=None, allow_missing_sample_udfs=False):
+              container_name=None, artifact_udfs=None, sample_udfs=None, output_udfs=None, allow_missing_sample_udfs=False):
     """
     Get a join of artifact UDFs, plate coordinates and QC flags for all step of the provided name - filterable to a
      project, sample name, container name or date range.
@@ -312,6 +273,15 @@ def step_info(session, step_name, project_name=None, sample_name=None, time_from
     if artifact_udfs:
         q = q.join(t.Artifact.udfs)\
             .filter(t.ArtifactUdfView.udfname.in_(artifact_udfs))\
+            .filter(t.ArtifactUdfView.udfvalue != None)
+        q = q.add_columns(t.ArtifactUdfView.udfname, t.ArtifactUdfView.udfvalue)
+
+    if output_udfs:
+        output_artifact = aliased(t.Artifact)
+        q = q.join(t.ProcessIOTracker.output)\
+            .join(output_artifact, t.OutputMapping.outputartifactid == output_artifact.artifactid) \
+            .join(output_artifact.udfs) \
+            .filter(t.ArtifactUdfView.udfname.in_(output_udfs)) \
             .filter(t.ArtifactUdfView.udfvalue != None)
         q = q.add_columns(t.ArtifactUdfView.udfname, t.ArtifactUdfView.udfvalue)
 
@@ -348,15 +318,17 @@ def step_info_with_output(session, step_name, project_name=None, sample_name=Non
     q = session.query(t.Process.luid, t.Process.daterun, t.ProcessIOTracker.inputartifactid,
                       t.Sample.name, t.Project.name, t.Artifact.luid)\
         .join(t.Process.type)\
-        .join(t.Process.processiotrackers)\
-        .join(t.ProcessIOTracker.output)\
-        .join(t.Artifact, t.OutputMapping.outputartifactid == t.Artifact.artifactid)\
+        .join(t.Process.processiotrackers) \
+        .join(t.ProcessIOTracker.artifact) \
         .join(t.Artifact.samples)\
         .join(t.Sample.project)\
         .filter(t.ProcessType.displayname == step_name)\
 
     if artifact_udfs:
-        q = q.join(t.Artifact.udfs) \
+        output_artifact = aliased(t.Artifact)
+        q = q.join(t.ProcessIOTracker.output)\
+            .join(output_artifact, t.OutputMapping.outputartifactid == output_artifact.artifactid) \
+            .join(output_artifact.udfs) \
             .filter(t.ArtifactUdfView.udfname.in_(artifact_udfs)) \
             .filter(t.ArtifactUdfView.udfvalue != None)
         q = q.add_columns(t.ArtifactUdfView.udfname, t.ArtifactUdfView.udfvalue)
@@ -387,8 +359,11 @@ if __name__ == '__main__':
     art_udfs = ['GQN', 'A260', 'RE %Adapter', 'RE %Q30', 'RE Estimated Duplicate Rate', 'A260/230 ratio',
                 'A260/280 ratio', 'Total Conc. (ng/ul)', 'Comment', 'RE Id']
 
-    res = step_info_with_output(session, 'QC Review EG 2.1',  artifact_udfs=art_udfs)
-    #res = step_info(session, 'Eval qPCR Quant', time_from=datetime.datetime(year=2019, month=6, day=12), artifact_udfs=art_udfs, sample_udfs=smp_udfs)
+    res = step_info(session,
+                    'QuantStudio Data Import EG 2.0',
+                    time_from=datetime.datetime(year=2019, month=5, day=12),
+                    output_udfs=art_udfs,
+                    sample_udfs=smp_udfs)
 
     for r in res[:10]:
         print(r)

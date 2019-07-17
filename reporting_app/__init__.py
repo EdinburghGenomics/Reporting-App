@@ -7,7 +7,7 @@ import subprocess
 
 import auth
 from reporting_app import util
-from rest_api import settings
+from rest_api import settings, _lims_endpoint
 from config import reporting_app_config as cfg, project_status as project_status_cfg, chart_metrics_mappings
 
 app = fl.Flask(__name__)
@@ -500,10 +500,19 @@ def report_sample(sample_id):
     )
 
 
-@app.route('/libraries/<view_type>')
+@app.route('/<step_type>/<view_type>')
 @flask_login.login_required
-def libraries(view_type):
-    query_params = {'max_results': 10000}
+def step_view(step_type, view_type):
+    if step_type == 'libraries':
+        endpoint = 'library_info'
+        columns = 'libraries'
+        child_columns = 'libraries_child'
+    elif step_type == 'genotypes':
+        endpoint = 'genotyping_info'
+        columns = 'genotyping'
+        child_columns = 'genotyping_child'
+    else:
+        fl.abort(404)
 
     time_ago = None
     if view_type == 'recent':
@@ -520,21 +529,22 @@ def libraries(view_type):
         fl.abort(404)
         return None
 
+    query_params = {}
     if time_ago:
         query_params['time_from'] = time_ago.strftime(settings.DATE_FORMAT)
 
-    title = util.capitalise(view_type).replace('_', ' ') + ' Libraries'
+    title = util.capitalise(view_type).replace('_', ' ') + ' ' + util.capitalise(step_type)
     return render_template(
         'untabbed_datatables.html',
         title,
         table=util.datatable_cfg(
             title,
-            'libraries',
-            util.construct_url('lims/library_info', **query_params),
+            columns,
+            util.construct_url('lims/' + endpoint, **query_params),
             default_sort_col='-date_completed',
             child_datatable=util.datatable_cfg(
                 '',  # No title provided
-                'libraries_child',
+                child_columns,
                 data_source='samples', # Where to find the data of the child datatable
                 name_source='id',  # Where to find the name of the child datatable
                 minimal=True
