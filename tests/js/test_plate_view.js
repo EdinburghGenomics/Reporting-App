@@ -2,7 +2,7 @@
 QUnit.test('build_series', function(assert) {
     fake_renderer = function(metric) { return metric; };
 
-    library_data = {
+    container_data = {
         'id': 'a_library',
         'samples': [
             {
@@ -13,6 +13,7 @@ QUnit.test('build_series', function(assert) {
             }
         ]
     };
+    heatmap_y_category = 'ABCDEFGH';
     metrics = {
         'a_metric': {'path': ['reporting_app', 'a_rest_api_metric']},
         'another_metric': {'path': ['udf', 'a_udf']}
@@ -77,7 +78,7 @@ QUnit.test('get_lims_and_qc_data', function(assert) {
     get_lims_and_qc_data('lims_endpoint', 'qc_url', 'Token a_token', 'a_library');
 
     assert.deepEqual(
-        library_data,
+        container_data,
         {
             'samples': [
                 {

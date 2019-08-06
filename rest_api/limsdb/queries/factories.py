@@ -193,6 +193,7 @@ def step_info(session, step_name, artifact_udfs=None, sample_udfs=None, output_u
     elif container_type == '384 wells plate':
         y_coords = 'ABCDEFGHIJKLMNOP'
     else:
+        # For tube the coordinate should be always '1:1'
         y_coords = '1'
     all_step_containers = defaultdict(data_models.StepContainer)
     for data in queries.step_info(session, step_name, time_from=time_from, time_to=time_to, container_name=library_id,
@@ -244,4 +245,5 @@ def sample_qc_info(session):
 def genotyping_info(session):
     art_udfs = ['Number of Calls (This Run)']
     smp_udfs = ['Number of Calls (Best Run)']
-    return step_info(session, 'QuantStudio Data Import EG 2.0', sample_udfs=smp_udfs, output_udfs=art_udfs, container_type='384 wells plate')
+    return step_info(session, 'QuantStudio Data Import EG 2.0', sample_udfs=smp_udfs, output_udfs=art_udfs,
+                     container_type='384 wells plate')

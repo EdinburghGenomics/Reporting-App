@@ -1,56 +1,29 @@
 
-var chart, library_data;  // globals for the chart object and the library data to be plotted
+var chart, container_data;  // globals for the chart object and the container data to be plotted
 
 // pointer to the current metric being plotted
 var active_colour_metric;
 var colour_palette = Highcharts.getOptions().colors;
 
 // Artifact y coordinates, but plot them as x coordinates as per Lims UI
-var heatmap_x_coords = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+var heatmap_y_category;
 
-metrics = {
-    'pc_q30': {name: '%Q30', path: ['bioinformatics_qc', 'aggregated', 'pc_q30']},
-    'pc_mapped_reads': {name: '% mapped reads', path: ['bioinformatics_qc', 'aggregated', 'pc_mapped_reads']},
-    'species': {name: 'Species', path: ['bioinformatics_qc', 'species_name'], type: 'category'},
-    'matching_species': {name: 'Matching species', path: ['bioinformatics_qc', 'aggregated', 'matching_species'], type: 'category'},
-    'het_hom_ratio': {name: 'Het/hom ratio', path: ['bioinformatics_qc', 'sample_contamination', 'het_hom_ratio']},
-    'freemix': {name: 'Freemix', path: ['bioinformatics_qc', 'sample_contamination', 'freemix']},
-    'genotype_match': {name: 'Genotype match', path: ['bioinformatics_qc', 'aggregated', 'genotype_match'], type: 'category'},
-    'pc_optical_duplicates': {name: '% optical duplicates', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'pc_opt_duplicate_reads']},
-    'pc_duplicates': {name: '% duplicates', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'pc_duplicate_reads']},
-    'gc_bias_mean_dev': {name: 'GC bias (mean deviation)', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'gc_bias', 'mean_deviation']},
-    'gc_bias_slope': {name: 'GC bias (slope)', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'gc_bias', 'slope']},
-    'pc_adaptor': {name: '% adaptor', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'pc_adaptor']},
-    'mean_insert_size': {name: 'Mean insert size', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'mean_insert_size']},
-    'library_size': {name: 'Picard est. lib size', path: ['bioinformatics_qc', 'aggregated', 'from_all_run_elements', 'picard_est_lib_size']},
-    'av_conc': {name: 'Ave. Conc. (nM)', path: ['udfs', 'Ave. Conc. (nM)']},
-    'pc_cv': {name: '%CV', path: ['udfs', '%CV']},
-    'raw_cp': {name: 'Raw CP', path: ['udfs', 'Raw CP']},
-    'ntp_volume': {name: 'NTP Volume (uL)', path: ['udfs', 'NTP Volume (uL)']},
-    'adjusted_conc': {name: 'Adjusted Conc. (nM)', path: ['udfs', 'Adjusted Conc. (nM)']},
-    'original_conc': {name: 'Original Conc. (nM)', path: ['udfs', 'Original Conc. (nM)']},
-    'ntp_transfer_vol': {name: 'NTP Transfer Volume (uL)', path: ['udfs', 'NTP Transfer Volume (uL)']},
-    'rsb_transfer_vol': {name: 'RSB Transfer Volume (uL)', path: ['udfs', 'RSB Transfer Volume (uL)']},
-    'sample_transfer_vol': {name: 'Sample Transfer Volume (uL)', path: ['udfs', 'Sample Transfer Volume (uL)']},
-    'tsp1_transfer_vol': {name: 'TSP1 Transfer Volume (uL)', path: ['udfs', 'TSP1 Transfer Volume (uL)']},
-    'qc_flag': {name: 'QC flag', path: ['qc_flag'], type: 'category'},
-    'project_id': {name: 'Project ID', path: ['project_id'], type: 'category'}
-};
+// Global variable to hold the metrics that can be displayed in this plots
+var metrics = {};
 
-
-function get_lims_and_qc_data(lims_url, qc_url, token, library_id) {
-    // query the Lims library_info endpoint for a single library, set library_data and merge in data from samples endpoint
+function get_lims_and_qc_data(lims_url, qc_url, token, container_id) {
+    // query the Lims  endpoint for a single container, set container_data and merge in data from samples endpoint
     $.ajax(
         {
-            url: lims_url + '?match={"container_id":"' + library_id + '"}',
+            url: lims_url + '?match={"container_id":"' + container_id + '"}',
             headers: {'Authorization': token},
             dataType: 'json',
             success: function(result) {
-                library_data = result.data[0];
+                container_data = result.data[0];
 
                 var sample_queries = [];  // sample IDs to merge on
-                var sample_coords = {};  // map sample IDs to index of the sample in library_data so we can merge the sequencing qc later
-                library_data['samples'].forEach(function(sample, i){
+                var sample_coords = {};  // map sample IDs to index of the sample in container_data so we can merge the sequencing qc later
+                container_data['samples'].forEach(function(sample, i){
                     var sample_id = sample['name'];
                     sample_coords[sample_id] = i;
                     sample_queries.push('{"sample_id":"' + sample_id + '"}');
@@ -64,7 +37,7 @@ function get_lims_and_qc_data(lims_url, qc_url, token, library_id) {
                         success: function(result) {
                             _.forEach(result.data, function(sample_qc) {
                                 var i = sample_coords[sample_qc['sample_id']];
-                                library_data['samples'][i]['bioinformatics_qc'] = sample_qc;
+                                container_data['samples'][i]['bioinformatics_qc'] = sample_qc;
                             });
                         }
                     }
@@ -75,18 +48,18 @@ function get_lims_and_qc_data(lims_url, qc_url, token, library_id) {
 }
 
 function build_series(colour_metric) {
-    // build an object to pass to Highcharts.heatmap.series, converting library QC data into an array of data points
+    // build an object to pass to Highcharts.heatmap.series, converting container QC data into an array of data points
     var series = {
-        name: library_data['id'],
+        name: container_data['id'],
         data: [],
         dataLabels: {enabled: false}
     }
 
-    _.forEach(library_data['samples'], function(sample){
+    _.forEach(container_data['samples'], function(sample){
         var split_coord = sample['location'].split(':');
         series.data.push(
             {
-                y: heatmap_x_coords.indexOf(split_coord[0]),
+                y: heatmap_y_category.indexOf(split_coord[0]),
                 x: parseInt(split_coord[1]) - 1,
                 value: _.get(sample, metrics[colour_metric]['path']) || '(missing value)',
                 name: sample['name']
@@ -96,7 +69,27 @@ function build_series(colour_metric) {
     return series;
 }
 
-function init_heatmap(div_id, library_id, lims_url, qc_url, ajax_token) {
+function init_heatmap(div_id, container_id, lims_url, qc_url, ajax_token, view_metrics, plate_type) {
+    // Assign the metrics and create a button for each metric
+    _.forEach(view_metrics, function(m) {
+        var li = $('#button_' + m.name);
+        var button = $('<a>').attr('target', m.name).text(m.title);
+        button.click(function() { render_heatmap(this.target); $('#selected_metric').text(this.text); });
+        li.append(button);
+        metrics[m.name]=m
+    });
+
+    // Select the type of plate layout (default to 96 well plate)
+    // heatmap_y_category is a global variable because it need to be accessed
+    var heatmap_x_category;
+    if (plate_type && plate_type == '384'){
+        heatmap_x_category =  _.range(1, 25).map(function(a){ return a.toString()})
+        heatmap_y_category = 'ABCDEFGHIJKLMNOP'.split('')
+    }else{
+        heatmap_x_category = _.range(1, 13).map(function(a){ return a.toString()})
+        heatmap_y_category = 'ABCDEFGH'.split('')
+    }
+
     chart = Highcharts.chart(div_id, {
         chart: {
             type: 'heatmap',
@@ -105,9 +98,9 @@ function init_heatmap(div_id, library_id, lims_url, qc_url, ajax_token) {
             plotBorderWidth: 1,
             height: '50%'
         },
-        title: {text: 'Library ' + library_id},
-        yAxis: {categories: heatmap_x_coords, min: 0, max: 7, reversed: true, title: null},
-        xAxis: {categories: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'], min: 0, max: 11},
+        title: {text: 'Container ' + container_id},
+        yAxis: {categories: heatmap_y_category, min: 0, max: heatmap_y_category.length - 1, reversed: true, title: null},
+        xAxis: {categories: heatmap_x_category, min: 0, max: heatmap_x_category.length - 1},
         colorAxis: {
             minColor: '#FFFFFF',
             maxColor: colour_palette[0]
@@ -128,7 +121,7 @@ function init_heatmap(div_id, library_id, lims_url, qc_url, ajax_token) {
         series: []
     });
     chart.showLoading();
-    get_lims_and_qc_data(lims_url, qc_url, ajax_token, library_id);
+    get_lims_and_qc_data(lims_url, qc_url, ajax_token, container_id);
     chart.hideLoading();
 }
 

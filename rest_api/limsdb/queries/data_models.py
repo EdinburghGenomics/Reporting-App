@@ -376,6 +376,7 @@ class StepContainer:
         for artifact in most_recent_step.artifacts.values():
             element = {
                 'id': self.id,
+                'step_link': cfg['lims_url'] + '/clarity/work-complete/' + str(most_recent_step.id),
                 'step_run': len(self.specific_steps),
                 'date_completed': format_date(most_recent_step.date_run),
                 'protocol': status_cfg.protocol_names.get(self.type, self.type),

@@ -477,7 +477,7 @@ sample_qc_child_flatten:
 
 genotyping:
     - extend_row
-    - { column_def: 'plate_name', fmt: { link: '/library/' }  }
+    - { column_def: 'plate_name', fmt: { link: '/genotype/' }  }
     - step_link
     - date_completed
     - step_nsamples
@@ -489,11 +489,10 @@ genotyping_child:
     - nb_call
     - best_nb_call
 
-
 genotyping_child_flatten:
     - { column_def: 'sample_id', data: 'name' }
     - step_link
-    - { column_def: 'plate_name', fmt: { link: '/library/' }  }
+    - { column_def: 'plate_name', fmt: { link: '/genotype/' }  }
     - location
     - date_completed
     - nb_call
