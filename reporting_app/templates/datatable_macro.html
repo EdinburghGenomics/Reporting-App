@@ -20,7 +20,6 @@
     {% set collapse_in = 'in' %}
 {% endif %}
 
-<script type="text/javascript" language="JavaScript">create_datatable({{ dt_config|tojson|safe }})</script>
 
 <div id="{{ dt_config.name }}-container" class="collapse {{ collapse_in }}">
     <table id="{{ dt_config.name }}" class="table table-hover table-condensed table-responsive table-striped">
@@ -42,4 +41,15 @@
         {% endif %}
     </table>
 </div>
+
+<script type="text/javascript" language="JavaScript">
+    create_datatable({{ dt_config|tojson|safe }})
+    // If the table is collapsed it will load the data when the div is shown
+    $("#{{ dt_config.name }}-container").on('show.bs.collapse', function(){
+        var table = $("#{{ dt_config.name }}").DataTable()
+        if ( ! table.data().any() ) {
+            table.draw();
+        }
+    });
+</script>
 {%- endmacro %}
