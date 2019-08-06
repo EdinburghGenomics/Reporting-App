@@ -156,6 +156,8 @@ column_def:
     Total_DNA:                { data: 'udfs.Total DNA (ng)',                  title: 'Original DNA quantity', fmt: { type: 'float' }, visible: 'true' }
     nb_call:                  { data: 'udfs.Number of Calls (This Run)',      title: 'Nb calls', fmt: { type: 'int' }, visible: 'true' }
     best_nb_call:             { data: 'udfs.Number of Calls (Best Run)',      title: 'Best nb calls', fmt: { type: 'int' }, visible: 'true' }
+    gc_bias_mean_dev:         { data: 'gc_bias.mean_deviation', title: 'GC bias (mean deviation)',   visible: 'false' }
+    gc_bias_slope:            { data: 'gc_bias.slope', title: 'GC bias (slope)',                     visible: 'false' }
 
 # Datatables tables definition
 # the remaining top level entries each define a table with a list of column
@@ -273,6 +275,8 @@ demultiplexing:
     - pc_opt_duplicate_reads
     - mean_insert_size
     - mean_coverage
+    - gc_bias_mean_dev
+    - gc_bias_slope
     - reviewed
     - useable
 
@@ -340,6 +344,9 @@ samples:
     - coverage_5X
     - coverage_15X
     - evenness
+    - { column_def: 'gc_bias_mean_dev', data: 'aggregated.from_all_run_elements.gc_bias.mean_deviation' }
+    - { column_def: 'gc_bias_slope', data: 'aggregated.from_all_run_elements.gc_bias.slope' }
+    - { column_def: 'mean_insert_size', data: 'aggregated.from_all_run_elements.mean_insert_size' }
     - pipeline_used
     - genome_used
     - species_found
@@ -383,6 +390,8 @@ sample_run_elements:
     - pc_opt_duplicate_reads
     - mean_insert_size
     - mean_coverage
+    - gc_bias_mean_dev
+    - gc_bias_slope
     - reviewed
     - useable
 
