@@ -259,7 +259,7 @@ var configure_dt = function(dt_config) {
     if (dt_config.data){
         ajax_call = null;
 
-    }else if (dt_config.ajax_call){
+    } else if (dt_config.ajax_call){
         // retrieve the function generating the ajax calls by name and call it with the config
         ajax_call = get_function(dt_config.ajax_call.func_name)(dt_config);
     }
