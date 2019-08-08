@@ -50,18 +50,18 @@ function get_lims_and_qc_data(lims_url, qc_url, token, container_id) {
 function build_series(colour_metric) {
     // build an object to pass to Highcharts.heatmap.series, converting container QC data into an array of data points
     var series = {
-        name: container_data['id'],
+        name: container_data[0]['id'],
         data: [],
         dataLabels: {enabled: false}
     }
 
-    _.forEach(container_data['samples'], function(sample){
+    _.forEach(container_data, function(sample){
         var split_coord = sample['location'].split(':');
         series.data.push(
             {
                 y: heatmap_y_category.indexOf(split_coord[0]),
                 x: parseInt(split_coord[1]) - 1,
-                value: _.get(sample, metrics[colour_metric]['path']) || '(missing value)',
+                value: _.get(sample, metrics[colour_metric]['data']) || '(missing value)',
                 name: sample['name']
             }
         );
@@ -98,9 +98,9 @@ function init_heatmap(div_id, container_id, lims_url, qc_url, ajax_token, view_m
             plotBorderWidth: 1,
             height: '50%'
         },
-        title: {text: 'Container ' + container_id},
-        yAxis: {categories: heatmap_y_category, min: 0, max: heatmap_y_category.length - 1, reversed: true, title: null},
-        xAxis: {categories: heatmap_x_category, min: 0, max: heatmap_x_category.length - 1},
+        title: { text: 'Container ' + container_id },
+        yAxis: { categories: heatmap_y_category, min: 0, max: heatmap_y_category.length - 1, reversed: true, title: null },
+        xAxis: { categories: heatmap_x_category, min: 0, max: heatmap_x_category.length - 1 },
         colorAxis: {
             minColor: '#FFFFFF',
             maxColor: colour_palette[0]
@@ -121,9 +121,15 @@ function init_heatmap(div_id, container_id, lims_url, qc_url, ajax_token, view_m
         series: []
     });
     chart.showLoading();
-    get_lims_and_qc_data(lims_url, qc_url, ajax_token, container_id);
+}
+
+
+function load_data_to_chart(dt_settings, json){
+    // function to transfer the data from the associated datatables after it finished loading
+    container_data = json.data;
     chart.hideLoading();
 }
+
 
 function data_classes(categories) {
     // Map a list of category names into a list of dataClasses to pass to Highcharts.heatmap.colorAxis.dataClasses

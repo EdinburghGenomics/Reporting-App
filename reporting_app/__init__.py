@@ -601,21 +601,15 @@ def plot_library(library):
         'Library ' + library,
         table=util.datatable_cfg(
             'Library ' + library,
-            'libraries',
-            util.construct_url('lims/library_info', match={'container_id': library}),
-            minimal=True,
-            child_datatable=util.datatable_cfg(
-                '',  # No title provided
-                'libraries_child',
-                data_source='samples',  # Where to find the data of the child datatable
-                name_source='id',  # Where to find the name of the child datatable
-                minimal=True
-            )
+            'library_plot_metrics',
+            ajax_call={
+                'func_name': 'dt_merge_lims_container_and_qc_data',
+                'lims_url': util.construct_url('lims/library_info', match={'container_id': library}, flatten=True),
+                'qc_url': util.construct_url('samples'),
+            },
+            initComplete='load_data_to_chart'
         ),
         container_id=library,
-        qc_url=util.construct_url('samples'),
-        lims_url=util.construct_url('lims/library_info'),
-        ajax_token=util.get_token(),
         plate_view_metrics=chart_metrics_mappings.get('library_plot_metrics')
     )
 
@@ -629,7 +623,7 @@ def plot_genotyping(genotype):
         table=util.datatable_cfg(
             'Genotyping ' + genotype,
             'genotyping',
-            util.construct_url('lims/genotyping_info', match={'container_id': genotype}),
+            util.construct_url('lims/genotyping_info', match={'container_id': genotype}, flatten=True),
             minimal=True,
             child_datatable=util.datatable_cfg(
                 '',  # No title provided

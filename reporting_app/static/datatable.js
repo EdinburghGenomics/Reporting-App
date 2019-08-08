@@ -17,6 +17,14 @@ var dt_merge_multi_sources_keep_first = function(dt_config){
     );
 }
 
+var dt_merge_lims_container_and_qc_data = function(dt_config){
+    return merge_lims_container_and_qc_data(
+        dt_config.ajax_call.lims_url,
+        dt_config.ajax_call.qc_url,
+        dt_config.token
+    )
+}
+
 var required_yields = function(dt_config) {
     return function(data, callback, settings) {
         var response;
@@ -309,7 +317,8 @@ var configure_dt = function(dt_config) {
         ),
         'order': [dt_config.default_sort_col],
         'footerCallback': get_function(dt_config.table_foot),
-        'createdRow': get_function(dt_config.create_row)
+        'createdRow': get_function(dt_config.create_row),
+        'initComplete': get_function(dt_config.initComplete)
     }
 }
 

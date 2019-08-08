@@ -249,8 +249,8 @@ function render_lane_sequencing_metrics_chart(metric_id, color_id, plot_type){
     // Create the new series
     var series = plot_options[plot_type]['function'](
         lane_data,
-        color_options[color_id].path,
-        lane_metrics[metric_id].path,
+        color_options[color_id].data,
+        lane_metrics[metric_id].data,
         lane_metrics[metric_id].title
     )
     // Remove the previous series
