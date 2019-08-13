@@ -11,41 +11,6 @@ var heatmap_y_category;
 // Global variable to hold the metrics that can be displayed in this plots
 var metrics = {};
 
-function get_lims_and_qc_data(lims_url, qc_url, token, container_id) {
-    // query the Lims  endpoint for a single container, set container_data and merge in data from samples endpoint
-    $.ajax(
-        {
-            url: lims_url + '?match={"container_id":"' + container_id + '"}',
-            headers: {'Authorization': token},
-            dataType: 'json',
-            success: function(result) {
-                container_data = result.data[0];
-
-                var sample_queries = [];  // sample IDs to merge on
-                var sample_coords = {};  // map sample IDs to index of the sample in container_data so we can merge the sequencing qc later
-                container_data['samples'].forEach(function(sample, i){
-                    var sample_id = sample['name'];
-                    sample_coords[sample_id] = i;
-                    sample_queries.push('{"sample_id":"' + sample_id + '"}');
-                });
-                // query the samples endpoint for IDs found above, merge in the data and trigger the chart
-                $.ajax(
-                    {
-                        url: qc_url + '?where={"$or":[' + sample_queries.join(',') + ']}&max_results=1000',
-                        headers: {'Authorization': token},
-                        dataType: 'json',
-                        success: function(result) {
-                            _.forEach(result.data, function(sample_qc) {
-                                var i = sample_coords[sample_qc['sample_id']];
-                                container_data['samples'][i]['bioinformatics_qc'] = sample_qc;
-                            });
-                        }
-                    }
-                );
-            }
-        }
-    );
-}
 
 function build_series(colour_metric) {
     // build an object to pass to Highcharts.heatmap.series, converting container QC data into an array of data points
@@ -61,7 +26,7 @@ function build_series(colour_metric) {
             {
                 y: heatmap_y_category.indexOf(split_coord[0]),
                 x: parseInt(split_coord[1]) - 1,
-                value: _.get(sample, metrics[colour_metric]['data']) || '(missing value)',
+                value: _.get(sample, metrics[colour_metric]['data'], '(missing value)'),
                 name: sample['name']
             }
         );
@@ -165,6 +130,7 @@ function render_heatmap(colour_metric) {
                 function(data_point) {
                     var datatype = typeof data_point.value;
                     if (datatype == 'object') {
+                        console.log(data_point.value)
                         data_point.value = data_point.value.sort().join(', ');
                     }
                     return data_point.value;

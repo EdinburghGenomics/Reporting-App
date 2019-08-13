@@ -43,13 +43,16 @@
 </div>
 
 <script type="text/javascript" language="JavaScript">
-    create_datatable({{ dt_config|tojson|safe }})
-    // If the table is collapsed it will load the data when the div is shown
-    $("#{{ dt_config.name }}-container").on('show.bs.collapse', function(){
-        var table = $("#{{ dt_config.name }}").DataTable()
-        if ( ! table.data().any() ) {
-            table.draw();
-        }
-    });
+    // If the table is collapsed only create the datatable when it is shown
+    {% if dt_config.collapse|default(false) %}
+        $("#{{ dt_config.name }}-container").on('show.bs.collapse', function(){
+            if ( ! $.fn.DataTable.isDataTable( "#{{ dt_config.name }}" ) ) {
+                create_datatable({{ dt_config|tojson|safe }})
+            }
+        });
+    {% else %}
+        create_datatable({{ dt_config|tojson|safe }})
+    {% endif %}
+
 </script>
 {%- endmacro %}

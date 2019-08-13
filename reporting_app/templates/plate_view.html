@@ -1,6 +1,4 @@
-{% extends 'reporting_base.html' %}
-
-{% from 'datatable_macro.html' import datatable %}
+{% extends 'untabbed_datatables.html' %}
 
 {% block head %}
     {{ super() }}
@@ -12,29 +10,26 @@
 
 {% block content %}
 
-<h2>
-    <a data-toggle="collapse" href="#{{ table.name }}-parent">
-        {{ table.title }}
-    </a>
-</h2>
-<div id="{{ table.name }}-parent">
-    <div class="btn-group">
-        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span id="selected_metric">Metric</span> <span class="caret"></span>
-        </button>
-        <ul id="qc_options" class="dropdown-menu">
-            {% for m in plate_view_metrics %}
-                <li id="button_{{ m.name }}"></li>
-            {% endfor %}
-        </ul>
-    </div>
-    <div id="heatmap" style="width: 80%; margin: auto;" class="heatmap"></div>
+{{ super() }}
 
-    <script>
-        init_heatmap('heatmap', '{{ container_id }}', '{{ lims_url }}', '{{ qc_url }}', '{{ ajax_token|safe }}',
-                     {{ plate_view_metrics|tojson|safe }}, '{{ plate_type }}');
-    </script>
+<br/>
 
-    {{ datatable(table, false) }}
+<div class="btn-group">
+    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <span id="selected_metric">Metric</span> <span class="caret"></span>
+    </button>
+    <ul id="qc_options" class="dropdown-menu">
+        {% for m in plate_view_metrics %}
+            <li id="button_{{ m.name }}"></li>
+        {% endfor %}
+    </ul>
 </div>
+
+<div id="heatmap" style="width: 80%; margin: auto;" class="heatmap"></div>
+
+<script>
+    init_heatmap('heatmap', '{{ container_id }}', '{{ lims_url }}', '{{ qc_url }}', '{{ ajax_token|safe }}',
+                 {{ plate_view_metrics|tojson|safe }}, '{{ plate_type }}');
+</script>
+
 {% endblock %}

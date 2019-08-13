@@ -7,8 +7,9 @@ import subprocess
 
 import auth
 from reporting_app import util
+from reporting_app.util import resolve_cols
 from rest_api import settings
-from config import reporting_app_config as cfg, project_status as project_status_cfg, chart_metrics_mappings
+from config import reporting_app_config as cfg, project_status as project_status_cfg
 
 app = fl.Flask(__name__)
 app.secret_key = cfg['key'].encode()
@@ -601,16 +602,17 @@ def plot_library(library):
         'Library ' + library,
         table=util.datatable_cfg(
             'Library ' + library,
-            'library_plot_metrics',
+            ['simple_plot_child', 'library_plot_metrics'],
             ajax_call={
                 'func_name': 'dt_merge_lims_container_and_qc_data',
                 'lims_url': util.construct_url('lims/library_info', match={'container_id': library}, flatten=True),
                 'qc_url': util.construct_url('samples'),
             },
-            initComplete='load_data_to_chart'
+            initComplete='load_data_to_chart',
+            page_length=10
         ),
         container_id=library,
-        plate_view_metrics=chart_metrics_mappings.get('library_plot_metrics')
+        plate_view_metrics=resolve_cols('library_plot_metrics')
     )
 
 
@@ -622,22 +624,20 @@ def plot_genotyping(genotype):
         'Genotyping: ' + genotype,
         table=util.datatable_cfg(
             'Genotyping ' + genotype,
-            'genotyping',
-            util.construct_url('lims/genotyping_info', match={'container_id': genotype}, flatten=True),
-            minimal=True,
-            child_datatable=util.datatable_cfg(
-                '',  # No title provided
-                'genotyping_child',
-                data_source='samples',  # Where to find the data of the child datatable
-                name_source='id',  # Where to find the name of the child datatable
-                minimal=True
-            )
+            ['simple_plot_child', 'genotype_plot_metrics'],
+            ajax_call={
+                'func_name': 'dt_merge_lims_container_and_qc_data',
+                'lims_url': util.construct_url('lims/genotyping_info', match={'container_id': genotype}, flatten=True),
+                'qc_url': util.construct_url('samples'),
+            },
+            initComplete='load_data_to_chart',
+            page_length=10
         ),
         container_id=genotype,
         qc_url=util.construct_url('samples'),
         lims_url=util.construct_url('lims/genotyping_info'),
         ajax_token=util.get_token(),
-        plate_view_metrics=chart_metrics_mappings.get('genotype_plot_metrics'),
+        plate_view_metrics=resolve_cols('genotype_plot_metrics'),
         plate_type='384'
     )
 
@@ -760,8 +760,8 @@ def sequencing_charts(view_type):
         ajax_token=util.get_token(),
         merge_on='run_id',
         merge_properties=['run'],
-        metric_options=chart_metrics_mappings.get('seq_plot_metrics'),
-        color_options=chart_metrics_mappings.get('seq_plot_colors')
+        metric_options=resolve_cols('seq_plot_metrics'),
+        color_options=resolve_cols('seq_plot_colors')
     )
 
 

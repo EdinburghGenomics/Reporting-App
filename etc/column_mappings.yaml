@@ -441,6 +441,10 @@ libraries_child:
     - ntp_volume
     - picogreen_concentration
 
+simple_plot_child:
+    - { column_def: 'sample_id', data: 'name' }
+    - location
+
 libraries_child_flatten:
     - { column_def: 'sample_id', data: 'name' }
     - step_link

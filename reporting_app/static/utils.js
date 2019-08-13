@@ -174,8 +174,6 @@ function merge_lims_container_and_qc_data(lims_url, qc_url, token) {
         }
     );
     }
-
-
 }
 
 
