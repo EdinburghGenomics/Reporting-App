@@ -405,6 +405,7 @@ def report_project(project_ids):
                 'plate_status',
                 minimal=True,
                 default_sort_col='plate_id',
+                collapse=True,
                 **plate_status_call
             ),
             util.datatable_cfg(
