@@ -34,7 +34,9 @@ function_mapping = {
     'run_status': factories.run_status,
     'sample_info': factories.sample_info,
     'project_info': factories.project_info,
-    'library_info': factories.library_info
+    'library_info': factories.library_info,
+    'sample_qc_info': factories.sample_qc_info,
+    'genotyping_info': factories.genotyping_info
 }
 
 

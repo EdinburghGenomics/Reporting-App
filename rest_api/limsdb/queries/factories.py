@@ -180,25 +180,70 @@ def run_status(session):
     return sorted((r.to_json() for r in all_runs.values() if filterer(r)), key=lambda r: r['created_date'])
 
 
-def library_info(session):
+def step_info(session, step_name, artifact_udfs=None, sample_udfs=None, output_udfs=None, container_type='96 wells plate'):
     kwargs = retrieve_args()
     time_from = kwargs.get('time_from')
     time_to = kwargs.get('time_to')
-    library_id = query_dict(kwargs, 'match.library_id')
-    y_coords = 'ABCDEFGH'
+    library_id = query_dict(kwargs, 'match.container_id')
+    project_name = query_dict(kwargs, 'match.project_id')
+    sample_name = query_dict(kwargs, 'match.sample_id')
+    flatten = kwargs.get('flatten', False) in ['True', 'true', True]
+    if container_type == '96 wells plate':
+        y_coords = 'ABCDEFGH'
+    elif container_type == '384 wells plate':
+        y_coords = 'ABCDEFGHIJKLMNOP'
+    else:
+        # For tube the coordinate should be always '1:1'
+        y_coords = '1'
+    all_step_containers = defaultdict(data_models.StepContainer)
+    for data in queries.step_info(session, step_name, time_from=time_from, time_to=time_to, container_name=library_id,
+                                  project_name=project_name, sample_name=sample_name, artifact_udfs=artifact_udfs,
+                                  sample_udfs=sample_udfs, output_udfs=output_udfs):
 
-    all_libraries = defaultdict(data_models.LibraryPreparation)
-    for data in queries.library_info(session, time_from, time_to, library_id):
-        luid, daterun, library_id, protocol_name, state_qc, state_modified, sample_id, project_id, wellx, welly, udfkey, udfvalue = data
-        library_prep = all_libraries[library_id]
-        library_prep.id = library_id
-        library_prep.type = protocol_name
-        qpcr = library_prep.qpcrs[luid]
-        qpcr.date_run = daterun
-        library = qpcr.placements[(y_coords[welly], wellx + 1)]
-        library.name = sample_id
-        library.library_qc[udfkey] = float(udfvalue)
-        library.states[state_modified] = state_qc
-        library.project_id = project_id
+        luid, daterun, container_id, protocol_name, state_qc, state_modified, sample_id, project_id, wellx, welly = data[:10]
 
-    return sorted((l.to_json() for l in all_libraries.values()), key=lambda l: l['id'])
+        step_container = all_step_containers[container_id]
+        step_container.id = container_id
+        step_container.type = protocol_name
+        specific_step = step_container.specific_steps[luid]
+        specific_step.id = luid
+        specific_step.date_run = daterun
+        location = '%s:%s' % (y_coords[welly], wellx + 1)
+
+        artifact = specific_step.artifacts[location]
+        artifact.name = sample_id
+        artifact.states[state_modified] = state_qc
+        artifact.project_id = project_id
+        artifact.location = location
+        # Whatever the number of udf type they will come at the end and come on key, value pair
+        for i in range(10, len(data), 2):
+            artifact.udfs[data[i]] = data[i+1]
+
+    if flatten:
+        return sorted((item for l in all_step_containers.values() for item in l.to_flatten_json()), key=lambda l: l['id'])
+    else:
+        return sorted((l.to_json() for l in all_step_containers.values()), key=lambda l: l['id'])
+
+
+def library_info(session):
+    art_udfs = ['Original Conc. (nM)', 'Sample Transfer Volume (uL)', 'TSP1 Transfer Volume (uL)', '%CV',
+            'NTP Volume (uL)', 'Raw CP', 'RSB Transfer Volume (uL)', 'NTP Transfer Volume (uL)', 'Ave. Conc. (nM)',
+            'Adjusted Conc. (nM)', 'Original Conc. (nM)', 'Sample Transfer Volume (uL)',
+            'TSP1 Transfer Volume (uL)']
+    smp_udfs = ['Species', 'Picogreen Concentration (ng/ul)', 'Total DNA (ng)', 'GQN']
+    return step_info(session, 'Eval qPCR Quant', artifact_udfs=art_udfs, sample_udfs=smp_udfs)
+
+
+def sample_qc_info(session):
+    # Species is not required to be added in the list of UDFs, but in order to ensure that the sample is reported on,
+    # at least one of the UDFs needs to be found and some test sample does not have the other ones
+    # The Query becomes very slow if we allow for the sample to be reported even without a UDF.
+    smp_udfs = ['Species', 'Picogreen Concentration (ng/ul)', 'Total DNA (ng)', 'GQN']
+    return step_info(session, 'QC Review EG 2.1', sample_udfs=smp_udfs)
+
+
+def genotyping_info(session):
+    art_udfs = ['Number of Calls (This Run)']
+    smp_udfs = ['Number of Calls (Best Run)']
+    return step_info(session, 'QuantStudio Data Import EG 2.0', sample_udfs=smp_udfs, output_udfs=art_udfs,
+                     container_type='384 wells plate')

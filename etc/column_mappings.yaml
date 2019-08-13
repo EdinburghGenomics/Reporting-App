@@ -32,6 +32,7 @@ column_def:
     lane_number:              { data: 'lane_number',                          title: 'Lane' }
     library_id:               { data: 'library_id',                           title: 'Library ID' }
     library_type:             { data: 'library_type',                         title: 'Library',                                                        visible: 'false' }
+    location:                 { data: 'location',                             title: 'Location' }
     genome_used:              { data: 'aggregated.most_recent_proc.genome_used', title: 'Genome used',                                                 visible: 'false' }
     genotype_match:           { data: 'aggregated.genotype_match',            title: 'Genotype'   }
     mean_insert_size:         { data: 'mapping_metrics.mean_insert_size',     title: 'Avg Insert Size',          fmt: { type: 'float' }, visible: 'false' }
@@ -86,6 +87,7 @@ column_def:
     project_status:           { data: 'project_status',                       title: 'Status',                                                          visible: 'false'}
     plate_id:                 { data: 'plate_id',                             title: 'Plate' }
     properly_mapped_reads:    { data: 'properly_mapped_reads',                title: '# properly mapped reads',  fmt: { type: 'int' },    visible: 'false'}
+    qc_flag:                  { data: 'qc_flag',                              title: 'QC Flag'}
     reviewed:                 { data: 'reviewed',                             title: 'Review status' }
     review_statuses:          { data: 'aggregated.review_statuses',           title: 'Review' }
     run_id:                   { data: 'run_id',                               title: 'Run ID',                   fmt: { link: '/run/' } }
@@ -95,6 +97,7 @@ column_def:
     freemix:                  { data: 'sample_contamination.freemix',         title: 'Freemix',                  fmt: { type: 'float',  max: .03}  }
     species_found:            { data: 'species_contamination',                title: 'Species found',            fmt: { name: 'species_contamination' } }
     species:                  { data: 'species',                              title: 'Species',                                                        visible: 'false'}
+    step_link:                { data: 'step_link',                            title: 'Link',                     fmt: { link: '' },            visible: 'true'}
     useable:                  { data: 'useable',                              title: 'Useable' }
     useable_statuses:         { data: 'aggregated.useable_statuses',          title: 'Useable'}
     user_sample_id:           { data: 'User Sample Name',                     title: 'User sample ID' }
@@ -139,13 +142,22 @@ column_def:
     yield_x_coverage:         { data: { display: 'coverage.disp', _: 'coverage.order' }, title: 'Coverage' }  # e.g, render as '30X' but sort, search, etc. as '30'
     yield_required:           { data: 'required_yield',                       title: 'Required yield' }
     yield_required_q30:       { data: 'required_yield_q30',                   title: 'Required yield Q30' }
-    library_date_completed:   { data: 'date_completed', title: 'Date completed', fmt: { type: 'datetime' } }
-    library_name:             { data: 'id', title: 'Name', fmt: { link: '/library/' } }
-    library_qpcrs_run:        { data: 'qpcrs_run', title: 'qPCRs run', visible: 'false' }
-    library_pass_rate:        { data: 'pc_qc_flag_pass', title: 'QC flag pass rate', fmt: { type: 'percentage' } }
-    library_nsamples:         { data: 'nsamples', title: '# samples' }
-
-
+    date_completed:           { data: 'date_completed', title: 'Date completed', fmt: { type: 'datetime' } }
+    plate_name:               { data: 'id', title: 'Plate name' }
+    nb_step_run:              { data: 'step_run', title: 'qPCRs run', visible: 'false' }
+    step_pass_rate:           { data: 'pc_qc_flag_pass', title: 'QC flag pass rate', fmt: { type: 'percentage' } }
+    step_nsamples:            { data: 'nsamples', title: '# samples' }
+    # The data in extend row does not exist and it will default to empty string. The background image is ste in the css
+    extend_row:               { data: extend_row, width: '1%', class_name: 'details-control', orderable: 'false' }
+    qpcr_concentration:       { data: 'udfs.Adjusted Conc\. (nM)',           title: 'QPCR concentration (nM)', fmt: { type: 'float'}, visible: 'true' }
+    ntp_volume:               { data: 'udfs.NTP Volume (uL)',                 title: 'NTP Volume  (uL)', fmt: { type: 'float'}, visible: 'true' }
+    picogreen_concentration:  { data: 'udfs.Picogreen Concentration (ng/ul)', title: 'Original concentration (ng/ul)', fmt: { type: 'float' }, visible: 'true' }
+    frag_anal_gqn:            { data: 'udfs.GQN',                             title: 'Fragment Analyser GQN', fmt: { type: 'float' }, visible: 'true' }
+    Total_DNA:                { data: 'udfs.Total DNA (ng)',                  title: 'Original DNA quantity', fmt: { type: 'float' }, visible: 'true' }
+    nb_call:                  { data: 'udfs.Number of Calls (This Run)',      title: 'Nb calls', fmt: { type: 'int' }, visible: 'true' }
+    best_nb_call:             { data: 'udfs.Number of Calls (Best Run)',      title: 'Best nb calls', fmt: { type: 'int' }, visible: 'true' }
+    gc_bias_mean_dev:         { data: 'gc_bias.mean_deviation', title: 'GC bias (mean deviation)',   visible: 'false' }
+    gc_bias_slope:            { data: 'gc_bias.slope', title: 'GC bias (slope)',                     visible: 'false' }
 
 # Datatables tables definition
 # the remaining top level entries each define a table with a list of column
@@ -263,6 +275,8 @@ demultiplexing:
     - pc_opt_duplicate_reads
     - mean_insert_size
     - mean_coverage
+    - gc_bias_mean_dev
+    - gc_bias_slope
     - reviewed
     - useable
 
@@ -330,6 +344,9 @@ samples:
     - coverage_5X
     - coverage_15X
     - evenness
+    - { column_def: 'gc_bias_mean_dev', data: 'aggregated.from_all_run_elements.gc_bias.mean_deviation' }
+    - { column_def: 'gc_bias_slope', data: 'aggregated.from_all_run_elements.gc_bias.slope' }
+    - { column_def: 'mean_insert_size', data: 'aggregated.from_all_run_elements.mean_insert_size' }
     - pipeline_used
     - genome_used
     - species_found
@@ -373,6 +390,8 @@ sample_run_elements:
     - pc_opt_duplicate_reads
     - mean_insert_size
     - mean_coverage
+    - gc_bias_mean_dev
+    - gc_bias_slope
     - reviewed
     - useable
 
@@ -403,13 +422,87 @@ yields:
     - yield_required
     - yield_required_q30
 
-
 libraries:
-    - library_name
-    - { column_def: 'library_type', data: 'type', title: 'Library type', visible: 'true' }
-    - library_qpcrs_run
-    - library_date_completed
-    - library_pass_rate
-    - library_nsamples
+    - extend_row
+    - { column_def: 'plate_name', fmt: { link: '/library/' }  }
+    - step_link
+    - { column_def: 'library_type', data: 'protocol', title: 'Library type', visible: 'true' }
+    - nb_step_run
+    - date_completed
+    - step_pass_rate
+    - step_nsamples
     - project_ids
 
+libraries_child:
+    - { column_def: 'sample_id', data: 'name' }
+    - location
+    - qc_flag
+    - qpcr_concentration
+    - ntp_volume
+    - picogreen_concentration
+
+libraries_child_flatten:
+    - { column_def: 'sample_id', data: 'name' }
+    - step_link
+    - { column_def: 'plate_name', fmt: { link: '/library/' }  }
+    - location
+    - { column_def: 'library_type', data: 'protocol', title: 'Library type', visible: 'true' }
+    - date_completed
+    - qc_flag
+    - qpcr_concentration
+    - ntp_volume
+    - picogreen_concentration
+
+sample_qc:
+    - extend_row
+    - plate_name
+    - step_link
+    - { column_def: 'library_type', data: 'protocol', title: 'Protocol' }
+    - nb_step_run
+    - date_completed
+    - step_pass_rate
+    - step_nsamples
+    - project_ids
+
+sample_qc_child:
+    - { column_def: 'sample_id', data: 'name' }
+    - location
+    - qc_flag
+    - picogreen_concentration
+    - frag_anal_gqn
+    - Total_DNA
+
+sample_qc_child_flatten:
+    - { column_def: 'sample_id', data: 'name' }
+    - step_link
+    - plate_name
+    - location
+    - { column_def: 'library_type', data: 'protocol', title: 'Protocol'}
+    - date_completed
+    - qc_flag
+    - picogreen_concentration
+    - frag_anal_gqn
+    - Total_DNA
+
+genotyping:
+    - extend_row
+    - { column_def: 'plate_name', fmt: { link: '/genotype/' }  }
+    - step_link
+    - date_completed
+    - step_nsamples
+    - project_ids
+
+genotyping_child:
+    - { column_def: 'sample_id', data: 'name' }
+    - location
+    - nb_call
+    - best_nb_call
+
+genotyping_child_flatten:
+    - { column_def: 'sample_id', data: 'name' }
+    - step_link
+    - { column_def: 'plate_name', fmt: { link: '/genotype/' }  }
+    - location
+    - date_completed
+    - nb_call
+    - best_nb_call
