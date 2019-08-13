@@ -218,10 +218,9 @@ function format_child_row(row, dt_config, data){
     // attach and show the table
     row.child(table_str).show();
     // Create the datatable
-    table = $('#' + dt_config.name).DataTable(configure_dt(dt_config));
-
-    return
+    $('#' + dt_config.name).DataTable(configure_dt(dt_config));
 }
+
 
 // Configure the buttons for datatable
 var configure_buttons = function(dt_config){
