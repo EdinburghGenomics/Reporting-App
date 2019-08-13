@@ -430,7 +430,6 @@ def test_library_preparation(mocked_library_info, mocked_retrieve_args):
         ('qpcr1', datetime(2019, 5, 2), 'lib1', 'TruSeq PCR-Free Sample Prep', 1, 'a_mod_date', 'sample_2', 'a_project', 1, 0, 'a_udf', 3.2, 'sample_udf', 'A'),
         ('qpcr2', datetime(2019, 5, 1), 'lib1', 'TruSeq Nano Sample Prep', 1, 'a_mod_date', 'sample_1', 'a_project', 0, 0, 'a_udf', 1.4, 'sample_udf', 'A')
     )
-    print(f.library_info(None))
     assert f.library_info(None) == [
         {
             'id': 'lib1',

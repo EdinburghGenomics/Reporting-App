@@ -227,10 +227,9 @@ function format_child_row(row, dt_config, data){
     // attach and show the table
     row.child(table_str).show();
     // Create the datatable
-    table = $('#' + dt_config.name).DataTable(configure_dt(dt_config));
-
-    return
+    $('#' + dt_config.name).DataTable(configure_dt(dt_config));
 }
+
 
 // Configure the buttons for datatable
 var configure_buttons = function(dt_config){
@@ -268,7 +267,7 @@ var configure_dt = function(dt_config) {
     if (dt_config.data){
         ajax_call = null;
 
-    }else if (dt_config.ajax_call){
+    } else if (dt_config.ajax_call){
         // retrieve the function generating the ajax calls by name and call it with the config
         ajax_call = get_function(dt_config.ajax_call.func_name)(dt_config);
     }
