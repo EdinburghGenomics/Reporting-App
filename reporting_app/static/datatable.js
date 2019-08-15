@@ -17,6 +17,15 @@ var dt_merge_multi_sources_keep_first = function(dt_config){
     );
 }
 
+var dt_merge_lims_container_and_qc_data = function(dt_config){
+    return merge_lims_container_and_qc_data(
+        dt_config.ajax_call.lims_url,
+        dt_config.ajax_call.qc_url,
+        dt_config.token
+    )
+}
+
+
 var required_yields = function(dt_config) {
     return function(data, callback, settings) {
         var response;
@@ -262,13 +271,7 @@ var configure_dt = function(dt_config) {
         // retrieve the function generating the ajax calls by name and call it with the config
         ajax_call = get_function(dt_config.ajax_call.func_name)(dt_config);
     }
-    // When the section is collapsed, defer the ajax call until the section is open.
-    var deferLoading = null;
-    var serverSide = false;
-    if (dt_config.collapse){
-        deferLoading = 0;
-        serverSide = true;
-    }
+
     return {
         'dt_config': dt_config,
         'data': dt_config.data,
@@ -277,14 +280,13 @@ var configure_dt = function(dt_config) {
         'searching': dt_config.searching,
         'info': dt_config.info,
         'processing': true,
-        'serverSide': serverSide,
+        'serverSide': false,
         'autoWidth': false,
         'stateSave': String(dt_config.state_save).toLowerCase() == 'true',
         'lengthMenu': [[10, 25, 50, -1], [10, 25, 50, 'All']],
-        'pageLength': 25,
+        'pageLength': dt_config.page_length || 25,
         'select': dt_config.select,
         'ajax': ajax_call,
-        'deferLoading': deferLoading,
         'language': {'processing': '<i class="fa fa-refresh fa-spin">'},
         'columns': dt_config.cols.map(
             function(c) {
@@ -308,7 +310,8 @@ var configure_dt = function(dt_config) {
         ),
         'order': [dt_config.default_sort_col],
         'footerCallback': get_function(dt_config.table_foot),
-        'createdRow': get_function(dt_config.create_row)
+        'createdRow': get_function(dt_config.create_row),
+        'initComplete': get_function(dt_config.initComplete)
     }
 }
 

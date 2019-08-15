@@ -11,63 +11,34 @@ var heatmap_y_category;
 // Global variable to hold the metrics that can be displayed in this plots
 var metrics = {};
 
-function get_lims_and_qc_data(lims_url, qc_url, token, container_id) {
-    // query the Lims  endpoint for a single container, set container_data and merge in data from samples endpoint
-    $.ajax(
-        {
-            url: lims_url + '?match={"container_id":"' + container_id + '"}',
-            headers: {'Authorization': token},
-            dataType: 'json',
-            success: function(result) {
-                container_data = result.data[0];
-
-                var sample_queries = [];  // sample IDs to merge on
-                var sample_coords = {};  // map sample IDs to index of the sample in container_data so we can merge the sequencing qc later
-                container_data['samples'].forEach(function(sample, i){
-                    var sample_id = sample['name'];
-                    sample_coords[sample_id] = i;
-                    sample_queries.push('{"sample_id":"' + sample_id + '"}');
-                });
-                // query the samples endpoint for IDs found above, merge in the data and trigger the chart
-                $.ajax(
-                    {
-                        url: qc_url + '?where={"$or":[' + sample_queries.join(',') + ']}&max_results=1000',
-                        headers: {'Authorization': token},
-                        dataType: 'json',
-                        success: function(result) {
-                            _.forEach(result.data, function(sample_qc) {
-                                var i = sample_coords[sample_qc['sample_id']];
-                                container_data['samples'][i]['bioinformatics_qc'] = sample_qc;
-                            });
-                        }
-                    }
-                );
-            }
-        }
-    );
-}
 
 function build_series(colour_metric) {
     // build an object to pass to Highcharts.heatmap.series, converting container QC data into an array of data points
     var series = {
-        name: container_data['id'],
+        name: container_data[0]['id'],
         data: [],
         dataLabels: {enabled: false}
     }
 
-    _.forEach(container_data['samples'], function(sample){
+    _.forEach(container_data, function(sample){
         var split_coord = sample['location'].split(':');
+        // Ensure that the values are not null or undefined but allow for 0 or empty string
+        var value = _.get(sample, metrics[colour_metric]['data'], '(missing value)');
+        if (value == null) {
+            value = '(missing value)';
+        }
         series.data.push(
             {
                 y: heatmap_y_category.indexOf(split_coord[0]),
                 x: parseInt(split_coord[1]) - 1,
-                value: _.get(sample, metrics[colour_metric]['path']) || '(missing value)',
+                value: value,
                 name: sample['name']
             }
         );
     });
     return series;
 }
+
 
 function init_heatmap(div_id, container_id, lims_url, qc_url, ajax_token, view_metrics, plate_type) {
     // Assign the metrics and create a button for each metric
@@ -98,9 +69,9 @@ function init_heatmap(div_id, container_id, lims_url, qc_url, ajax_token, view_m
             plotBorderWidth: 1,
             height: '50%'
         },
-        title: {text: 'Container ' + container_id},
-        yAxis: {categories: heatmap_y_category, min: 0, max: heatmap_y_category.length - 1, reversed: true, title: null},
-        xAxis: {categories: heatmap_x_category, min: 0, max: heatmap_x_category.length - 1},
+        title: { text: 'Container ' + container_id },
+        yAxis: { categories: heatmap_y_category, min: 0, max: heatmap_y_category.length - 1, reversed: true, title: null },
+        xAxis: { categories: heatmap_x_category, min: 0, max: heatmap_x_category.length - 1 },
         colorAxis: {
             minColor: '#FFFFFF',
             maxColor: colour_palette[0]
@@ -121,9 +92,15 @@ function init_heatmap(div_id, container_id, lims_url, qc_url, ajax_token, view_m
         series: []
     });
     chart.showLoading();
-    get_lims_and_qc_data(lims_url, qc_url, ajax_token, container_id);
+}
+
+
+function load_data_to_chart(dt_settings, json){
+    // function to transfer the data from the associated datatables after it finished loading
+    container_data = json.data;
     chart.hideLoading();
 }
+
 
 function data_classes(categories) {
     // Map a list of category names into a list of dataClasses to pass to Highcharts.heatmap.colorAxis.dataClasses
@@ -151,7 +128,6 @@ function render_heatmap(colour_metric) {
 
     var transform_func;
     var series = build_series(colour_metric);
-
     if (metrics[colour_metric]['type'] == 'category') {
         categories = _.uniq(
             _.map(

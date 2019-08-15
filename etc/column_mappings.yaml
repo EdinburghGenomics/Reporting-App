@@ -59,7 +59,7 @@ column_def:
     nb_delivery:              { data: 'status.delivery',                      title: 'Delivery' ,                fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', cell_format_function: 'temporal', link: '/sample/' }, class_name: 'text-center sum' }
     nb_finished:              { data: 'status.finished',                      title: 'Finished' ,                fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', link: '/sample/' }, class_name: 'text-center sum' }
     nb_removed:               { data: 'status.removed',                       title: 'Removed' ,                 fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
-    nb_repeat:                { data: 'status.repeat',                        title: 'Request repeat' ,          fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
+    nb_replace:               { data: 'status.replace',                       title: 'Request replacement' ,     fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
     nb_genotyped:             { data: 'status.genotyped',                     title: 'Genotyped' ,               fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
     nb_invoiced:              { data: 'status.invoiced',                      title: 'Invoiced' ,                fmt: {link_format_function: 'count_entities', object_converter: 'get_samples', link: '/sample/' }, class_name: 'text-center sum', visible: 'false' }
     no_call_chip:             { data: 'genotype_validation.no_call_chip',     title: 'No-call (chip)',                                                visible: 'false' }
@@ -217,7 +217,7 @@ project_status:
     - started_date
     - finished_date
     - nb_removed
-    - nb_repeat
+    - nb_replace
     - nb_sample_submission
     - nb_sample_qc
     - nb_library_queue
@@ -240,7 +240,7 @@ plate_status:
     - nb_invoiced
     - nb_genotyped
     - nb_removed
-    - nb_repeat
+    - nb_replace
     - nb_sample_submission
     - nb_sample_qc
     - nb_library_queue
@@ -440,6 +440,10 @@ libraries_child:
     - qpcr_concentration
     - ntp_volume
     - picogreen_concentration
+
+simple_plot_child:
+    - { column_def: 'sample_id', data: 'name' }
+    - location
 
 libraries_child_flatten:
     - { column_def: 'sample_id', data: 'name' }
