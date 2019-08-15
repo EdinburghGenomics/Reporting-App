@@ -18,7 +18,7 @@ mkdir -p /opt/logs/
 REPORTINGCONFIG=/opt/reporting.yaml /opt/python/bin/python bin/run_app.py rest_api
 
 # Load the data to the LIMS if it has been provided
-if [ -e /opt/data_for_clarity_lims.yaml ]
+if [ -e /data/data_for_clarity_lims.yaml ]
 then
-    REPORTINGCONFIG=/opt/reporting.yaml PYTHONPATH=. /opt/python/bin/python docker/load_data_to_lims_db.py --yaml_file /opt/data_for_clarity_lims.yaml
+    REPORTINGCONFIG=/opt/reporting.yaml PYTHONPATH=. /opt/python/bin/python docker/load_data_to_lims_db.py --yaml_file /data/data_for_clarity_lims.yaml
 fi
