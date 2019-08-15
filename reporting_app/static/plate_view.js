@@ -22,17 +22,23 @@ function build_series(colour_metric) {
 
     _.forEach(container_data, function(sample){
         var split_coord = sample['location'].split(':');
+        // Ensure that the values are not null or undefined but allow for 0 or empty string
+        var value = _.get(sample, metrics[colour_metric]['data'], '(missing value)');
+        if (value == null) {
+            value = '(missing value)';
+        }
         series.data.push(
             {
                 y: heatmap_y_category.indexOf(split_coord[0]),
                 x: parseInt(split_coord[1]) - 1,
-                value: _.get(sample, metrics[colour_metric]['data'], '(missing value)'),
+                value: value,
                 name: sample['name']
             }
         );
     });
     return series;
 }
+
 
 function init_heatmap(div_id, container_id, lims_url, qc_url, ajax_token, view_metrics, plate_type) {
     // Assign the metrics and create a button for each metric
@@ -122,7 +128,6 @@ function render_heatmap(colour_metric) {
 
     var transform_func;
     var series = build_series(colour_metric);
-
     if (metrics[colour_metric]['type'] == 'category') {
         categories = _.uniq(
             _.map(
@@ -130,7 +135,6 @@ function render_heatmap(colour_metric) {
                 function(data_point) {
                     var datatype = typeof data_point.value;
                     if (datatype == 'object') {
-                        console.log(data_point.value)
                         data_point.value = data_point.value.sort().join(', ');
                     }
                     return data_point.value;
