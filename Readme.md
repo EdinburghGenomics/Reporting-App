@@ -126,14 +126,18 @@ If you start up a container as above with no volumes mounted, the Rest API will 
 at /opt/users.sqlite and an internal NoSQL database at the MongoDB default location of /data/db. You can keep
 the container completely isolated like this, or link it to databases on your host system with Docker volumes.
 
-For example, to start a container with our own databases and tag v0.9.2 of the app:
+For example, to start a container with our own databases you need a local directory containing the following files:
+  
+  - `data_for_clarity_lims.yaml`: If you want to load data to the lims databases so that data is available on the lims endpoints
+  - `users.sqlite`: If you want to specify a user database
+  - `db`: directory containing a mongodb database
 
-    docker run -v path/to/my_user_db.sqlite:/opt/users.sqlite -v path/to/my_nosql_db:/data/db <image_name> v0.9.2
 
-To load data to the local lims database, you need to provide a yaml file following the format of 
-docker/data_for_clarity_lims.yaml. The file should be provided as follows:
+    docker run -v path/to/local_directory:/opt/etc  <image_name>
 
-    docker run -v path/to/data_for_lims.yaml:/opt/data_for_clarity_lims.yaml <image_name> v0.9.2
+You can specify a tag v0.9.2 from git:
+
+    docker run <image_name> v0.9.2
 
 ## Dependencies
 - a running MongoDB database
