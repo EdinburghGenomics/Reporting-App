@@ -31,7 +31,11 @@ class ProjectInfo:
         self.open_date = None
         self.close_date = None
         self.researcher_name = None
-        self.nb_quoted_samples = None
+        self.udfs = {}
+
+    @property
+    def nb_quoted_samples(self):
+        return self.udfs.get('Number of Quoted Samples')
 
     @property
     def status(self):
@@ -48,6 +52,7 @@ class ProjectInfo:
             'project_status': self.status,
             'researcher_name': self.researcher_name,
             'nb_quoted_samples': self.nb_quoted_samples,
+            'udfs': self.udfs
         }
         return ret
 
@@ -323,18 +328,20 @@ class Run:
         self.udfs = {}
         self.samples = set()
         self.projects = set()
+        self.lanes = defaultdict(set)
 
     def to_json(self):
         return {
             'created_date': format_date(self.created_date),
             'cst_date': format_date(self.cst_date),
-            'run_id': self.udfs['RunID'],
-            'run_status': self.udfs['Run Status'],
+            'run_id': self.udfs.get('RunID'),
+            'run_status': self.udfs.get('Run Status'),
             'sample_ids': sorted(list(self.samples)),
             'project_ids': sorted(list(self.projects)),
-            'instrument_id': self.udfs['InstrumentID'],
-            'nb_reads': self.udfs['Read'],
-            'nb_cycles': self.udfs['Cycle']
+            'lanes': list(self.lanes.values()),
+            'instrument_id': self.udfs.get('InstrumentID'),
+            'nb_reads': self.udfs.get('Read'),
+            'nb_cycles': self.udfs.get('Cycle')
         }
 
 

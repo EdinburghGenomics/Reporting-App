@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import genologics_sql.tables as t
 from sqlalchemy import or_, and_, func
 from sqlalchemy.orm.util import aliased
@@ -45,7 +47,10 @@ def get_project_info(session, project_name=None, project_status='open', udfs=Non
     q = add_filters(q, project_name=project_name, project_status=project_status)
     if udfs:
         q = q.distinct(t.Project.name, t.EntityUdfView.udfname)
-        q = q.filter(or_(t.EntityUdfView.udfname.in_(udfs), t.EntityUdfView.udfname == None))
+        if udfs == 'all':
+            q = q.filter(t.EntityUdfView.udfvalue != None)
+        else:
+            q = q.filter(or_(t.EntityUdfView.udfname.in_(udfs), t.EntityUdfView.udfname == None))
     return q.all()
 
 
@@ -169,7 +174,8 @@ def runs_info(session, time_since=None, run_ids=None, run_status=None):
             .filter(t.ProcessType.displayname == 'AUTOMATED - Sequence').subquery('s')
 
     q = session.query(t.Process.createddate, t.Process.processid, t.ProcessUdfView.udfname,
-                      t.ProcessUdfView.udfvalue, t.ContainerPlacement.wellyposition, t.Sample.name, t.Project.name) \
+                      t.ProcessUdfView.udfvalue, t.ContainerPlacement.wellyposition, t.Artifact.artifactid,
+                      t.Sample.name, t.Project.name) \
         .join(t.Process.type) \
         .join(t.Process.udfs) \
         .join(t.Process.processiotrackers) \
@@ -190,6 +196,20 @@ def runs_info(session, time_since=None, run_ids=None, run_status=None):
 
     results = q.all()
     return results
+
+
+def artifact_reagent_labels(session, artifacts):
+    """
+    Retrieve all artifacts' ancestors with their samples and reagent labels.
+    Only the one that occurs once are an accurate representation of the sample/reagent label relationship.
+    """
+    ancestors_artifact = aliased(t.Artifact)
+    q = session.query(t.Artifact.artifactid, ancestors_artifact.artifactid, t.ReagentLabel.name, t.Sample.name) \
+        .join(ancestors_artifact, t.Artifact.ancestors) \
+        .join(ancestors_artifact.reagentlabels) \
+        .join(ancestors_artifact.samples)
+    q = q.filter(t.Artifact.artifactid.in_(artifacts))
+    return q.all()
 
 
 def runs_cst(session, time_since=None, run_ids=None, run_status=None):
