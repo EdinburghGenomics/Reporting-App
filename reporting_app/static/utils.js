@@ -132,6 +132,51 @@ var merge_multi_sources_keep_first = function(api_urls, token, merging_key, merg
     return _merge_multi_sources(api_urls, token, merging_key, merge_on_key_keep_first_sub_properties, merged_properties);
 }
 
+// Create a function that will query the Lims endpoint for a single container,
+// then it will retrieve all sample_id and make a query to the qc_url the results will me merged on sample_id.
+function merge_lims_container_and_qc_data(lims_url, qc_url, token) {
+    return function(data, callback, settings){
+        $.ajax(
+        {
+            url: lims_url,
+            headers: {'Authorization': token},
+            dataType: 'json',
+            success: function(result) {
+                var merged_results = result.data;
+
+                var sample_queries = [];  // sample IDs to merge on
+                var sample_coords = {};  // map sample IDs to index of the sample in merged_results so we can merge the sequencing qc later
+                merged_results.forEach(function(sample, i){
+                    var sample_id = sample['name'];
+                    sample_coords[sample_id] = i;
+                    sample_queries.push('{"sample_id":"' + sample_id + '"}');
+                });
+                // query the samples endpoint for IDs found above, merge in the data and trigger the chart
+                $.ajax(
+                    {
+                        url: qc_url + '?where={"$or":[' + sample_queries.join(',') + ']}&max_results=1000',
+                        headers: {'Authorization': token},
+                        dataType: 'json',
+                        success: function(result) {
+                            _.forEach(result.data, function(sample_qc) {
+                                var i = sample_coords[sample_qc['sample_id']];
+                                merged_results[i]['bioinformatics_qc'] = sample_qc;
+                            });
+                            callback({
+                                recordsTotal: merged_results.length,
+                                recordsFiltered: merged_results.length,
+                                data: merged_results
+                            });
+                        }
+                    }
+                );
+            }
+        }
+    );
+    }
+}
+
+
 // Check that the variable exists, is not null
 // If it is an array, check that it is not empty or only containing null values
 var test_exist = function(variable){

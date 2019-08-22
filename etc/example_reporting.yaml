@@ -25,6 +25,7 @@ rest_app:
     db_host: 'mongodb://localhost'
     db_port: 27017
     key: 'a_key'
+    lims_url: http://clarity.com
 
     url_prefix: 'api'
     api_version: '0.1'

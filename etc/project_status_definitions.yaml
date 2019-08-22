@@ -2,7 +2,7 @@
 # Note that to add/remove columns to the project status table the entry needs to be added to the column_mappings.yaml
 status_names:
     SAMPLE_REMOVED: removed
-    SAMPLE_REPEAT: repeat
+    SAMPLE_REPEAT: replace
     SAMPLE_SUBMISSION: sample_submission
     SAMPLE_QC: sample_qc
     LIBRARY_QUEUE: library_queue

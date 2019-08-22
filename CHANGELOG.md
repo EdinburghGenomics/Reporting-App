@@ -1,10 +1,29 @@
 Changelog for Reporting-App
 ===========================
 
-0.22 (unreleased)
+
+0.23 (unreleased)
 -----------------
 
 - Nothing changed yet.
+
+
+0.22 (2019-07-09)
+-----------------
+
+- New sequencing trending and turnaround graphs
+- New library prep QC view and database queries
+- Coloured project status by staleness
+- New page for samples not processing
+- 'gender' database keys renamed to 'sex'
+- Updated EGCG-Core to v0.11
+
+
+0.21.1 (2019-06-12)
+-------------------
+
+- Update to schema for rapid processing and GATK4 pipelines
+- Add new LIMS step in dsample status definition to transition to Sample QC/Library Prep/Library Queue
 
 
 0.21 (2019-04-29)

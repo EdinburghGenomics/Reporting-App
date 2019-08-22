@@ -1,8 +1,10 @@
 import datetime
+from collections import OrderedDict
+
 import flask_login
 from json import dumps
 import auth
-from config import col_mappings
+from config import col_mappings, chart_metrics_mappings
 
 invalid_attr_chars = str.maketrans({k: '_' for k in (' ', ',')})
 
@@ -30,9 +32,21 @@ def construct_url(endpoint, **query_args):
     return url.replace(' ', '')
 
 
-def datatable_cfg(title, cols, api_url=None, ajax_call=None, default_sort_col=None, minimal=False, review=None, **kwargs):
-    if not api_url and not ajax_call:
-        raise ValueError('Either api_url or ajax_call must be provided')
+def resolve_cols(col):
+    """Resolve the columns that will be used """
+    if isinstance(col, str):
+        return col_mappings.get(col) or chart_metrics_mappings.get(col)
+    elif isinstance(col, list):
+        res = list()
+        for c in col:
+            res.extend(resolve_cols(c))
+        return res
+
+
+def datatable_cfg(title, cols, api_url=None, ajax_call=None, default_sort_col=None, minimal=False,
+                  review=None, **kwargs):
+    if not api_url and not ajax_call and not kwargs.get('data_source'):
+        raise ValueError('Either api_url, ajax_call or data_source must be provided')
     if default_sort_col is None:
         default_sort_col = [0, 'desc']
     else:
@@ -41,7 +55,7 @@ def datatable_cfg(title, cols, api_url=None, ajax_call=None, default_sort_col=No
     d = {
         'title': title,
         'name': snake_case(title),
-        'cols': col_mappings[cols],
+        'cols': resolve_cols(cols),
         'api_url': api_url,
         'ajax_call': ajax_call,
         'default_sort_col': default_sort_col,
