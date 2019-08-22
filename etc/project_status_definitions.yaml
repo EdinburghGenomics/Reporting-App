@@ -99,6 +99,7 @@ started_steps:
     - FluidX Sample Receipt EG 1.1 ST
     - Receive Sample 4.0
     - Receive Sample EG 6.1
+    - Sample Receipt EG 1.0 ST
 
 protocol_names:
   TruSeq Nano Sample Prep: TRUSEQ_NANO
