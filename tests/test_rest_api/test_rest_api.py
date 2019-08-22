@@ -1,14 +1,12 @@
 import json
-from collections import Counter, defaultdict
-from datetime import datetime
+import os
+from collections import Counter
 from time import sleep
 from unittest.mock import patch
 
-import genologics_sql.tables as t
-
 from config import rest_config as cfg
+from docker.load_data_to_lims_db import DataAdder
 from rest_api import app
-from rest_api.limsdb import get_session
 from tests.test_rest_api import TestBase
 
 
@@ -45,138 +43,8 @@ class TestLIMSRestAPI(TestBase):
         cls.patched_auth = patch('auth.DualAuth.authorized', return_value=True)
         cls.patched_auth.start()
         del cfg.content['lims_database']
-
-        # Add stuff to the database
-        cls.session = get_session()
-        p1 = cls._create_project('testproject1', udfs={'Number of Quoted Samples': 9})
-        p2 = cls._create_project('testproject2', udfs={'Number of Quoted Samples': 9}, closed=True)
-        udfs = {'Required Yield (Gb)': 30, 'Coverage (X)': 15, 'Species': 'Gallus gallus'}
-        s1 = cls._create_sample('sample1', p1, udfs=udfs)
-        s2 = cls._create_sample('sample2', p1, udfs=udfs)
-        udfs['Species'] = 'Homo Sapiens'
-        p2s1 = cls._create_sample('sample5', p2, udfs=udfs)
-        p2s2 = cls._create_sample('sample6', p2, udfs=udfs)
-        p2s3 = cls._create_sample('sample7', p2, udfs=udfs)
-        p2s4 = cls._create_sample('sample8', p2, udfs=udfs)
-
-        a1 = cls._create_input_artifact(s1, 'plate1', 'H', '12')
-        a2 = cls._create_input_artifact(s2, 'plate1', 'H', '11')
-        step1 = cls._create_completed_process([a1], 'Awaiting User Response EG 2.0')
-        step2 = cls._create_completed_process([a1], 'Random Step Name', create_date=datetime(2018, 1, 1))
-
-        # Sample2 finishes once then get sequenced again then finishes again
-        step3 = cls._create_completed_process([a2], 'AUTOMATED - Sequence', create_date=datetime(2018, 1, 1))
-        step3 = cls._create_completed_process([a2], 'Data Release EG 2.0 ST', create_date=datetime(2018, 1, 15))
-        step4 = cls._create_completed_process([a2], 'AUTOMATED - Sequence', create_date=datetime(2018, 2, 1))
-        step5 = cls._create_completed_process([a2], 'Finish Processing EG 1.0 ST', create_date=datetime(2018, 2, 15))
-
-        l1 = cls._create_input_artifact(p2s1, 'FLOWCELL1', '1', '1')
-        l2 = cls._create_input_artifact(p2s2, 'FLOWCELL1', '1', '2')
-        l3 = cls._create_input_artifact(p2s3, 'FLOWCELL1', '1', '3')
-        l4 = cls._create_input_artifact(p2s4, 'FLOWCELL1', '1', '4')
-        l5 = cls._create_input_artifact(p2s1, 'FLOWCELL1', '1', '5')
-        l6 = cls._create_input_artifact(p2s2, 'FLOWCELL1', '1', '6')
-        l7 = cls._create_input_artifact(p2s3, 'FLOWCELL1', '1', '7')
-        l8 = cls._create_input_artifact(p2s4, 'FLOWCELL1', '1', '8')
-        run1 = cls._create_completed_process([l1, l2, l3, l4, l5, l6, l7, l8], 'AUTOMATED - Sequence',
-                                             create_date=datetime(2018, 3, 10), udfs={
-                'Run Status': 'RunCompleted', 'RunID': 'date_machine1_counter_FLOWCELL1',
-                'InstrumentID': 'machine1', 'Cycle': 310, 'Read': 3
-            })
-
-        cls.session.commit()
-
-    @classmethod
-    def _get_id(cls, klass):
-        cls.all_ids[klass] += 1
-        dbid = cls.all_ids[klass]
-        return dbid
-
-    @classmethod
-    def _create_project(cls, name, udfs=None, closed=False):
-        r = t.Researcher(firstname='Jane', lastname='Doe')
-        p = t.Project(projectid=cls._get_id(t.Project), name=name, opendate=datetime(2018, 1, 23), researcher=r)
-        if udfs:
-            p.udfs = [cls._create_project_udf(k, v, p.projectid) for k, v in udfs.items()]
-        if closed:
-            p.closedate = datetime(2018, 2, 28)
-        cls.session.add(p)
-        cls.session.commit()
-        return p
-
-    @classmethod
-    def _create_input_artifact(cls, sample, container_name, xpos, ypos, original=True):
-        container = t.Container(containerid=cls._get_id(t.Container), name=container_name)
-        placemment = t.ContainerPlacement(placementid=cls._get_id(t.ContainerPlacement), container=container,
-                                          wellxposition=xpos, wellyposition=ypos)
-        a = t.Artifact(artifactid=cls._get_id(t.Artifact), samples=[sample], containerplacement=placemment,
-                       isoriginal=original)
-        cls.session.add(a)
-        cls.session.commit()
-        return a
-
-    @classmethod
-    def _create_project_udf(cls, name, value, attachtoid):
-        udf = t.EntityUdfView(
-            udfname=name,
-            udtname='udtname',
-            udftype='udftype',
-            udfunitlabel='unit',
-            udfvalue=value,
-            attachtoid=attachtoid,
-            attachtoclassid=83
-        )
-        cls.session.add(udf)
-        cls.session.commit()
-        return udf
-
-    @classmethod
-    def _create_sample_udf(cls, name, value):
-        udf = t.SampleUdfView(
-            udfname=name,
-            udtname='udtname',
-            udftype='udftype',
-            udfunitlabel='unit',
-            udfvalue=value,
-        )
-        # Needs to add this udf to a sample
-        return udf
-
-    @classmethod
-    def _create_process_udf(cls, process_type, name, value):
-        udf = t.ProcessUdfView(
-            udfname=name,
-            typeid=process_type.typeid,
-            udtname='udtname',
-            udftype='udftype',
-            udfunitlabel='unit',
-            udfvalue=value,
-        )
-        # Needs to add this udf to a process
-        return udf
-
-    @classmethod
-    def _create_sample(cls, name, project, udfs=None):
-        p = t.Process(processid=cls._get_id(t.Process))
-        s = t.Sample(processid=p.processid, sampleid=cls._get_id(t.Sample), name=name, project=project)
-        if udfs:
-            s.udfs = [cls._create_sample_udf(k, v) for k, v in udfs.items()]
-        cls.session.add(p)
-        cls.session.add(s)
-        cls.session.commit()
-        return s
-
-    @classmethod
-    def _create_completed_process(cls, list_artifacts, step_name, create_date=None, udfs=None):
-        process_type = t.ProcessType(typeid=cls._get_id(t.ProcessType), displayname=step_name)
-        process = t.Process(processid=cls._get_id(t.Process), type=process_type, workstatus='COMPLETE',
-                            createddate=create_date or datetime(2018, 2, 10))
-        for a in list_artifacts:
-            t.ProcessIOTracker(trackerid=cls._get_id(t.ProcessIOTracker), artifact=a, process=process)
-        if udfs:
-            process.udfs = [cls._create_process_udf(process_type, k, v) for k, v in udfs.items()]
-        cls.session.add(process)
-        return process
+        cls.data_adder = DataAdder()
+        cls.data_adder.add_data_from_yaml(os.path.join(cls.assets_dir, 'data_for_clarity_lims.yaml'))
 
     def test_lims_project_info(self):
         response = self.client.get('/api/0.1/lims/project_info')
@@ -189,7 +57,8 @@ class TestLIMSRestAPI(TestBase):
                 'open_date': '2018-01-23T00:00:00',
                 'project_id': 'testproject1',
                 'project_status': 'open',
-                'researcher_name': 'Jane Doe'
+                'researcher_name': 'Jane Doe',
+                'udfs': {'Number of Quoted Samples': '9'}
             }]
         })
         response = self.client.get('/api/0.1/lims/project_info?match={"project_status": "closed"}')
@@ -202,7 +71,8 @@ class TestLIMSRestAPI(TestBase):
                 'open_date': '2018-01-23T00:00:00',
                 'project_id': 'testproject2',
                 'project_status': 'closed',
-                'researcher_name': 'Jane Doe'
+                'researcher_name': 'Jane Doe',
+                'udfs': {'Number of Quoted Samples': '9'}
             }]
         })
         response = self.client.get('/api/0.1/lims/project_info?match={"project_status": "all"}')
@@ -228,13 +98,12 @@ class TestLIMSRestAPI(TestBase):
     def test_lims_project_status(self):
         response = self.client.get('/api/0.1/lims/project_status')
         assert response.status_code == 200
-
         exp = {
             '_meta': {'total': 1},
             'data': [{
                 'close_date': None,
                 'finished_date': None,
-                'library_queue': ['sample1'],
+                'bioinformatics': ['sample1'],
                 'finished': ['sample2'],
                 'library_type': '',
                 'nb_quoted_samples': '9',
@@ -247,12 +116,10 @@ class TestLIMSRestAPI(TestBase):
                 'started_date': None,
                 'required_yield': '30',
                 'required_coverage': '15',
-                'status': {'finished': {
-                    'last_modified_date': '2018-02-15T00:00:00',
-                    'samples': ['sample2']},
-                    'library_queue': {
-                        'last_modified_date': '2018-02-10T00:00:00',
-                        'samples': ['sample1']}}
+                'status': {
+                    'finished': {'last_modified_date': '2018-02-15T00:00:00', 'samples': ['sample2'] },
+                    'bioinformatics': {'last_modified_date': '2018-02-11T00:00:00', 'samples': ['sample1']}
+                }
             }]
         }
         assert_json_equal(json_of_response(response), exp)
@@ -273,7 +140,7 @@ class TestLIMSRestAPI(TestBase):
         exp = {
             '_meta': {'total': 1},
             'data': [{
-                'library_queue': ['sample1'],
+                'bioinformatics': ['sample1'],
                 'finished': ['sample2'],
                 'library_type': '',
                 'nb_samples': 2,
@@ -284,10 +151,10 @@ class TestLIMSRestAPI(TestBase):
                 'required_coverage': '15',
                 'status': {'finished': {'last_modified_date': '2018-02-15T00:00:00',
                                         'samples': ['sample2']},
-                           'library_queue': {'last_modified_date': '2018-02-10T00:00:00',
+                           'bioinformatics': {'last_modified_date': '2018-02-11T00:00:00',
                                              'samples': ['sample1']}}
             }]}
-        assert json_of_response(response) == exp
+        assert_json_equal(json_of_response(response), exp)
 
     def test_lims_sample_status(self):
         response = self.client.get('/api/0.1/lims/sample_status?match={"sample_id":"sample1"}')
@@ -295,7 +162,7 @@ class TestLIMSRestAPI(TestBase):
         exp = {
             '_meta': {'total': 1},
             'data': [{
-                'current_status': 'library_queue',
+                'current_status': 'bioinformatics',
                 'finished_date': None,
                 'library_type': None,
                 'project_id': 'testproject1',
@@ -304,17 +171,24 @@ class TestLIMSRestAPI(TestBase):
                 'started_date': None,
                 'required_yield': '30',
                 'required_coverage': '15',
-                'statuses': [{
-                    'date': 'Feb 10 2018',
-                    'name': 'sample_submission',
-                    'processes': [
-                        {'date': 'Feb 10 2018', 'name': 'Awaiting User Response EG 2.0', 'process_id': 7,
-                         'type': 'complete'}
-                    ]
-                }
+                'statuses': [
+                    {
+                        'name': 'sample_submission',
+                        'date': 'Feb 10 2018',
+                        'processes': [
+                            {'name': 'Awaiting User Response EG 2.0', 'date': 'Feb 10 2018', 'type': 'complete', 'process_id': 7}
+                        ]},
+                    {
+                        'name': 'library_queue',
+                        'date': 'Feb 11 2018',
+                        'processes': [
+                            {'name': 'AUTOMATED - Sequence', 'date': 'Feb 11 2018', 'type': 'complete', 'process_id': 12}
+                        ]
+                    }
                 ]
             }]
         }
+
         assert_json_equal(json_of_response(response), exp)
 
         response = self.client.get('/api/0.1/lims/sample_status?match={"sample_id":"sample1"}&detailed=true')
@@ -333,17 +207,25 @@ class TestLIMSRestAPI(TestBase):
         assert response.status_code == 200
 
         exp = {
-            '_meta': {'total': 1},
-            'data': [{
-                'created_date': '2018-03-10T00:00:00',
-                'cst_date': None,
+            '_meta': {'total': 1}, 'data': [{
+                'created_date': '2018-02-11T00:00:00', 'cst_date': None, 'run_id': 'date_machine1_counter_FLOWCELL1',
+                'run_status': 'RunCompleted', 'sample_ids': ['sample1', 'sample2', 'sample3', 'sample4', 'sample5', 'sample6'],
+                'project_ids': ['testproject1', 'testproject2'],
+                'lanes': [
+                    {'lane': 1, 'samples': [{'sample_id': 'sample1', 'barcode': '001A IDT-ILMN TruSeq DNA-RNA UD 96 Indexes  Plate_UDI0001 (GAGATTCC-ATAGAGGC)'}]},
+                    {'lane': 2, 'samples': [{'sample_id': 'sample2', 'barcode': 'D703-D502 (CGCTCATT-ATAGAGGC)'}]},
+                    {'lane': 3, 'samples': [{'sample_id': 'sample3', 'barcode': 'D704-D502 (GAGATTCC-ATAGAGGC)'}]},
+                    {'lane': 4, 'samples': [{'sample_id': 'sample4', 'barcode': 'D701-D502 (ATTACTCG-ATAGAGGC)'}]},
+                    {'lane': 5, 'samples': [{'sample_id': 'sample5', 'barcode': 'D707-D502 (CTGAAGCT-ATAGAGGC)'}]},
+                    {'lane': 6, 'samples': [{'sample_id': 'sample6', 'barcode': 'D708-D502 (TAATGCGC-ATAGAGGC)'}]},
+                    {'lane': 7, 'samples': [{'sample_id': 'sample2', 'barcode': 'D703-D502 (CGCTCATT-ATAGAGGC)'},
+                                            {'sample_id': 'sample1', 'barcode': '001A IDT-ILMN TruSeq DNA-RNA UD 96 Indexes  Plate_UDI0001 (GAGATTCC-ATAGAGGC)'}]},
+                    {'lane': 8, 'samples': [{'sample_id': 'sample3', 'barcode': 'D704-D502 (GAGATTCC-ATAGAGGC)'},
+                                            {'sample_id': 'sample4', 'barcode': 'D701-D502 (ATTACTCG-ATAGAGGC)'}]}
+                ],
                 'instrument_id': 'machine1',
-                'nb_cycles': '310',
                 'nb_reads': '3',
-                'project_ids': ['testproject2'],
-                'run_id': 'date_machine1_counter_FLOWCELL1',
-                'run_status': 'RunCompleted',
-                'sample_ids': ['sample5', 'sample6', 'sample7', 'sample8']
+                'nb_cycles': '310'
             }]
         }
         assert_json_equal(json_of_response(response), exp)

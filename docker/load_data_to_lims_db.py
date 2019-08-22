@@ -74,12 +74,18 @@ class DataAdder:
         self.session.add(p)
         return p
 
-    def _create_input_artifact(self, name, samples, container_name, xpos, ypos, original=True):
+    def _create_input_artifact(self, name, samples, container_name, xpos, ypos, original=True, reagent_labels=None):
         container = t.Container(containerid=self._get_id(t.Container), name=container_name)
         placemment = t.ContainerPlacement(placementid=self._get_id(t.ContainerPlacement), container=container,
                                           wellxposition=xpos, wellyposition=ypos)
         a = t.Artifact(artifactid=self._get_id(t.Artifact), name=name, samples=samples, containerplacement=placemment,
                        isoriginal=original)
+        # Add reagent_labels to the artifacts
+        if reagent_labels:
+            a.reagentlabels = [self._create_reagent_label(reagent_label) for reagent_label in reagent_labels]
+        # Add the sample artifacts as ancestors to this artifact
+        ancestors = [self.lims_objects['artifacts'][s.name] for s in samples if s.name in self.lims_objects['artifacts']]
+        a.ancestors = ancestors
         self.session.add(a)
         return a
 
@@ -137,6 +143,11 @@ class DataAdder:
             process.udfs = [self._create_process_udf(process_type, k, v) for k, v in udfs.items()]
         self.session.add(process)
         return process
+
+    def _create_reagent_label(self, name):
+        r = t.ReagentLabel(labelid=self._get_id(t.ReagentLabel), name=name)
+        self.session.add(r)
+        return r
 
 
 if __name__ == "__main__":
