@@ -42,6 +42,7 @@ class TestLIMSRestAPI(TestBase):
 
         cls.patched_auth = patch('auth.DualAuth.authorized', return_value=True)
         cls.patched_auth.start()
+
         del cfg.content['lims_database']
         cls.data_adder = DataAdder()
         cls.data_adder.add_data_from_yaml(os.path.join(cls.assets_dir, 'data_for_clarity_lims.yaml'))
@@ -229,3 +230,119 @@ class TestLIMSRestAPI(TestBase):
             }]
         }
         assert_json_equal(json_of_response(response), exp)
+
+    def test_libraries(self):
+        response = self.client.get('/api/0.1/lims/library_info')
+        assert response.status_code == 200
+        exp = {
+            '_meta': {'total': 1},
+            'data': [
+                {
+                    'id': 'LP123456',
+                     'step_link': 'http://clarity.com/clarity/work-complete/14',
+                     'step_run': 1,
+                     'date_completed': None,
+                     'samples': [
+                        {'name': 'sample3', 'location': 'B:2', 'qc_flag': 'UNKNOWN', 'project_id': 'testproject2',
+                         'udfs': {'Original Conc. (nM)': '5', 'Species': 'Homo Sapiens','Raw CP': '167'}},
+                        {'name': 'sample4', 'location': 'C:2', 'qc_flag': 'UNKNOWN', 'project_id': 'testproject2',
+                         'udfs': {'Original Conc. (nM)': '5', 'Species': 'Homo Sapiens','Raw CP': '167'}},
+                        {'name': 'sample5', 'location': 'D:2', 'qc_flag': 'UNKNOWN', 'project_id': 'testproject2',
+                         'udfs': {'Original Conc. (nM)': '5', 'Species': 'Homo Sapiens','Raw CP': '167'}},
+                        {'name': 'sample6', 'location': 'E:2', 'qc_flag': 'UNKNOWN', 'project_id': 'testproject2',
+                         'udfs': {'Original Conc. (nM)': '5', 'Species': 'Homo Sapiens','Raw CP': '167'}}
+                    ],
+                    'protocol': 'Test',
+                    'nsamples': 4,
+                    'pc_qc_flag_pass': 0.0,
+                    'project_ids': ['testproject2']
+                }
+            ]
+        }
+        assert_json_equal(json_of_response(response), exp)
+
+        response = self.client.get('/api/0.1/lims/library_info?match={"sample_id":"sample5"}')
+        exp = {
+            '_meta': {'total': 1},
+            'data': [
+                {
+                    'id': 'LP123456',
+                     'step_link': 'http://clarity.com/clarity/work-complete/14',
+                     'step_run': 1,
+                     'date_completed': None,
+                     'samples': [
+                        {'name': 'sample5', 'location': 'D:2', 'qc_flag': 'UNKNOWN', 'project_id': 'testproject2',
+                         'udfs': {'Original Conc. (nM)': '5', 'Species': 'Homo Sapiens','Raw CP': '167'}},
+                    ],
+                    'protocol': 'Test',
+                    'nsamples': 1,
+                    'pc_qc_flag_pass': 0.0,
+                    'project_ids': ['testproject2']
+                }
+            ]
+        }
+        assert_json_equal(json_of_response(response), exp)
+
+    def test_genotyping(self):
+        response = self.client.get('/api/0.1/lims/genotyping_info')
+        assert response.status_code == 200
+        exp = {
+            '_meta': {'total': 1},
+            'data': [{
+                'id': 'GEN00001',
+                 'step_link': 'http://clarity.com/clarity/work-complete/15', 'step_run': 1,
+                 'date_completed': None,
+                 'samples': [
+                     {'name': 'sample3', 'location': 'B:2', 'qc_flag': 'UNKNOWN', 'project_id': 'testproject2',
+                      'udfs': {'Number of Calls (This Run)': '26', 'Number of Calls (Best Run)': '26'}},
+                     {'name': 'sample4', 'location': 'C:2', 'qc_flag': 'UNKNOWN', 'project_id': 'testproject2',
+                      'udfs': {'Number of Calls (This Run)': '21', 'Number of Calls (Best Run)': '26'}}
+                 ],
+                'protocol': 'Test',
+                'nsamples': 2,
+                'pc_qc_flag_pass': 0.0,
+                'project_ids': ['testproject2']
+            }]
+        }
+        assert_json_equal(json_of_response(response), exp)
+
+        response = self.client.get('/api/0.1/lims/genotyping_info?flatten=true')
+        exp = {
+            '_meta': {'total': 2},
+            'data': [
+                {
+                    'id': 'GEN00001',
+                    'step_link': 'http://clarity.com/clarity/work-complete/15',
+                    'step_run': 1,
+                    'date_completed': None,
+                    'protocol': 'Test',
+                    'project': 'testproject2',
+                    'name': 'sample3',
+                    'location': 'B:2',
+                    'udfs': {'Number of Calls (This Run)': '26', 'Number of Calls (Best Run)': '26'},
+                    'qc_flag': 'UNKNOWN',
+                    'project_id': 'testproject2'
+                },
+                {
+                    'id': 'GEN00001',
+                    'step_link': 'http://clarity.com/clarity/work-complete/15',
+                    'step_run': 1,
+                    'date_completed': None,
+                    'protocol': 'Test',
+                    'project': 'testproject2',
+                    'name': 'sample4',
+                    'location': 'C:2',
+                    'udfs': {'Number of Calls (This Run)': '21', 'Number of Calls (Best Run)': '26'},
+                    'qc_flag': 'UNKNOWN',
+                    'project_id': 'testproject2'
+                }
+            ]
+        }
+        assert_json_equal(json_of_response(response), exp)
+
+
+
+
+
+
+

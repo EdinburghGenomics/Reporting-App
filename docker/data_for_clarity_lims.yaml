@@ -8,36 +8,55 @@
 
 # This will create projects
 projects:
-    - { name: project1, udfs: { Number of Quoted Samples: 2 } }
-    - { name: project2, udfs: { Number of Quoted Samples: 250 } }
+    - { name: testproject1, udfs: { Number of Quoted Samples: 9 } }
+    - { name: testproject2, udfs: { Number of Quoted Samples: 9 }, closed: true }
 
 # This will create the samples and the associated root artifact
 # artifact can be referred to using the sample's name.
 samples:
-    - { name: sample1, project: project1,  udfs: { Required Yield (Gb): 30, Coverage (X): 15, Species: Gallus gallus }, artifact: { container_name: plate1, xpos: H, ypos: 11 } }
-    - { name: sample2, project: project1,  udfs: { Required Yield (Gb): 30, Coverage (X): 15, Species: Gallus gallus }, artifact: { container_name: plate1, xpos: H, ypos: 12 } }
-    - { name: sample3, project: project2,  udfs: { Required Yield (Gb): 120, Coverage (X): 30, Species: Homo Sapiens }, artifact: { container_name: plate2, xpos: A, ypos: 1 } }
-    - { name: sample4, project: project2,  udfs: { Required Yield (Gb): 120, Coverage (X): 30, Species: Homo Sapiens }, artifact: { container_name: plate2, xpos: A, ypos: 2 } }
-    - { name: sample5, project: project2,  udfs: { Required Yield (Gb): 120, Coverage (X): 30, Species: Homo Sapiens }, artifact: { container_name: plate2, xpos: A, ypos: 3 } }
-    - { name: sample6, project: project2,  udfs: { Required Yield (Gb): 120, Coverage (X): 30, Species: Homo Sapiens }, artifact: { container_name: plate2, xpos: A, ypos: 4 } }
+    - { name: sample1, project: testproject1,  udfs: { Required Yield (Gb): 30, Coverage (X): 15, Species: Gallus gallus },
+        artifact: { container_name: plate1, xpos: H, ypos: 11, reagent_labels: ['001A IDT-ILMN TruSeq DNA-RNA UD 96 Indexes  Plate_UDI0001 (GAGATTCC-ATAGAGGC)'] } }
+    - { name: sample2, project: testproject1,  udfs: { Required Yield (Gb): 30, Coverage (X): 15, Species: Gallus gallus },
+        artifact: { container_name: plate1, xpos: H, ypos: 12, reagent_labels: ['D703-D502 (CGCTCATT-ATAGAGGC)'] } }
+    - { name: sample3, project: testproject2,  udfs: { Required Yield (Gb): 120, Coverage (X): 30, Species: Homo Sapiens, Number of Calls (Best Run): 26 },
+        artifact: { container_name: plate2, xpos: A, ypos: 1, reagent_labels: ['D704-D502 (GAGATTCC-ATAGAGGC)'] } }
+    - { name: sample4, project: testproject2,  udfs: { Required Yield (Gb): 120, Coverage (X): 30, Species: Homo Sapiens, Number of Calls (Best Run): 26 },
+        artifact: { container_name: plate2, xpos: A, ypos: 2, reagent_labels: ['D701-D502 (ATTACTCG-ATAGAGGC)'] } }
+    - { name: sample5, project: testproject2,  udfs: { Required Yield (Gb): 120, Coverage (X): 30, Species: Homo Sapiens },
+        artifact: { container_name: plate2, xpos: A, ypos: 3, reagent_labels: ['D707-D502 (CTGAAGCT-ATAGAGGC)'] } }
+    - { name: sample6, project: testproject2,  udfs: { Required Yield (Gb): 120, Coverage (X): 30, Species: Homo Sapiens },
+        artifact: { container_name: plate2, xpos: A, ypos: 4, reagent_labels: ['D708-D502 (TAATGCGC-ATAGAGGC)'] } }
 
 # This will create additional artifacts (they will not be root artifact which are created at the same time as samples)
 artifacts:
-    - { name: l1, samples: sample1, container_name: FLOWCELL1, xpos: 1, ypos: 1 }
-    - { name: l2, samples: sample2, container_name: FLOWCELL1, xpos: 1, ypos: 2 }
-    - { name: l3, samples: sample3, container_name: FLOWCELL1, xpos: 1, ypos: 3 }
-    - { name: l4, samples: sample4, container_name: FLOWCELL1, xpos: 1, ypos: 4 }
-    - { name: l5, samples: sample5, container_name: FLOWCELL1, xpos: 1, ypos: 5 }
-    - { name: l6, samples: sample6, container_name: FLOWCELL1, xpos: 1, ypos: 6 }
-    - { name: l7, samples: [sample1, sample2], container_name: FLOWCELL1, xpos: 1, ypos: 7 }
-    - { name: l8, samples: [sample3, sample4], container_name: FLOWCELL1, xpos: 1, ypos: 8 }
+    - { name: l1, samples: sample1, container_name: FLOWCELL1, xpos: 1, ypos: 0 }
+    - { name: l2, samples: sample2, container_name: FLOWCELL1, xpos: 1, ypos: 1 }
+    - { name: l3, samples: sample3, container_name: FLOWCELL1, xpos: 1, ypos: 2 }
+    - { name: l4, samples: sample4, container_name: FLOWCELL1, xpos: 1, ypos: 3 }
+    - { name: l5, samples: sample5, container_name: FLOWCELL1, xpos: 1, ypos: 4 }
+    - { name: l6, samples: sample6, container_name: FLOWCELL1, xpos: 1, ypos: 5 }
+    - { name: l7, samples: [sample1, sample2], container_name: FLOWCELL1, xpos: 1, ypos: 6 }
+    - { name: l8, samples: [sample3, sample4], container_name: FLOWCELL1, xpos: 1, ypos: 7 }
+    - { name: lib3, samples: sample3, container_name: LP123456, xpos: 1, ypos: 1, udfs: {Original Conc. (nM): 5, Raw CP: 167} }
+    - { name: lib4, samples: sample4, container_name: LP123456, xpos: 1, ypos: 2, udfs: {Original Conc. (nM): 5, Raw CP: 167} }
+    - { name: lib5, samples: sample5, container_name: LP123456, xpos: 1, ypos: 3, udfs: {Original Conc. (nM): 5, Raw CP: 167} }
+    - { name: lib6, samples: sample6, container_name: LP123456, xpos: 1, ypos: 4, udfs: {Original Conc. (nM): 5, Raw CP: 167} }
+    - { name: gen3, samples: sample3, container_name: GEN00001, xpos: 1, ypos: 1 }
+    - { name: gen4, samples: sample4, container_name: GEN00001, xpos: 1, ypos: 2 }
+    - { name: outgen3, samples: sample3, udfs: {'Number of Calls (This Run)': 26} }
+    - { name: outgen4, samples: sample4, udfs: {'Number of Calls (This Run)': 21} }
 
-# This will create completed steps. The list of artifact refers to artifacts created in the "samples" or "artifacts" sections
+# This will create completed steps. The list of artifacts refers to artifacts created in the "samples" or "artifacts" sections
+# The list of output artifacts does as well.
 completed_steps:
     - { list_artifacts: [ sample1 ], name: Awaiting User Response EG 2.0, created_date: !!timestamp 2018-2-10, udfs: null}
     - { list_artifacts: [ sample2 ], name: AUTOMATED - Sequence,          created_date: !!timestamp 2018-1-1, udfs: null}
     - { list_artifacts: [ sample2 ], name: Data Release EG 2.0 ST,        created_date: !!timestamp 2018-1-15, udfs: null}
     - { list_artifacts: [ sample2 ], name: AUTOMATED - Sequence,          created_date: !!timestamp 2018-2-1, udfs: null}
     - { list_artifacts: [ sample2 ], name: Finish Processing EG 1.0 ST,   created_date: !!timestamp 2018-2-15, udfs: null}
-    - { list_artifacts: [l1, l2, l3, l4, l5, l6, l7, l8], name: AUTOMATED - Sequence,   created_date: !!timestamp 2018-3-10, udfs:
+    - { list_artifacts: [l1, l2, l3, l4, l5, l6, l7, l8], name: AUTOMATED - Sequence,   created_date: !!timestamp 2018-2-11, udfs:
       { 'Run Status': RunCompleted, RunID: 'date_machine1_counter_FLOWCELL1', InstrumentID: 'machine1', Cycle: 310, Read: 3 } }
+    - { list_artifacts: [ sample1 ], name: Random Step Name,              created_date: !!timestamp 2018-1-1, udfs: null}
+    - { list_artifacts: [ lib3, lib4, lib5, lib6 ], name: 'Eval qPCR Quant',      created_date: !!timestamp 2018-1-27, udfs: null}
+    - { list_artifacts: [ gen3, gen4 ], list_output_artifacts: [outgen3, outgen4],
+        name: 'QuantStudio Data Import EG 2.0',  created_date: !!timestamp 2018-1-27, udfs: null}

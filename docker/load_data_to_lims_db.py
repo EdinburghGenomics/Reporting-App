@@ -15,6 +15,7 @@ class DataAdder:
         self.session = get_session()
         self.all_ids = Counter()
         self.lims_objects = defaultdict(dict)
+        self.uniq_entities = defaultdict(dict)
 
     def add_data_from_yaml(self, yaml_file):
         """
@@ -53,6 +54,7 @@ class DataAdder:
 
         for step in data.get('completed_steps'):
             step['list_artifacts'] = [self.lims_objects['artifacts'][a] for a in step['list_artifacts']]
+            step['list_output_artifacts'] = [self.lims_objects['artifacts'][a] for a in step.get('list_output_artifacts', [])]
             self.lims_objects['steps'][step['name']] = self._create_completed_process(**step)
         self.session.commit()
 
@@ -74,12 +76,20 @@ class DataAdder:
         self.session.add(p)
         return p
 
-    def _create_input_artifact(self, name, samples, container_name, xpos, ypos, original=True, reagent_labels=None):
-        container = t.Container(containerid=self._get_id(t.Container), name=container_name)
-        placemment = t.ContainerPlacement(placementid=self._get_id(t.ContainerPlacement), container=container,
-                                          wellxposition=xpos, wellyposition=ypos)
+    def _create_input_artifact(self, name, samples, container_name=None, xpos=None, ypos=None, udfs=None, original=True,
+                               reagent_labels=None, qcflag=0):
+        if container_name:
+            container = t.Container(containerid=self._get_id(t.Container), name=container_name)
+            placemment = t.ContainerPlacement(placementid=self._get_id(t.ContainerPlacement), container=container,
+                                              wellxposition=xpos, wellyposition=ypos)
+        else:
+            placemment = None
+        artifact_state = t.ArtifactState(stateid=self._get_id(t.ArtifactState), qcflag=qcflag)
         a = t.Artifact(artifactid=self._get_id(t.Artifact), name=name, samples=samples, containerplacement=placemment,
-                       isoriginal=original)
+                       isoriginal=original, states=[artifact_state])
+        if udfs:
+            a.udfs = [self._create_artifact_udf(k, v) for k, v in udfs.items()]
+
         # Add reagent_labels to the artifacts
         if reagent_labels:
             a.reagentlabels = [self._create_reagent_label(reagent_label) for reagent_label in reagent_labels]
@@ -112,6 +122,17 @@ class DataAdder:
         )
         return udf
 
+    def _create_artifact_udf(self, name, value):
+        udf = t.ArtifactUdfView(
+            udfname=name,
+            udtname='udtname',
+            udftype='udftype',
+            udfunitlabel='unit',
+            udfvalue=value,
+        )
+        self.session.add(udf)
+        return udf
+
     def _create_process_udf(self, process_type, name, value):
         udf = t.ProcessUdfView(
             udfname=name,
@@ -133,12 +154,39 @@ class DataAdder:
         self.session.add(s)
         return s
 
-    def _create_completed_process(self, list_artifacts, name, created_date=None, udfs=None):
+    def uniq_Lab_protocol(self, name, **kwargs):
+        """Create a labprotocol entity if it does not exist already."""
+        if name not in self.uniq_entities[t.LabProtocol]:
+            self.uniq_entities[t.LabProtocol][name] = t.LabProtocol(
+                protocolid=self._get_id(t.LabProtocol),
+                protocolname=name,
+                **kwargs
+            )
+        return self.uniq_entities[t.LabProtocol].get(name)
+
+    def _create_completed_process(self, list_artifacts, name, list_output_artifacts=None, created_date=None, udfs=None, labprotocol='Test'):
         process_type = t.ProcessType(typeid=self._get_id(t.ProcessType), displayname=name)
+        if not labprotocol:
+            labprotocol = name
+
+        protocolstep = t.ProtocolStep(stepid=self._get_id(t.ProtocolStep),
+                                      labprotocol=self.uniq_Lab_protocol(labprotocol),
+                                      processtype=process_type)
+
         process = t.Process(processid=self._get_id(t.Process), type=process_type, workstatus='COMPLETE',
-                            createddate=created_date or datetime(2018, 2, 10))
-        for a in list_artifacts:
-            t.ProcessIOTracker(trackerid=self._get_id(t.ProcessIOTracker), artifact=a, process=process)
+                            protocolstep=protocolstep, createddate=created_date or datetime(2018, 2, 10))
+        # Create the input output linkage.
+        # Assusmes one output per input if output exists
+        for i, a in enumerate(list_artifacts):
+            if list_output_artifacts:
+                output_artifacts = [t.OutputMapping(
+                    mappingid=self._get_id(t.OutputMapping),
+                    outputartifactid=list_output_artifacts[i].artifactid
+                )]
+            else:
+                output_artifacts = []
+            t.ProcessIOTracker(trackerid=self._get_id(t.ProcessIOTracker), artifact=a, output=output_artifacts,
+                               process=process)
         if udfs:
             process.udfs = [self._create_process_udf(process_type, k, v) for k, v in udfs.items()]
         self.session.add(process)
