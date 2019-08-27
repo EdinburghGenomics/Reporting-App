@@ -252,7 +252,7 @@ class TestLIMSRestAPI(TestBase):
                         {'name': 'sample6', 'location': 'E:2', 'qc_flag': 'UNKNOWN', 'project_id': 'testproject2',
                          'udfs': {'Original Conc. (nM)': '5', 'Species': 'Homo Sapiens','Raw CP': '167'}}
                     ],
-                    'protocol': 'Test',
+                    'protocol': 'Protocol',
                     'nsamples': 4,
                     'pc_qc_flag_pass': 0.0,
                     'project_ids': ['testproject2']
@@ -274,7 +274,7 @@ class TestLIMSRestAPI(TestBase):
                         {'name': 'sample5', 'location': 'D:2', 'qc_flag': 'UNKNOWN', 'project_id': 'testproject2',
                          'udfs': {'Original Conc. (nM)': '5', 'Species': 'Homo Sapiens','Raw CP': '167'}},
                     ],
-                    'protocol': 'Test',
+                    'protocol': 'Protocol',
                     'nsamples': 1,
                     'pc_qc_flag_pass': 0.0,
                     'project_ids': ['testproject2']
@@ -298,7 +298,7 @@ class TestLIMSRestAPI(TestBase):
                      {'name': 'sample4', 'location': 'C:2', 'qc_flag': 'UNKNOWN', 'project_id': 'testproject2',
                       'udfs': {'Number of Calls (This Run)': '21', 'Number of Calls (Best Run)': '26'}}
                  ],
-                'protocol': 'Test',
+                'protocol': 'Protocol',
                 'nsamples': 2,
                 'pc_qc_flag_pass': 0.0,
                 'project_ids': ['testproject2']
@@ -315,7 +315,7 @@ class TestLIMSRestAPI(TestBase):
                     'step_link': 'http://clarity.com/clarity/work-complete/15',
                     'step_run': 1,
                     'date_completed': None,
-                    'protocol': 'Test',
+                    'protocol': 'Protocol',
                     'project': 'testproject2',
                     'name': 'sample3',
                     'location': 'B:2',
@@ -328,7 +328,7 @@ class TestLIMSRestAPI(TestBase):
                     'step_link': 'http://clarity.com/clarity/work-complete/15',
                     'step_run': 1,
                     'date_completed': None,
-                    'protocol': 'Test',
+                    'protocol': 'Protocol',
                     'project': 'testproject2',
                     'name': 'sample4',
                     'location': 'C:2',

@@ -156,7 +156,7 @@ def _resolve_artifact_reagent_labels(session, artifact_ids):
     """
     This function takes a list of artifact ids and return for each artifact the sample and reagent label pair.
     If the artifact id correspond to a pool, it resolve multiple sample/reagent label pairs.
-    Other wise it only returns one.
+    Otherwise it only returns one.
     """
     res = queries.artifact_reagent_labels(session, artifact_ids)
     artifact_to_label = defaultdict(set)
