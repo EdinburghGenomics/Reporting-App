@@ -46,8 +46,8 @@ PAGINATION_LIMIT = 100000
 X_DOMAINS = cfg['x_domains']
 X_HEADERS = ['Authorization']
 
-RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
-ITEM_METHODS = ['GET', 'PUT', 'PATCH', 'DELETE']
+RESOURCE_METHODS = ['GET', 'POST']
+ITEM_METHODS = ['GET', 'PUT', 'PATCH']
 
 CACHE_CONTROL = 'max-age=20'
 CACHE_EXPIRES = 20
@@ -58,3 +58,21 @@ DATE_FORMAT = '%d_%m_%Y_%H:%M:%S'
 if cfg.get('url_prefix') and cfg.get('api_version'):
     URL_PREFIX = cfg['url_prefix']
     API_VERSION = cfg['api_version']
+
+SWAGGER_INFO = {
+    'title': 'Reporting App REST API',
+    'version': '0.1',
+    'description': 'This is the API used to provide Quality control data to the Reporting app. '
+                   'The data comes from the local mongodb or from the LIMS database.',
+    'termsOfService': '',
+    'contact': {
+        'name': 'Edinburgh genomics clinical',
+        'url': 'https://github.com/EdinburghGenomics/Reporting-App'
+    },
+    'license': {
+        'name': 'MIT',
+        'url': 'https://github.com/EdinburghGenomics/Reporting-App/blob/master/LICENCE.md',
+    },
+    'schemes': ['http', 'https'],
+}
+

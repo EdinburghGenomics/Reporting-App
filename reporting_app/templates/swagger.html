@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.23.6/swagger-ui.css" >
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.23.6/swagger-ui-bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.23.6/swagger-ui-standalone-preset.js"></script>
+{% endblock %}
+
+{% block body %}
+<div id="swagger-ui"></div>
+
+<script>
+window.onload = function() {
+
+
+      // Begin Swagger UI call region
+      const ui = SwaggerUIBundle({
+        "dom_id": "#swagger-ui",
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "StandaloneLayout",
+        url: "{{ swagger_api }}",
+      })
+
+
+      // End Swagger UI call region
+
+
+  window.ui = ui
+}
+</script>
+</body>{% endblock %}

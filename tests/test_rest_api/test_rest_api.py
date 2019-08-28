@@ -339,10 +339,3 @@ class TestLIMSRestAPI(TestBase):
             ]
         }
         assert_json_equal(json_of_response(response), exp)
-
-
-
-
-
-
-

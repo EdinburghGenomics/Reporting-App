@@ -3,6 +3,7 @@ import eve
 import auth
 import flask_cors
 from eve.auth import requires_auth
+from eve_swagger import swagger
 from os.path import join, abspath, dirname
 from config import rest_config as cfg
 from rest_api import actions
@@ -17,6 +18,9 @@ app.on_inserted += database_hooks.post_insert_hook
 app.on_updated += database_hooks.post_update_hook
 app.on_pre_POST_actions += actions.start_action
 app.on_post_POST_actions += actions.add_to_action
+
+
+app.register_blueprint(swagger)
 
 
 def _create_url_with(base, route):

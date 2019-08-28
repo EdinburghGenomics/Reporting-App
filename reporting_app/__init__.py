@@ -107,6 +107,15 @@ def change_password():
     return render_template('login.html', 'Login', message='Bad request.')
 
 
+@app.route('/api-doc')
+@flask_login.login_required
+def swagger_doc():
+    return render_template(
+        'swagger.html',
+        swagger_api=cfg['swagger-api']
+        )
+
+
 @app.route('/runs/<view_type>')
 @flask_login.login_required
 def runs_report(view_type):
