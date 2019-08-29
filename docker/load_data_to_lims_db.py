@@ -87,17 +87,17 @@ class DataAdder:
                                reagent_labels=None, qcflag=0):
         """
         Create the sqlalchemy Artifact object.
-        if container name is provided it creates it and place the artifact in the provided x and y pos.
-        reagent label can also be added and so is the qcflag.
+        If container name is provided it creates it and place the artifact in the provided x and y pos.
+        Reagent label can also be added and so is the qcflag.
         """
         if container_name:
             container = t.Container(containerid=self._get_id(t.Container), name=container_name)
             placement = t.ContainerPlacement(placementid=self._get_id(t.ContainerPlacement), container=container,
                                               wellxposition=xpos, wellyposition=ypos)
         else:
-            placemment = None
+            placement = None
         artifact_state = t.ArtifactState(stateid=self._get_id(t.ArtifactState), qcflag=qcflag)
-        a = t.Artifact(artifactid=self._get_id(t.Artifact), name=name, samples=samples, containerplacement=placemment,
+        a = t.Artifact(artifactid=self._get_id(t.Artifact), name=name, samples=samples, containerplacement=placement,
                        isoriginal=original, states=[artifact_state])
         if udfs:
             a.udfs = [self._create_artifact_udf(k, v) for k, v in udfs.items()]
