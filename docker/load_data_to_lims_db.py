@@ -92,7 +92,7 @@ class DataAdder:
         """
         if container_name:
             container = t.Container(containerid=self._get_id(t.Container), name=container_name)
-            placemment = t.ContainerPlacement(placementid=self._get_id(t.ContainerPlacement), container=container,
+            placement = t.ContainerPlacement(placementid=self._get_id(t.ContainerPlacement), container=container,
                                               wellxposition=xpos, wellyposition=ypos)
         else:
             placemment = None
