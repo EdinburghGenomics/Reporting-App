@@ -3,7 +3,7 @@ import eve
 import auth
 import flask_cors
 from eve.auth import requires_auth
-from eve_swagger import swagger
+from eve_swagger import swagger, add_documentation
 from os.path import join, abspath, dirname
 from config import rest_config as cfg
 from rest_api import actions
@@ -21,6 +21,24 @@ app.on_post_POST_actions += actions.add_to_action
 
 
 app.register_blueprint(swagger)
+add_documentation({
+    'paths':
+    {
+        '/lims/status/project_status': {
+            'name': 'project_status',
+            'get': {
+                'parameters': [
+                    {
+                        'in': 'query', 'name': 'match', 'required': False,
+                        'description': 'special query parameter', 'type': 'object',
+                        'schema': {'project_id': 'A project id'}
+                    }
+                ],
+                'tags': ['project_status']
+            }
+        }
+    }
+})
 
 
 def _create_url_with(base, route):

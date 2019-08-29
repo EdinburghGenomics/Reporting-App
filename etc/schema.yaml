@@ -1,77 +1,76 @@
 runs:
-    run_id: {                   type: 'string',  required: True,  unique: True }
-    number_of_lanes: {          type: 'integer', required: False, min: 1, max: 8 }  # [1..8]
-    run_elements: {             type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
-    analysis_driver_procs: {    type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'analysis_driver_procs', field: 'proc_id', embeddable: True } } }
+    run_id: {                   type: 'string',  required: True,  unique: True, description: The unique identifier provided by the sequencer.}
+    number_of_lanes: {          type: 'integer', required: False, min: 1, max: 8, description: The number of lane found in this run.}
+    run_elements: {             type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'run_elements', field: 'run_element_id', embeddable: True } }, description: The run element ids associated with this run.}
+    analysis_driver_procs: {    type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'analysis_driver_procs', field: 'proc_id', embeddable: True } }, description: The Analysis Driver Process ids associated with this run.}
 
 
 lanes:
-    lane_id: {                  type: 'string',  required: True,  unique: True}
-    run_id: {                   type: 'string',  required: False }
-    lane_number: {              type: 'integer', required: False, min: 1, max: 8 }
-    run_elements: {             type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'run_elements', field: 'run_element_id', embeddable: True } } }
+    lane_id: {                  type: 'string',  required: True,  unique: True, description: Unique identifier created from the run id and the lane number.}
+    run_id: {                   type: 'string',  required: False, description: The id of the run associated with this lane. }
+    lane_number: {              type: 'integer', required: False, min: 1, max: 8, description: The lane number associated with this lane }
+    run_elements: {             type: 'list',    required: False, schema: { type: 'string', data_relation: { resource: 'run_elements', field: 'run_element_id', embeddable: True } }, description: The run element ids associated with this lane. }
     interop_metrics: {          type: 'dict',    required: False, schema: {
-        pc_clust_pf_r1:        {type: 'float'},
-        pc_clust_pf_stdev_r1:  {type: 'float'},
-        phasing_r1:            {type: 'float'},
-        prephasing_r1:         {type: 'float'},
-        pc_q30_r1:             {type: 'float'},
-        intensity_c1_r1:       {type: 'float'},
-        intensity_c1_stdev_r1: {type: 'float'},
-        pc_aligned_r1:         {type: 'float'},
-        pc_aligned_stdev_r1:   {type: 'float'},
-        pc_error_r1:           {type: 'float'},
-        pc_error_stdev_r1:     {type: 'float'},
-        yield_r1:              {type: 'float'},
-        pc_clust_pf_r2:        {type: 'float'},
-        pc_clust_pf_stdev_r2:  {type: 'float'},
-        phasing_r2:            {type: 'float'},
-        prephasing_r2:         {type: 'float'},
-        pc_q30_r2:             {type: 'float'},
-        intensity_c1_r2:       {type: 'float'},
-        intensity_c1_stdev_r2: {type: 'float'},
-        pc_aligned_r2:         {type: 'float'},
-        pc_aligned_stdev_r2:   {type: 'float'},
-        pc_error_r2:           {type: 'float'},
-        pc_error_stdev_r2:     {type: 'float'},
-        yield_r2:              {type: 'float'}
-    } }
+        pc_clust_pf_r1:        {type: 'float', description: Average percentage of cluster that pass the Illumina filter on read 1.},
+        pc_clust_pf_stdev_r1:  {type: 'float', description: Standard deviation (in percentage point) of cluster that pass the Illumina filter on read 1.},
+        phasing_r1:            {type: 'float', description: Phasing value for read 1.},
+        prephasing_r1:         {type: 'float', description: Prephasing value for read 1.},
+        pc_q30_r1:             {type: 'float', description: Percentage of cluster that have a average quality of 30 or more in read 1.},
+        intensity_c1_r1:       {type: 'float', description: Average intensity of base C in the first cycle of the first read.},
+        intensity_c1_stdev_r1: {type: 'float', description: Standard deviation intensity of base C in the first cycle of the first read.},
+        pc_aligned_r1:         {type: 'float', description: Average Percentage of cluster aligned to Phix genome using read 1.},
+        pc_aligned_stdev_r1:   {type: 'float', description: Standard deviation of cluster aligned to Phix genome using read 1.},
+        pc_error_r1:           {type: 'float', description: Average error rate using read 1 aligned to Phix.},
+        pc_error_stdev_r1:     {type: 'float', description: standard deviation error rate using read 1 aligned to Phix.},
+        yield_r1:              {type: 'float', description: Total Yield generated during read 1.},
+        pc_clust_pf_r2:        {type: 'float', description: Average percentage of cluster that pass the Illumina filter on read 2.},
+        pc_clust_pf_stdev_r2:  {type: 'float', description: Standard deviation (in percentage point) of cluster that pass the Illumina filter on read 2.},
+        phasing_r2:            {type: 'float', description: Phasing value for read 2.},
+        prephasing_r2:         {type: 'float', description: Prephasing value for read 2.},
+        pc_q30_r2:             {type: 'float', description: Percentage of cluster that have a average quality of 30 or more in read 2.},
+        intensity_c1_r2:       {type: 'float', description: Average intensity of base C in the first cycle of the second read.},
+        intensity_c1_stdev_r2: {type: 'float', description: Standard deviation intensity of base C in the first cycle of the second read.},
+        pc_aligned_r2:         {type: 'float', description: Average Percentage of cluster aligned to Phix genome using read 2.},
+        pc_aligned_stdev_r2:   {type: 'float', description: Standard deviation of cluster aligned to Phix genome using read 2.},
+        pc_error_r2:           {type: 'float', description: Average error rate using read 2 aligned to Phix.},
+        pc_error_stdev_r2:     {type: 'float', description: standard deviation error rate using read 2 aligned to Phix.},
+        yield_r2:              {type: 'float', description: Total Yield generated during read 2.}
+    }, description: Quality control values extracted from the interOp files in the run folder. }
 
 run_elements:
-    run_element_id: {           type: 'string',  required: True,  unique: True }
-
-    run_id: {                   type: 'string',  required: True }
-    lane: {                     type: 'integer', required: True }
-    barcode: {                  type: 'string',  required: False }
-    project_id: {               type: 'string',  required: True }
+    run_element_id: {           type: 'string',  required: True,  unique: True, description: The unique identifier composed of run_id, lane and barcode. }
+    run_id: {                   type: 'string',  required: True, description: The id of the run associated with this run element. }
+    lane: {                     type: 'integer', required: True, description: The lane associated with this run element. }
+    barcode: {                  type: 'string',  required: False, description: The barcode associated with this run element. }
+    project_id: {               type: 'string',  required: True, description: The id of the project associated with this run element. }
 
 #   for now, treat sample_id and library_id as 1:1 equivalent
-    library_id: {               type: 'string',  required: True }
-    sample_id: {                type: 'string',  required: True }
+    library_id: {               type: 'string',  required: True, description: This field is not currently used. }
+    sample_id: {                type: 'string',  required: True, description: The id of the sample associated with this run element. }
 
-    total_reads: {              type: 'integer', required: False }
-    passing_filter_reads: {     type: 'integer', required: False }
-    pc_reads_in_lane: {         type: 'float',   required: False }
+    total_reads: {              type: 'integer', required: False, description: The number of read pair (or cluster) generated in this run element. }
+    passing_filter_reads: {     type: 'integer', required: False, description: The number of read pair (or cluster) that pass the Illumina filter. }
+    pc_reads_in_lane: {         type: 'float',   required: False, description: The percentage of read pair in that run element out of the lane. }
 
-    bases_r1: {                 type: 'integer', required: False }
-    q30_bases_r1: {             type: 'integer', required: False }
-    bases_r2: {                 type: 'integer', required: False }
-    q30_bases_r2: {             type: 'integer', required: False }
+    bases_r1: {                 type: 'integer', required: False, description: The number of bases of reads passing the filter in read 1. }
+    q30_bases_r1: {             type: 'integer', required: False, description: The number of bases of quality 30 or greater in read 1. }
+    bases_r2: {                 type: 'integer', required: False, description: The number of bases of reads passing the filter in read 2. }
+    q30_bases_r2: {             type: 'integer', required: False, description: The number of bases of quality 30 or greater in read 2. }
 
-    adaptor_bases_removed_r1: { type: 'integer', required: False }
-    adaptor_bases_removed_r2: { type: 'integer', required: False }
+    adaptor_bases_removed_r1: { type: 'integer', required: False, description: The number of bases remove from read 1 during adaptor trimming. }
+    adaptor_bases_removed_r2: { type: 'integer', required: False, description: The number of bases remove from read 2 during adaptor trimming. }
 
-    lane_pc_optical_dups:     { type: 'float',   required: False }
+    lane_pc_optical_dups:     { type: 'float',   required: False, description:  }
 
-    phix_reads: {               type: 'integer', required: False }
-    clean_reads: {              type: 'integer', required: False }
-    clean_bases_r1: {           type: 'integer', required: False }
-    clean_q30_bases_r1: {       type: 'integer', required: False }
-    clean_bases_r2: {           type: 'integer', required: False }
-    clean_q30_bases_r2: {       type: 'integer', required: False }
+    phix_reads: {               type: 'integer', required: False, description:  }
+    clean_reads: {              type: 'integer', required: False, description:  }
+    clean_bases_r1: {           type: 'integer', required: False, description:  }
+    clean_q30_bases_r1: {       type: 'integer', required: False, description:  }
+    clean_bases_r2: {           type: 'integer', required: False, description:  }
+    clean_q30_bases_r2: {       type: 'integer', required: False, description:  }
 
-    fastqc_report_r1: {         type: 'string',  required: False }
-    fastqc_report_r2: {         type: 'string',  required: False }
+    fastqc_report_r1: {         type: 'string',  required: False, description:  }
+    fastqc_report_r2: {         type: 'string',  required: False, description:  }
 
     tiles_filtered: {           type: 'string',  required: False, nullable: True }
     trim_r1: {                  type: 'integer', required: False, nullable: True }

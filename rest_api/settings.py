@@ -66,7 +66,7 @@ SWAGGER_INFO = {
                    'The data comes from the local mongodb or from the LIMS database.',
     'termsOfService': '',
     'contact': {
-        'name': 'Edinburgh genomics clinical',
+        'name': 'Reporting App Github page',
         'url': 'https://github.com/EdinburghGenomics/Reporting-App'
     },
     'license': {
