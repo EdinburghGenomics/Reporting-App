@@ -185,7 +185,7 @@ class DataAdder:
                                   labprotocol='Protocol'):
         """Create a Process entity using the provided name, list of artifact both input and output.
         It assumes 1:1 relationship between the input and output.
-        The protocol name can provided but default to "protocol" if not
+        The protocol name can be provided but defaults to "protocol" if not
         """
         process_type = t.ProcessType(typeid=self._get_id(t.ProcessType), displayname=name)
         if not labprotocol:
