@@ -40,6 +40,7 @@ step_completed_to_status:
     FluidX Transfer From Rack Into Plate EG 1.0 ST: SAMPLE_QC
     Receive Sample 4.0: SAMPLE_QC
     Receive Sample EG 6.1: SAMPLE_QC
+    Sample Receipt EG 1.0 ST: SAMPLE_QC
     Awaiting User Response EG 2.0: LIBRARY_QUEUE
     Sequencing Plate Preparation EG 2.0: LIBRARY_QUEUE
     Sequencing Plate Preparation EG 1.0: LIBRARY_QUEUE
