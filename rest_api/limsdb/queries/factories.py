@@ -183,6 +183,7 @@ def run_status(session):
 
     all_runs = defaultdict(data_models.Run)
     all_lanes = {}
+    sample2project = {}
     for data in queries.runs_info(session, time_since=time_since, run_ids=run_ids):
         createddate, process_id, udf_name, udf_value, lane, artifact_id, sample_id, project_id = data
         run = all_runs[process_id]
@@ -195,10 +196,11 @@ def run_status(session):
             run.lanes[artifact_id] = all_lanes[artifact_id]
         run.samples.add(sample_id)
         run.projects.add(project_id)
+        sample2project[sample_id] = project_id
 
     for data in _resolve_artifact_reagent_labels(session, list(all_lanes)):
         artifact_id, barcode, sample_id = data
-        all_lanes[artifact_id]['samples'].append({'sample_id': sample_id, 'barcode': barcode})
+        all_lanes[artifact_id]['samples'].append({'project_id': sample2project[sample_id], 'sample_id': sample_id, 'barcode': barcode})
 
     for data in queries.runs_cst(session, time_since=time_since, run_ids=run_ids):
         process_id, cst_process_id, cst_date = data
