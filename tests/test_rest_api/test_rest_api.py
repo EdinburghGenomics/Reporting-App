@@ -206,23 +206,32 @@ class TestLIMSRestAPI(TestBase):
     def test_lims_run_status(self):
         response = self.client.get('/api/0.1/lims/run_status')
         assert response.status_code == 200
-
         exp = {
             '_meta': {'total': 1}, 'data': [{
                 'created_date': '2018-02-11T00:00:00', 'cst_date': None, 'run_id': 'date_machine1_counter_FLOWCELL1',
                 'run_status': 'RunCompleted', 'sample_ids': ['sample1', 'sample2', 'sample3', 'sample4', 'sample5', 'sample6'],
                 'project_ids': ['testproject1', 'testproject2'],
                 'lanes': [
-                    {'lane': 1, 'samples': [{'project_id': 'testproject1', 'sample_id': 'sample1', 'barcode': '001A IDT-ILMN TruSeq DNA-RNA UD 96 Indexes  Plate_UDI0001 (GAGATTCC-ATAGAGGC)'}]},
-                    {'lane': 2, 'samples': [{'project_id': 'testproject1', 'sample_id': 'sample2', 'barcode': 'D703-D502 (CGCTCATT-ATAGAGGC)'}]},
-                    {'lane': 3, 'samples': [{'project_id': 'testproject2', 'sample_id': 'sample3', 'barcode': 'D704-D502 (GAGATTCC-ATAGAGGC)'}]},
-                    {'lane': 4, 'samples': [{'project_id': 'testproject2', 'sample_id': 'sample4', 'barcode': 'D701-D502 (ATTACTCG-ATAGAGGC)'}]},
-                    {'lane': 5, 'samples': [{'project_id': 'testproject2', 'sample_id': 'sample5', 'barcode': 'D707-D502 (CTGAAGCT-ATAGAGGC)'}]},
-                    {'lane': 6, 'samples': [{'project_id': 'testproject2', 'sample_id': 'sample6', 'barcode': 'D708-D502 (TAATGCGC-ATAGAGGC)'}]},
-                    {'lane': 7, 'samples': [{'project_id': 'testproject1', 'sample_id': 'sample2', 'barcode': 'D703-D502 (CGCTCATT-ATAGAGGC)'},
-                                            {'project_id': 'testproject1', 'sample_id': 'sample1', 'barcode': '001A IDT-ILMN TruSeq DNA-RNA UD 96 Indexes  Plate_UDI0001 (GAGATTCC-ATAGAGGC)'}]},
-                    {'lane': 8, 'samples': [{'project_id': 'testproject2', 'sample_id': 'sample3', 'barcode': 'D704-D502 (GAGATTCC-ATAGAGGC)'},
-                                            {'project_id': 'testproject2', 'sample_id': 'sample4', 'barcode': 'D701-D502 (ATTACTCG-ATAGAGGC)'}]}
+                    {'lane': 1, 'samples': [{'project_id': 'testproject1', 'sample_id': 'sample1', 'artifact_id': '2-1',
+                                             'barcode': '001A IDT-ILMN TruSeq DNA-RNA UD 96 Indexes  Plate_UDI0001 (GAGATTCC-ATAGAGGC)'}]},
+                    {'lane': 2, 'samples': [{'project_id': 'testproject1', 'sample_id': 'sample2', 'artifact_id': '2-2',
+                                             'barcode': 'D703-D502 (CGCTCATT-ATAGAGGC)'}]},
+                    {'lane': 3, 'samples': [{'project_id': 'testproject2', 'sample_id': 'sample3', 'artifact_id': '2-3',
+                                             'barcode': 'D704-D502 (GAGATTCC-ATAGAGGC)'}]},
+                    {'lane': 4, 'samples': [{'project_id': 'testproject2', 'sample_id': 'sample4', 'artifact_id': '2-4',
+                                             'barcode': 'D701-D502 (ATTACTCG-ATAGAGGC)'}]},
+                    {'lane': 5, 'samples': [{'project_id': 'testproject2', 'sample_id': 'sample5', 'artifact_id': '2-5',
+                                             'barcode': 'D707-D502 (CTGAAGCT-ATAGAGGC)'}]},
+                    {'lane': 6, 'samples': [{'project_id': 'testproject2', 'sample_id': 'sample6', 'artifact_id': '2-6',
+                                             'barcode': 'D708-D502 (TAATGCGC-ATAGAGGC)'}]},
+                    {'lane': 7, 'samples': [{'project_id': 'testproject1', 'sample_id': 'sample2', 'artifact_id': '2-2',
+                                             'barcode': 'D703-D502 (CGCTCATT-ATAGAGGC)'},
+                                            {'project_id': 'testproject1', 'sample_id': 'sample1', 'artifact_id': '2-1',
+                                             'barcode': '001A IDT-ILMN TruSeq DNA-RNA UD 96 Indexes  Plate_UDI0001 (GAGATTCC-ATAGAGGC)'}]},
+                    {'lane': 8, 'samples': [{'project_id': 'testproject2', 'sample_id': 'sample3', 'artifact_id': '2-3',
+                                             'barcode': 'D704-D502 (GAGATTCC-ATAGAGGC)'},
+                                            {'project_id': 'testproject2', 'sample_id': 'sample4', 'artifact_id': '2-4',
+                                             'barcode': 'D701-D502 (ATTACTCG-ATAGAGGC)'}]}
                 ],
                 'instrument_id': 'machine1',
                 'nb_reads': '3',

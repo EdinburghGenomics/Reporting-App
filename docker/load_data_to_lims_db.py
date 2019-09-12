@@ -97,7 +97,8 @@ class DataAdder:
         else:
             placement = None
         artifact_state = t.ArtifactState(stateid=self._get_id(t.ArtifactState), qcflag=qcflag)
-        a = t.Artifact(artifactid=self._get_id(t.Artifact), name=name, samples=samples, containerplacement=placement,
+        artid = self._get_id(t.Artifact)
+        a = t.Artifact(artifactid=artid, luid='2-' + str(artid), name=name, samples=samples, containerplacement=placement,
                        isoriginal=original, states=[artifact_state])
         if udfs:
             a.udfs = [self._create_artifact_udf(k, v) for k, v in udfs.items()]

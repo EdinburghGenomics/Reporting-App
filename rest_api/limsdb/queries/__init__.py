@@ -202,7 +202,7 @@ def artifact_reagent_labels(session, artifacts):
     Only the one that occurs once are an accurate representation of the sample/reagent label relationship.
     """
     ancestors_artifact = aliased(t.Artifact)
-    q = session.query(t.Artifact.artifactid, ancestors_artifact.artifactid, t.ReagentLabel.name, t.Sample.name) \
+    q = session.query(t.Artifact.artifactid, ancestors_artifact.luid, t.ReagentLabel.name, t.Sample.name) \
         .join(ancestors_artifact, t.Artifact.ancestors) \
         .join(ancestors_artifact.reagentlabels) \
         .join(ancestors_artifact.samples)

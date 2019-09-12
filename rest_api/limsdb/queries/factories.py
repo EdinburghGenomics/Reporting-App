@@ -154,7 +154,7 @@ def project_info(session):
 
 def _resolve_artifact_reagent_labels(session, artifact_ids):
     """
-    This function takes a list of artifact ids and return for each artifact the sample and reagent label pair.
+    This function takes a list of artifact ids and return for each artifact the sample and reagent label pairs.
     If the artifact id correspond to a pool, it resolve multiple sample/reagent label pairs.
     Otherwise it only returns one.
     """
@@ -162,7 +162,7 @@ def _resolve_artifact_reagent_labels(session, artifact_ids):
     artifact_to_label = defaultdict(set)
     for r in res:
         artifact_id, ancestor_id, reagent_label, sample_name = r
-        artifact_to_label[(artifact_id, ancestor_id)].add((artifact_id, reagent_label, sample_name))
+        artifact_to_label[(artifact_id, ancestor_id)].add((artifact_id, ancestor_id, reagent_label, sample_name))
     return set([
         artifact_to_label[(artifact_id, ancestor_id)].pop()
         for (artifact_id, ancestor_id) in artifact_to_label
@@ -199,8 +199,13 @@ def run_status(session):
         sample2project[sample_id] = project_id
 
     for data in _resolve_artifact_reagent_labels(session, list(all_lanes)):
-        artifact_id, barcode, sample_id = data
-        all_lanes[artifact_id]['samples'].append({'project_id': sample2project[sample_id], 'sample_id': sample_id, 'barcode': barcode})
+        artifact_id, ancestor_id, barcode, sample_id = data
+        all_lanes[artifact_id]['samples'].append({
+            'project_id': sample2project[sample_id],
+            'sample_id': sample_id,
+            'barcode': barcode,
+            'artifact_id': ancestor_id
+        })
 
     for data in queries.runs_cst(session, time_since=time_since, run_ids=run_ids):
         process_id, cst_process_id, cst_date = data
