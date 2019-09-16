@@ -239,6 +239,12 @@ class TestLIMSRestAPI(TestBase):
             }]
         }
         assert_json_equal(json_of_response(response), exp)
+        # Specify the run_id
+        response = self.client.get('/api/0.1/lims/run_status?match={"run_id":"date_machine1_counter_FLOWCELL1"}')
+        assert_json_equal(json_of_response(response), exp)
+        # Specify the wrong run_id
+        response = self.client.get('/api/0.1/lims/run_status?match={"run_id":"date_machine1_counter_FLOWCELL2"}')
+        assert_json_equal(json_of_response(response), {'_meta': {'total': 0}, 'data': []})
 
     def test_libraries(self):
         response = self.client.get('/api/0.1/lims/library_info')
