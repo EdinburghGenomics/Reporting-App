@@ -43,9 +43,9 @@ echo "Started reporting app in $reporting_pid" >> $log_file
 if [ -e /opt/etc/data_for_clarity_lims.yaml ]
 then
      echo "Found lims data yaml file" >> $log_file
-    REPORTINGCONFIG=/opt/reporting.yaml PYTHONPATH=. /opt/python/bin/python docker/load_data_to_lims_db.py --yaml_file /opt/etc/data_for_clarity_lims.yaml
+    REPORTINGCONFIG=/opt/reporting.yaml PYTHONPATH=. /opt/python/bin/python docker/load_data_to_lims_db.py --yaml_file /opt/etc/data_for_clarity_lims.yaml >> $log_file 2>&1
 else
-    echo "/opt/etc/data_for_clarity_lims.yaml NOT FOUND"
+    echo "/opt/etc/data_for_clarity_lims.yaml NOT FOUND" >> $log_file
 fi
 
 wait $mongo_pid $reporting_pid
