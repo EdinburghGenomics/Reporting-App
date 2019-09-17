@@ -28,7 +28,7 @@
 <div id="heatmap" style="width: 80%; margin: auto;" class="heatmap"></div>
 
 <script>
-    init_heatmap('heatmap', '{{ container_id }}', '{{ lims_url }}', '{{ qc_url }}', '{{ ajax_token|safe }}',
+    init_heatmap('heatmap', '{{ container_id }}', '{{ lims_url }}', '{{ qc_url }}'
                  {{ plate_view_metrics|tojson|safe }}, '{{ plate_type }}');
 </script>
 

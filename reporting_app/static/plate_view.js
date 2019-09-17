@@ -40,7 +40,7 @@ function build_series(colour_metric) {
 }
 
 
-function init_heatmap(div_id, container_id, lims_url, qc_url, ajax_token, view_metrics, plate_type) {
+function init_heatmap(div_id, container_id, lims_url, qc_url, view_metrics, plate_type) {
     // Assign the metrics and create a button for each metric
     _.forEach(view_metrics, function(m) {
         var li = $('#button_' + m.name);

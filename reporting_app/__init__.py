@@ -637,7 +637,6 @@ def plot_genotyping(genotype):
         container_id=genotype,
         qc_url=util.construct_url('samples'),
         lims_url=util.construct_url('lims/genotyping_info'),
-        ajax_token=util.get_token(),
         plate_view_metrics=resolve_cols('genotype_plot_metrics'),
         plate_type='384'
     )
@@ -758,7 +757,6 @@ def sequencing_charts(view_type):
             util.construct_url('lanes', max_results=10000, where={'_created': {'$gte': time_str}}),
             util.construct_url('lims/run_status', createddate=time_str),
         ],
-        ajax_token=util.get_token(),
         merge_on='run_id',
         merge_properties=['run'],
         metric_options=resolve_cols('seq_plot_metrics'),
@@ -772,6 +770,16 @@ def tat_charts():
     return render_template(
         'tat_charts.html',
         'Turn around time charts',
-        api_url=util.construct_url('lims/sample_status', match={'project_status': 'all'}),
-        ajax_token=util.get_token()
+        api_url=util.construct_url('lims/sample_status', match={'project_status': 'all'})
+    )
+
+
+@app.route('/charts/bioinformatics')
+@flask_login.login_required
+def bioinformatics_trending():
+    return render_template(
+        'bioinformatics_trending.html',
+        'Bioinformatics trending',
+        proc_base=util.construct_url('analysis_driver_procs'),
+        stage_base=util.construct_url('analysis_driver_stages')
     )

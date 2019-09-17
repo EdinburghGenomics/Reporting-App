@@ -1,6 +1,4 @@
 import datetime
-from collections import OrderedDict
-
 import flask_login
 from json import dumps
 import auth
