@@ -32,7 +32,7 @@ var required_yields = function(dt_config) {
         $.ajax(
             {
                 url: dt_config.ajax_call.api_url,
-                headers: {'Authorization': dt_config.token},
+                headers: auth_header(),
                 dataType: 'json',
                 async: false,
                 success: function(result) { response = result; }
@@ -153,7 +153,7 @@ var _lims_review = function(dt_config, action_type, message_template) {
                     'action_type': action_type
                 },
                 async: true,
-                headers: {'Authorization': dt_config.token},
+                headers: auth_header(),
                 success: function(json) {
                     // on success write the link to the message div and change it to a success alert
                     var link = $('<a />', {href : json.data.action_info.lims_url, text:json.data.action_info.lims_url});
@@ -262,7 +262,7 @@ var configure_dt = function(dt_config) {
     var ajax_call = {
         'url': dt_config.api_url,
         'dataSrc': 'data',
-        'headers': {'Authorization': dt_config.token}
+        'headers': auth_header()
     }
     if (dt_config.data){
         ajax_call = null;
