@@ -108,7 +108,7 @@ QUnit.test('merge_multi_sources', function(assert) {
         observed_data = x.data;  // capture the results of merge_multi_sources
     }
 
-    merge_multi_sources(['an_api_url', 'another_api_url'], 'token', 'sample_id')('some_data', callback, 'some_settings')
+    merge_multi_sources(['an_api_url', 'another_api_url'], 'sample_id')('some_data', callback, 'some_settings')
 
     assert.deepEqual(
         observed_data,
@@ -158,7 +158,7 @@ QUnit.test('merge_lims_container_and_qc_data', function(assert) {
     // patching complete
 
     // Get the function that datatable will call
-    func = merge_lims_container_and_qc_data('lims_endpoint', 'qc_url', 'Token a_token', 'a_library');
+    func = merge_lims_container_and_qc_data('lims_endpoint', 'qc_url', 'a_library');
     // Create the call back where the test will occur
     var test_callback = function(data_json){
         assert.deepEqual(

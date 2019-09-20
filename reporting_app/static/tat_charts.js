@@ -157,12 +157,12 @@ function all_tat_charts(json){
 
 
 // Load the ajax call and call the call back method
-function load_ajax_call(url, token, callback){
+function load_ajax_call(url, callback){
     $.ajax({
         url: url,
         dataType: "json",
         async: true,
-        headers: {'Authorization': token},
+        headers: auth_header(),
         success: function(json) {
             if (callback !== undefined){
                 callback(json);
@@ -172,7 +172,7 @@ function load_ajax_call(url, token, callback){
 }
 
 // Load the ajax call and call the call back method then show a div and hide the loading message
-function load_graph(url, token, callback){
+function load_graph(url, callback){
     $('#loadingmessage').show();
     load_ajax_call(url, function(json){
         if (callback !== undefined){

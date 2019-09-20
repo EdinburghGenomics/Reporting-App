@@ -2,7 +2,6 @@
 var dt_merge_multi_sources = function(dt_config){
     return merge_multi_sources(
         dt_config.ajax_call.api_urls,
-        dt_config.token,
         dt_config.ajax_call.merge_on,
         dt_config.ajax_call.merged_properties
     );
@@ -11,7 +10,6 @@ var dt_merge_multi_sources = function(dt_config){
 var dt_merge_multi_sources_keep_first = function(dt_config){
     return merge_multi_sources_keep_first(
         dt_config.ajax_call.api_urls,
-        dt_config.token,
         dt_config.ajax_call.merge_on,
         dt_config.ajax_call.merged_properties
     );
@@ -20,8 +18,7 @@ var dt_merge_multi_sources_keep_first = function(dt_config){
 var dt_merge_lims_container_and_qc_data = function(dt_config){
     return merge_lims_container_and_qc_data(
         dt_config.ajax_call.lims_url,
-        dt_config.ajax_call.qc_url,
-        dt_config.token
+        dt_config.ajax_call.qc_url
     )
 }
 

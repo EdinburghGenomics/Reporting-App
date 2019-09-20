@@ -60,19 +60,16 @@ class TestReportingApp(Helper):
             username='a_user'
         )
     )
-    patched_get_token = patch('reporting_app.util.get_token', return_value='a_token')
 
     @classmethod
     def setUpClass(cls):
         reporting_app.app.testing = True
         cls.client = reporting_app.app.test_client()
         cls.mocked_current_user = cls.patched_current_user.start()
-        cls.patched_get_token.start()
 
     @classmethod
     def tearDownClass(cls):
         cls.patched_current_user.stop()
-        cls.patched_get_token.stop()
 
     def test_format_order(self):
         cols = (
@@ -97,8 +94,7 @@ class TestReportingApp(Helper):
             'cols': col_mappings['demultiplexing'],
             'api_url': cfg['rest_api'] + '/test_endpoint',
             'ajax_call': None,
-            'default_sort_col': [2, 'desc'],
-            'token': 'a_token'
+            'default_sort_col': [2, 'desc']
         }
         assert obs == exp
 
