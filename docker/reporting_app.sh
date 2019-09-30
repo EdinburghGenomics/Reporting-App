@@ -30,6 +30,15 @@ then
     cp -rv /opt/etc/db /data/
 fi
 
+# Load the data to the LIMS if it has been provided
+if [ -e /opt/etc/data_for_clarity_lims.yaml ]
+then
+     echo "Found lims data yaml file" >> $log_file
+    REPORTINGCONFIG=/opt/reporting.yaml PYTHONPATH=. /opt/python/bin/python docker/load_data_to_lims_db.py --yaml_file /opt/etc/data_for_clarity_lims.yaml >> $log_file 2>&1
+else
+    echo "/opt/etc/data_for_clarity_lims.yaml NOT FOUND" >> $log_file
+fi
+
 echo "Start mongodb" >> $log_file
 /opt/database/mongodb-linux-x86_64-rhel70-3.4.1/bin/mongod > /opt/database/mongod.log &
 mongo_pid=$!
@@ -38,14 +47,5 @@ echo "Start reporting app" >> $log_file
 REPORTINGCONFIG=/opt/reporting.yaml /opt/python/bin/python bin/run_app.py rest_api &
 reporting_pid=$!
 echo "Started reporting app in $reporting_pid" >> $log_file
-
-# Load the data to the LIMS if it has been provided
-if [ -e /opt/etc/data_for_clarity_lims.yaml ]
-then
-     echo "Found lims data yaml file" >> $log_file
-    REPORTINGCONFIG=/opt/reporting.yaml PYTHONPATH=. /opt/python/bin/python docker/load_data_to_lims_db.py --yaml_file /opt/etc/data_for_clarity_lims.yaml
-else
-    echo "/opt/etc/data_for_clarity_lims.yaml NOT FOUND"
-fi
 
 wait $mongo_pid $reporting_pid

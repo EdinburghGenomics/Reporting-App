@@ -247,7 +247,7 @@ class TestProject(TestCase):
         self.project = dm.Project()
         self.project.open_date = datetime(2015, 4, 1, 11, 45, 3, 367000)
         self.project.researcher_name = 'Joe Bloggs'
-        self.project.nb_quoted_samples = 2
+        self.project.udfs['Number of Quoted Samples'] = 2
         self.project.project_id = 'X99999'
 
     def test_to_json(self):

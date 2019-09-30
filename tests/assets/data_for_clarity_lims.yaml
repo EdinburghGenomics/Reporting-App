@@ -46,8 +46,7 @@ artifacts:
     - { name: outgen3, samples: sample3, udfs: {'Number of Calls (This Run)': 26} }
     - { name: outgen4, samples: sample4, udfs: {'Number of Calls (This Run)': 21} }
 
-# This will create completed steps. The list of artifacts refers to artifacts created in the "samples" or "artifacts" sections
-# The list of output artifacts does as well.
+# This will create completed steps. The list of artifact refers to artifacts created in the "samples" or "artifacts" sections
 completed_steps:
     - { list_artifacts: [ sample1 ], name: Awaiting User Response EG 2.0, created_date: !!timestamp 2018-2-10, udfs: null}
     - { list_artifacts: [ sample2 ], name: AUTOMATED - Sequence,          created_date: !!timestamp 2018-1-1, udfs: null}

@@ -31,7 +31,7 @@ RUN curl -O https://ftp.postgresql.org/pub/source/v9.6.1/postgresql-9.6.1.tar.gz
 RUN git clone https://github.com/EdinburghGenomics/Reporting-App.git \
     && cd Reporting-App \
     && PATH=$PATH:/opt/postgresql-9.6.1/bin /opt/python/bin/pip install -q -r requirements.txt \
-    && /opt/python/bin/pip install tornado
+    && /opt/python/bin/pip install tornado==4.4.2
 
 ADD reporting.yaml reporting_app.sh users.sqlite /opt/
 
