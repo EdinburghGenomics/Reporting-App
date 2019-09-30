@@ -201,6 +201,7 @@ def artifact_reagent_labels(session, artifacts):
     Retrieve all artifacts' ancestors with their samples and reagent labels.
     Only the one that occurs once are an accurate representation of the sample/reagent label relationship.
     """
+    # second artifact table to join artifacts with their ancestors
     ancestors_artifact = aliased(t.Artifact)
     q = session.query(t.Artifact.artifactid, ancestors_artifact.luid, t.ReagentLabel.name, t.Sample.name) \
         .join(ancestors_artifact, t.Artifact.ancestors) \
