@@ -1,91 +1,32 @@
 var chart;
-var api_datefmt = 'DD_MM_YYYY_00:00:00';
+var api_datefmt = 'DD_MM_YYYY_00:00:00';  // parse API timestamps as 00:00:00 that day
 
 
-function depaginate(baseurl, queries, callback) {
-    $.ajax({
-        url: build_api_url(baseurl, queries),
-        headers: auth_header(),
-        dataType: 'json',
-        success: function(initial_response) {
-            var total_pages = Math.ceil(initial_response._meta.total / initial_response._meta.max_results);
-            var data = initial_response.data;
+function add_entity_running_days(entity, entities_by_date, started_str, finished_str) {
+    /*
+    Find all the days a process was running, and increment all of those days by 1 in entities_by_date, e.g:
+    var entities_by_date = {day_1: 0, day_2, 0, day_3: 0};
+    add_entity_running_days({start: 'day_1', end: 'day_2'}, entities_by_date, 'start', 'end');
+    -> entities_by_date should now be {day_1: 1, day_2: 1, day_3: 0}
+    */
 
-            if (total_pages < 2) {  // no data, or only 1 page - no depagination needed
-                callback(data);
-            } else {
-                console.log('Depaginating ' + total_pages + ' pages from ' + baseurl + ', ' + JSON.stringify(queries));
-                var extra_pages = total_pages - 1;
-
-                if (extra_pages == 1) {  // only page 2 to get
-                    var _queries = JSON.parse(JSON.stringify(queries));
-                    _queries['page'] = 2;
-                    $.ajax({
-                        url: build_api_url(baseurl, _queries),
-                        headers: auth_header(),
-                        dataType: 'json',
-                        success: function(response) {
-                            // we already know the request was successful, so reponse is just the response text
-                            data = data.concat(response.data);
-                            callback(data);
-                        }
-                    });
-                } else {  // >2 more pages to get - pass through $.when
-                    var calls = _.map(_.range(2, total_pages + 1), function(p) {
-                        var _queries = JSON.parse(JSON.stringify(queries));
-                        _queries['page'] = p;
-                        return $.ajax({
-                            url: build_api_url(baseurl, _queries),
-                            headers: auth_header(),
-                            dataType: 'json'
-                        });
-                    });
-                    $.when.apply($, calls).then(function() {
-                        _.forEach(arguments, function(response) {
-                            // dealing with deferred requests, which could be successful or not, so response is an
-                            // object of response text, status and response object
-                            data = data.concat(response[0].data);
-                        });
-                        callback(data);
-                    });
-                }
-            }
-        }
-    });
-}
-
-
-function quantise_moment(m) {
-    return moment(m.format('YYYY-MM-DD'));
-}
-
-
-function add_entity_at(date, targets) {
-    if (targets[date]) {
-        targets[date] += 1;
-    } else {
-        targets[date] = 1;
-    }
-}
-
-
-function add_entity_running_days(entity, targets, started_str, finished_str) {
-    var start_date = moment(entity[started_str], api_datefmt);
-    var end_date = moment(entity[finished_str], api_datefmt);
-    var m = moment(start_date);
+    var start_date = moment.utc(entity[started_str], api_datefmt);
+    var end_date = moment.utc(entity[finished_str], api_datefmt);
+    var m = moment.utc(start_date);
 
     while(m <= end_date) {
-        add_entity_at(quantise_moment(m).valueOf(), targets);
+        entities_by_date[m.valueOf()] += 1;
         m = m.add(1, 'days');
     }
 }
 
 
 function build_bioinf_series(name, entities, start_key, end_key, start, end) {
+    // initialise series as {day_1: 0, day_2: 0, day_3: 0, ...} between start and end
     var entities_by_date = {};
-    var m = moment(start);
+    var m = moment.utc(start);
     while (m <= end) {
-        entities_by_date[quantise_moment(m).valueOf()] = 0;
+        entities_by_date[m.valueOf()] = 0;
         m = m.add(1, 'days');
     }
 
@@ -116,15 +57,17 @@ function init_bioinformatics_chart() {
 
 function load_bioinformatics_chart(proc_url, stage_url) {
     chart.showLoading();
-    var start_date = moment($('#date_from').val(), 'YYYY-MM-DD');
-    var end_date = moment($('#date_to').val(), 'YYYY-MM-DD');
+    var start_date = moment.utc($('#date_from').val(), 'YYYY-MM-DD');
+    var end_date = moment.utc($('#date_to').val(), 'YYYY-MM-DD');
     var include_stages = $('#include_stages').prop('checked');
 
-    var proc_filter = '{"start_date":{"$gt":"' + start_date.format(api_datefmt) + '"},"end_date":{"$lt":"' + end_date.format(api_datefmt) + '"}}';
-    var stage_filter = '{"date_started":{"$gt":"' + start_date.format(api_datefmt) + '"},"date_finished":{"$lt":"' + end_date.format(api_datefmt) + '"}}';
-
+    // clear the chart first
     _.forEach(chart.series, function(series) { series.remove(); });
 
+    var proc_filter = JSON.stringify({
+        'start_date': {'$gt': start_date.format(api_datefmt)},
+        'end_date': {'$lt': end_date.format(api_datefmt)}
+    });
     depaginate(proc_url, {where: proc_filter, max_results: 1000}, function(all_procs) {
         var split_procs = {
             'run': [],
@@ -132,6 +75,7 @@ function load_bioinformatics_chart(proc_url, stage_url) {
             'project': []
         }
         _.forEach(all_procs, function(proc) {
+            // e.g, {dataset_type: 'run'} gets pushed to split_procs.run
             split_procs[proc.dataset_type].push(proc);
         });
         chart.addSeries(build_bioinf_series('Run procs', split_procs.run, 'start_date', 'end_date', start_date, end_date));
@@ -140,6 +84,10 @@ function load_bioinformatics_chart(proc_url, stage_url) {
     });
 
     if (include_stages) {
+        var stage_filter = JSON.stringify({
+            'date_started': {'$gt': start_date.format(api_datefmt)},
+            'date_finished': {'$lt': end_date.format(api_datefmt)}
+        });
         depaginate(stage_url, {where: stage_filter, max_results: 1000}, function(all_stages) {
             var split_stages = {
                 'run': [],
@@ -147,6 +95,7 @@ function load_bioinformatics_chart(proc_url, stage_url) {
                 'project': []
             }
             _.forEach(all_stages, function(stage) {
+                // e.g, {stage_id: 'run_x_stage_1'} gets pushed to split_stages.run
                 var stage_type = stage['stage_id'].split('_')[0];
                 split_stages[stage_type].push(stage);
             });

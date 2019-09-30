@@ -326,3 +326,71 @@ QUnit.test('aggregate', function(assert) {
         [{y: "2", average_x: 2, count_x: 3}, {y: "4", average_x: 2, count_x:1}]
     );
 })
+
+QUnit.test('depagination', function(assert) {
+    // patching jquery
+    var original_ajax = $.ajax;
+    var original_when = $.when;
+
+    var fake_then = function(func) { func(fake_deferreds[0], fake_deferreds[1]);};
+    var fake_when = {
+        apply: function(jq, calls) {
+            return {then: fake_then}
+        }
+    };
+
+    var fake_ajax_calls = 0;
+    var fake_deferreds = [];
+
+    var fake_ajax_responses = [
+        {data: ['sample_1', 'sample_2'], _meta: {total: 5, max_results: 2}},
+        {data: ['sample_3', 'sample_4']},
+        {data: ['sample_5']}
+    ];
+
+    var fake_ajax = function(config) {
+        var data = fake_ajax_responses[fake_ajax_calls];
+        fake_ajax_calls += 1;
+
+        if (config.success) {
+            config.success(data);
+        } else {
+            fake_deferreds.push([data]);
+        }
+    };
+    $.ajax = fake_ajax;
+    $.when = fake_when;
+    // patching complete
+
+    // full depagination of >2 pages
+    var obs = null;
+    depaginate('http://base_url', {}, function(data) { obs = data;});
+    assert.deepEqual(obs, ['sample_1', 'sample_2', 'sample_3', 'sample_4', 'sample_5']);
+    assert.equal(fake_ajax_calls, 3);
+
+    // depagination of 2 pages
+    obs = null;
+    fake_ajax_calls = 0;
+    fake_ajax_responses = [
+        {data: ['sample_1', 'sample_2'], _meta: {total: 3, max_results: 2}},
+        {data: ['sample_3']}
+    ];
+    depaginate('http://base_url', {}, function(data) { obs = data;});
+    assert.deepEqual(obs, ['sample_1', 'sample_2', 'sample_3']);
+    assert.equal(fake_ajax_calls, 2);
+
+
+    // depagination of 1 page
+    obs = null;
+    fake_ajax_calls = 0;
+    fake_ajax_responses = [{data: ['sample_1', 'sample_2'], _meta: {total: 2, max_results:2}}];
+
+    depaginate('http://base_url', {}, function(data) { obs = data;});
+    assert.deepEqual(obs, ['sample_1', 'sample_2']);
+    assert.equal(fake_ajax_calls, 1);
+
+    // end patch
+    $.ajax = original_ajax;
+    $.when = original_when;
+    fake_ajax_calls = 0;
+});

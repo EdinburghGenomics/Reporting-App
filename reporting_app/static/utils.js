@@ -328,6 +328,59 @@ function format_point_tooltip(series_name, x, y, time_period, prefix,  suffix, n
 }
 
 
+function depaginate(baseurl, queries, callback) {
+    $.ajax({
+        url: build_api_url(baseurl, queries),
+        headers: auth_header(),
+        dataType: 'json',
+        success: function(initial_response) {
+            var total_pages = Math.ceil(initial_response._meta.total / initial_response._meta.max_results);
+            var data = initial_response.data;
+
+            if (total_pages <= 1) {  // no data, or only 1 page - no depagination needed
+                callback(data);
+            } else {
+                console.log('Depaginating ' + total_pages + ' pages from ' + baseurl + ', ' + JSON.stringify(queries));
+                var extra_pages = total_pages - 1;
+
+                if (extra_pages == 1) {  // only page 2 to get
+                    var _queries = JSON.parse(JSON.stringify(queries));
+                    _queries['page'] = 2;
+                    $.ajax({
+                        url: build_api_url(baseurl, _queries),
+                        headers: auth_header(),
+                        dataType: 'json',
+                        success: function(response) {
+                            // we already know the request was successful, so reponse is just the response text
+                            data = data.concat(response.data);
+                            callback(data);
+                        }
+                    });
+                } else {  // >2 more pages to get - pass through $.when
+                    var calls = _.map(_.range(2, total_pages + 1), function(p) {
+                        var _queries = JSON.parse(JSON.stringify(queries));
+                        _queries['page'] = p;
+                        return $.ajax({
+                            url: build_api_url(baseurl, _queries),
+                            headers: auth_header(),
+                            dataType: 'json'
+                        });
+                    });
+                    $.when.apply($, calls).then(function() {
+                        _.forEach(arguments, function(response) {
+                            // dealing with deferred requests, which could be successful or not, so response is an
+                            // object of response text, status and response object
+                            data = data.concat(response[0].data);
+                        });
+                        callback(data);
+                    });
+                }
+            }
+        }
+    });
+}
+
+
 function build_api_url(baseurl, query_args) {
     // baseurl: str - base url for the query
     // query_args: object - key/value pairs to pass into the query string
