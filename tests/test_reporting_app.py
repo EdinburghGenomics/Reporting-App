@@ -349,6 +349,7 @@ class TestReportingApp(Helper):
         self._test_render_template('/charts/seq/last_3_months')
         self._test_render_template('/charts/seq/last_12_months')
         self._test_render_template('/charts/tat')
+        self._test_render_template('/charts/bioinformatics')
 
     def test_project_status_report(self):
         self._test_render_template('/project_status/')

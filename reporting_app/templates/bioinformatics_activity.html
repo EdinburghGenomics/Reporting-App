@@ -12,7 +12,7 @@
 <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.10.3/math.min.js" crossorigin="anonymous"></script>
 
 <script src="{{ url_for('static', filename='utils.js') }}"></script>
-<script src="{{ url_for('static', filename='bioinformatics_trending.js') }}"></script>
+<script src="{{ url_for('static', filename='bioinformatics_activity.js') }}"></script>
 
 {% endblock %}
 
@@ -24,7 +24,7 @@
     <p>Include stages <input type="checkbox" id="include_stages" name="include_stages" /></p>
     <input type="submit" id="submit" />
 
-    <div id="trending_chart"></div>
+    <div id="activity_chart"></div>
 </div>
 
 <script>

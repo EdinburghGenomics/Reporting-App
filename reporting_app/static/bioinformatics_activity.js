@@ -45,9 +45,9 @@ function build_bioinf_series(name, entities, start_key, end_key, start, end) {
 
 
 function init_bioinformatics_chart() {
-    chart = Highcharts.chart('trending_chart', {
+    chart = Highcharts.chart('activity_chart', {
         chart: {scrollablePlotArea: {minWidth: 700}},
-        title: {text: 'Bioinformatics activity over time'},
+        title: {text: 'Bioinformatics pipeline activity'},
         xAxis: {type: 'datetime', title: {text: 'Date'}},
         yAxis: [{title: {text: 'n_entities'}}],
         series: []

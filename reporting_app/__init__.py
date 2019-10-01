@@ -776,10 +776,10 @@ def tat_charts():
 
 @app.route('/charts/bioinformatics')
 @flask_login.login_required
-def bioinformatics_trending():
+def bioinformatics_activity():
     return render_template(
-        'bioinformatics_trending.html',
-        'Bioinformatics trending',
+        'bioinformatics_activity.html',
+        'Bioinformatics pipeline activity',
         proc_base=util.construct_url('analysis_driver_procs'),
         stage_base=util.construct_url('analysis_driver_stages')
     )
