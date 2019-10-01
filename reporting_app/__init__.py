@@ -613,6 +613,8 @@ def plot_library(library):
             page_length=10
         ),
         container_id=library,
+        qc_url=util.construct_url('samples'),
+        lims_url=util.construct_url('lims/genotyping_info'),
         plate_view_metrics=resolve_cols('library_plot_metrics')
     )
 

@@ -61,8 +61,8 @@ function load_bioinformatics_chart(proc_url, stage_url) {
     var end_date = moment.utc($('#date_to').val(), 'YYYY-MM-DD');
     var include_stages = $('#include_stages').prop('checked');
 
-    // clear the chart first
-    _.forEach(chart.series, function(series) { series.remove(); });
+    // Clear the chart first. Removing multiple series means we need to iterate in reverse.
+    _.forEachRight(chart.series, function(series) { series.remove(); });
 
     var proc_filter = JSON.stringify({
         'start_date': {'$gt': start_date.format(api_datefmt)},
