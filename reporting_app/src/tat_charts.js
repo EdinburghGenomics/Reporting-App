@@ -1,3 +1,10 @@
+import _ from 'lodash';
+import $ from 'jquery';
+import moment from 'moment';
+import Highcharts from 'highcharts';
+import { build_api_url, auth_header, depaginate } from './utils.js'
+import { api_url } from '../client.config.js';
+
 
 var colour_palette = Highcharts.getOptions().colors;
 
@@ -172,8 +179,12 @@ function load_ajax_call(url, callback){
 }
 
 // Load the ajax call and call the call back method then show a div and hide the loading message
-function load_graph(url, callback){
+function load_graph(callback){
     $('#loadingmessage').show();
+    var url = build_api_url(
+        api_url + 'lims/sample_status',
+        {match: JSON.stringify({'project_status': 'all'})}
+    );
     load_ajax_call(url, function(json){
         if (callback !== undefined){
             callback(json);

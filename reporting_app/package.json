@@ -1,0 +1,23 @@
+{
+  "name": "reporting_app",
+  "version": "0.0.1",
+  "description": "Reporting-App client components",
+  "author": "mwhamgenomics",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "highcharts": "7.1.2",
+    "humanize-plus": "1.8.2",
+    "jquery": "1.11.0",
+    "lodash": "4.17.4",
+    "moment": "2.13.0"
+  },
+  "devDependencies": {
+    "babel-jest": "^24.9.0",
+    "jest": "^24.9.0"
+  },
+  "scripts": {
+    "test": "jest",
+    "flow": "flow check"
+  }
+}

@@ -1,5 +1,11 @@
+import _ from 'lodash';
+import $ from 'jquery';
+import {render_data} from './column_formatter.js';
+import { auth_header, merge_multi_sources } from './utils.js';
+
+
 // datatables specific functions for merge_multi_sources and merge_multi_sources_keep_first
-var dt_merge_multi_sources = function(dt_config){
+export var dt_merge_multi_sources = function(dt_config){
     return merge_multi_sources(
         dt_config.ajax_call.api_urls,
         dt_config.ajax_call.merge_on,
@@ -7,7 +13,7 @@ var dt_merge_multi_sources = function(dt_config){
     );
 }
 
-var dt_merge_multi_sources_keep_first = function(dt_config){
+export var dt_merge_multi_sources_keep_first = function(dt_config){
     return merge_multi_sources_keep_first(
         dt_config.ajax_call.api_urls,
         dt_config.ajax_call.merge_on,
@@ -15,7 +21,7 @@ var dt_merge_multi_sources_keep_first = function(dt_config){
     );
 }
 
-var dt_merge_lims_container_and_qc_data = function(dt_config){
+export var dt_merge_lims_container_and_qc_data = function(dt_config){
     return merge_lims_container_and_qc_data(
         dt_config.ajax_call.lims_url,
         dt_config.ajax_call.qc_url
@@ -23,7 +29,7 @@ var dt_merge_lims_container_and_qc_data = function(dt_config){
 }
 
 
-var required_yields = function(dt_config) {
+export var required_yields = function(dt_config) {
     return function(data, callback, settings) {
         var response;
         $.ajax(
@@ -44,7 +50,7 @@ var required_yields = function(dt_config) {
         var aggregated_data = d[0]['aggregated'];
         var result = [];
 
-        for (k in aggregated_data['required_yield']) {
+        for (var k in aggregated_data['required_yield']) {
             result.push(
                 {
                     'coverage': {'order': k.slice(0, -1), 'disp': k},
@@ -63,7 +69,7 @@ var required_yields = function(dt_config) {
 }
 
 
-var test_exist = function(variable){
+export var test_exist = function(variable){
     if ( variable instanceof Array ) {
         variable = variable.filter(function(n){ return n != null });
         return variable.length > 0;
@@ -71,13 +77,13 @@ var test_exist = function(variable){
     return variable !== undefined && variable !== null && variable;
 }
 
-var color_filter = function( row, data, dataIndex ) {
+export var color_filter = function( row, data, dataIndex ) {
     if (test_exist(data['trim_r1']) || test_exist(data['trim_r2']) || test_exist(data['tiles_filtered'])) {
           $(row).addClass('data-filtering');
     }
 }
 
-var color_data_source = function( row, data, dataIndex ) {
+export var color_data_source = function( row, data, dataIndex ) {
     if (
         _.has(data, 'aggregated.most_recent_proc.data_source')
         && _.has(data, 'aggregated.from_run_elements.useable_run_elements')
@@ -93,7 +99,7 @@ var color_data_source = function( row, data, dataIndex ) {
 }
 
 
-var lims_run_review = function(dt_config) {
+export var lims_run_review = function(dt_config) {
     return _lims_review(
         dt_config,
         'run_review',
@@ -102,7 +108,7 @@ var lims_run_review = function(dt_config) {
 }
 
 
-var lims_sample_review = function(dt_config) {
+export var lims_sample_review = function(dt_config) {
     return _lims_review(
         dt_config,
         'sample_review',
@@ -178,7 +184,7 @@ var _lims_review = function(dt_config, action_type, message_template) {
     }
 }
 
-function create_datatable(dt_config){
+export function create_datatable(dt_config){
     //Sets default value using Lodash.js
     _.defaults(dt_config, {'buttons': 'defaults'});
     $(document).ready(function(){
@@ -229,7 +235,7 @@ function format_child_row(row, dt_config, data){
 
 
 // Configure the buttons for datatable
-var configure_buttons = function(dt_config){
+export var configure_buttons = function(dt_config){
 
     var buttons_def = {
         'colvis': {extend: 'colvis', text: '<i class="fa fa-filter"></i>', titleAttr: 'Filter Columns'},

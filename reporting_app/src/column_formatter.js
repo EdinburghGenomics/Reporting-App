@@ -1,7 +1,6 @@
-/**
- * Author: mwhamgenomics
- * @module column_formatter.js
- */
+import moment from 'moment';
+import Humanize from 'humanize-plus';
+
 
 function render_data(data, type, row, meta, fmt) {
     if (!data && data !== 0) {
@@ -37,8 +36,8 @@ function get_samples(cell_object){
     return cell_object['samples']
 }
 
-function string_formatter(cell_data, fmt, row){
-    original_cell_data = cell_data;
+export function string_formatter(cell_data, fmt, row){
+    var original_cell_data = cell_data;
     // cast the cell data to a list, whether it's a single value, an object or already a list
     // this allows subsequent logic to safely assume it's handling a list
     if (cell_data instanceof Array) {
@@ -148,7 +147,7 @@ function string_formatter(cell_data, fmt, row){
 }
 
 
-function resolve_min_max_value(row, value){
+export function resolve_min_max_value(row, value){
     // find the value in row or return the original value;
     if (typeof value === 'object'){
         // object should be {field: "field_name", default: default_value}
@@ -170,7 +169,7 @@ function merge_column(data, row){
     return data + '-' + row[1]
 }
 
-function species_contamination_fmt(data, fmt){
+export function species_contamination_fmt(data, fmt){
     var best_species = [];
     for (var species in data['contaminant_unique_mapped']){
         if (data['contaminant_unique_mapped'][species] > 500){
@@ -203,7 +202,7 @@ function temporal_fmt(cell_data, fmt){
     }
 }
 
-function coverage_fmt(data, fmt, bases_at_X){
+export function coverage_fmt(data, fmt, bases_at_X){
     if ('bases_at_coverage' in data && bases_at_X in data['bases_at_coverage'] && 'genome_size' in data ) {
         return data['bases_at_coverage'][bases_at_X]/data['genome_size']*100;
     }
@@ -218,7 +217,7 @@ function coverage_5X_fmt(data, fmt){
 }
 
 
-function pipeline_used_fmt(data, fmt) {
+export function pipeline_used_fmt(data, fmt) {
     return data['name'] + ' (' + data['toolset_type'] + ' v' + data['toolset_version'] + ')'
 }
 

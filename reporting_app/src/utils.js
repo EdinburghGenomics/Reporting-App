@@ -1,5 +1,9 @@
+import _ from 'lodash';
+import $ from 'jquery';
+import moment from 'moment';
+
 //helper function to retrieve a function by name
-var get_function = function (fn_name){
+export const get_function = function (fn_name){
     var fn = window[fn_name];
     if(typeof fn === 'function') {
         return fn;
@@ -9,7 +13,7 @@ var get_function = function (fn_name){
 }
 
 // Helper function to copy an object
-function copy_obj(src) {
+export function copy_obj(src) {
   var target = {};
   for (var prop in src) {
     if (src.hasOwnProperty(prop)) {
@@ -24,7 +28,7 @@ function copy_obj(src) {
 // ------------------------------ //
 
 
-var merge_on_key = function (list_of_array, key) {
+export const merge_on_key = function (list_of_array, key) {
     var r = [],
         hash = Object.create(null);
 
@@ -44,7 +48,7 @@ var merge_on_key = function (list_of_array, key) {
 
 // merge several arrays of object based on given property but only keep object present in the first array
 // the other ones can add properties but no new objects
-var merge_on_key_keep_first_sub_properties = function (list_of_array, key, list_of_merge_property_names) {
+export const merge_on_key_keep_first_sub_properties = function (list_of_array, key, list_of_merge_property_names) {
     // Default list of property to empty array if it does not exist
     list_of_merge_property_names = list_of_merge_property_names || []
 
@@ -118,20 +122,20 @@ var _merge_multi_sources = function(api_urls, merging_key, merge_func, merged_pr
 // Create a function that send multiple ajax queries then merge the results keeping all entries (outer join)
 // api_urls: [url1, url2, ...]
 // merging_key: property name to merge on
-var merge_multi_sources = function(api_urls, merging_key){
+export const merge_multi_sources = function(api_urls, merging_key){
     return _merge_multi_sources(api_urls, merging_key, merge_on_key);
 }
 
 // Create a function that send multiple ajax queries then merge the results keeping entries form the first (left inner join)
 // api_urls: [url1, url2, ...]
 // merging_key: property name to merge on
-var merge_multi_sources_keep_first = function(api_urls, merging_key, merged_properties){
+export const merge_multi_sources_keep_first = function(api_urls, merging_key, merged_properties){
     return _merge_multi_sources(api_urls, merging_key, merge_on_key_keep_first_sub_properties, merged_properties);
 }
 
 // Create a function that will query the Lims endpoint for a single container,
 // then it will retrieve all sample_id and make a query to the qc_url the results will me merged on sample_id.
-function merge_lims_container_and_qc_data(lims_url, qc_url) {
+export function merge_lims_container_and_qc_data(lims_url, qc_url) {
     return function(data, callback, settings){
         $.ajax(
         {
@@ -176,7 +180,7 @@ function merge_lims_container_and_qc_data(lims_url, qc_url) {
 
 // Check that the variable exists, is not null
 // If it is an array, check that it is not empty or only containing null values
-var test_exist = function(variable){
+export const test_exist = function(variable){
     if ( variable instanceof Array ) {
         variable = variable.filter(function(n){ return n != null });
         return variable.length > 0;
@@ -185,7 +189,7 @@ var test_exist = function(variable){
 }
 
 // Calculate the number of significant decimal digits to show from a range of number.
-var significant_figures = function(array_of_number){
+export const significant_figures = function(array_of_number){
     if (_.every(array_of_number, Number.isInteger)){
         return 0;
     }
@@ -206,7 +210,7 @@ var significant_figures = function(array_of_number){
 }
 
 //get any percentile from an array
-var getPercentile = function(data, percentile) {
+export const getPercentile = function(data, percentile) {
     //because .sort() doesn't sort numbers correctly
     data.sort(function(a, b){ return a - b });
     var index = (percentile / 100) * data.length;
@@ -220,7 +224,7 @@ var getPercentile = function(data, percentile) {
 }
 
 
-function aggregate(list_object, toGroup, toAggregate, fn, output_field, val0) {
+export function aggregate(list_object, toGroup, toAggregate, fn, output_field, val0) {
     /*
     Use lodash.js to group, and aggregate the data provided in the list_object.
     The list of object will be group on a field and one or multiple aggregation function will be applied to one or
@@ -238,7 +242,7 @@ function aggregate(list_object, toGroup, toAggregate, fn, output_field, val0) {
     return _.chain(list_object)
             .groupBy(toGroup)
             .map(function(g, key) {
-                ret = {}
+                var ret = {}
                 // Because the key has been used as an object property, it has been cast to a string.
                 ret[toGroup] = key;
                 if (Array.isArray(toAggregate)){
@@ -258,15 +262,15 @@ function aggregate(list_object, toGroup, toAggregate, fn, output_field, val0) {
     }
 
 /*Functions for aggregation in the underscore pipeline*/
-var sum = function (objects, key) { return _.reduce(objects, function (sum, n) { return sum + _.get(n, key) }, 0) }
-var average = function (objects, key) {return sum(objects, key) / objects.length }
-var count = function (objects, key) { return objects.length }
-var extract = function (objects, key) { return objects.map( function(d){ return _.get(d, key);  }); }
-var quantile_box_plot = function (objects, key) {
+export const sum = function (objects, key) { return _.reduce(objects, function (sum, n) { return sum + _.get(n, key) }, 0) }
+export const average = function (objects, key) {return sum(objects, key) / objects.length }
+export const count = function (objects, key) { return objects.length }
+export const extract = function (objects, key) { return objects.map( function(d){ return _.get(d, key);  }); }
+export const quantile_box_plot = function (objects, key) {
     // Provide 5, 25, 50, 75, and 95 percentile from a list of objects and a key
     return math.quantileSeq(objects.map(function(d){return _.get(d, key)}), [0.05, .25, .5, .75, 0.95]);
 }
-var boxplot_values_outliers = function(objects, key) {
+export const boxplot_values_outliers = function(objects, key) {
     // This function returns an object containing standard values for a box plot
     // The 25, 50, and 75 percentile for the box
     // 1.5 time inter-quartile for the top and bottom whiskers
@@ -281,7 +285,7 @@ var boxplot_values_outliers = function(objects, key) {
         iqr = q3 - q1,
         lowerFence = q1 - (iqr * 1.5),
         upperFence = q3 + (iqr * 1.5),
-        outliers = [];
+        outliers = [],
         in_dist_data = [];
 
     for (var i = 0; i < data.length; i++) {
@@ -297,7 +301,7 @@ var boxplot_values_outliers = function(objects, key) {
 }
 
 /*Function for formatting tooltip text from a time data point*/
-function format_time_period(time_period, x) {
+export function format_time_period(time_period, x) {
     if (time_period=='date'){return moment(x).format("DD MMM YYYY");}
     if (time_period=='week'){return 'Week ' + moment(x).format("w YYYY");}
     if (time_period=='month'){return moment(x).format("MMM YYYY");}
@@ -305,9 +309,9 @@ function format_time_period(time_period, x) {
     return ""
 }
 
-function format_y_point(y, prefix, suffix, nb_decimal){return prefix + ' ' + y.toFixed(nb_decimal) + ' ' + suffix}
-function format_y_boxplot(options, prefix, suffix, nb_decimal){
-    res = [
+export function format_y_point(y, prefix, suffix, nb_decimal){return prefix + ' ' + y.toFixed(nb_decimal) + ' ' + suffix}
+export function format_y_boxplot(options, prefix, suffix, nb_decimal){
+    var res = [
        'low: ' + prefix + ' ' + options.low.toFixed(nb_decimal) + ' ' + suffix,
        '25pc: ' + prefix + ' '  + options.q1.toFixed(nb_decimal) + ' ' + suffix,
        'Median: ' + prefix + ' '  + options.median.toFixed(nb_decimal) + ' ' + suffix,
@@ -316,7 +320,7 @@ function format_y_boxplot(options, prefix, suffix, nb_decimal){
     ]
     return res.join('<br>');
 }
-function format_point_tooltip(series_name, x, y, time_period, prefix,  suffix, nb_decimal){
+export function format_point_tooltip(series_name, x, y, time_period, prefix,  suffix, nb_decimal){
     return  series_name + " --  " + format_time_period(time_period, x) + ": <br> " + format_y_point(y, prefix, suffix, nb_decimal);
 }
     function format_boxplot_tooltip(series_name, x, options, time_period, prefix, suffix, nb_decimal) {
@@ -328,7 +332,7 @@ function format_point_tooltip(series_name, x, y, time_period, prefix,  suffix, n
 }
 
 
-function depaginate(baseurl, queries, callback) {
+export function depaginate(baseurl, queries, callback) {
     $.ajax({
         url: build_api_url(baseurl, queries),
         headers: auth_header(),
@@ -381,7 +385,7 @@ function depaginate(baseurl, queries, callback) {
 }
 
 
-function build_api_url(baseurl, query_args) {
+export function build_api_url(baseurl, query_args) {
     // baseurl: str - base url for the query
     // query_args: object - key/value pairs to pass into the query string
     // e.g, build_api_url('localhost:5000', {'max_results': 25, 'page': 2});
@@ -396,7 +400,7 @@ function build_api_url(baseurl, query_args) {
 }
 
 
-function auth_header() {
+export function auth_header() {
     var parts = {};
     var token;
     var split_cookie = document.cookie.split(';');

@@ -1,9 +1,8 @@
+import $ from 'jquery';
+import { dt_merge_multi_sources, lims_run_review, required_yields, configure_buttons } from './datatable.js';
 
 
-
-
-
-QUnit.test('dt_merge_multi_sources', function(assert) {
+test('dt_merge_multi_sources', () => {
     // patching ajax
     var original_ajax = $.ajax;
     var fake_ajax = function(config) {
@@ -32,8 +31,7 @@ QUnit.test('dt_merge_multi_sources', function(assert) {
     var dt_config = {ajax_call: {api_urls: ['an_api_url', 'another_api_url'], merge_on: 'sample_id'}}
     dt_merge_multi_sources(dt_config)('some_data', callback, 'some_settings')
 
-    assert.deepEqual(
-        observed_data,
+    expect(observed_data).toEqual(
         [
             {sample_id: 'sample_1', x: 1, y: 4},
             {sample_id: 'sample_2', x: 2, y: 3}
@@ -44,7 +42,7 @@ QUnit.test('dt_merge_multi_sources', function(assert) {
 });
 
 
-QUnit.test('get_run_review', function(assert) {
+test('get_run_review', () => {
     // Mock a datatable config
     var dt_config = {review_entity_field: 'sample_ids'};
     var e, node, config;
@@ -68,22 +66,20 @@ QUnit.test('get_run_review', function(assert) {
     document.body.appendChild(reviewModal);
 
     lims_run_review(dt_config)(e, dt, node, config);
-    assert.equal(
-        modaltext.innerHTML,
+    expect(modaltext.innerHTML).toBe(
         'About to review the usability of run elements from 2 samples:<br>sample1<br>sample2'
-    )
-
+    );
 });
 
-QUnit.test('configure_buttons', function(assert) {
-    assert.deepEqual(
-        configure_buttons({'buttons': ['colvis']}),
+
+test('configure_buttons', () => {
+    expect(configure_buttons({'buttons': ['colvis']})).toEqual(
         [{extend: 'colvis', text: '<i class="fa fa-filter"></i>', titleAttr: 'Filter Columns'}]
     );
 });
 
 
-QUnit.test('required_yields', function(assert) {
+test('required_yields', () => {
     var test_data = {};
 
     // patching ajax
@@ -109,13 +105,12 @@ QUnit.test('required_yields', function(assert) {
     var _required_yields = required_yields({'ajax_call': {'api_url': 'a_url'}});
     _required_yields(undefined, fake_callback, undefined);
 
-    assert.deepEqual(
-        captured_result.data,
+    expect(captured_result.data).toEqual(
         [
             {'coverage': {'order': '15', 'disp': '15X'}, 'required_yield': 10, 'required_yield_q30': 8},
             {'coverage': {'order': '30', 'disp': '30X'}, 'required_yield': 20, 'required_yield_q30': 16}
         ]
-    )
+    );
 
     $.ajax = original_ajax;  // end patch
 });

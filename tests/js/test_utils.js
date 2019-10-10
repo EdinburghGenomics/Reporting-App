@@ -1,14 +1,18 @@
+import $ from 'jquery';
+import moment from 'moment';
+import {
+    merge_on_key, merge_on_key_keep_first_sub_properties, merge_multi_sources, merge_lims_container_and_qc_data,
+    test_exist, getPercentile, sum, average, count, extract, boxplot_values_outliers, format_time_period,
+    format_y_boxplot, format_y_point, aggregate, depaginate
+} from './utils.js'
 
-QUnit.test('merge_on_key', function(assert) {
+
+test('merge_on_key', () => {
     var datasrc1 = [{sample_id: 'sample_1', x: 1}, {sample_id: 'sample_2', x: 2}];
     var datasrc2 = [{sample_id: 'sample_2', y: 3}, {sample_id: 'sample_1', y: 4}];  // order within the data should not matter...
     var datasrc3 = [{sample_id: 'sample_1', x: 5}];  // should override x in datasrc1 as it's merged last
 
-    assert.deepEqual(
-        merge_on_key(
-            [datasrc1, datasrc2, datasrc3],
-            'sample_id'
-        ),
+    expect(merge_on_key([datasrc1, datasrc2, datasrc3], 'sample_id')).toEqual(
         [
             {sample_id: 'sample_1', x: 5, y: 4},
             {sample_id: 'sample_2', x: 2, y: 3}
@@ -17,16 +21,12 @@ QUnit.test('merge_on_key', function(assert) {
 });
 
 
-QUnit.test('merge_on_key_keep_first_sub_properties', function(assert) {
+test('merge_on_key_keep_first_sub_properties', () => {
     var datasrc1 = [{lane: '1', x: 1, run_id: 'run1'}, {lane: '2', x: 2, run_id: 'run1'}, {lane: '1', x: 3, run_id: 'run2'}];
     var datasrc2 = [{run_id: 'run1', y: 1}, {run_id: 'run2', y: 4}, {run_id: 'run3', y: 10}];  // run_3 should be ignored
 
     // Test with no key for the subsequent queries
-    assert.deepEqual(
-        merge_on_key_keep_first_sub_properties(
-            [datasrc1, datasrc2],
-            'run_id'
-        ),
+    expect(merge_on_key_keep_first_sub_properties([datasrc1, datasrc2], 'run_id')).toEqual(
         [
             {lane: '1', x: 1, run_id: 'run1', y: 1},
             {lane: '2', x: 2, run_id: 'run1', y: 1},
@@ -35,12 +35,7 @@ QUnit.test('merge_on_key_keep_first_sub_properties', function(assert) {
     );
 
     // Test with one key for the subsequent query
-    assert.deepEqual(
-        merge_on_key_keep_first_sub_properties(
-            [datasrc1, datasrc2],
-            'run_id',
-            ['d2']
-        ),
+    expect(merge_on_key_keep_first_sub_properties([datasrc1, datasrc2], 'run_id', ['d2'])).toEqual(
         [
             {lane: '1', x: 1, run_id: 'run1', 'd2': {y: 1, run_id: 'run1'}},
             {lane: '2', x: 2, run_id: 'run1', 'd2': {y: 1, run_id: 'run1'}},
@@ -53,12 +48,7 @@ QUnit.test('merge_on_key_keep_first_sub_properties', function(assert) {
     var datasrc3 = [{run_id: 'run1', z: 'a'}, {run_id: 'run2', z: 'b'}, {run_id: 'run3', z: 'c'}];  // run_3 should be ignored
 
     // Test with list of keys for the subsequent queries
-    assert.deepEqual(
-        merge_on_key_keep_first_sub_properties(
-            [datasrc1, datasrc2, datasrc3],
-            'run_id',
-            ['d2', 'd3']
-        ),
+    expect(merge_on_key_keep_first_sub_properties([datasrc1, datasrc2, datasrc3], 'run_id', ['d2', 'd3'])).toEqual(
         [
             {lane: '1', x: 1, run_id: 'run1', 'd2': {y: 1, run_id: 'run1'}, 'd3': {z: 'a', run_id: 'run1'}},
             {lane: '2', x: 2, run_id: 'run1', 'd2': {y: 1, run_id: 'run1'}, 'd3': {z: 'a', run_id: 'run1'}},
@@ -67,12 +57,7 @@ QUnit.test('merge_on_key_keep_first_sub_properties', function(assert) {
     );
 
     // Test with list of keys including on null
-    assert.deepEqual(
-        merge_on_key_keep_first_sub_properties(
-            [datasrc1, datasrc2, datasrc3],
-            'run_id',
-            [null, 'd3']
-        ),
+    expect(merge_on_key_keep_first_sub_properties([datasrc1, datasrc2, datasrc3], 'run_id', [null, 'd3'])).toEqual(
         [
             {lane: '1', x: 1, run_id: 'run1', y: 1, 'd3': {z: 'a', run_id: 'run1'}},
             {lane: '2', x: 2, run_id: 'run1', y: 1, 'd3': {z: 'a', run_id: 'run1'}},
@@ -82,7 +67,7 @@ QUnit.test('merge_on_key_keep_first_sub_properties', function(assert) {
 });
 
 
-QUnit.test('merge_multi_sources', function(assert) {
+test('merge_multi_sources', () => {
     // patching ajax
     var original_ajax = $.ajax;
     var fake_ajax = function(config) {
@@ -110,8 +95,7 @@ QUnit.test('merge_multi_sources', function(assert) {
 
     merge_multi_sources(['an_api_url', 'another_api_url'], 'sample_id')('some_data', callback, 'some_settings')
 
-    assert.deepEqual(
-        observed_data,
+    expect(observed_data).toEqual(
         [
             {sample_id: 'sample_1', x: 1, y: 4},
             {sample_id: 'sample_2', x: 2, y: 3}
@@ -121,7 +105,7 @@ QUnit.test('merge_multi_sources', function(assert) {
     $.ajax = original_ajax;  // end patch
 });
 
-QUnit.test('merge_lims_container_and_qc_data', function(assert) {
+test('merge_lims_container_and_qc_data', () => {
     // patching ajax
     var original_ajax = $.ajax;
     var ajax_number = -1;
@@ -146,23 +130,22 @@ QUnit.test('merge_lims_container_and_qc_data', function(assert) {
 
     // patching chart object
     var fake_func = function(config) {};
-    chart = {
+    window.chart = {
         addSeries: fake_func,
         hideLoading: fake_func,
         series: [{update: fake_func, remove: fake_func}],
         legend: {update: fake_func},
         colorAxis: [{update: fake_func}]
     };
-    metrics = {'a_metric': {'path': ['reporting_app', 'api']}};
-    active_colour_metric = 'a_metric';
+    window.metrics = {'a_metric': {'path': ['reporting_app', 'api']}};
+    window.active_colour_metric = 'a_metric';
     // patching complete
 
     // Get the function that datatable will call
-    func = merge_lims_container_and_qc_data('lims_endpoint', 'qc_url', 'a_library');
+    var func = merge_lims_container_and_qc_data('lims_endpoint', 'qc_url', 'a_library');
     // Create the call back where the test will occur
     var test_callback = function(data_json){
-        assert.deepEqual(
-        data_json,
+        expect(data_json).toEqual(
         {
             'data': [
                 {
@@ -197,11 +180,10 @@ QUnit.test('merge_lims_container_and_qc_data', function(assert) {
         }
     );
     }
-    // Call the cuntion as datatables would: this will run the test
+    // Call the function as datatables would: this will run the test
     func(null, test_callback, null)
 
-    assert.deepEqual(
-        mock_url_calls,
+    expect(mock_url_calls).toEqual(
         [
             'lims_endpoint',
             'qc_url?where={"$or":[{"sample_id":"sample_1"},{"sample_id":"sample_2"}]}&max_results=1000'
@@ -211,15 +193,15 @@ QUnit.test('merge_lims_container_and_qc_data', function(assert) {
 });
 
 
-QUnit.test('test_exist', function(assert) {
+test('test_exist', () => {
     var t;
-    assert.notOk(test_exist(t));
-    assert.notOk(test_exist(null));
-    assert.notOk(test_exist(''));
-    assert.notOk(test_exist([]));
-    assert.notOk(test_exist([null]));
-    assert.ok(test_exist('1, 2, 3'));
-    assert.ok(test_exist(['1', '2', '3']));
+    expect(test_exist(t)).toBeFalsy();
+    expect(test_exist(null)).toBeFalsy();
+    expect(test_exist('')).toBeFalsy();
+    expect(test_exist([])).toBeFalsy();
+    expect(test_exist([null])).toBeFalsy();
+    expect(test_exist('1, 2, 3')).toBeTruthy();
+    expect(test_exist(['1', '2', '3'])).toBeTruthy();
 });
 
 //Commented out because it does not pass in phantomJS
@@ -239,11 +221,8 @@ QUnit.test('test_exist', function(assert) {
 //});
 
 
-QUnit.test('getPercentile', function(assert) {
-    assert.equal(
-        getPercentile([10, 4, 23, 41, 32, 58, 29], 50),
-        29
-    );
+test('getPercentile', () => {
+    expect(getPercentile([10, 4, 23, 41, 32, 58, 29], 50)).toBe(29);
 })
 
 var list_object = [
@@ -254,50 +233,49 @@ var list_object = [
     {'x': 42, 'y': 4}
 ]
 
-QUnit.test('sum', function(assert) {
-    assert.equal(sum(list_object, 'x'), 50);
+test('sum', () => {
+    expect(sum(list_object, 'x')).toBe(50);
 })
 
-QUnit.test('average', function(assert) {
-    assert.equal(average(list_object, 'x'), 10);
+test('average', () => {
+    expect(average(list_object, 'x')).toBe(10);
 })
 
-QUnit.test('count', function(assert) {
-    assert.equal(count(list_object, 'x'), 5);
+test('count', () => {
+    expect(count(list_object, 'x')).toBe(5);
 })
 
-QUnit.test('extract', function(assert) {
-    assert.deepEqual(extract(list_object, 'x'), [1, 2, 3, 2, 42]);
+test('extract', () => {
+    expect(extract(list_object, 'x')).toEqual([1, 2, 3, 2, 42]);
 })
 
-QUnit.test('boxplot_values_outliers', function(assert) {
-    box = boxplot_values_outliers(list_object, 'x')
-    assert.deepEqual(box.values, [1, 2, 2, 3, 3]);
-    assert.deepEqual(box.outliers, [42]);
+test('boxplot_values_outliers', () => {
+    var box = boxplot_values_outliers(list_object, 'x')
+    expect(box.values).toEqual([1, 2, 2, 3, 3]);
+    expect(box.outliers).toEqual([42]);
 })
 
-QUnit.test('format_time_period', function(assert) {
-    d = moment('2018-06-22T00:00:00Z').valueOf()
-    assert.equal(format_time_period('date', d), '22 Jun 2018');
-    assert.equal(format_time_period('week', d), 'Week 25 2018');
-    assert.equal(format_time_period('month', d), 'Jun 2018');
-    assert.equal(format_time_period('quarter', d), 'Q2 2018');
+test('format_time_period', () => {
+    var d = moment('2018-06-22T00:00:00Z').valueOf()
+    expect(format_time_period('date', d)).toBe('22 Jun 2018');
+    expect(format_time_period('week', d)).toBe('Week 25 2018');
+    expect(format_time_period('month', d)).toBe('Jun 2018');
+    expect(format_time_period('quarter', d)).toBe('Q2 2018');
 })
 
-QUnit.test('format_y_point', function(assert) {
-    assert.deepEqual(format_y_point(1.234, 'prefix', 'suffix', 1), 'prefix 1.2 suffix');
-    assert.deepEqual(format_y_point(1, 'prefix', 'suffix', 1    ), 'prefix 1.0 suffix');
+test('format_y_point', () => {
+    expect(format_y_point(1.234, 'prefix', 'suffix', 1)).toBe('prefix 1.2 suffix');
+    expect(format_y_point(1, 'prefix', 'suffix', 1    )).toBe('prefix 1.0 suffix');
 })
 
-QUnit.test('format_y_boxplot', function(assert) {
-    options = {low: 2.0, q1: 3.0, median: 4.0, q3: 5.0, high: 6.0}
-    expected_html = 'low: prefix 2 suffix<br>25pc: prefix 3 suffix<br>Median: prefix 4 suffix<br>75pc: prefix 5 suffix<br>high: prefix 6 suffix'
-    assert.equal(format_y_boxplot(options, 'prefix', 'suffix'), expected_html);
+test('format_y_boxplot', () => {
+    var options = {low: 2.0, q1: 3.0, median: 4.0, q3: 5.0, high: 6.0}
+    var expected_html = 'low: prefix 2 suffix<br>25pc: prefix 3 suffix<br>Median: prefix 4 suffix<br>75pc: prefix 5 suffix<br>high: prefix 6 suffix'
+    expect(format_y_boxplot(options, 'prefix', 'suffix')).toBe(expected_html);
 })
 
-QUnit.test('aggregate', function(assert) {
-    assert.deepEqual(
-        aggregate(list_object, 'y', ['x', 'x'], [average, count], ['average_x', 'count_x'], null),
+test('aggregate', () => {
+    expect(aggregate(list_object, 'y', ['x', 'x'], [average, count], ['average_x', 'count_x'], null)).toEqual(
         [{y: "2", average_x: 2, count_x: 3}, {y: "4", average_x: 22, count_x:2}]
     );
 
@@ -308,8 +286,7 @@ QUnit.test('aggregate', function(assert) {
         {'x': 2, 'y': 4},
         {'x': 0, 'y': 4}
     ];
-    assert.deepEqual(
-        aggregate(list_object2, 'y', ['x', 'x'], [average, count], ['average_x', 'count_x'], null),
+    expect(aggregate(list_object2, 'y', ['x', 'x'], [average, count], ['average_x', 'count_x'], null)).toEqual(
         [{y: "2", average_x: 2, count_x: 3}, {y: "4", average_x: 1, count_x:2}]
     );
 
@@ -321,13 +298,12 @@ QUnit.test('aggregate', function(assert) {
         {'x': null, 'y': 4}
     ]
     // Null values should be filtered out
-    assert.deepEqual(
-        aggregate(list_object2, 'y', ['x', 'x'], [average, count], ['average_x', 'count_x'], null),
+    expect(aggregate(list_object2, 'y', ['x', 'x'], [average, count], ['average_x', 'count_x'], null)).toEqual(
         [{y: "2", average_x: 2, count_x: 3}, {y: "4", average_x: 2, count_x:1}]
     );
 })
 
-QUnit.test('depagination', function(assert) {
+test('depagination', () => {
     // patching jquery
     var original_ajax = $.ajax;
     var original_when = $.when;
@@ -365,8 +341,8 @@ QUnit.test('depagination', function(assert) {
     // full depagination of >2 pages
     var obs = null;
     depaginate('http://base_url', {}, function(data) { obs = data;});
-    assert.deepEqual(obs, ['sample_1', 'sample_2', 'sample_3', 'sample_4', 'sample_5']);
-    assert.equal(fake_ajax_calls, 3);
+    expect(obs).toEqual(['sample_1', 'sample_2', 'sample_3', 'sample_4', 'sample_5']);
+    expect(fake_ajax_calls).toBe(3);
 
     // depagination of 2 pages
     obs = null;
@@ -376,8 +352,8 @@ QUnit.test('depagination', function(assert) {
         {data: ['sample_3']}
     ];
     depaginate('http://base_url', {}, function(data) { obs = data;});
-    assert.deepEqual(obs, ['sample_1', 'sample_2', 'sample_3']);
-    assert.equal(fake_ajax_calls, 2);
+    expect(obs).toEqual(['sample_1', 'sample_2', 'sample_3']);
+    expect(fake_ajax_calls).toBe(2);
 
 
     // depagination of 1 page
@@ -386,8 +362,8 @@ QUnit.test('depagination', function(assert) {
     fake_ajax_responses = [{data: ['sample_1', 'sample_2'], _meta: {total: 2, max_results:2}}];
 
     depaginate('http://base_url', {}, function(data) { obs = data;});
-    assert.deepEqual(obs, ['sample_1', 'sample_2']);
-    assert.equal(fake_ajax_calls, 1);
+    expect(obs).toEqual(['sample_1', 'sample_2']);
+    expect(fake_ajax_calls).toBe(1);
 
     // end patch
     $.ajax = original_ajax;

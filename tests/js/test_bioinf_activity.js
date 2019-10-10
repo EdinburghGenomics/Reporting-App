@@ -1,5 +1,8 @@
+import moment from 'moment';
+import { add_entity_running_days, build_bioinf_series } from './bioinformatics_activity.js';
 
-QUnit.test('entity_running_days', function(assert) {
+
+test('entity_running_days', () => {
     var entities_by_date = {
         1546300800000: 0,  // 2019-01-01
         1546387200000: 0,  // 2019-01-02
@@ -15,33 +18,25 @@ QUnit.test('entity_running_days', function(assert) {
         {'start': '02_01_2019_17:00:00', 'end': '03_01_2019_09:00:00'},
         entities_by_date, 'start', 'end'
     );
-    assert.deepEqual(
-        entities_by_date,
-        {
-            1546300800000: 1,
-            1546387200000: 2,
-            1546473600000: 1,
-            1546560000000: 0
-        }
-    );
+    expect(entities_by_date).toEqual({1546300800000: 1, 1546387200000: 2, 1546473600000: 1, 1546560000000: 0});
 });
 
 
-QUnit.test('build_series', function(assert) {
-    assert.deepEqual(
-        build_bioinf_series(
-            'a_series',
-            [
-                {'start': '01_01_2019_00:00:00', 'end': '02_01_2019_00:00:00'},
-                {'start': '01_01_2019_23:59:59', 'end': '02_01_2019_00:00:01'},
-                {'start': '01_01_2019_12:00:00', 'end': '01_01_2019_12:00:01'},
-                {'start': '04_01_2019_12:00:00', 'end': '05_01_2019_12:00:00'}
-            ],
-            'start',
-            'end',
-            moment.utc('2019-01-01'),
-            moment.utc('2019-01-05')
-        ),
+test('build_series', () => {
+    var obs = build_bioinf_series(
+        'a_series',
+        [
+            {'start': '01_01_2019_00:00:00', 'end': '02_01_2019_00:00:00'},
+            {'start': '01_01_2019_23:59:59', 'end': '02_01_2019_00:00:01'},
+            {'start': '01_01_2019_12:00:00', 'end': '01_01_2019_12:00:01'},
+            {'start': '04_01_2019_12:00:00', 'end': '05_01_2019_12:00:00'}
+        ],
+        'start',
+        'end',
+        moment.utc('2019-01-01'),
+        moment.utc('2019-01-05')
+    );
+    expect(obs).toEqual(
         {
             'name': 'a_series',
             'data': [

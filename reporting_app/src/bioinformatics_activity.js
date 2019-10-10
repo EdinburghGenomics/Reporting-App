@@ -1,8 +1,15 @@
-var chart;
+import _ from 'lodash';
+import $ from 'jquery';
+import moment from 'moment';
+import Highcharts from 'highcharts';
+import { build_api_url, auth_header, depaginate } from './utils.js'
+import { api_url } from '../client.config.js';
+
+
 var api_datefmt = 'DD_MM_YYYY_00:00:00';  // parse API timestamps as 00:00:00 that day
 
 
-function add_entity_running_days(entity, entities_by_date, started_str, finished_str) {
+export function add_entity_running_days(entity, entities_by_date, started_str, finished_str) {
     /*
     Find all the days a process was running, and increment all of those days by 1 in entities_by_date, e.g:
     var entities_by_date = {day_1: 0, day_2, 0, day_3: 0};
@@ -21,7 +28,7 @@ function add_entity_running_days(entity, entities_by_date, started_str, finished
 }
 
 
-function build_bioinf_series(name, entities, start_key, end_key, start, end) {
+export function build_bioinf_series(name, entities, start_key, end_key, start, end) {
     // initialise series as {day_1: 0, day_2: 0, day_3: 0, ...} between start and end
     var entities_by_date = {};
     var m = moment.utc(start);
@@ -45,18 +52,24 @@ function build_bioinf_series(name, entities, start_key, end_key, start, end) {
 
 
 function init_bioinformatics_chart() {
-    chart = Highcharts.chart('activity_chart', {
+    window.chart = Highcharts.chart('activity_chart', {
         chart: {scrollablePlotArea: {minWidth: 700}},
         title: {text: 'Bioinformatics pipeline activity'},
         xAxis: {type: 'datetime', title: {text: 'Date'}},
         yAxis: [{title: {text: 'n_entities'}}],
         series: []
     });
+
+    $('#submit').click(function() {
+        load_bioinformatics_chart();
+    });
 }
 
 
-function load_bioinformatics_chart(proc_url, stage_url) {
+function load_bioinformatics_chart() {
     chart.showLoading();
+
+    var proc_url = api_url + 'analysis_driver_procs';
     var start_date = moment.utc($('#date_from').val(), 'YYYY-MM-DD');
     var end_date = moment.utc($('#date_to').val(), 'YYYY-MM-DD');
     var include_stages = $('#include_stages').prop('checked');
@@ -84,6 +97,7 @@ function load_bioinformatics_chart(proc_url, stage_url) {
     });
 
     if (include_stages) {
+        var stage_url = api_url + 'analysis_driver_stages';
         var stage_filter = JSON.stringify({
             'date_started': {'$gt': start_date.format(api_datefmt)},
             'date_finished': {'$lt': end_date.format(api_datefmt)}

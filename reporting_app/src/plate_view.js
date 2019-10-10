@@ -1,18 +1,20 @@
+import _ from 'lodash';
+import Highcharts from 'highcharts';
 
-var chart, container_data;  // globals for the chart object and the container data to be plotted
+// globals for the chart object and the container data to be plotted
+var chart
 
 // pointer to the current metric being plotted
 var active_colour_metric;
 var colour_palette = Highcharts.getOptions().colors;
 
 // Artifact y coordinates, but plot them as x coordinates as per Lims UI
-var heatmap_y_category;
 
 // Global variable to hold the metrics that can be displayed in this plots
-var metrics = {};
+window.metrics = {};
 
 
-function build_series(colour_metric) {
+export function build_series(colour_metric) {
     // build an object to pass to Highcharts.heatmap.series, converting container QC data into an array of data points
     var series = {
         name: container_data[0]['id'],
@@ -40,7 +42,7 @@ function build_series(colour_metric) {
 }
 
 
-function init_heatmap(div_id, container_id, lims_url, qc_url, view_metrics, plate_type) {
+function init_heatmap(container_id, view_metrics, plate_type) {
     // Assign the metrics and create a button for each metric
     _.forEach(view_metrics, function(m) {
         var li = $('#button_' + m.name);
@@ -55,13 +57,13 @@ function init_heatmap(div_id, container_id, lims_url, qc_url, view_metrics, plat
     var heatmap_x_category;
     if (plate_type && plate_type == '384'){
         heatmap_x_category =  _.range(1, 25).map(function(a){ return a.toString()})
-        heatmap_y_category = 'ABCDEFGHIJKLMNOP'.split('')
+        window.heatmap_y_category = 'ABCDEFGHIJKLMNOP'.split('')
     }else{
         heatmap_x_category = _.range(1, 13).map(function(a){ return a.toString()})
-        heatmap_y_category = 'ABCDEFGH'.split('')
+        window.heatmap_y_category = 'ABCDEFGH'.split('')
     }
 
-    chart = Highcharts.chart(div_id, {
+    chart = Highcharts.chart('heatmap', {
         chart: {
             type: 'heatmap',
             marginTop: 40,
@@ -97,7 +99,7 @@ function init_heatmap(div_id, container_id, lims_url, qc_url, view_metrics, plat
 
 function load_data_to_chart(dt_settings, json){
     // function to transfer the data from the associated datatables after it finished loading
-    container_data = json.data;
+    window.container_data = json.data;
     chart.hideLoading();
 }
 

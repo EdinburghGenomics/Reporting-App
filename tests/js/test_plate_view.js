@@ -1,22 +1,20 @@
+import { build_series } from './plate_view.js';
 
-QUnit.test('build_series', function(assert) {
-    fake_renderer = function(metric) { return metric; };
-
-    container_data = [{
+test('build_series', () => {
+    window.container_data = [{
         'id': 'a_library',
         'location': 'A:1',
         'name': 'a_sample',
         'udf': {'a_udf': 13.37},
         'reporting_app': {'a_rest_api_metric': 13.38}
     }];
-    heatmap_y_category = 'ABCDEFGH';
-    metrics = {
+    window.heatmap_y_category = 'ABCDEFGH';
+    window.metrics = {
         'a_metric': {'data': ['reporting_app', 'a_rest_api_metric']},
         'another_metric': {'data': ['udf', 'a_udf']}
     };
 
-    assert.deepEqual(
-        build_series('a_metric', fake_renderer),
+    expect(build_series('a_metric')).toEqual(
         {
             name: 'a_library',
             dataLabels: {enabled: false},
@@ -25,9 +23,6 @@ QUnit.test('build_series', function(assert) {
             ]
         }
     );
-    assert.equal(
-        build_series('another_metric', fake_renderer)['data'][0]['value'],
-        13.37
-    );
+    expect(build_series('another_metric')['data'][0]['value']).toBe(13.37);
 });
 

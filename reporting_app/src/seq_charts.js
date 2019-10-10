@@ -1,3 +1,9 @@
+import _ from 'lodash';
+import $ from 'jquery';
+import moment from 'moment';
+import Highcharts from 'highcharts';
+import { api_url } from '../client.config.js';
+
 
 var colour_palette = Highcharts.getOptions().colors;
 
@@ -153,7 +159,7 @@ function _average_series(data, color_key, metric_path, metric_name, smooth_line)
     })
 }
 
-function init_lane_sequencing_metrics_chart(urls, merge_on, merge_properties, metric_list, color_list){
+function init_lane_sequencing_metrics_chart(time_str, merge_on, merge_properties, metric_list, color_list){
     // create the buttons for the metrics
     _.forEach(metric_list, function(m){
         var li = $('#button_' + m.name);
@@ -225,6 +231,17 @@ function init_lane_sequencing_metrics_chart(urls, merge_on, merge_properties, me
     });
     // Load the data and store it for later use
     chart.showLoading();
+
+    var urls = [
+        build_api_url(
+            api_url + 'lanes',
+            {max_results: 10000, where: JSON.stringify({'_created': {'$gte': time_str}})}
+        ),
+        build_api_url(
+            api_url + 'lims/run_status', {createddate: time_str}
+        )
+    ];
+
     ajax_call_function = merge_multi_sources_keep_first(urls, merge_on, merge_properties)
     ajax_call_function(null, function(json){
         lane_data = json['data']
