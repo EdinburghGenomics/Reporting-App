@@ -6,6 +6,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "bootstrap": "3.3.6",
     "highcharts": "7.1.2",
     "humanize-plus": "1.8.2",
     "jquery": "1.11.0",

@@ -1,5 +1,7 @@
 import _ from 'lodash';
 import $ from 'jquery';
+window.jQuery = $;  // Bootstrap implements modal by modifying the global object 'jQuery'
+require('bootstrap');
 import {render_data} from './column_formatter.js';
 import { auth_header, merge_multi_sources } from './utils.js';
 
