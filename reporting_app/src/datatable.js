@@ -2,9 +2,9 @@ import _ from 'lodash';
 import $ from 'jquery';
 window.jQuery = $;  // Bootstrap implements modal by modifying the global object 'jQuery'
 require('bootstrap');
-import {render_data} from './column_formatter.js';
+import { render_data } from './column_formatter.js';
 import { auth_header, merge_multi_sources } from './utils.js';
-
+import { load_data_to_chart } from './plate_view.js';
 
 // datatables specific functions for merge_multi_sources and merge_multi_sources_keep_first
 export var dt_merge_multi_sources = function(dt_config){
@@ -186,7 +186,7 @@ var _lims_review = function(dt_config, action_type, message_template) {
     }
 }
 
-export function create_datatable(dt_config){
+window.create_datatable = function(dt_config){
     //Sets default value using Lodash.js
     _.defaults(dt_config, {'buttons': 'defaults'});
     $(document).ready(function(){
@@ -274,6 +274,7 @@ var configure_dt = function(dt_config) {
 
     } else if (dt_config.ajax_call){
         // retrieve the function generating the ajax calls by name and call it with the config
+        console.log(dt_merge_multi_sources);
         ajax_call = get_function(dt_config.ajax_call.func_name)(dt_config);
     }
 
@@ -354,4 +355,25 @@ var sum_row_per_column = function( row, data, start, end, display ) {
         }
     });
 
+}
+
+const gettable_funcs = {
+    dt_merge_multi_sources: dt_merge_multi_sources,
+    dt_merge_multi_sources_keep_first: dt_merge_multi_sources_keep_first,
+    dt_merge_lims_container_and_qc_data: dt_merge_lims_container_and_qc_data,
+    required_yields: required_yields,
+    color_filter: color_filter,
+    color_data_source: color_data_source,
+    sum_row_per_column: sum_row_per_column,
+    load_data_to_chart: load_data_to_chart
+};
+
+//helper function to retrieve a function by name
+export function get_function(fn_name) {
+    var fn = gettable_funcs[fn_name];
+    if (typeof fn === 'function') {
+        return fn;
+    } else {
+        return null;
+    }
 }

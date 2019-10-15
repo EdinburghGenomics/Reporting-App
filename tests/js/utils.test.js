@@ -4,7 +4,7 @@ import {
     merge_on_key, merge_on_key_keep_first_sub_properties, merge_multi_sources, merge_lims_container_and_qc_data,
     test_exist, getPercentile, sum, average, count, extract, boxplot_values_outliers, format_time_period,
     format_y_boxplot, format_y_point, aggregate, depaginate
-} from './utils.js'
+} from '../../reporting_app/src/utils.js'
 
 
 test('merge_on_key', () => {

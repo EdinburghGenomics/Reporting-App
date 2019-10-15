@@ -1,6 +1,6 @@
 import {
     string_formatter, resolve_min_max_value, species_contamination_fmt, coverage_fmt, pipeline_used_fmt
-} from './column_formatter.js';
+} from '../../reporting_app/src/column_formatter.js';
 
 
 var row = {};

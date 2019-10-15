@@ -1,7 +1,7 @@
 import $ from 'jquery';
 window.jQuery = $;  // Bootstrap implements modal by modifying the global object 'jQuery'
 require('bootstrap');
-import { dt_merge_multi_sources, lims_run_review, required_yields, configure_buttons } from './datatable.js';
+import { dt_merge_multi_sources, lims_run_review, required_yields, configure_buttons } from '../../reporting_app/src/datatable.js';
 
 
 test('dt_merge_multi_sources', () => {

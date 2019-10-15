@@ -2,7 +2,7 @@ import moment from 'moment';
 import Humanize from 'humanize-plus';
 
 
-function render_data(data, type, row, meta, fmt) {
+export function render_data(data, type, row, meta, fmt) {
     if (!data && data !== 0) {
         return null;
     }

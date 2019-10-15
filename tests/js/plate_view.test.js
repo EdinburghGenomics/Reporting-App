@@ -1,4 +1,4 @@
-import { build_series } from './plate_view.js';
+import { build_series } from '../../reporting_app/src/plate_view.js';
 
 test('build_series', () => {
     window.container_data = [{

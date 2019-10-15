@@ -6,12 +6,15 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "bootstrap": "3.3.6",
+    "bootstrap": "^4.3.1",
     "highcharts": "7.1.2",
     "humanize-plus": "1.8.2",
     "jquery": "1.11.0",
     "lodash": "4.17.4",
-    "moment": "2.13.0"
+    "moment": "2.13.0",
+    "react": "^16.10.2",
+    "react-dom": "^16.10.2",
+    "reactstrap": "^8.0.1"
   },
   "devDependencies": {
     "babel-jest": "^24.9.0",
@@ -19,6 +22,7 @@
   },
   "scripts": {
     "test": "jest",
-    "flow": "flow check"
+    "flow": "flow check",
+    "build": "parcel build reporting_app/src/{login,main_page}.js -d reporting_app/static --public-url /static"
   }
 }

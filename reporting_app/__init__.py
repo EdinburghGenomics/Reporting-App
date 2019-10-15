@@ -39,6 +39,10 @@ def render_template(template, title=None, **context):
     return fl.render_template(template, title=title, version=version, **context)
 
 
+def render_react_template(app_name, title=None):
+    return fl.render_template('react_app.html', app=app_name, title=title)
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return auth.User.get(user_id)
@@ -46,7 +50,7 @@ def load_user(user_id):
 
 @login_manager.unauthorized_handler
 def unauthorised_handler():
-    return fl.redirect('/login?redirect=' + quote(fl.request.full_path, safe=()))
+    return fl.redirect('/login?source=' + quote(fl.request.path, safe=()))
 
 
 @login_manager.token_loader
@@ -59,39 +63,29 @@ def load_token(token_hash):
 @app.route('/')
 @flask_login.login_required
 def main_page():
-    return render_template('main_page.html', 'Main Page')
+    return render_react_template('main_page')
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if fl.request.method == 'GET':
-        return render_template(
-            'login.html',
-            'Login',
-            message='Welcome to the EGCG Reporting App. Log in here.',
-            redirect=quote(fl.request.args.get('redirect', ''), safe=())
-        )
+        return render_react_template('login', 'Login')
 
     username = fl.request.form['username']
-    redirect = fl.request.form['redirect']
+    redirect = unquote(fl.request.args.get('source', '/'))
     if auth.check_user_auth(username, fl.request.form['pw']):
         u = auth.User(username)
         flask_login.login_user(u, remember=True)
         app.logger.info("Logged in user '%s'", username)
         return fl.redirect(unquote(redirect))
 
-    return render_template(
-        'login.html',
-        'Login',
-        message='Bad login.',
-        redirect=redirect
-    )
+    return fl.redirect('/login?source=login_failed')
 
 
 @app.route('/logout')
 def logout():
     flask_login.logout_user()
-    return render_template('login.html', 'Logout', message='Logged out.')
+    return fl.redirect('/login?source=logged_out')
 
 
 @app.route('/change_password', methods=['GET', 'POST'])

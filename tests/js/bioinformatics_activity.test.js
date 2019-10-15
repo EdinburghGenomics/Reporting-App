@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { add_entity_running_days, build_bioinf_series } from './bioinformatics_activity.js';
+import { add_entity_running_days, build_bioinf_series } from '../../reporting_app/src/bioinformatics_activity.js';
 
 
 test('entity_running_days', () => {

@@ -2,15 +2,6 @@ import _ from 'lodash';
 import $ from 'jquery';
 import moment from 'moment';
 
-//helper function to retrieve a function by name
-export const get_function = function (fn_name){
-    var fn = window[fn_name];
-    if(typeof fn === 'function') {
-        return fn;
-    }else{
-        return null;
-    }
-}
 
 // Helper function to copy an object
 export function copy_obj(src) {
