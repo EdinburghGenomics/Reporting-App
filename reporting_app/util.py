@@ -1,6 +1,4 @@
 import datetime
-from collections import OrderedDict
-
 import flask_login
 from json import dumps
 import auth
@@ -58,8 +56,7 @@ def datatable_cfg(title, cols, api_url=None, ajax_call=None, default_sort_col=No
         'cols': resolve_cols(cols),
         'api_url': api_url,
         'ajax_call': ajax_call,
-        'default_sort_col': default_sort_col,
-        'token': get_token()
+        'default_sort_col': default_sort_col
     }
     d.update(kwargs)
 
@@ -85,10 +82,6 @@ def tab_set_cfg(title, tables):
         'name': snake_case(title),
         'tables': tables
     }
-
-
-def get_token():
-    return 'Token ' + auth.User.get_login_token()
 
 
 def capitalise(word):

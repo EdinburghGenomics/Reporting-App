@@ -39,7 +39,8 @@ class User(UserMixin):
     def get_auth_token(self):
         """Used by flask_login to set cookie/login token."""
         s = itsdangerous.TimedSerializer(current_app.secret_key)
-        return encode_string(s.dumps(self.username))
+        serialised_token = s.dumps(self.username)
+        return base64.b64encode(serialised_token.encode()).decode('utf-8')
 
     def exists(self):
         cursor.execute('SELECT count(id) FROM users WHERE id=?', (self.username,))
@@ -65,10 +66,6 @@ class User(UserMixin):
 
 def hash_pw(text):
     return sha256(text.encode()).digest()
-
-
-def encode_string(text):
-    return base64.b64encode(text.encode()).decode('utf-8')
 
 
 def check_user_auth(username, pw):
@@ -111,7 +108,9 @@ class DualAuth(TokenAuth):
                 return a and self.check_auth(a, allowed_roles, resource, method)
 
     def check_auth(self, token_hash, allowed_roles, resource, method):
-        return check_login_token(token_hash)
+        uid = check_login_token(token_hash)
+        if User(uid).exists():
+            return True
 
 
 def admin_users(argv=None):

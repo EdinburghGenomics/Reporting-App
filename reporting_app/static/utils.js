@@ -85,16 +85,15 @@ var merge_on_key_keep_first_sub_properties = function (list_of_array, key, list_
 
 // Create a function that send multiple ajax queries then merge the results based using merge_func callback
 // api_urls: [url1, url2, ...]
-// token: the token used for authentication
 // merging_key: property name to merge on
 // func_name: the function used to merge the different results from the ajax calls.
-var _merge_multi_sources = function(api_urls, token, merging_key, merge_func, merged_properties){
+var _merge_multi_sources = function(api_urls, merging_key, merge_func, merged_properties){
     return function(data, callback, settings){
         // Create a list of ajax calls
         var calls = api_urls.map( function(api_url){
             return $.ajax({
                 url: api_url,
-                headers: {'Authorization':  token },
+                headers: auth_header(),
                 dataType: 'json',
                 async: true,
             });
@@ -118,28 +117,26 @@ var _merge_multi_sources = function(api_urls, token, merging_key, merge_func, me
 
 // Create a function that send multiple ajax queries then merge the results keeping all entries (outer join)
 // api_urls: [url1, url2, ...]
-// token: the token used for authentication
 // merging_key: property name to merge on
-var merge_multi_sources = function(api_urls, token, merging_key){
-    return _merge_multi_sources(api_urls, token, merging_key, merge_on_key);
+var merge_multi_sources = function(api_urls, merging_key){
+    return _merge_multi_sources(api_urls, merging_key, merge_on_key);
 }
 
 // Create a function that send multiple ajax queries then merge the results keeping entries form the first (left inner join)
 // api_urls: [url1, url2, ...]
-// token: the token used for authentication
 // merging_key: property name to merge on
-var merge_multi_sources_keep_first = function(api_urls, token, merging_key, merged_properties){
-    return _merge_multi_sources(api_urls, token, merging_key, merge_on_key_keep_first_sub_properties, merged_properties);
+var merge_multi_sources_keep_first = function(api_urls, merging_key, merged_properties){
+    return _merge_multi_sources(api_urls, merging_key, merge_on_key_keep_first_sub_properties, merged_properties);
 }
 
 // Create a function that will query the Lims endpoint for a single container,
 // then it will retrieve all sample_id and make a query to the qc_url the results will me merged on sample_id.
-function merge_lims_container_and_qc_data(lims_url, qc_url, token) {
+function merge_lims_container_and_qc_data(lims_url, qc_url) {
     return function(data, callback, settings){
         $.ajax(
         {
             url: lims_url,
-            headers: {'Authorization': token},
+            headers: auth_header(),
             dataType: 'json',
             success: function(result) {
                 var merged_results = result.data;
@@ -155,7 +152,7 @@ function merge_lims_container_and_qc_data(lims_url, qc_url, token) {
                 $.ajax(
                     {
                         url: qc_url + '?where={"$or":[' + sample_queries.join(',') + ']}&max_results=1000',
-                        headers: {'Authorization': token},
+                        headers: auth_header(),
                         dataType: 'json',
                         success: function(result) {
                             _.forEach(result.data, function(sample_qc) {
@@ -331,3 +328,83 @@ function format_point_tooltip(series_name, x, y, time_period, prefix,  suffix, n
 }
 
 
+function depaginate(baseurl, queries, callback) {
+    $.ajax({
+        url: build_api_url(baseurl, queries),
+        headers: auth_header(),
+        dataType: 'json',
+        success: function(initial_response) {
+            var total_pages = Math.ceil(initial_response._meta.total / initial_response._meta.max_results);
+            var data = initial_response.data;
+
+            if (total_pages <= 1) {  // no data, or only 1 page - no depagination needed
+                callback(data);
+            } else {
+                console.log('Depaginating ' + total_pages + ' pages from ' + baseurl + ', ' + JSON.stringify(queries));
+                var extra_pages = total_pages - 1;
+
+                if (extra_pages == 1) {  // only page 2 to get
+                    var _queries = JSON.parse(JSON.stringify(queries));
+                    _queries['page'] = 2;
+                    $.ajax({
+                        url: build_api_url(baseurl, _queries),
+                        headers: auth_header(),
+                        dataType: 'json',
+                        success: function(response) {
+                            // we already know the request was successful, so reponse is just the response text
+                            data = data.concat(response.data);
+                            callback(data);
+                        }
+                    });
+                } else {  // >2 more pages to get - pass through $.when
+                    var calls = _.map(_.range(2, total_pages + 1), function(p) {
+                        var _queries = JSON.parse(JSON.stringify(queries));
+                        _queries['page'] = p;
+                        return $.ajax({
+                            url: build_api_url(baseurl, _queries),
+                            headers: auth_header(),
+                            dataType: 'json'
+                        });
+                    });
+                    $.when.apply($, calls).then(function() {
+                        _.forEach(arguments, function(response) {
+                            // dealing with deferred requests, which could be successful or not, so response is an
+                            // object of response text, status and response object
+                            data = data.concat(response[0].data);
+                        });
+                        callback(data);
+                    });
+                }
+            }
+        }
+    });
+}
+
+
+function build_api_url(baseurl, query_args) {
+    // baseurl: str - base url for the query
+    // query_args: object - key/value pairs to pass into the query string
+    // e.g, build_api_url('localhost:5000', {'max_results': 25, 'page': 2});
+
+    var query_string = [];
+    _.forIn(query_args, function(v, k) {query_string.push(k + '=' + v)});
+
+    if (query_string) {
+        baseurl += '?' + query_string.join('&');
+    }
+    return baseurl
+}
+
+
+function auth_header() {
+    var parts = {};
+    var token;
+    var split_cookie = document.cookie.split(';');
+    for (var i=0; i<split_cookie.length; i++) {
+        var split_part = split_cookie[i].split('=');
+        if (split_part[0] == 'remember_token') {
+            token = split_part[1];
+        }
+    }
+    return {'Authorization': 'Token ' + token};
+}

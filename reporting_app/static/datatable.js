@@ -2,7 +2,6 @@
 var dt_merge_multi_sources = function(dt_config){
     return merge_multi_sources(
         dt_config.ajax_call.api_urls,
-        dt_config.token,
         dt_config.ajax_call.merge_on,
         dt_config.ajax_call.merged_properties
     );
@@ -11,7 +10,6 @@ var dt_merge_multi_sources = function(dt_config){
 var dt_merge_multi_sources_keep_first = function(dt_config){
     return merge_multi_sources_keep_first(
         dt_config.ajax_call.api_urls,
-        dt_config.token,
         dt_config.ajax_call.merge_on,
         dt_config.ajax_call.merged_properties
     );
@@ -20,8 +18,7 @@ var dt_merge_multi_sources_keep_first = function(dt_config){
 var dt_merge_lims_container_and_qc_data = function(dt_config){
     return merge_lims_container_and_qc_data(
         dt_config.ajax_call.lims_url,
-        dt_config.ajax_call.qc_url,
-        dt_config.token
+        dt_config.ajax_call.qc_url
     )
 }
 
@@ -32,7 +29,7 @@ var required_yields = function(dt_config) {
         $.ajax(
             {
                 url: dt_config.ajax_call.api_url,
-                headers: {'Authorization': dt_config.token},
+                headers: auth_header(),
                 dataType: 'json',
                 async: false,
                 success: function(result) { response = result; }
@@ -153,7 +150,7 @@ var _lims_review = function(dt_config, action_type, message_template) {
                     'action_type': action_type
                 },
                 async: true,
-                headers: {'Authorization': dt_config.token},
+                headers: auth_header(),
                 success: function(json) {
                     // on success write the link to the message div and change it to a success alert
                     var link = $('<a />', {href : json.data.action_info.lims_url, text:json.data.action_info.lims_url});
@@ -262,7 +259,7 @@ var configure_dt = function(dt_config) {
     var ajax_call = {
         'url': dt_config.api_url,
         'dataSrc': 'data',
-        'headers': {'Authorization': dt_config.token}
+        'headers': auth_header()
     }
     if (dt_config.data){
         ajax_call = null;

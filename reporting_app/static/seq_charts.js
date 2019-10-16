@@ -153,7 +153,7 @@ function _average_series(data, color_key, metric_path, metric_name, smooth_line)
     })
 }
 
-function init_lane_sequencing_metrics_chart(urls, token, merge_on, merge_properties, metric_list, color_list){
+function init_lane_sequencing_metrics_chart(urls, merge_on, merge_properties, metric_list, color_list){
     // create the buttons for the metrics
     _.forEach(metric_list, function(m){
         var li = $('#button_' + m.name);
@@ -225,7 +225,7 @@ function init_lane_sequencing_metrics_chart(urls, token, merge_on, merge_propert
     });
     // Load the data and store it for later use
     chart.showLoading();
-    ajax_call_function = merge_multi_sources_keep_first(urls, token, merge_on, merge_properties)
+    ajax_call_function = merge_multi_sources_keep_first(urls, merge_on, merge_properties)
     ajax_call_function(null, function(json){
         lane_data = json['data']
         // Remove lanes from runs where the Run did not complete
@@ -270,19 +270,3 @@ function render_lane_sequencing_metrics_chart(metric_id, color_id, plot_type){
         }
     });
 }
-
-// Load the ajax call and call the call back method
-function load_ajax_call(url, token, callback){
-    $.ajax({
-        url: url,
-        dataType: "json",
-        async: true,
-        headers: {'Authorization': token},
-        success: function(json) {
-            if (callback !== undefined){
-                callback(json);
-            }
-        }
-    });
-}
-

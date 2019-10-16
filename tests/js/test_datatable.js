@@ -106,7 +106,7 @@ QUnit.test('required_yields', function(assert) {
         captured_result = cfg;
     };
 
-    var _required_yields = required_yields({'ajax_call': {'api_url': 'a_url'}, 'token': 'a_token'});
+    var _required_yields = required_yields({'ajax_call': {'api_url': 'a_url'}});
     _required_yields(undefined, fake_callback, undefined);
 
     assert.deepEqual(

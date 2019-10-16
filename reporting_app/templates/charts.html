@@ -57,7 +57,6 @@
     <script>
         init_lane_sequencing_metrics_chart(
             {{ api_urls|tojson|safe }},
-            '{{ ajax_token|safe }}',
             '{{ merge_on }}',
             {{ merge_properties|tojson|safe  }},
             {{ metric_options|tojson|safe }},
