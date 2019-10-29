@@ -2,7 +2,8 @@ import operator
 from datetime import datetime
 from collections import defaultdict
 from cached_property import cached_property
-from config import project_status as status_cfg
+
+from config import project_status as status_cfg, rest_config as cfg
 from rest_api.limsdb.queries import format_date
 
 
@@ -31,7 +32,11 @@ class ProjectInfo:
         self.open_date = None
         self.close_date = None
         self.researcher_name = None
-        self.nb_quoted_samples = None
+        self.udfs = {}
+
+    @property
+    def nb_quoted_samples(self):
+        return self.udfs.get('Number of Quoted Samples')
 
     @property
     def status(self):
@@ -48,6 +53,7 @@ class ProjectInfo:
             'project_status': self.status,
             'researcher_name': self.researcher_name,
             'nb_quoted_samples': self.nb_quoted_samples,
+            'udfs': self.udfs
         }
         return ret
 
@@ -323,59 +329,85 @@ class Run:
         self.udfs = {}
         self.samples = set()
         self.projects = set()
+        self.lanes = defaultdict(set)
 
     def to_json(self):
         return {
             'created_date': format_date(self.created_date),
             'cst_date': format_date(self.cst_date),
-            'run_id': self.udfs['RunID'],
-            'run_status': self.udfs['Run Status'],
+            'run_id': self.udfs.get('RunID'),
+            'run_status': self.udfs.get('Run Status'),
             'sample_ids': sorted(list(self.samples)),
             'project_ids': sorted(list(self.projects)),
-            'instrument_id': self.udfs['InstrumentID'],
-            'nb_reads': self.udfs['Read'],
-            'nb_cycles': self.udfs['Cycle']
+            'lanes': list(self.lanes.values()),
+            'instrument_id': self.udfs.get('InstrumentID'),
+            'nb_reads': self.udfs.get('Read'),
+            'nb_cycles': self.udfs.get('Cycle')
         }
 
 
-class LibraryPreparation:
+class StepContainer:
+    """Representation of the container as a way to aggregate multiple step."""
     def __init__(self):
         self.id = None
         self.type = None
-        self.qpcrs = defaultdict(QPCR)
+        self.specific_steps = defaultdict(SpecificStep)
 
     def to_json(self):
-        most_recent_qpcr = sorted(self.qpcrs.values(), key=lambda p: p.date_run, reverse=True)[0]
+        most_recent_step = sorted(self.specific_steps.values(), key=lambda p: p.date_run, reverse=True)[0]
         projects = set()
         data = {
             'id': self.id,
-            'qpcrs_run': len(self.qpcrs),
-            'date_completed': format_date(most_recent_qpcr.date_run),
-            'placements': {},
-            'type': status_cfg.protocol_names.get(self.type, 'unknown'),
-            'nsamples': len(most_recent_qpcr.placements)
+            'step_link': cfg['lims_url'] + '/clarity/work-complete/' + str(most_recent_step.id),
+            'step_run': len(self.specific_steps),
+            'date_completed': format_date(most_recent_step.date_run),
+            'samples': [],
+            'protocol': status_cfg.protocol_names.get(self.type, self.type),
+            'nsamples': len(most_recent_step.artifacts)
         }
 
         passing_samples = 0
-        for k, v in most_recent_qpcr.placements.items():
+        for k, v in sorted(most_recent_step.artifacts.items()):
             projects.add(v.project_id)
-            data['placements']['%s:%s' % k] = v.to_json()
+            data['samples'].append(v.to_json())
             if v.qc_flag == 'PASSED':
                 passing_samples += 1
 
-        data['pc_qc_flag_pass'] = (passing_samples / len(most_recent_qpcr.placements)) * 100
+        data['pc_qc_flag_pass'] = (passing_samples / len(most_recent_step.artifacts)) * 100
         data['project_ids'] = sorted(projects)
         return data
 
+    def to_flatten_json(self):
+        most_recent_step = sorted(self.specific_steps.values(), key=lambda p: p.date_run, reverse=True)[0]
+        data = []
+        for artifact in most_recent_step.artifacts.values():
+            element = {
+                'id': self.id,
+                'step_link': cfg['lims_url'] + '/clarity/work-complete/' + str(most_recent_step.id),
+                'step_run': len(self.specific_steps),
+                'date_completed': format_date(most_recent_step.date_run),
+                'protocol': status_cfg.protocol_names.get(self.type, self.type),
+                'project': artifact.project_id,
+            }
+            element.update(artifact.to_json())
+            data.append(element)
+        return data
 
-class QPCR:
+
+class SpecificStep:
+    """Representation of the specific step which contains the artifact so it can support multiple processes."""
     def __init__(self):
         self.id = None
         self.date_run = None
-        self.placements = defaultdict(Library)
+        self.artifacts = defaultdict(Artifact)
 
 
-class Library:
+class Artifact:
+    """
+    Representation of the input artifacts used in the specific step. It is assume that only one artifact per sample
+    will be used.
+    """
+
     state_map = {
         0: 'UNKNOWN',
         1: 'PASSED',
@@ -384,7 +416,8 @@ class Library:
 
     def __init__(self):
         self.name = None
-        self.library_qc = {}
+        self.location = None
+        self.udfs = {}
         self.states = {}
         self.project_id = None
 
@@ -401,7 +434,8 @@ class Library:
     def to_json(self):
         return {
             'name': self.name,
-            'library_qc': self.library_qc,
+            'location': self.location,
+            'udfs': self.udfs,
             'qc_flag': self.qc_flag,
             'project_id': self.project_id
         }

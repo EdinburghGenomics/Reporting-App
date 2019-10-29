@@ -1,21 +1,46 @@
 metrics_def:
-    pc_q30:                   { title: '%Q30',                 path: 'aggregated.pc_q30' }
-    pc_optical_duplicates:    { title: '% optical duplicates', path: 'aggregated.pc_opt_duplicate_reads' }
-    pc_duplicates:            { title: '% duplicates',         path: 'aggregated.pc_duplicate_reads' }
-    pc_adaptor:               { title: '% adaptor',            path: 'aggregated.pc_adaptor' }
-    pc_pass_filter:           { title: '%PF',                  path: 'aggregated.pc_pass_filter' }
-    prephasing_r1:            { title: 'Prephasing R1',        path: 'interop_metrics.prephasing_r1' }
-    prephasing_r2:            { title: 'Prephasing R2',        path: 'interop_metrics.prephasing_r2' }
-    phasing_r1:               { title: 'Phasing R1',           path: 'interop_metrics.phasing_r1' }
-    phasing_r2:               { title: 'Phasing R2',           path: 'interop_metrics.phasing_r2' }
-    intensity_c1_r1:          { title: 'Intensity Cycle1',     path: 'interop_metrics.intensity_c1_r1' }
-    pc_error_r1:              { title: '% Error rate R1',      path: 'interop_metrics.pc_error_r1' }
-    pc_error_r2:              { title: '% Error rate R2',      path: 'interop_metrics.pc_error_r2' }
-    nothing:                  { title: 'No color',             path: '' }
-    lane_number:              { title: 'Lane',                 path: 'lane_number' }
-    sequencer:                { title: 'Sequencer',            path: 'sequencer' }
-    sequencer_stage:          { title: 'Sequencer/Stage',      path: 'sequencer_stage' }
-    pool:                     { title: 'Pooling',              path: 'pool' }
+    pc_q30:                   { title: '%Q30',                       data: 'aggregated.pc_q30', fmt: { type: 'percentage', min: 75 } }
+    pc_optical_duplicates:    { title: '% optical duplicates',       data: 'aggregated.pc_opt_duplicate_reads', fmt: { type: 'percentage', max: 35 } }
+    pc_duplicates:            { title: '% duplicates',               data: 'aggregated.pc_duplicate_reads', fmt: { type: 'percentage', max: 35 } }
+    pc_adaptor:               { title: '% adaptor',                  data: 'aggregated.pc_adaptor', fmt: { type: 'percentage' } }
+    pc_pass_filter:           { title: '%PF',                        data: 'aggregated.pc_pass_filter', fmt: { type: 'percentage' } }
+    prephasing_r1:            { title: 'Prephasing R1',              data: 'interop_metrics.prephasing_r1', fmt: { type: 'float' } }
+    prephasing_r2:            { title: 'Prephasing R2',              data: 'interop_metrics.prephasing_r2', fmt: { type: 'float' } }
+    phasing_r1:               { title: 'Phasing R1',                 data: 'interop_metrics.phasing_r1', fmt: { type: 'float' } }
+    phasing_r2:               { title: 'Phasing R2',                 data: 'interop_metrics.phasing_r2', fmt: { type: 'float' } }
+    intensity_c1_r1:          { title: 'Intensity Cycle1',           data: 'interop_metrics.intensity_c1_r1', fmt: { type: 'float' } }
+    pc_error_r1:              { title: '% Error rate R1',            data: 'interop_metrics.pc_error_r1', fmt: { type: 'float' } }
+    pc_error_r2:              { title: '% Error rate R2',            data: 'interop_metrics.pc_error_r2', fmt: { type: 'float' } }
+    nothing:                  { title: 'No color',                   data: '' }
+    lane_number:              { title: 'Lane',                       data: 'lane_number', fmt: { type: 'int' } }
+    sequencer:                { title: 'Sequencer',                  data: 'sequencer' }
+    sequencer_stage:          { title: 'Sequencer/Stage',            data: 'sequencer_stage' }
+    pool:                     { title: 'Pooling',                    data: 'pool' }
+
+    pc_mapped_reads:          { title: '% mapped reads',             data: 'bioinformatics_qc.aggregated.pc_mapped_reads', fmt: { type: 'percentage' }  }
+    species:                  { title: 'Species',                    data: 'bioinformatics_qc.species_name', type: 'category' }
+    matching_species:         { title: 'Matching species',           data: 'bioinformatics_qc.aggregated.matching_species', type: 'category' }
+    het_hom_ratio:            { title: 'Het/hom ratio',              data: 'bioinformatics_qc.sample_contamination.het_hom_ratio', fmt: { type: 'float' } }
+    freemix:                  { title: 'Freemix',                    data: 'bioinformatics_qc.sample_contamination.freemix', fmt: { type: 'float' } }
+    genotype_match:           { title: 'Genotype match',             data: 'bioinformatics_qc.aggregated.genotype_match', type: 'category' }
+    gc_bias_mean_dev:         { title: 'GC bias (mean deviation)',   data: 'bioinformatics_qc.aggregated.from_all_run_elements.gc_bias.mean_deviation' }
+    gc_bias_slope:            { title: 'GC bias (slope)',            data: 'bioinformatics_qc.aggregated.from_all_run_elements.gc_bias.slope' }
+    mean_insert_size:         { title: 'Mean insert size',           data: 'bioinformatics_qc.aggregated.from_all_run_elements.mean_insert_size', fmt: { type: 'float' } }
+    library_size:             { title: 'Picard est. lib size',       data: 'bioinformatics_qc.aggregated.from_all_run_elements.picard_est_lib_size', fmt: { type: 'int' } }
+    av_conc:                  { title: 'Ave. Conc. (nM)',            data: 'udfs.Ave. Conc. (nM)', fmt: { type: 'float' } }
+    pc_cv:                    { title: '%CV',                        data: 'udfs.%CV', fmt: { type: 'percentage' }  }
+    raw_cp:                   { title: 'Raw CP',                     data: 'udfs.Raw CP', fmt: { type: 'float' } }
+    ntp_volume:               { title: 'NTP Volume (uL)',            data: 'udfs.NTP Volume (uL)', fmt: { type: 'float' } }
+    adjusted_conc:            { title: 'Adjusted Conc. (nM)',        data: 'udfs.Adjusted Conc. (nM)', fmt: { type: 'float' }, visible: 'false' }
+    original_conc:            { title: 'Original Conc. (nM)',        data: 'udfs.Original Conc. (nM)', fmt: { type: 'float' }, visible: 'false' }
+    ntp_transfer_vol:         { title: 'NTP Transfer Volume (uL)',   data: 'udfs.NTP Transfer Volume (uL)', fmt: { type: 'float' }, visible: 'false' }
+    rsb_transfer_vol:         { title: 'RSB Transfer Volume (uL)',   data: 'udfs.RSB Transfer Volume (uL)', fmt: { type: 'float' }, visible: 'false' }
+    sample_transfer_vol:      { title: 'Sample Transfer Volume (uL)', data: 'udfs.Sample Transfer Volume (uL)', fmt: { type: 'float' }, visible: 'false' }
+    tsp1_transfer_vol:        { title: 'TSP1 Transfer Volume (uL)',  data: 'udfs.TSP1 Transfer Volume (uL)', fmt: { type: 'float' }, visible: 'false' }
+    qc_flag:                  { title: 'QC flag',                    data: 'qc_flag',    type: 'category' }
+    project_id:               { title: 'Project ID',                 data: 'project_id', type: 'category', fmt: { link: '/projects/' } }
+    nb_call:                  { title: 'Nb calls',                   data: 'udfs.Number of Calls (This Run)' }
+    best_nb_call:             { title: 'Best nb calls',              data: 'udfs.Number of Calls (Best Run)' }
 
 
 seq_plot_metrics:
@@ -38,3 +63,40 @@ seq_plot_colors:
     - sequencer
     - sequencer_stage
     - pool
+
+
+library_plot_metrics:
+    - qc_flag
+    - project_id
+    - av_conc
+    - pc_cv
+    - raw_cp
+    - ntp_volume
+    - adjusted_conc
+    - original_conc
+    - ntp_transfer_vol
+    - rsb_transfer_vol
+    - sample_transfer_vol
+    - tsp1_transfer_vol
+    - { metrics_def: pc_q30,  data: 'bioinformatics_qc.aggregated.pc_q30' }
+    - pc_mapped_reads
+    - species
+    - matching_species
+    - het_hom_ratio
+    - freemix
+    - genotype_match
+    - { metrics_def: pc_optical_duplicates, data: 'bioinformatics_qc.aggregated.from_all_run_elements.pc_opt_duplicate_reads' }
+    - { metrics_def: pc_duplicates,  data: 'bioinformatics_qc.aggregated.from_all_run_elements.pc_duplicate_reads' }
+    - gc_bias_mean_dev
+    - gc_bias_slope
+    - { metrics_def: pc_adaptor, data: 'bioinformatics_qc.aggregated.from_all_run_elements.pc_adaptor' }
+    - mean_insert_size
+    - library_size
+
+
+genotype_plot_metrics:
+    - project_id
+    - nb_call
+    - best_nb_call
+    - genotype_match
+

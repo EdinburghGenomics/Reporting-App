@@ -1,0 +1,35 @@
+{% extends 'untabbed_datatables.html' %}
+
+{% block head %}
+    {{ super() }}
+<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css"/>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/heatmap.js"></script>
+    <script src="{{ url_for('static', filename='plate_view.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+
+{{ super() }}
+
+<br/>
+
+<div class="btn-group">
+    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <span id="selected_metric">Metric</span> <span class="caret"></span>
+    </button>
+    <ul id="qc_options" class="dropdown-menu">
+        {% for m in plate_view_metrics %}
+            <li id="button_{{ m.name }}"></li>
+        {% endfor %}
+    </ul>
+</div>
+
+<div id="heatmap" style="width: 80%; margin: auto;" class="heatmap"></div>
+
+<script>
+    init_heatmap('heatmap', '{{ container_id }}', '{{ lims_url }}', '{{ qc_url }}',
+                 {{ plate_view_metrics|tojson|safe }}, '{{ plate_type }}');
+</script>
+
+{% endblock %}

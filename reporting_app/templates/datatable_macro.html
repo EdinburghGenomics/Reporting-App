@@ -1,6 +1,13 @@
 {% macro datatable(dt_config, set_title) -%}
 {# args: dt_config containing title, name, cols, api_url, default_dort_col, paging, searching, info, etc #}
+
 {% set set_title = set_title|default(True) %}
+
+<!-- Set the collapse keyword to "in" by default and check the collapse parameter -->
+{% set collapse_in = 'in' %}
+{% if dt_config.collapse|default(false) %}
+    {% set collapse_in = '' %}
+{% endif %}
 
 {% if set_title %}
     <h2>
@@ -8,11 +15,13 @@
             {{ dt_config.title }}
         </a>
     </h2>
+{% else %}
+    <!-- Ensure that if the title does not exist the div is displayed -->
+    {% set collapse_in = 'in' %}
 {% endif %}
 
-<script type="text/javascript" language="JavaScript">create_datatable({{ dt_config|tojson|safe }})</script>
 
-<div id="{{ dt_config.name }}-container" class="collapse in">
+<div id="{{ dt_config.name }}-container" class="collapse {{ collapse_in }}">
     <table id="{{ dt_config.name }}" class="table table-hover table-condensed table-responsive table-striped">
         <thead>
             <tr>
@@ -32,4 +41,18 @@
         {% endif %}
     </table>
 </div>
+
+<script type="text/javascript" language="JavaScript">
+    // If the table is collapsed only create the datatable when it is shown
+    {% if dt_config.collapse|default(false) %}
+        $("#{{ dt_config.name }}-container").on('show.bs.collapse', function(){
+            if ( ! $.fn.DataTable.isDataTable( "#{{ dt_config.name }}" ) ) {
+                create_datatable({{ dt_config|tojson|safe }})
+            }
+        });
+    {% else %}
+        create_datatable({{ dt_config|tojson|safe }})
+    {% endif %}
+
+</script>
 {%- endmacro %}

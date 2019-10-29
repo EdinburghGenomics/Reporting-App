@@ -45,7 +45,10 @@ def get_project_info(session, project_name=None, project_status='open', udfs=Non
     q = add_filters(q, project_name=project_name, project_status=project_status)
     if udfs:
         q = q.distinct(t.Project.name, t.EntityUdfView.udfname)
-        q = q.filter(or_(t.EntityUdfView.udfname.in_(udfs), t.EntityUdfView.udfname == None))
+        if udfs == 'all':
+            q = q.filter(t.EntityUdfView.udfvalue != None)
+        else:
+            q = q.filter(or_(t.EntityUdfView.udfname.in_(udfs), t.EntityUdfView.udfname == None))
     return q.all()
 
 
@@ -169,7 +172,8 @@ def runs_info(session, time_since=None, run_ids=None, run_status=None):
             .filter(t.ProcessType.displayname == 'AUTOMATED - Sequence').subquery('s')
 
     q = session.query(t.Process.createddate, t.Process.processid, t.ProcessUdfView.udfname,
-                      t.ProcessUdfView.udfvalue, t.ContainerPlacement.wellyposition, t.Sample.name, t.Project.name) \
+                      t.ProcessUdfView.udfvalue, t.ContainerPlacement.wellyposition, t.Artifact.artifactid,
+                      t.Sample.name, t.Project.name) \
         .join(t.Process.type) \
         .join(t.Process.udfs) \
         .join(t.Process.processiotrackers) \
@@ -190,6 +194,21 @@ def runs_info(session, time_since=None, run_ids=None, run_status=None):
 
     results = q.all()
     return results
+
+
+def artifact_reagent_labels(session, artifacts):
+    """
+    Retrieve all artifacts' ancestors with their samples and reagent labels.
+    Only the one that occurs once are an accurate representation of the sample/reagent label relationship.
+    """
+    # second artifact table to join artifacts with their ancestors
+    ancestors_artifact = aliased(t.Artifact)
+    q = session.query(t.Artifact.artifactid, ancestors_artifact.luid, t.ReagentLabel.name, t.Sample.name) \
+        .join(ancestors_artifact, t.Artifact.ancestors) \
+        .join(ancestors_artifact.reagentlabels) \
+        .join(ancestors_artifact.samples)
+    q = q.filter(t.Artifact.artifactid.in_(artifacts))
+    return q.all()
 
 
 def runs_cst(session, time_since=None, run_ids=None, run_status=None):
@@ -248,42 +267,98 @@ def runs_cst(session, time_since=None, run_ids=None, run_status=None):
     return results
 
 
-def library_info(session, time_from=None, time_to=None, library_id=None):
+def step_info(session, step_name, project_name=None, sample_name=None, time_from=None, time_to=None,
+              container_name=None, artifact_udfs=None, sample_udfs=None, output_udfs=None, allow_missing_sample_udfs=False):
     """
-    Get a join of artifact UDFs, plate coordinates and QC flags for all Eval qPCR Quant processes - filterable to a
-    library ID or date range.
+    Get a join of artifact UDFs, plate coordinates and QC flags for all step of the provided name - filterable to a
+     project, sample name, container name or date range.
     """
-
-    q = session.query(t.Process.luid, t.Process.daterun, t.Container.name, t.LabProtocol.protocolname,
+    q = session.query(t.Process.processid, t.Process.daterun, t.Container.name, t.LabProtocol.protocolname,
                       t.ArtifactState.qcflag, t.ArtifactState.lastmodifieddate, t.Sample.name, t.Project.name,
-                      t.ContainerPlacement.wellxposition, t.ContainerPlacement.wellyposition, t.ArtifactUdfView.udfname,
-                      t.ArtifactUdfView.udfvalue)\
+                      t.ContainerPlacement.wellxposition, t.ContainerPlacement.wellyposition)\
         .join(t.Process.type)\
         .join(t.Process.protocolstep)\
         .join(t.ProtocolStep.labprotocol)\
         .join(t.Process.processiotrackers)\
-        .join(t.ProcessIOTracker.artifact) \
-        .join(t.Artifact.udfs)\
+        .join(t.ProcessIOTracker.artifact)\
         .join(t.Artifact.containerplacement)\
         .join(t.Artifact.samples)\
         .join(t.Artifact.states)\
         .join(t.Sample.project)\
         .join(t.ContainerPlacement.container)\
-        .filter(t.ProcessType.displayname == 'Eval qPCR Quant')\
-        .filter(t.ArtifactUdfView.udfname.in_(
-            ['Original Conc. (nM)', 'Sample Transfer Volume (uL)', 'TSP1 Transfer Volume (uL)', '%CV',
-             'NTP Volume (uL)', 'Raw CP', 'RSB Transfer Volume (uL)', 'NTP Transfer Volume (uL)', 'Ave. Conc. (nM)',
-             'Adjusted Conc. (nM)', 'Original Conc. (nM)', 'Sample Transfer Volume (uL)',
-             'TSP1 Transfer Volume (uL)']))\
-        .filter(t.ArtifactUdfView.udfvalue != None)
+        .filter(t.ProcessType.displayname == step_name)
 
-    if library_id:
-        q = q.filter(t.Container.name == library_id)
-    else:
-        if time_from:
-            q = q.filter(t.Process.daterun > func.date(time_from))
+    if artifact_udfs:
+        q = q.join(t.Artifact.udfs)\
+            .filter(t.ArtifactUdfView.udfname.in_(artifact_udfs))\
+            .filter(t.ArtifactUdfView.udfvalue != None)
+        q = q.add_columns(t.ArtifactUdfView.udfname, t.ArtifactUdfView.udfvalue)
 
-        if time_to:
-            q = q.filter(t.Process.daterun < func.date(time_to))
+    if output_udfs:
+        output_artifact = aliased(t.Artifact)
+        q = q.join(t.ProcessIOTracker.output)\
+            .join(output_artifact, t.OutputMapping.outputartifactid == output_artifact.artifactid) \
+            .join(output_artifact.udfs) \
+            .filter(t.ArtifactUdfView.udfname.in_(output_udfs)) \
+            .filter(t.ArtifactUdfView.udfvalue != None)
+        q = q.add_columns(t.ArtifactUdfView.udfname, t.ArtifactUdfView.udfvalue)
 
+    if sample_udfs:
+        q = q.join(t.Sample.udfs)
+        # Allow udfname to be None as some sample will not have any of the UDF
+        if allow_missing_sample_udfs:
+            q = q.filter(or_(t.SampleUdfView.udfname.in_(sample_udfs), t.SampleUdfView.udfname == None))
+        else:
+            q = q.filter(t.SampleUdfView.udfname.in_(sample_udfs)) \
+                .filter(t.SampleUdfView.udfvalue != None)
+        q = q.add_columns(t.SampleUdfView.udfname, t.SampleUdfView.udfvalue)
+
+    if container_name:
+        q = q.filter(t.Container.name == container_name)
+
+    if time_from:
+        q = q.filter(t.Process.daterun > func.date(time_from))
+
+    if time_to:
+        q = q.filter(t.Process.daterun < func.date(time_to))
+
+    q = add_filters(q, project_name=project_name, sample_name=sample_name)
+    return q.all()
+
+
+def step_info_with_output(session, step_name, project_name=None, sample_name=None, time_from=None, time_to=None,
+              container_name=None, artifact_udfs=None):
+    """
+    Get a join of output artifact UDFs, for all step of the provided name - filterable to a
+     project, sample name, container name or date range.
+    """
+
+    q = session.query(t.Process.luid, t.Process.daterun, t.ProcessIOTracker.inputartifactid,
+                      t.Sample.name, t.Project.name, t.Artifact.luid)\
+        .join(t.Process.type)\
+        .join(t.Process.processiotrackers) \
+        .join(t.ProcessIOTracker.artifact) \
+        .join(t.Artifact.samples)\
+        .join(t.Sample.project)\
+        .filter(t.ProcessType.displayname == step_name)\
+
+    if artifact_udfs:
+        output_artifact = aliased(t.Artifact)
+        q = q.join(t.ProcessIOTracker.output)\
+            .join(output_artifact, t.OutputMapping.outputartifactid == output_artifact.artifactid) \
+            .join(output_artifact.udfs) \
+            .filter(t.ArtifactUdfView.udfname.in_(artifact_udfs)) \
+            .filter(t.ArtifactUdfView.udfvalue != None)
+        q = q.add_columns(t.ArtifactUdfView.udfname, t.ArtifactUdfView.udfvalue)
+
+    if container_name:
+        q = q.filter(t.Container.name == container_name)
+
+    if time_from:
+        q = q.filter(t.Process.daterun > func.date(time_from))
+
+    if time_to:
+        q = q.filter(t.Process.daterun < func.date(time_to))
+
+    q = add_filters(q, project_name=project_name, sample_name=sample_name)
     return q.all()

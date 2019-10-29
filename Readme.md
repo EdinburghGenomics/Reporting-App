@@ -1,6 +1,5 @@
 # EGCG Reporting App
 [![travis](https://img.shields.io/travis/EdinburghGenomics/Reporting-App/master.svg)](https://travis-ci.org/EdinburghGenomics/Reporting-App)
-[![landscape](https://landscape.io/github/EdinburghGenomics/Reporting-App/master/landscape.svg)](https://landscape.io/github/EdinburghGenomics/Reporting-App)
 [![GitHub issues](https://img.shields.io/github/issues/EdinburghGenomics/Reporting-App.svg)](https://github.com/EdinburghGenomics/Reporting-App/issues)
 [![Coverage Status](https://coveralls.io/repos/github/EdinburghGenomics/Reporting-App/badge.svg)](https://coveralls.io/github/EdinburghGenomics/Reporting-App)
 
@@ -108,9 +107,6 @@ the image, navigate to this directory and run:
 
 `docker build -t <image_name> .`
 
-It is possible to do this without altering `reporting.yaml`, but there would not be any valid Lims connection.
-There are two ways to fix this: you can either edit `reporting.yaml` before building, or supply a different
-config at run time using Docker volumes.
 
 Having built the image, you should now be able to run a container and query its Rest API through `egcg_core`:
 
@@ -130,10 +126,18 @@ If you start up a container as above with no volumes mounted, the Rest API will 
 at /opt/users.sqlite and an internal NoSQL database at the MongoDB default location of /data/db. You can keep
 the container completely isolated like this, or link it to databases on your host system with Docker volumes.
 
-For example, to start a container with our own databases and tag v0.9.2 of the app:
+For example, to start a container with our own databases you need a local directory containing the following files:
+  
+  - `data_for_clarity_lims.yaml`: If you want to load data to the lims databases so that data is available on the lims endpoints
+  - `users.sqlite`: If you want to specify a user database
+  - `db`: directory containing a mongodb database
 
-    docker run -v path/to/my_user_db.sqlite:/opt/users.sqlite -v path/to/my_nosql_db:/data/db <image_name> v0.9.2
 
+    docker run -v path/to/local_directory:/opt/etc  <image_name>
+
+You can specify a tag v0.9.2 from git:
+
+    docker run <image_name> v0.9.2
 
 ## Dependencies
 - a running MongoDB database

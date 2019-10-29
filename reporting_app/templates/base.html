@@ -29,6 +29,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" crossorigin="anonymous"></script>
     {% endblock %}
     {% endblock %}
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 
 <body>
@@ -88,16 +89,25 @@
                             <li><a href="/libraries/all">All</a></li>
                         </ul>
                     </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genotyping<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/genotypes/recent">Recent</a></li>
+                            <li><a href="/genotypes/current_year">Current year</a></li>
+                            <li><a href="/genotypes/last_12_months">Last 12 months</a></li>
+                            <li><a href="/genotypes/all">All</a></li>
+                        </ul>
+                    </li>
                     <li><a href="/species">Species</a></li>
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">Charts<b class="caret"></b></a>
                         <ul class="dropdown-menu">
-                            <h6 class="dropdown-header">Seq metrics</h6>
+                            <li><a href="/charts/tat">Turnaround metrics</a></li>
+                            <li><a href="/charts/bioinformatics">Bioinformatics pipeline activity</a></li>
+                            <li class="dropdown-header"><b>Sequencing metrics</b></li>
                             <li><a href="/charts/seq/last_month">Last 30 days</a></li>
                             <li><a href="/charts/seq/last_3_months">Last 3 months</a></li>
                             <li><a href="/charts/seq/last_12_months">Last 12 months</a></li>
-                            <h6 class="dropdown-header">TAT metric</h6>
-                            <li><a href="/charts/tat">Since start</a></li>
                         </ul>
                     </li>
                     <li class="dropdown">

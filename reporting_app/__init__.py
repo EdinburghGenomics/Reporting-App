@@ -7,8 +7,9 @@ import subprocess
 
 import auth
 from reporting_app import util
+from reporting_app.util import resolve_cols
 from rest_api import settings
-from config import reporting_app_config as cfg, project_status as project_status_cfg, chart_metrics_mappings
+from config import reporting_app_config as cfg, project_status as project_status_cfg
 
 app = fl.Flask(__name__)
 app.secret_key = cfg['key'].encode()
@@ -324,12 +325,51 @@ def report_project(project_ids):
                 ]
             }
         }
+        library_info_call = {
+            'ajax_call': {
+                'func_name': 'dt_merge_multi_sources',
+                'merge_on': 'library_id',
+                'api_urls': [
+                    util.construct_url('lims/library_info', match={'project_id': id_list[i]})
+                    for i in id_list
+                ]
+            }
+        }
+        sample_qc_info_call = {
+            'ajax_call': {
+                'func_name': 'dt_merge_multi_sources',
+                'merge_on': 'library_id',
+                'api_urls': [
+                    util.construct_url('lims/sample_qc_info', match={'project_id': id_list[i]})
+                    for i in id_list
+                ]
+            }
+        }
+        genotyping_info_call = {
+            'ajax_call': {
+                'func_name': 'dt_merge_multi_sources',
+                'merge_on': 'library_id',
+                'api_urls': [
+                    util.construct_url('lims/genotyping_info', match={'project_id': id_list[i]})
+                    for i in id_list
+                ]
+            }
+        }
     else:
         project_status_call = {
             'api_url': util.construct_url('lims/project_status', match={'project_id': id_list[0], 'project_status': 'all'})
         }
         plate_status_call = {
             'api_url': util.construct_url('lims/plate_status', match={'project_id': id_list[0], 'project_status': 'all'})
+        }
+        library_info_call = {
+            'api_url': util.construct_url('lims/library_info', match={'project_id': id_list[0]})
+        }
+        sample_qc_info_call = {
+            'api_url': util.construct_url('lims/sample_qc_info', match={'project_id': id_list[0]})
+        }
+        genotyping_info_call = {
+            'api_url': util.construct_url('lims/genotyping_info', match={'project_id': id_list[0]})
         }
 
     procs = []
@@ -365,7 +405,53 @@ def report_project(project_ids):
                 'plate_status',
                 minimal=True,
                 default_sort_col='plate_id',
+                collapse=True,
                 **plate_status_call
+            ),
+            util.datatable_cfg(
+                'Sample QC for ' + project_ids,
+                'sample_qc',
+                minimal=True,
+                default_sort_col='date_completed',
+                child_datatable=util.datatable_cfg(
+                    '',  # No title provided
+                    'sample_qc_child',
+                    data_source='samples',  # Where to find the data of the child datatable
+                    name_source='id',  # Where to find the name of the child datatable
+                    minimal=True
+                ),
+                collapse=True,
+                **sample_qc_info_call
+            ),
+            util.datatable_cfg(
+                'Libraries preparations for ' + project_ids,
+                'libraries',
+                minimal=True,
+                default_sort_col='date_completed',
+                child_datatable=util.datatable_cfg(
+                    '',  # No title provided
+                    'libraries_child',
+                    data_source='samples',  # Where to find the data of the child datatable
+                    name_source='id',  # Where to find the name of the child datatable
+                    minimal=True
+                ),
+                collapse=True,
+                **library_info_call
+            ),
+            util.datatable_cfg(
+                'Genotyping for ' + project_ids,
+                'genotyping',
+                minimal=True,
+                default_sort_col='date_completed',
+                child_datatable=util.datatable_cfg(
+                    '',  # No title provided
+                    'genotyping_child',
+                    data_source='samples',  # Where to find the data of the child datatable
+                    name_source='id',  # Where to find the name of the child datatable
+                    minimal=True
+                ),
+                collapse=True,
+                **genotyping_info_call
             ),
             util.datatable_cfg(
                 'Bioinformatics report for ' + project_ids,
@@ -392,6 +478,30 @@ def report_sample(sample_id):
         sample_id + ' Sample Report',
         include_review_modal=True,
         tables=[
+            util.datatable_cfg(
+                'Sample QC for ' + sample_id,
+                'sample_qc_child_flatten',
+                minimal=True,
+                default_sort_col='sample_id',
+                api_url=util.construct_url('lims/sample_qc_info', match={'sample_id': sample_id}, flatten=True),
+                collapse=True
+            ),
+            util.datatable_cfg(
+                'Libraries preparations for ' + sample_id,
+                'libraries_child_flatten',
+                minimal=True,
+                default_sort_col='sample_id',
+                api_url=util.construct_url('lims/library_info', match={'sample_id': sample_id}, flatten=True),
+                collapse=True
+            ),
+            util.datatable_cfg(
+                'Genotyping for ' + sample_id,
+                'genotyping_child_flatten',
+                minimal=True,
+                default_sort_col='sample_id',
+                api_url=util.construct_url('lims/genotyping_info', match={'sample_id': sample_id}, flatten=True),
+                collapse=True
+            ),
             util.datatable_cfg(
                 'Bioinformatics report for ' + sample_id,
                 'samples',
@@ -432,10 +542,19 @@ def report_sample(sample_id):
     )
 
 
-@app.route('/libraries/<view_type>')
+@app.route('/<step_type>/<view_type>')
 @flask_login.login_required
-def libraries(view_type):
-    query_params = {'max_results': 10000}
+def step_view(step_type, view_type):
+    if step_type == 'libraries':
+        endpoint = 'library_info'
+        columns = 'libraries'
+        child_columns = 'libraries_child'
+    elif step_type == 'genotypes':
+        endpoint = 'genotyping_info'
+        columns = 'genotyping'
+        child_columns = 'genotyping_child'
+    else:
+        fl.abort(404)
 
     time_ago = None
     if view_type == 'recent':
@@ -452,18 +571,26 @@ def libraries(view_type):
         fl.abort(404)
         return None
 
+    query_params = {}
     if time_ago:
         query_params['time_from'] = time_ago.strftime(settings.DATE_FORMAT)
 
-    title = util.capitalise(view_type).replace('_', ' ') + ' Libraries'
+    title = util.capitalise(view_type).replace('_', ' ') + ' ' + util.capitalise(step_type)
     return render_template(
         'untabbed_datatables.html',
         title,
         table=util.datatable_cfg(
             title,
-            'libraries',
-            util.construct_url('lims/library_info', **query_params),
-            default_sort_col='-library_date_completed'
+            columns,
+            util.construct_url('lims/' + endpoint, **query_params),
+            default_sort_col='-date_completed',
+            child_datatable=util.datatable_cfg(
+                '',  # No title provided
+                child_columns,
+                data_source='samples', # Where to find the data of the child datatable
+                name_source='id',  # Where to find the name of the child datatable
+                minimal=True
+            )
         )
     )
 
@@ -472,18 +599,48 @@ def libraries(view_type):
 @flask_login.login_required
 def plot_library(library):
     return render_template(
-        'library.html',
+        'plate_view.html',
         'Library ' + library,
         table=util.datatable_cfg(
             'Library ' + library,
-            'libraries',
-            util.construct_url('lims/library_info', match={'library_id': library}),
-            minimal=True
+            ['simple_plot_child', 'library_plot_metrics'],
+            ajax_call={
+                'func_name': 'dt_merge_lims_container_and_qc_data',
+                'lims_url': util.construct_url('lims/library_info', match={'container_id': library}, flatten=True),
+                'qc_url': util.construct_url('samples'),
+            },
+            initComplete='load_data_to_chart',
+            page_length=10
         ),
-        library=library,
+        container_id=library,
         qc_url=util.construct_url('samples'),
-        lims_url=util.construct_url('lims/library_info'),
-        ajax_token=util.get_token()
+        lims_url=util.construct_url('lims/genotyping_info'),
+        plate_view_metrics=resolve_cols('library_plot_metrics')
+    )
+
+
+@app.route('/genotype/<genotype>')
+@flask_login.login_required
+def plot_genotyping(genotype):
+    return render_template(
+        'plate_view.html',
+        'Genotyping: ' + genotype,
+        table=util.datatable_cfg(
+            'Genotyping ' + genotype,
+            ['simple_plot_child', 'genotype_plot_metrics'],
+            ajax_call={
+                'func_name': 'dt_merge_lims_container_and_qc_data',
+                'lims_url': util.construct_url('lims/genotyping_info', match={'container_id': genotype}, flatten=True),
+                'qc_url': util.construct_url('samples'),
+            },
+            initComplete='load_data_to_chart',
+            page_length=10
+        ),
+        container_id=genotype,
+        qc_url=util.construct_url('samples'),
+        lims_url=util.construct_url('lims/genotyping_info'),
+        plate_view_metrics=resolve_cols('genotype_plot_metrics'),
+        plate_type='384'
     )
 
 
@@ -602,11 +759,10 @@ def sequencing_charts(view_type):
             util.construct_url('lanes', max_results=10000, where={'_created': {'$gte': time_str}}),
             util.construct_url('lims/run_status', createddate=time_str),
         ],
-        ajax_token=util.get_token(),
         merge_on='run_id',
         merge_properties=['run'],
-        metric_options=chart_metrics_mappings.get('seq_plot_metrics'),
-        color_options=chart_metrics_mappings.get('seq_plot_colors')
+        metric_options=resolve_cols('seq_plot_metrics'),
+        color_options=resolve_cols('seq_plot_colors')
     )
 
 
@@ -616,6 +772,16 @@ def tat_charts():
     return render_template(
         'tat_charts.html',
         'Turn around time charts',
-        api_url=util.construct_url('lims/sample_status', match={'project_status': 'all'}),
-        ajax_token=util.get_token()
+        api_url=util.construct_url('lims/sample_status', match={'project_status': 'all'})
+    )
+
+
+@app.route('/charts/bioinformatics')
+@flask_login.login_required
+def bioinformatics_activity():
+    return render_template(
+        'bioinformatics_activity.html',
+        'Bioinformatics pipeline activity',
+        proc_base=util.construct_url('analysis_driver_procs'),
+        stage_base=util.construct_url('analysis_driver_stages')
     )

@@ -2,7 +2,6 @@
 var dt_merge_multi_sources = function(dt_config){
     return merge_multi_sources(
         dt_config.ajax_call.api_urls,
-        dt_config.token,
         dt_config.ajax_call.merge_on,
         dt_config.ajax_call.merged_properties
     );
@@ -11,11 +10,18 @@ var dt_merge_multi_sources = function(dt_config){
 var dt_merge_multi_sources_keep_first = function(dt_config){
     return merge_multi_sources_keep_first(
         dt_config.ajax_call.api_urls,
-        dt_config.token,
         dt_config.ajax_call.merge_on,
         dt_config.ajax_call.merged_properties
     );
 }
+
+var dt_merge_lims_container_and_qc_data = function(dt_config){
+    return merge_lims_container_and_qc_data(
+        dt_config.ajax_call.lims_url,
+        dt_config.ajax_call.qc_url
+    )
+}
+
 
 var required_yields = function(dt_config) {
     return function(data, callback, settings) {
@@ -23,7 +29,7 @@ var required_yields = function(dt_config) {
         $.ajax(
             {
                 url: dt_config.ajax_call.api_url,
-                headers: {'Authorization': dt_config.token},
+                headers: auth_header(),
                 dataType: 'json',
                 async: false,
                 success: function(result) { response = result; }
@@ -144,7 +150,7 @@ var _lims_review = function(dt_config, action_type, message_template) {
                     'action_type': action_type
                 },
                 async: true,
-                headers: {'Authorization': dt_config.token},
+                headers: auth_header(),
                 success: function(json) {
                     // on success write the link to the message div and change it to a success alert
                     var link = $('<a />', {href : json.data.action_info.lims_url, text:json.data.action_info.lims_url});
@@ -181,8 +187,46 @@ function create_datatable(dt_config){
             new $.fn.dataTable.Buttons(table, {'buttons': configure_buttons(dt_config)});
             table.buttons().container().prependTo(table.table().container());
         }
+
+        // Suport for datatables inserted in each datatable rows
+        if (dt_config.child_datatable){
+            // Add event listener for opening and closing details
+            table.on('click', 'td.details-control', function () {
+                var tr = $(this).closest('tr');
+                var row = table.row( tr );
+
+                if ( row.child.isShown() ) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                }
+                else {
+                    // Open this row
+                    format_child_row(row, dt_config.child_datatable);
+                    tr.addClass('shown');
+                }
+            });
+        }
     });
 }
+
+function format_child_row(row, dt_config, data){
+    var data = row.data();
+    dt_config.data = _.get(data, dt_config.data_source);
+    dt_config.name = _.get(data, dt_config.name_source);
+    // Create the html for the table header
+    var table_str = '<table id="'+ dt_config.name +'" class="table table-hover table-condensed table-responsive table-striped">'
+    table_str += '<thead><tr>'
+    dt_config.cols.forEach(function(col){
+        table_str += '<th>' + col.title + '</th>'
+    });
+    table_str += '</tr></thead></table>'
+    // attach and show the table
+    row.child(table_str).show();
+    // Create the datatable
+    $('#' + dt_config.name).DataTable(configure_dt(dt_config));
+}
+
 
 // Configure the buttons for datatable
 var configure_buttons = function(dt_config){
@@ -215,14 +259,19 @@ var configure_dt = function(dt_config) {
     var ajax_call = {
         'url': dt_config.api_url,
         'dataSrc': 'data',
-        'headers': {'Authorization': dt_config.token}
+        'headers': auth_header()
     }
-    if (dt_config.ajax_call){
+    if (dt_config.data){
+        ajax_call = null;
+
+    } else if (dt_config.ajax_call){
         // retrieve the function generating the ajax calls by name and call it with the config
         ajax_call = get_function(dt_config.ajax_call.func_name)(dt_config);
     }
+
     return {
         'dt_config': dt_config,
+        'data': dt_config.data,
         'fixedHeader': dt_config.fixed_header,
         'paging': dt_config.paging,
         'searching': dt_config.searching,
@@ -232,7 +281,7 @@ var configure_dt = function(dt_config) {
         'autoWidth': false,
         'stateSave': String(dt_config.state_save).toLowerCase() == 'true',
         'lengthMenu': [[10, 25, 50, -1], [10, 25, 50, 'All']],
-        'pageLength': 25,
+        'pageLength': dt_config.page_length || 25,
         'select': dt_config.select,
         'ajax': ajax_call,
         'language': {'processing': '<i class="fa fa-refresh fa-spin">'},
@@ -258,7 +307,8 @@ var configure_dt = function(dt_config) {
         ),
         'order': [dt_config.default_sort_col],
         'footerCallback': get_function(dt_config.table_foot),
-        'createdRow': get_function(dt_config.create_row)
+        'createdRow': get_function(dt_config.create_row),
+        'initComplete': get_function(dt_config.initComplete)
     }
 }
 
@@ -276,7 +326,7 @@ var sum_row_per_column = function( row, data, start, end, display ) {
                        solution arises.
                      */
                     if (b instanceof Object){
-                        return b.samples.length;
+                        return a + b.samples.length;
                     }
                     else if (b.constructor === Array){
                         return a + b.length;
