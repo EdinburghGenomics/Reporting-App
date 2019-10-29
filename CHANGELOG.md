@@ -2,10 +2,14 @@ Changelog for Reporting-App
 ===========================
 
 
-0.23 (unreleased)
+0.23 (2019-10-29)
 -----------------
 
-- Nothing changed yet.
+- Bioinformatics activity trending - new page showing number of concurrent pipeline processes over time
+- Samplesheet information is now available via the endpoint `lims/run_status`
+- Adds the ability to load data into the LIMS database from a YAML file when using a SQLite back end
+- Makes the library plate view generic and adds the ability to view genotyping plates. Adds a summary table to both these views
+- Adds library information to sample and project pages
 
 
 0.22 (2019-07-09)
