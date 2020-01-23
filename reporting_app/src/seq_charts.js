@@ -2,7 +2,6 @@ import _ from 'lodash';
 import $ from 'jquery';
 import moment from 'moment';
 import Highcharts from 'highcharts';
-import { api_url } from '../client.config.js';
 
 
 var colour_palette = Highcharts.getOptions().colors;
@@ -234,11 +233,11 @@ function init_lane_sequencing_metrics_chart(time_str, merge_on, merge_properties
 
     var urls = [
         build_api_url(
-            api_url + 'lanes',
+            'lanes',
             {max_results: 10000, where: JSON.stringify({'_created': {'$gte': time_str}})}
         ),
         build_api_url(
-            api_url + 'lims/run_status', {createddate: time_str}
+            'lims/run_status', {createddate: time_str}
         )
     ];
 

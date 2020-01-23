@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import $ from 'jquery';
 import moment from 'moment';
+import { api_url } from '../client.config.js';
 
 
 // Helper function to copy an object
@@ -323,9 +324,26 @@ export function format_point_tooltip(series_name, x, y, time_period, prefix,  su
 }
 
 
-export function depaginate(baseurl, queries, callback) {
+// Load an ajax call and call the callback method
+export function load_ajax_call(endpoint, queries, callback) {
+    let url = build_api_url(endpoint, queries);
     $.ajax({
-        url: build_api_url(baseurl, queries),
+        url: url,
+        dataType: "json",
+        async: true,
+        headers: auth_header(),
+        success: function(json) {
+            if (callback !== undefined){
+                callback(json);
+            }
+        }
+    });
+}
+
+
+export function depaginate(endpoint, queries, callback) {
+    $.ajax({
+        url: build_api_url(endpoint, queries),
         headers: auth_header(),
         dataType: 'json',
         success: function(initial_response) {
@@ -335,14 +353,14 @@ export function depaginate(baseurl, queries, callback) {
             if (total_pages <= 1) {  // no data, or only 1 page - no depagination needed
                 callback(data);
             } else {
-                console.log('Depaginating ' + total_pages + ' pages from ' + baseurl + ', ' + JSON.stringify(queries));
+                console.log('Depaginating ' + total_pages + ' pages from ' + endpoint + ', ' + JSON.stringify(queries));
                 var extra_pages = total_pages - 1;
 
                 if (extra_pages == 1) {  // only page 2 to get
                     var _queries = JSON.parse(JSON.stringify(queries));
                     _queries['page'] = 2;
                     $.ajax({
-                        url: build_api_url(baseurl, _queries),
+                        url: build_api_url(endpoint, _queries),
                         headers: auth_header(),
                         dataType: 'json',
                         success: function(response) {
@@ -356,7 +374,7 @@ export function depaginate(baseurl, queries, callback) {
                         var _queries = JSON.parse(JSON.stringify(queries));
                         _queries['page'] = p;
                         return $.ajax({
-                            url: build_api_url(baseurl, _queries),
+                            url: build_api_url(endpoint, _queries),
                             headers: auth_header(),
                             dataType: 'json'
                         });
@@ -376,13 +394,15 @@ export function depaginate(baseurl, queries, callback) {
 }
 
 
-export function build_api_url(baseurl, query_args) {
-    // baseurl: str - base url for the query
+export function build_api_url(endpoint, query_args) {
+    // endpoint: str - API endpoint for the query
     // query_args: object - key/value pairs to pass into the query string
     // e.g, build_api_url('localhost:5000', {'max_results': 25, 'page': 2});
 
     var query_string = [];
     _.forIn(query_args, function(v, k) {query_string.push(k + '=' + v)});
+
+    var baseurl = api_url + endpoint;
 
     if (query_string) {
         baseurl += '?' + query_string.join('&');
@@ -402,4 +422,9 @@ export function auth_header() {
         }
     }
     return {'Authorization': 'Token ' + token};
+}
+
+
+export function capitalise(string) {
+    return string[0].toUpperCase() + string.slice(1);
 }

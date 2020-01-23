@@ -7,6 +7,7 @@
   "private": true,
   "dependencies": {
     "bootstrap": "^4.3.1",
+    "datatables.net": "^1.10.20",
     "highcharts": "7.1.2",
     "humanize-plus": "1.8.2",
     "jquery": "1.11.0",
@@ -23,6 +24,7 @@
   "scripts": {
     "test": "jest",
     "flow": "flow check",
-    "build": "parcel build reporting_app/src/{login,main_page}.js -d reporting_app/static --public-url /static"
+    "build": "parcel build reporting_app/src/{login,main_page,runs_view}.js -d reporting_app/static --public-url /static",
+    "devbuild": "parcel build reporting_app/src/{login,main_page,runs_view}.js --no-minify -d reporting_app/static --public-url /static"
   }
 }

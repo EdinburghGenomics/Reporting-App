@@ -2,8 +2,7 @@ import _ from 'lodash';
 import $ from 'jquery';
 import moment from 'moment';
 import Highcharts from 'highcharts';
-import { build_api_url, auth_header, depaginate } from './utils.js'
-import { api_url } from '../client.config.js';
+import { depaginate } from './utils.js'
 
 
 var api_datefmt = 'DD_MM_YYYY_00:00:00';  // parse API timestamps as 00:00:00 that day
@@ -69,7 +68,6 @@ function init_bioinformatics_chart() {
 function load_bioinformatics_chart() {
     chart.showLoading();
 
-    var proc_url = api_url + 'analysis_driver_procs';
     var start_date = moment.utc($('#date_from').val(), 'YYYY-MM-DD');
     var end_date = moment.utc($('#date_to').val(), 'YYYY-MM-DD');
     var include_stages = $('#include_stages').prop('checked');
@@ -81,7 +79,7 @@ function load_bioinformatics_chart() {
         'start_date': {'$gt': start_date.format(api_datefmt)},
         'end_date': {'$lt': end_date.format(api_datefmt)}
     });
-    depaginate(proc_url, {where: proc_filter, max_results: 1000}, function(all_procs) {
+    depaginate('analysis_driver_procs', {where: proc_filter, max_results: 1000}, function(all_procs) {
         var split_procs = {
             'run': [],
             'sample': [],
@@ -97,12 +95,11 @@ function load_bioinformatics_chart() {
     });
 
     if (include_stages) {
-        var stage_url = api_url + 'analysis_driver_stages';
         var stage_filter = JSON.stringify({
             'date_started': {'$gt': start_date.format(api_datefmt)},
             'date_finished': {'$lt': end_date.format(api_datefmt)}
         });
-        depaginate(stage_url, {where: stage_filter, max_results: 1000}, function(all_stages) {
+        depaginate('analysis_driver_stages', {where: stage_filter, max_results: 1000}, function(all_stages) {
             var split_stages = {
                 'run': [],
                 'sample': [],

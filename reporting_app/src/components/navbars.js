@@ -33,9 +33,9 @@ export class EGNavbar extends React.Component {
                             <DropdownToggle nav caret>Runs</DropdownToggle>
                             <DropdownMenu right>
                                 <DropdownItem><a href="/runs/recent">Recent</a></DropdownItem>
-                                <DropdownItem><a href="current_year">Current year</a></DropdownItem>
-                                <DropdownItem><a href="last_12_months">Last 12 months</a></DropdownItem>
-                                <DropdownItem><a href="all">All</a></DropdownItem>
+                                <DropdownItem><a href="/runs/current_year">Current year</a></DropdownItem>
+                                <DropdownItem><a href="/runs/last_12_months">Last 12 months</a></DropdownItem>
+                                <DropdownItem><a href="/runs/all">All</a></DropdownItem>
                             </DropdownMenu>
                         </UncontrolledDropdown>
 

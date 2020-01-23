@@ -186,7 +186,7 @@ var _lims_review = function(dt_config, action_type, message_template) {
     }
 }
 
-window.create_datatable = function(dt_config){
+create_datatable = function(dt_config){
     //Sets default value using Lodash.js
     _.defaults(dt_config, {'buttons': 'defaults'});
     $(document).ready(function(){

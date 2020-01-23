@@ -340,7 +340,7 @@ test('depagination', () => {
 
     // full depagination of >2 pages
     var obs = null;
-    depaginate('http://base_url', {}, function(data) { obs = data;});
+    depaginate('an_endpoint', {}, function(data) { obs = data;});
     expect(obs).toEqual(['sample_1', 'sample_2', 'sample_3', 'sample_4', 'sample_5']);
     expect(fake_ajax_calls).toBe(3);
 
@@ -351,7 +351,7 @@ test('depagination', () => {
         {data: ['sample_1', 'sample_2'], _meta: {total: 3, max_results: 2}},
         {data: ['sample_3']}
     ];
-    depaginate('http://base_url', {}, function(data) { obs = data;});
+    depaginate('an_endpoint', {}, function(data) { obs = data;});
     expect(obs).toEqual(['sample_1', 'sample_2', 'sample_3']);
     expect(fake_ajax_calls).toBe(2);
 
@@ -361,7 +361,7 @@ test('depagination', () => {
     fake_ajax_calls = 0;
     fake_ajax_responses = [{data: ['sample_1', 'sample_2'], _meta: {total: 2, max_results:2}}];
 
-    depaginate('http://base_url', {}, function(data) { obs = data;});
+    depaginate('an_endpoint', {}, function(data) { obs = data;});
     expect(obs).toEqual(['sample_1', 'sample_2']);
     expect(fake_ajax_calls).toBe(1);
 

@@ -2,8 +2,7 @@ import _ from 'lodash';
 import $ from 'jquery';
 import moment from 'moment';
 import Highcharts from 'highcharts';
-import { build_api_url, auth_header, depaginate } from './utils.js'
-import { api_url } from '../client.config.js';
+import { auth_header, load_ajax_call } from './utils.js'
 
 
 var colour_palette = Highcharts.getOptions().colors;
@@ -162,30 +161,10 @@ function all_tat_charts(json){
 }
 
 
-
-// Load the ajax call and call the call back method
-function load_ajax_call(url, callback){
-    $.ajax({
-        url: url,
-        dataType: "json",
-        async: true,
-        headers: auth_header(),
-        success: function(json) {
-            if (callback !== undefined){
-                callback(json);
-            }
-        }
-    });
-}
-
 // Load the ajax call and call the call back method then show a div and hide the loading message
 function load_graph(callback){
     $('#loadingmessage').show();
-    var url = build_api_url(
-        api_url + 'lims/sample_status',
-        {match: JSON.stringify({'project_status': 'all'})}
-    );
-    load_ajax_call(url, function(json){
+    load_ajax_call('lims/sample_status', {match: JSON.stringify({'project_status': 'all'})}, function(json){
         if (callback !== undefined){
             callback(json);
         }

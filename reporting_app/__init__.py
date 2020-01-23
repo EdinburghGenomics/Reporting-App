@@ -104,6 +104,9 @@ def change_password():
 @app.route('/runs/<view_type>')
 @flask_login.login_required
 def runs_report(view_type):
+    # not sure how much client- or server-side logic should be involved here
+    return render_react_template('runs_view', 'Runs view')
+
     ajax_call = {'func_name': 'dt_merge_multi_sources', 'merge_on': 'run_id'}
 
     if view_type == 'all':
