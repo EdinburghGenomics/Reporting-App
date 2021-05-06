@@ -1,5 +1,5 @@
 Eve==0.8
-Flask-Cors==2.1.2
+Flask-Cors==3.0.9
 Flask-Login==0.3.2
 Flask-PyMongo==0.4.1
 itsdangerous>=0.24
